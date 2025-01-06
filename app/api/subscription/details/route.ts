@@ -26,7 +26,11 @@ export async function GET(req: Request) {
     return NextResponse.json({
       subscriptionStatus: user.subscriptionStatus,
       currentPeriodEnd: user.currentPeriodEnd,
-      plan: user.plan,
+      plan: {
+        id: user.plan?.id,
+        name: user.plan?.name,
+        description: user.plan?.description,
+      },
       cancelAtPeriodEnd: user.cancelAtPeriodEnd,
     });
   } catch (error) {
