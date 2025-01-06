@@ -14,7 +14,7 @@ export function signJWT(payload: any) {
 
   return {
     token,
-    expirationDate: expirationInSeconds,
+    expiry: expirationInSeconds,
   };
 }
 
