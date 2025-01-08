@@ -11,6 +11,7 @@ import {
   Video,
 } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const HomePage = () => {
   const router = useRouter();
@@ -29,7 +30,7 @@ const HomePage = () => {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-5xl font-bold mb-6">Common</h1>
+            <h1 className="text-6xl font-bold mb-6">Common</h1>
           </motion.div>
           <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-green-500 to-yellow-500 text-transparent bg-clip-text">
             Valuable Products for Regular People
@@ -108,6 +109,24 @@ const HomePage = () => {
           <button className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full inline-flex items-center">
             Contact Common <ShieldChevron className="ml-2" />
           </button>
+        </div>
+      </section>
+
+      {/* Footer */}
+
+      <section className="container mx-auto px-4 py-16">
+        <div>
+          <ul className="flex flex-row gap-5">
+            <li>
+              <Link href="/stunts/privacy-policy/">Privacy Policy</Link>
+            </li>
+            <li>
+              <Link href="/stunts/terms-of-service/">Terms of Service</Link>
+            </li>
+            <li>
+              <Link href="/stunts/shopping-policies/">Shopping Policies</Link>
+            </li>
+          </ul>
         </div>
       </section>
     </div>
