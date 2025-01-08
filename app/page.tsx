@@ -10,6 +10,7 @@ import {
   Clock,
   Video,
 } from "@phosphor-icons/react";
+import PricingTable from "@/components/PricingTable";
 
 const HomePage = () => {
   return (
@@ -88,6 +89,11 @@ const HomePage = () => {
             </p>
           </div>
         </div>
+      </section>
+
+      {/** Pricing Table */}
+      <section className="container mx-auto px-4 py-16">
+        <PricingTable />
       </section>
 
       {/* Call to Action */}
