@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Play,
@@ -12,8 +12,15 @@ import {
 } from "@phosphor-icons/react";
 import PricingTable from "@/components/PricingTable";
 import Link from "next/link";
+import AuthForm from "@/components/AuthForm";
 
 const HomePage = () => {
+  const [formVisible, setFormVisible] = useState(false);
+
+  const handleGetStarted = () => {
+    setFormVisible(true);
+  };
+
   return (
     <>
       {/* Hero Section */}
@@ -38,12 +45,25 @@ const HomePage = () => {
             and intuitive keyframe generation.
           </p>
           <div className="flex justify-center gap-4">
-            <button className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full flex items-center">
+            <button
+              className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full flex items-center"
+              onClick={handleGetStarted}
+            >
               Get Started <ShieldChevron className="ml-2" />
             </button>
             <button className="border border-red-500 text-red-500 hover:bg-red-500/10 px-8 py-3 rounded-full flex items-center">
               Watch Demo <Play className="ml-2 w-4 h-4" />
             </button>
+          </div>
+          <div className="flex justify-center gap-4 mt-10">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              hidden={!formVisible}
+            >
+              <AuthForm type="register" />
+            </motion.div>
           </div>
         </div>
       </header>
