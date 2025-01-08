@@ -12,6 +12,7 @@ import {
 } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Footer from "@/components/Footer";
 
 const HomePage = () => {
   const router = useRouter();
@@ -114,21 +115,7 @@ const HomePage = () => {
 
       {/* Footer */}
 
-      <section className="container mx-auto px-4 py-16">
-        <div>
-          <ul className="flex flex-row gap-5">
-            <li>
-              <Link href="/stunts/privacy-policy/">Privacy Policy</Link>
-            </li>
-            <li>
-              <Link href="/stunts/terms-of-service/">Terms of Service</Link>
-            </li>
-            <li>
-              <Link href="/stunts/shopping-policies/">Shopping Policies</Link>
-            </li>
-          </ul>
-        </div>
-      </section>
+      <Footer />
     </div>
   );
 };

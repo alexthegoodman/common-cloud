@@ -1,5 +1,6 @@
 "use client";
 
+import Footer from "@/components/Footer";
 import Link from "next/link";
 
 export default function StuntsLayout({ children = null }) {
@@ -10,21 +11,7 @@ export default function StuntsLayout({ children = null }) {
 
         {/* Footer */}
 
-        <section className="container mx-auto px-4 py-16">
-          <div>
-            <ul className="flex flex-row gap-5">
-              <li>
-                <Link href="/stunts/privacy-policy/">Privacy Policy</Link>
-              </li>
-              <li>
-                <Link href="/stunts/terms-of-service/">Terms of Service</Link>
-              </li>
-              <li>
-                <Link href="/stunts/shopping-policies/">Shopping Policies</Link>
-              </li>
-            </ul>
-          </div>
-        </section>
+        <Footer />
       </div>
     </>
   );
