@@ -24,7 +24,7 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({
-      subscriptionStatus: user.subscriptionStatus,
+      subscriptionStatus: user.subscriptionStatus, // ACTIVE INACTIVE TRIALING PAST_DUE CANCELED UNPAID
       currentPeriodEnd: user.currentPeriodEnd,
       plan: {
         id: user.plan?.id,
