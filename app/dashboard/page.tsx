@@ -1,5 +1,6 @@
 "use client";
 
+import PricingTable from "@/components/PricingTable";
 import useCurrentUser from "@/hooks/useCurrentUser";
 
 export default function Dashboard() {
@@ -15,7 +16,10 @@ export default function Dashboard() {
       data?.subscriptionStatus === "TRIALING" ? (
         <p>Download to get started</p>
       ) : (
-        <p>Subscribe to get started</p>
+        <>
+          <p>Subscribe to get started</p>
+          <PricingTable referenceId={data?.id} />
+        </>
       )}
     </div>
   );

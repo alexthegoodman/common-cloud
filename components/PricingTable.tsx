@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 
-const StripePricingTable = () => {
+const StripePricingTable = ({ referenceId = null }) => {
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://js.stripe.com/v3/pricing-table.js";
@@ -16,13 +16,14 @@ const StripePricingTable = () => {
     "pricing-table-id": process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID,
     "publishable-key": process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     // TODO: client-reference-id
+    "client-reference-id": referenceId,
   });
 };
 
-export default function PricingTable() {
+export default function PricingTable({ referenceId = null }) {
   return (
     <section>
-      <StripePricingTable />
+      <StripePricingTable referenceId={referenceId} />
     </section>
   );
 }
