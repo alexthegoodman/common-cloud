@@ -11,11 +11,11 @@ export default function Dashboard() {
     <div>
       <h1>Dashboard</h1>
       {data?.email}
-      {data?.subscriptionStatus !== "ACTIVE" ||
-      data?.subscriptionStatus !== "TRIALING" ? (
-        <p>Subscribe to get started</p>
-      ) : (
+      {data?.subscriptionStatus === "ACTIVE" ||
+      data?.subscriptionStatus === "TRIALING" ? (
         <p>Download to get started</p>
+      ) : (
+        <p>Subscribe to get started</p>
       )}
     </div>
   );

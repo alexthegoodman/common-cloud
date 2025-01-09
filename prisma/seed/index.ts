@@ -9,15 +9,15 @@ async function main() {
   const { plans } = await seedPlans();
 }
 
-clean()
+// clean()
+//   .catch((e) => console.error(e))
+//   .finally(async () => {
+//     console.info("cleaned");
+// reload
+main()
   .catch((e) => console.error(e))
   .finally(async () => {
-    console.info("cleaned");
-    // reload
-    main()
-      .catch((e) => console.error(e))
-      .finally(async () => {
-        console.info("populated");
-        await prisma.$disconnect();
-      });
+    console.info("populated");
+    await prisma.$disconnect();
   });
+// });
