@@ -43,7 +43,14 @@ export default function AuthForm({ type = "login" }) {
 
       if (!res.ok) throw new Error(json.error || "Authentication failed");
 
-      localStorage.setItem("token", json.token);
+      console.info(
+        "json.jwtData",
+        json.jwtData,
+        json,
+        JSON.stringify(json.jwtData)
+      );
+
+      localStorage.setItem("jwtData", JSON.stringify(json.jwtData));
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");

@@ -34,10 +34,10 @@ export async function POST(req: Request) {
     });
 
     // Generate JWT
-    const token = signJWT({ userId: user.id, email: user.email });
+    const jwtData = signJWT({ userId: user.id, email: user.email });
 
     return NextResponse.json({
-      token,
+      jwtData,
       user: {
         id: user.id,
         email: user.email,

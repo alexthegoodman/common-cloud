@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     const jwtData = signJWT({ userId: user.id, email: user.email });
 
-    return NextResponse.json(jwtData);
+    return NextResponse.json({ jwtData });
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(
