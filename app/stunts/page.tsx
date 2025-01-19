@@ -9,11 +9,15 @@ import {
   Lightning,
   Clock,
   Video,
+  Shapes,
+  TextAUnderline,
+  Layout,
 } from "@phosphor-icons/react";
 import PricingTable from "@/components/PricingTable";
 import Link from "next/link";
 import AuthForm from "@/components/AuthForm";
 import FAQ from "@/components/FAQ";
+import ComingSoonSection from "@/components/ComingSoon";
 
 const HomePage = () => {
   const [formVisible, setFormVisible] = useState(false);
@@ -74,7 +78,7 @@ const HomePage = () => {
         <div className="grid md:grid-cols-3 gap-8">
           <div className="bg-slate-800/50 p-6 rounded-xl">
             <div className="bg-red-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <MagicWand className="text-red-500" />
+              <MagicWand size={24} className="text-red-500" />
             </div>
             <h3 className="text-xl font-semibold mb-2 text-white">
               Smart Path Generation
@@ -87,7 +91,7 @@ const HomePage = () => {
 
           <div className="bg-slate-800/50 p-6 rounded-xl">
             <div className="bg-red-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <Lightning className="text-red-500" />
+              <Lightning size={24} className="text-red-500" />
             </div>
             <h3 className="text-xl font-semibold mb-2 text-white">
               Lightning Fast
@@ -100,7 +104,7 @@ const HomePage = () => {
 
           <div className="bg-slate-800/50 p-6 rounded-xl">
             <div className="bg-red-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <Video className="text-red-500" />
+              <Video size={24} className="text-red-500" />
             </div>
             <h3 className="text-xl font-semibold mb-2 text-white">
               Your Content
@@ -110,8 +114,54 @@ const HomePage = () => {
               tools.
             </p>
           </div>
+
+          <div className="bg-slate-800/50 p-6 rounded-xl">
+            <div className="bg-red-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+              <Shapes size={24} className="text-red-500" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2 text-white">
+              Create with Text, Images, and Shapes
+            </h3>
+            <p className="text-gray-400">
+              Build stunning compositions using our comprehensive toolkit of
+              text editing, image manipulation, and vector shape tools.
+            </p>
+          </div>
+
+          <div className="bg-slate-800/50 p-6 rounded-xl">
+            <div className="bg-red-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+              <TextAUnderline size={24} className="text-red-500" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2 text-white">
+              Over 35 Fonts Included
+            </h3>
+            <p className="text-gray-400">
+              Express your creativity with our extensive collection of carefully
+              curated professional fonts, ready to use in your projects.
+            </p>
+          </div>
+
+          <div className="bg-slate-800/50 p-6 rounded-xl">
+            <div className="bg-red-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+              <Layout size={24} className="text-red-500" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2 text-white">
+              Highly Usable
+            </h3>
+            <p className="text-gray-400">
+              Enjoy an intuitive interface designed for efficiency, making it
+              easy to bring your creative vision to life without technical
+              barriers.
+            </p>
+          </div>
         </div>
+
+        {/** Create with Text, Images, and Shapes */}
+        {/** Over 35 Fonts Included */}
+        {/** Highly Usable */}
       </section>
+
+      <ComingSoonSection />
 
       {/** Pricing Table */}
       {/* <section className="container mx-auto px-4 py-16">
