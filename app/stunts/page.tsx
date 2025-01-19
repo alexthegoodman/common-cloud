@@ -164,9 +164,9 @@ const HomePage = () => {
       <ComingSoonSection />
 
       {/** Pricing Table */}
-      {/* <section className="container mx-auto px-4 py-16">
+      <section className="container mx-auto px-4 py-16">
         <PricingTable />
-      </section> */}
+      </section>
 
       {/** Frequently Asked Questions */}
       <section className="container mx-auto px-4 py-16">

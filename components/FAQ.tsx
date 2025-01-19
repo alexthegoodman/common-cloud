@@ -5,7 +5,7 @@ const FAQ = () => {
     {
       question: "How is Stunts different from Canva or After Effects?",
       answer:
-        "Stunts strikes a perfect balance: it is far more powerful than Canva, enabling complex motion graphics and keyframe animations, yet it has a much shorter learning curve compared to After Effects, making it accessible for creators of all skill levels.",
+        "Stunts strikes a perfect balance: it is far more powerful than Canva, enabling complex keyframe-based animations, yet it has a much shorter learning curve compared to After Effects, making it accessible for creators of all skill levels.",
     },
     {
       question: "Is the editor available for platforms other than Windows?",

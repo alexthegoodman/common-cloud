@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <section className="container mx-auto px-4 py-16">
-      <div>
+      <div className="flex flex-row justify-between">
         <ul className="flex flex-row gap-5">
           <li>
             <Link href="/privacy-policy/">Privacy Policy</Link>
@@ -20,6 +20,7 @@ export default function Footer() {
             <Link href="/account-deletion/">Account Deletion</Link>
           </li>
         </ul>
+        <span>&copy; {new Date().getFullYear()} Common</span>
       </div>
     </section>
   );
