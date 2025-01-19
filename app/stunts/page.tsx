@@ -13,6 +13,7 @@ import {
 import PricingTable from "@/components/PricingTable";
 import Link from "next/link";
 import AuthForm from "@/components/AuthForm";
+import FAQ from "@/components/FAQ";
 
 const HomePage = () => {
   const [formVisible, setFormVisible] = useState(false);
@@ -116,6 +117,11 @@ const HomePage = () => {
       {/* <section className="container mx-auto px-4 py-16">
         <PricingTable />
       </section> */}
+
+      {/** Frequently Asked Questions */}
+      <section className="container mx-auto px-4 py-16">
+        <FAQ />
+      </section>
 
       {/* Call to Action */}
       <section className="container mx-auto px-4 py-16">
