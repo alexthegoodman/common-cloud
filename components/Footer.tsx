@@ -16,6 +16,9 @@ export default function Footer() {
           <li>
             <Link href="/shopping-policies/">Shopping Policies</Link>
           </li>
+          <li>
+            <Link href="/account-deletion/">Account Deletion</Link>
+          </li>
         </ul>
       </div>
     </section>

@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Common Cloud | Stunts",
+  title: "Stunts | Common Cloud",
   description: "Video and motion graphics editor centered on UX and AI",
 };
 
