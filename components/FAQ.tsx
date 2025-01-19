@@ -3,6 +3,11 @@ import React from "react";
 const FAQ = () => {
   const faqs = [
     {
+      question: "How is Stunts different from Canva or After Effects?",
+      answer:
+        "Stunts strikes a perfect balance: it is far more powerful than Canva, enabling complex motion graphics and keyframe animations, yet it has a much shorter learning curve compared to After Effects, making it accessible for creators of all skill levels.",
+    },
+    {
       question: "Is the editor available for platforms other than Windows?",
       answer:
         "Currently, the editor is only available for Windows. Support for other platforms may come in the future.",
