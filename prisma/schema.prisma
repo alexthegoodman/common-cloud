@@ -8,37 +8,40 @@ datasource db {
 }
 
 model User {
-  id                    String    @id @default(cuid())
-  email                 String    @unique
-  password              String
-  name                  String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Stripe related fields
-  stripeCustomerId      String?   @unique
-  subscriptionId        String?   @unique
-  subscriptionStatus    SubscriptionStatus @default(INACTIVE)
-  currentPeriodEnd      DateTime?
-  
+  stripeCustomerId   String?            @unique
+  subscriptionId     String?            @unique
+  subscriptionStatus SubscriptionStatus @default(INACTIVE)
+  currentPeriodEnd   DateTime?
+
   // Product/Plan
-  planId               String?
-  plan                 Plan?      @relation(fields: [planId], references: [id])
-  
+  planId String?
+  plan   Plan?   @relation(fields: [planId], references: [id])
+
   // Additional subscription data
-  cancelAtPeriodEnd    Boolean    @default(false)
-  trialEndsAt          DateTime?
+  cancelAtPeriodEnd Boolean   @default(false)
+  trialEndsAt       DateTime?
+
+  // User ownership
+  projects Project[]
 }
 
 model Plan {
-  id          String    @id @default(cuid())
-  name        String
-  description String?
-  price       Float
-  stripePriceId String  @unique
-  stripeDevPriceId String @unique
-  features    String[]
-  users       User[]
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  price            Float
+  stripePriceId    String   @unique
+  stripeDevPriceId String   @unique
+  features         String[]
+  users            User[]
 }
 
 enum SubscriptionStatus {
@@ -48,4 +51,17 @@ enum SubscriptionStatus {
   PAST_DUE
   CANCELED
   UNPAID
+}
+
+model Project {
+  id String @id @default(uuid())
+
+  owner   User   @relation(fields: [ownerId], references: [id])
+  ownerId String
+
+  name     String
+  fileData Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
