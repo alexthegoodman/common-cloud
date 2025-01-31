@@ -49,10 +49,10 @@ const ComingSoonSection = () => {
             <Video size={24} className="text-amber-500" />
           </div>
           <h3 className="text-xl font-semibold mb-2 text-white">
-            Video & Audio Import
+            Audio Import
           </h3>
           <p className="text-gray-400">
-            Import and integrate your existing media files seamlessly into your
+            Import and integrate your existing audio files seamlessly into your
             projects.
           </p>
         </div>

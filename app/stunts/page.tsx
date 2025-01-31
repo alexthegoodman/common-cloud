@@ -18,6 +18,7 @@ import Link from "next/link";
 import AuthForm from "@/components/AuthForm";
 import FAQ from "@/components/FAQ";
 import ComingSoonSection from "@/components/ComingSoon";
+import Competition from "@/components/Competition";
 
 const HomePage = () => {
   const [formVisible, setFormVisible] = useState(false);
@@ -84,7 +85,7 @@ const HomePage = () => {
               Smart Path Generation
             </h3>
             <p className="text-gray-400">
-              Automatically generate smooth motion paths with our intelligent
+              Automatically generate logical motion paths with our intelligent
               keyframe system.
             </p>
           </div>
@@ -146,22 +147,19 @@ const HomePage = () => {
               <Layout size={24} className="text-red-500" />
             </div>
             <h3 className="text-xl font-semibold mb-2 text-white">
-              Highly Usable
+              Video Import
             </h3>
             <p className="text-gray-400">
-              Enjoy an intuitive interface designed for efficiency, making it
-              easy to bring your creative vision to life without technical
-              barriers.
+              Import your existing video content on Web and Windows (with
+              support for longer videos and higher resolutions on Windows)
             </p>
           </div>
         </div>
-
-        {/** Create with Text, Images, and Shapes */}
-        {/** Over 35 Fonts Included */}
-        {/** Highly Usable */}
       </section>
 
       <ComingSoonSection />
+
+      <Competition />
 
       {/** Pricing Table */}
       <section className="container mx-auto px-4 py-16">
