@@ -23,7 +23,15 @@ const PricingTable = () => {
           <div className="space-y-4">
             <div className="flex items-center">
               <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-              <span className="text-gray-300">Keyframe Generation</span>
+              <span className="text-gray-300">
+                Access to Web app (great for mobile)
+              </span>
+            </div>
+            <div className="flex items-center">
+              <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+              <span className="text-gray-300">
+                100 AI generations per month
+              </span>
             </div>
             <div className="flex items-center">
               <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
@@ -77,7 +85,19 @@ const PricingTable = () => {
             </div>
             <div className="flex items-center">
               <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+              <span className="text-gray-300">
+                Nearly unlimited AI generations per month
+              </span>
+            </div>
+            <div className="flex items-center">
+              <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
               <span className="text-gray-300">No watermark on export</span>
+            </div>
+            <div className="flex items-center">
+              <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+              <span className="text-gray-300">
+                Access to Windows app (desktop-class performance)
+              </span>
             </div>
             {/* <div className="flex items-center">
               <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
