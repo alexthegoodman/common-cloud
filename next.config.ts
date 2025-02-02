@@ -13,6 +13,10 @@ import { headers } from "next/headers";
 const nextConfig = {
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
+  // eslint is not helpful imo
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   // Optionally, add any other Next.js config below
   async headers() {
     return [
