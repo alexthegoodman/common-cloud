@@ -22,7 +22,7 @@ export default function Dashboard() {
       ) : (
         <>
           <p>Subscribe to get started</p>
-          <PricingTable referenceId={data?.id} />
+          <PricingTable />
         </>
       )}
     </div>
