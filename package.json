@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "ts-node ./prisma/seed/index.ts"
+    "seed": "ts-node ./prisma/seed/index.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.0",
