@@ -17,11 +17,12 @@ const ComingSoonSection = () => {
             <Book size={24} className="text-amber-500" />
           </div>
           <h3 className="text-xl font-semibold mb-2 text-white">
-            Template Repository
+            Dynamic Filters & <br />
+            Color Grading
           </h3>
           <p className="text-gray-400">
-            Access a growing library of professional templates to jumpstart your
-            projects and maintain consistency across your content.
+            Select from a list of dynamically generated video and image filters
+            to set the tone for your video!
           </p>
         </div>
 
@@ -33,11 +34,11 @@ const ComingSoonSection = () => {
             <Sparkle size={24} className="text-amber-500" />
           </div>
           <h3 className="text-xl font-semibold mb-2 text-white">
-            Template Generation
+            Stylized Captions
           </h3>
           <p className="text-gray-400">
-            Create custom templates automatically from your existing projects,
-            saving time and enabling more creative possibilities.
+            Extract and generate beautiful stylized captions which add impact
+            and drive your narrative.
           </p>
         </div>
 

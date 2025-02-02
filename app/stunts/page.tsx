@@ -86,7 +86,7 @@ const HomePage = () => {
             </h3>
             <p className="text-gray-400">
               Automatically generate logical motion paths with our intelligent
-              keyframe system.
+              keyframe system. No more template-look!
             </p>
           </div>
 
