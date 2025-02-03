@@ -105,9 +105,12 @@ const HomePage = () => {
             Join creators who are already making stunning motion graphics with
             Stunts.
           </p>
-          <button className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full inline-flex items-center">
+          <Link
+            href="/register"
+            className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full inline-flex items-center"
+          >
             Start Creating <ShieldChevron className="ml-2" />
-          </button>
+          </Link>
         </div>
       </section>
     </>
