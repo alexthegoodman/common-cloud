@@ -1,6 +1,13 @@
 "use client";
 
-import { Book, Video, Microphone, Sparkle } from "@phosphor-icons/react";
+import {
+  Book,
+  Video,
+  Microphone,
+  Sparkle,
+  Headphones,
+  MagicWand,
+} from "@phosphor-icons/react";
 
 const ComingSoonSection = () => {
   return (
@@ -14,7 +21,7 @@ const ComingSoonSection = () => {
             Coming Soon
           </div>
           <div className="bg-amber-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-            <Book size={24} className="text-amber-500" />
+            <Video size={24} className="text-amber-500" />
           </div>
           <h3 className="text-xl font-semibold mb-2 text-white">
             Screen Capture & Mouse Capture
@@ -30,7 +37,7 @@ const ComingSoonSection = () => {
             Coming Soon
           </div>
           <div className="bg-amber-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-            <Sparkle size={24} className="text-amber-500" />
+            <MagicWand size={24} className="text-amber-500" />
           </div>
           <h3 className="text-xl font-semibold mb-2 text-white">
             Enhanced Machine Learning Model
@@ -80,7 +87,7 @@ const ComingSoonSection = () => {
             Coming Soon
           </div>
           <div className="bg-amber-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-            <Video size={24} className="text-amber-500" />
+            <Headphones size={24} className="text-amber-500" />
           </div>
           <h3 className="text-xl font-semibold mb-2 text-white">
             Audio Import
