@@ -57,9 +57,13 @@ const HomePage = () => {
             >
               Get Started <ShieldChevron className="ml-2" />
             </button>
-            <button className="border border-red-500 text-red-500 hover:bg-red-500/10 px-8 py-3 rounded-full flex items-center">
+            <a
+              href="https://youtu.be/RBBu3HGKD5s?si=T3X7vdAYh51IuCnh"
+              target="_blank"
+              className="border border-red-500 text-red-500 hover:bg-red-500/10 px-8 py-3 rounded-full flex items-center"
+            >
               Watch Demo <Play className="ml-2 w-4 h-4" />
-            </button>
+            </a>
           </div>
           <div className="flex justify-center gap-4 mt-10">
             <motion.div
@@ -150,8 +154,8 @@ const HomePage = () => {
               Video Import
             </h3>
             <p className="text-gray-400">
-              Import your existing video content on Web and Windows (with
-              support for longer videos and higher resolutions on Windows)
+              Import your existing video content with desktop-class performance
+              on Windows
             </p>
           </div>
         </div>

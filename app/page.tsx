@@ -47,9 +47,13 @@ const HomePage = () => {
             >
               Try Stunts <ShieldChevron className="ml-2" />
             </button>
-            <button className="border border-green-500 text-green-500 hover:bg-green-500/10 px-8 py-3 rounded-full flex items-center">
+            <a
+              href="https://www.youtube.com/@madebycommon"
+              target="_blank"
+              className="border border-green-500 text-green-500 hover:bg-green-500/10 px-8 py-3 rounded-full flex items-center"
+            >
               Watch YouTube <Play className="ml-2 w-4 h-4" />
-            </button>
+            </a>
           </div>
         </div>
       </header>

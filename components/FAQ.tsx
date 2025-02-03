@@ -10,7 +10,7 @@ const FAQ = () => {
     {
       question: "Is the editor available for platforms other than Windows?",
       answer:
-        "Currently, the editor is only available for Web and Windows. Support for other platforms may come in the future.",
+        "Currently, the editor is only available for Windows. Support for other platforms may come in the future.",
     },
     {
       question: "Do generative keyframes work perfectly out of the box?",

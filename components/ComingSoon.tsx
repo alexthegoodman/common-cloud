@@ -8,6 +8,39 @@ const ComingSoonSection = () => {
       <h2 className="text-3xl font-bold text-white text-center mb-12">
         Coming Soon
       </h2>
+      <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 mb-8">
+        <div className="bg-slate-800/50 p-6 rounded-xl relative overflow-hidden">
+          <div className="absolute top-2 right-2 bg-amber-500/20 text-amber-500 text-xs font-semibold px-2 py-1 rounded-full">
+            Coming Soon
+          </div>
+          <div className="bg-amber-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+            <Book size={24} className="text-amber-500" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2 text-white">
+            Screen Capture & Mouse Capture
+          </h3>
+          <p className="text-gray-400">
+            Record your screen and mouse to enable dynamic product showcases
+            with beautiful zooms!
+          </p>
+        </div>
+
+        <div className="bg-slate-800/50 p-6 rounded-xl relative overflow-hidden">
+          <div className="absolute top-2 right-2 bg-amber-500/20 text-amber-500 text-xs font-semibold px-2 py-1 rounded-full">
+            Coming Soon
+          </div>
+          <div className="bg-amber-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+            <Sparkle size={24} className="text-amber-500" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2 text-white">
+            Enhanced Machine Learning Model
+          </h3>
+          <p className="text-gray-400">
+            Enjoy the upcoming version of our AI which will help generate
+            rotation, opacity, and scale properties in addition to position!
+          </p>
+        </div>
+      </div>
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
         <div className="bg-slate-800/50 p-6 rounded-xl relative overflow-hidden">
           <div className="absolute top-2 right-2 bg-amber-500/20 text-amber-500 text-xs font-semibold px-2 py-1 rounded-full">
@@ -22,7 +55,7 @@ const ComingSoonSection = () => {
           </h3>
           <p className="text-gray-400">
             Select from a list of dynamically generated video and image filters
-            to set the tone for your video!
+            to set the tone for your video.
           </p>
         </div>
 

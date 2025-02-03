@@ -33,7 +33,7 @@ const Competition = () => {
             </li>
             <li className="flex flex-row gap-2 items-center">
               <Check />
-              <span>Available for Web and Windows</span>
+              <span>Available for Windows</span>
             </li>
           </ul>
         </div>

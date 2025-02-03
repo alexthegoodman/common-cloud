@@ -62,7 +62,7 @@ export default function AuthForm({ type = "login" }) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-4 w-full w-[400px] max-w-md"
+      className="space-y-4 w-full w-[600px] max-w-md text-left"
     >
       <div>
         <label htmlFor="email" className="block text-sm font-medium mb-1">
