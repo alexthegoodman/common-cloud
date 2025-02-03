@@ -111,9 +111,13 @@ const HomePage = () => {
           <p className="text-xl text-gray-300 mb-8">
             We are pleased to make new friends.
           </p>
-          <button className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full inline-flex items-center">
+          <a
+            href="mailto:alexthegoodman@gmail.com"
+            target="_blank"
+            className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full inline-flex items-center"
+          >
             Contact Common <ShieldChevron className="ml-2" />
-          </button>
+          </a>
         </div>
       </section>
 
