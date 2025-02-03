@@ -1,4 +1,5 @@
 import Footer from "@/components/Footer";
+import Header from "@/components/Header";
 import { Metadata } from "next";
 import Link from "next/link";
 
@@ -11,9 +12,9 @@ export default function StuntsLayout({ children = null }) {
   return (
     <>
       <div className="min-h-screen bg-gradient-to-b from-black to-slate-900">
-        {children}
+        <Header />
 
-        {/* Footer */}
+        {children}
 
         <Footer />
       </div>
