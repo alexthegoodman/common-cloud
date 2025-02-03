@@ -10,9 +10,12 @@ export default function DashboardContent() {
   console.info("data", data);
 
   return (
-    <div className="container mx-auto px-4 pt-24 pb-16 flex flex-col gap-4">
+    <div className="container mx-auto px-4 pt-8 pb-8 flex flex-col gap-4">
       <div className="flex flex-col gap-4 max-w-[600px] w-full">
         <h1>Welcome, {data?.email}</h1>
+
+        <img src="/screen1.png" />
+
         <p>
           You are almost ready to use Stunts! Stunts is your pathway to rapid
           video creation using your own content. With Stunts generative keyframe
