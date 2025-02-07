@@ -29,24 +29,16 @@ export default function DashboardContent() {
         </p>
       </div>
 
-      {data?.subscriptionStatus === "ACTIVE" ||
-      data?.subscriptionStatus === "TRIALING" ? (
-        <>
-          <p>Download to get started</p>
-          <a
-            className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full flex items-center justify-center w-[280px] text-center"
-            href="https://bunny.net"
-            download={true}
-          >
-            Download for Windows <WindowsLogo className="ml-2" />
-          </a>
-        </>
-      ) : (
-        <>
-          <p>Subscribe to get started</p>
-          <PricingTable />
-        </>
-      )}
+      <>
+        <p>Download to get started</p>
+        <a
+          className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full flex items-center justify-center w-[280px] text-center"
+          href="https://bunny.net"
+          download={true}
+        >
+          Download for Windows <WindowsLogo className="ml-2" />
+        </a>
+      </>
     </div>
   );
 }
