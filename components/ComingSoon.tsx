@@ -24,11 +24,11 @@ const ComingSoonSection = () => {
             <Video size={24} className="text-amber-500" />
           </div>
           <h3 className="text-xl font-semibold mb-2 text-white">
-            Screen Capture & Mouse Capture
+            Easy Shorts & Vertical Video
           </h3>
           <p className="text-gray-400">
-            Record your screen and mouse to enable dynamic product showcases
-            with beautiful zooms!
+            Bring all the power of motion paths and mouse capture to your
+            vertical videos!
           </p>
         </div>
 

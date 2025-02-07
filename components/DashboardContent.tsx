@@ -21,6 +21,12 @@ export default function DashboardContent() {
           video creation using your own content. With Stunts generative keyframe
           animations, you can save hours on manual animating.
         </p>
+        <p>
+          Have questions? Need help? Contact Alex at{" "}
+          <a href="mailto:alexthegoodman@gmail.com" target="_blank">
+            alexthegoodman@gmail.com
+          </a>
+        </p>
       </div>
 
       {data?.subscriptionStatus === "ACTIVE" ||

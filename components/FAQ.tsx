@@ -25,7 +25,7 @@ const FAQ = () => {
     {
       question: "Is there a free trial or demo available?",
       answer:
-        "Yes! You can use Stunts for free, but videos will include a watermark of the Stunts logo.",
+        "Yes! You can use Stunts for free, but you will be limited to 3 projects at this time.",
     },
   ];
 

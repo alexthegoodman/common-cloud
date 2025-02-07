@@ -34,11 +34,11 @@ export default function Features({ grid = 3, py = 16 }) {
             <Lightning size={24} className="text-red-500" />
           </div>
           <h3 className="text-xl font-semibold mb-2 text-white">
-            Lightning Fast
+            Screen Capture & Mouse Capture
           </h3>
           <p className="text-gray-400">
-            Create professional animations in minutes instead of hours with our
-            streamlined workflow.
+            Record your screen and mouse to enable dynamic product showcases
+            with beautiful zooms!
           </p>
         </div>
 

@@ -73,6 +73,7 @@ const HomePage = () => {
               transition={{ duration: 0.5 }}
               hidden={!formVisible}
             >
+              <p>Register to download Stunts!</p>
               <AuthForm type="register" />
             </motion.div>
           </div>

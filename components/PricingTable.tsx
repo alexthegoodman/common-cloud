@@ -55,9 +55,7 @@ const PricingTable = () => {
             </div>
             <div className="flex items-center">
               <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-              <span className="text-gray-300">
-                Watermark included on export
-              </span>
+              <span className="text-gray-300">3 Projects Limit</span>
             </div>
             {/* <div className="flex items-center">
               <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
@@ -107,7 +105,7 @@ const PricingTable = () => {
             </div> */}
             <div className="flex items-center">
               <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-              <span className="text-gray-300">No watermark on export</span>
+              <span className="text-gray-300">Unlimited Projects</span>
             </div>
             {/* <div className="flex items-center">
               <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
@@ -142,7 +140,7 @@ const PricingTable = () => {
           </div>
 
           <button className="mt-8 w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold py-3 px-4 rounded-lg transition-colors">
-            Upgrade Now
+            Coming Soon
           </button>
         </div>
       </div>
