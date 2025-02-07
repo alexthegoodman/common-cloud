@@ -33,7 +33,7 @@ export default function DashboardContent() {
         <p>Download to get started</p>
         <a
           className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full flex items-center justify-center w-[280px] text-center"
-          href="https://stunts.b-cdn.net/stunts-installer-v1-0-2.msi"
+          href="https://stunts.b-cdn.net/stunts-installer-v1-0-3.msi"
           download={true}
         >
           Download for Windows <WindowsLogo className="ml-2" />
