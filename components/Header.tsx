@@ -8,11 +8,13 @@ export default function Header({ showLogo = false }) {
       <div className="flex flex-row justify-between">
         <div>
           {showLogo && (
-            <img
-              src="/stunts_logo_blackground.png"
-              alt="Stunts Logo"
-              className="mx-auto h-20"
-            />
+            <Link href="/stunts">
+              <img
+                src="/stunts_logo_blackground.png"
+                alt="Stunts Logo"
+                className="mx-auto h-20"
+              />
+            </Link>
           )}
         </div>
         <ul className="flex flex-row gap-5">
