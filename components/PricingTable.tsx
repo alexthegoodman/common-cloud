@@ -1,4 +1,5 @@
 import { Check } from "@phosphor-icons/react";
+import Link from "next/link";
 import React, { useEffect } from "react";
 
 const PricingTable = () => {
@@ -75,9 +76,12 @@ const PricingTable = () => {
             </div> */}
           </div>
 
-          <button className="mt-8 w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
+          <Link
+            href="/register"
+            className="block text-center mt-8 w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+          >
             Get Started Free
-          </button>
+          </Link>
         </div>
 
         {/* Standard Plan */}
