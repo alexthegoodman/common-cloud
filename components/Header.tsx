@@ -8,6 +8,9 @@ export default function Header() {
       <div className="flex flex-row justify-end">
         <ul className="flex flex-row gap-5">
           <li>
+            <Link href="/blog/">Blog</Link>
+          </li>
+          <li>
             <Link href="/login/">Login</Link>
           </li>
           <li>
