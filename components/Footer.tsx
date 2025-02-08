@@ -31,7 +31,7 @@ export default function Footer() {
               <Link href="/stunts/canva-alternative/">Canva Alternative</Link>
             </li>
             <li>
-              <Link href="/stunts/capcut-alternative/">Capcut Alternative</Link>
+              <Link href="/stunts/capcut-alternative/">CapCut Alternative</Link>
             </li>
           </ul>
         </div>
