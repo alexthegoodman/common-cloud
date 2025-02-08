@@ -2,10 +2,19 @@
 
 import Link from "next/link";
 
-export default function Header() {
+export default function Header({ showLogo = false }) {
   return (
     <section className="container mx-auto px-4 pt-8">
-      <div className="flex flex-row justify-end">
+      <div className="flex flex-row justify-between">
+        <div>
+          {showLogo && (
+            <img
+              src="/stunts_logo_blackground.png"
+              alt="Stunts Logo"
+              className="mx-auto h-20"
+            />
+          )}
+        </div>
         <ul className="flex flex-row gap-5">
           <li>
             <Link href="/blog/">Blog</Link>

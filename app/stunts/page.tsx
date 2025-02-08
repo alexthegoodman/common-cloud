@@ -20,6 +20,7 @@ import FAQ from "@/components/FAQ";
 import ComingSoonSection from "@/components/ComingSoon";
 import Competition from "@/components/Competition";
 import Features from "@/components/Features";
+import Header from "@/components/Header";
 
 const HomePage = () => {
   const [formVisible, setFormVisible] = useState(false);
@@ -30,6 +31,8 @@ const HomePage = () => {
 
   return (
     <>
+      <Header />
+
       {/* Hero Section */}
       <header className="container mx-auto px-4 pt-24 pb-16">
         <div className="text-center">
