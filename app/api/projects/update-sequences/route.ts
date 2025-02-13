@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyJWT } from "@/lib/jwt";
 import prisma from "@/lib/prisma";
 
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   try {
     const token = req.headers.get("Authorization")?.split(" ")[1];
 
@@ -23,23 +23,28 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const projects = await prisma.project.findMany({
+    const { projectId, sequences } = await req.json();
+
+    const project = await prisma.project.findUnique({
       where: {
-        ownerId: user.id,
+        id: projectId,
       },
-      orderBy: {
-        updatedAt: "desc",
+    });
+
+    let fileData = project?.fileData as any;
+    fileData.sequences = sequences;
+
+    const updatedProject = await prisma.project.update({
+      where: {
+        id: projectId,
       },
-      select: {
-        id: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
+      data: {
+        fileData,
       },
     });
 
     return NextResponse.json({
-      projects,
+      updatedProject,
     });
   } catch (error) {
     return NextResponse.json(

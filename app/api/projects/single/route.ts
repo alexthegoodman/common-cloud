@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { verifyJWT } from "@/lib/jwt";
 import prisma from "@/lib/prisma";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const token = req.headers.get("Authorization")?.split(" ")[1];
 
@@ -23,23 +23,22 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const projects = await prisma.project.findMany({
+    // const { projectId } = await req.json();
+    const searchParams = req.nextUrl.searchParams;
+    const projectId = searchParams.get("projectId");
+
+    if (!projectId) {
+      throw Error("Bad id");
+    }
+
+    const project = await prisma.project.findUnique({
       where: {
-        ownerId: user.id,
-      },
-      orderBy: {
-        updatedAt: "desc",
-      },
-      select: {
-        id: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
+        id: projectId,
       },
     });
 
     return NextResponse.json({
-      projects,
+      project,
     });
   } catch (error) {
     return NextResponse.json(
