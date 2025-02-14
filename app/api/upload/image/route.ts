@@ -5,22 +5,41 @@ import fs from "fs/promises";
 import path from "path";
 
 // Constants
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
-const ALLOWED_MIME_TYPES = [
-  "image/jpeg",
-  "image/png",
-  // 'image/gif',
-  // 'image/webp'
-];
+const MAX_FILE_SIZE = 4 * 1024 * 1024; // 2MB in bytes
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png"];
 const UPLOAD_DIR = path.join(process.cwd(), "public", "image-uploads");
 
-// Helper function to validate file type from base64
-function getMimeTypeFromBase64(base64Data: string): string | null {
-  const match = base64Data.match(
-    /^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,/
-  );
-  return match ? match[1] : null;
+// Helper function to validate file type from raw bytes
+function getMimeTypeFromBuffer(buffer: Buffer): string | null {
+  if (buffer.length < 2) return null;
+
+  // Check for JPEG (starts with FF D8)
+  if (buffer[0] === 0xff && buffer[1] === 0xd8) {
+    return "image/jpeg";
+  }
+
+  // Check for PNG (starts with 89 50 4E 47 0D 0A 1A 0A)
+  if (
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47 &&
+    buffer[4] === 0x0d &&
+    buffer[5] === 0x0a &&
+    buffer[6] === 0x1a &&
+    buffer[7] === 0x0a
+  ) {
+    return "image/png";
+  }
+
+  return null;
 }
+
+export const config = {
+  api: {
+    bodyParser: false, // Disable default body parsing to handle raw binary data
+  },
+};
 
 export async function POST(req: Request) {
   try {
@@ -43,33 +62,38 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { fileName, fileData } = await req.json();
+    // Read raw bytes from the request body
+    const chunks: Uint8Array[] = [];
+    const reader = req.body?.getReader();
 
-    // Input validation
-    if (!fileName || !fileData) {
+    if (!reader) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Failed to read request body" },
+        { status: 400 }
+      );
+    }
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) chunks.push(value);
+    }
+
+    const buffer = Buffer.concat(chunks);
+
+    // File size validation
+    if (buffer.length > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "File size exceeds 4MB limit" },
         { status: 400 }
       );
     }
 
     // File type validation
-    const mimeType = getMimeTypeFromBase64(fileData);
+    const mimeType = getMimeTypeFromBuffer(buffer);
     if (!mimeType || !ALLOWED_MIME_TYPES.includes(mimeType)) {
       return NextResponse.json(
         { error: "Invalid file type. Allowed types: JPEG, PNG" },
-        { status: 400 }
-      );
-    }
-
-    // Remove base64 header before converting to buffer
-    const base64Data = fileData.replace(/^data:image\/\w+;base64,/, "");
-
-    // File size validation
-    const buffer = Buffer.from(base64Data, "base64");
-    if (buffer.length > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { error: "File size exceeds 2MB limit" },
         { status: 400 }
       );
     }
@@ -82,12 +106,13 @@ export async function POST(req: Request) {
     }
 
     // Sanitize filename and add timestamp
+    const fileName = req.headers.get("X-File-Name") || "uploaded_file";
     const timestamp = Date.now();
     const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
     const uniqueFileName = `${timestamp}-${sanitizedFileName}`;
     const filePath = path.join(UPLOAD_DIR, uniqueFileName);
 
-    // Save the file locally (for now)
+    // Save the file locally
     await fs.writeFile(filePath, buffer);
 
     // Generate the public URL
@@ -97,7 +122,7 @@ export async function POST(req: Request) {
       url: publicUrl,
       fileName: uniqueFileName,
       size: buffer.length,
-      type: mimeType,
+      mimeType: mimeType,
     });
   } catch (error) {
     console.error("Upload error:", error);
