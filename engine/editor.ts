@@ -26,8 +26,8 @@ export class Viewport {
   }
 }
 
-// Assuming WindowSize is defined elsewhere
-export interface WindowSize {
+// Assuming windowSize is defined elsewhere
+export interface windowSize {
   width: number;
   height: number;
 }
@@ -44,7 +44,7 @@ export interface BoundingBox {
 }
 
 export function sizeToNormal(
-  windowSize: WindowSize,
+  windowSize: windowSize,
   x: number,
   y: number
 ): [number, number] {
@@ -54,7 +54,7 @@ export function sizeToNormal(
   return [ndcX, ndcY];
 }
 
-export function pointToNdc(point: Point, windowSize: WindowSize): Point {
+export function pointToNdc(point: Point, windowSize: windowSize): Point {
   const aspectRatio = windowSize.width / windowSize.height;
 
   return {
@@ -201,7 +201,7 @@ export enum ControlMode {
   Pan,
 }
 
-export interface WindowSize {
+export interface windowSize {
   width: number;
   height: number;
 }
@@ -227,7 +227,7 @@ export class WebGpuResources {
 
   static async request(
     canvas: HTMLCanvasElement,
-    windowSize: WindowSize
+    windowSize: windowSize
   ): Promise<WebGpuResources> {
     if (!navigator.gpu) {
       throw new Error("WebGPU not supported on this browser");
@@ -304,7 +304,7 @@ import { FontManager } from "./font";
 import { MotionPath } from "./motionpath";
 import { Camera, CameraBinding } from "./camera";
 import { StImage, StImageConfig } from "./image";
-import { StVideo, StVideoConfig } from "./video";
+import { MousePosition, SourceData, StVideo, StVideoConfig } from "./video";
 import { vec2 } from "gl-matrix";
 
 export class Editor {
@@ -1857,7 +1857,7 @@ export class Editor {
       return;
     }
 
-    // let zoom_factor = if delta > 0.0 { 1.1 } else { 0.9 };
+    // let zoom_factor = if delta > 0.0 { 1[1] } else { 0.9 };
     let zoom_factor = delta / 10.0;
     camera?.update_zoom(zoom_factor, mouse_pos);
     this.updateCameraBinding();
@@ -1908,6 +1908,1086 @@ export class Editor {
     );
 
     this.polygons.push(polygon);
+  }
+
+  add_text_item(
+    text_config: TextRendererConfig,
+    text_content: string,
+    new_id: string,
+    selected_sequence_id: string
+  ) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+
+    if (!gpuResources || !camera) {
+      return;
+    }
+
+    if (!this.modelBindGroupLayout || !this.groupBindGroupLayout) {
+      return;
+    }
+
+    let device = gpuResources.device;
+    let queue = gpuResources.queue;
+
+    let windowSize = camera.windowSize;
+
+    let default_font_family = this.fontManager.loadFontByName(
+      text_config.fontFamily
+    );
+
+    let text_item = new TextRenderer(
+      device,
+      queue,
+      this.modelBindGroupLayout,
+      this.groupBindGroupLayout,
+      default_font_family, // load font data ahead of time
+      windowSize,
+      // text_content,
+      text_config,
+      // new_id,
+      selected_sequence_id,
+      camera
+    );
+
+    text_item.renderText(device, queue);
+
+    this.textItems.push(text_item);
+  }
+
+  add_image_item(
+    // windowSize: windowSize,
+    // device: GPUDevice,
+    // queue: GPUQueue,
+    image_config: StImageConfig,
+    // path: Path,
+    url: string,
+    blob: Blob,
+    new_id: string,
+    selected_sequence_id: string
+  ) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+
+    if (!gpuResources || !camera) {
+      return;
+    }
+    let device = gpuResources.device;
+    let queue = gpuResources.queue;
+
+    let windowSize = camera.windowSize;
+
+    if (!this.modelBindGroupLayout || !this.groupBindGroupLayout) {
+      return;
+    }
+
+    let image_item = new StImage(
+      device,
+      queue,
+      // path,
+      url,
+      blob,
+      image_config,
+      windowSize,
+      this.modelBindGroupLayout,
+      this.groupBindGroupLayout,
+      0.0,
+      new_id,
+      selected_sequence_id
+    );
+
+    this.imageItems.push(image_item);
+  }
+
+  add_video_item(
+    windowSize: windowSize,
+    device: GPUDevice,
+    queue: GPUQueue,
+    video_config: StVideoConfig,
+    path: string,
+    new_id: string,
+    selected_sequence_id: string,
+    mouse_positions: MousePosition[],
+    stored_source_data: SourceData
+  ) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+
+    if (!gpuResources || !camera) {
+      return;
+    }
+
+    let video_item = new StVideo(
+      device,
+      queue,
+      path,
+      video_config,
+      windowSize,
+      this.modelBindGroupLayout,
+      this.groupBindGroupLayout,
+      0.0,
+      new_id,
+      selected_sequence_id
+    );
+    // .expect("Couldn't create video item");
+
+    // set mouse capture source data if it exists
+    video_item.sourceData = stored_source_data;
+
+    // set mouse positions for later use
+    video_item.mousePositions = mouse_positions;
+
+    // render 1 frame to provide preview image
+    video_item.drawVideoFrame(device, queue);
+
+    this.videoItems.push(video_item);
+  }
+
+  replace_background(
+    sequence_id: string,
+    fill: [number, number, number, number]
+  ) {
+    // console.info("replace background {:?} {:?}", sequence_id, fill);
+
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+
+    if (!gpuResources || !camera) {
+      return;
+    }
+
+    let windowSize = camera.windowSize;
+    let modelBindGroupLayout = this.modelBindGroupLayout;
+    let groupBindGroupLayout = this.groupBindGroupLayout;
+
+    // Remove existing background
+    this.staticPolygons = this.staticPolygons.filter(
+      (p) => p.name !== "canvas_background"
+    );
+
+    let canvas_polygon = new Polygon(
+      windowSize,
+      gpuResources.device,
+      gpuResources.queue,
+      modelBindGroupLayout,
+      groupBindGroupLayout,
+      camera,
+      [
+        { x: 0.0, y: 0.0 },
+        { x: 1.0, y: 0.0 },
+        { x: 1.0, y: 1.0 },
+        { x: 0.0, y: 1.0 },
+      ],
+      (800.0 as number, 450.0 as number),
+      {
+        x: 900.0 / 2.0,
+        y: 550.0 / 2.0,
+      },
+      0.0,
+      0.0,
+      fill,
+      {
+        thickness: 0.0,
+        fill: rgbToWgpu(0, 0, 0, 255.0),
+      },
+      0.0,
+      -89, // camera far is -100
+      "canvas_background",
+      sequence_id,
+      sequence_id
+    );
+
+    this.staticPolygons.push(canvas_polygon);
+  }
+
+  update_background(selected_id: string, key: string, new_value: InputValue) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+
+    if (!gpuResources || !camera) {
+      return;
+    }
+
+    // First iteration: find the index of the selected polygon
+    let polygon_index = this.staticPolygons.findIndex(
+      (p) => p.id == selected_id && p.name == "canvas_background"
+    );
+
+    if (polygon_index) {
+      console.info("Found selected static_polygon with ID: {}", selected_id);
+
+      // Get the necessary data from editor
+      // let viewport_width = camera.windowSize.width;
+      // let viewport_height = camera.windowSize.height;
+      let windowSize = camera?.windowSize;
+      let device = gpuResources.device;
+      let queue = gpuResources.queue;
+
+      // let windowSize = windowSize {
+      //     width: viewport_width as number,
+      //     height: viewport_height as number,
+      // };
+
+      // Second iteration: update the selected polygon
+
+      if (this.staticPolygons[polygon_index]) {
+        let selected_polygon = this.staticPolygons[polygon_index];
+
+        switch (new_value) {
+          case InputValue.Number:
+            switch (key) {
+              case "red": {
+                selected_polygon.update_data_from_fill(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  [
+                    colorToWgpu(n),
+                    selected_polygon.fill[1],
+                    selected_polygon.fill[2],
+                    selected_polygon.fill[3],
+                  ],
+                  camera
+                );
+              }
+              case "green": {
+                selected_polygon.update_data_from_fill(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  [
+                    selected_polygon.fill[0],
+                    colorToWgpu(n),
+                    selected_polygon.fill[2],
+                    selected_polygon.fill[3],
+                  ],
+                  camera
+                );
+              }
+              case "blue": {
+                selected_polygon.update_data_from_fill(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  [
+                    selected_polygon.fill[0],
+                    selected_polygon.fill[1],
+                    colorToWgpu(n),
+                    selected_polygon.fill[3],
+                  ],
+                  camera
+                );
+              }
+            }
+        }
+      }
+    } else {
+      console.info(
+        "No static_polygon found with the selected ID: {}",
+        selected_id
+      );
+    }
+  }
+
+  update_polygon(selected_id: string, key: str, new_value: InputValue) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+
+    if (!gpuResources || !camera) {
+      return;
+    }
+
+    // First iteration: find the index of the selected polygon
+    let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
+
+    if (polygon_index) {
+      console.info("Found selected polygon with ID: {}", selected_id);
+
+      // Get the necessary data from editor
+      let viewport_width = camera.windowSize.width;
+      let viewport_height = camera.windowSize.height;
+      let device = gpuResources.device;
+      let queue = gpuResources.queue;
+
+      let windowSize = camera.windowSize;
+      // Second iteration: update the selected polygon
+      if (this.polygons[polygon_index]) {
+        let selected_polygon = this.polygons[polygon_index];
+
+        switch (new_value) {
+          case InputValue.Number: {
+            switch (key) {
+              case "width": {
+                selected_polygon.update_data_from_dimensions(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  (n, selected_polygon.dimensions[1]),
+                  camera
+                );
+              }
+              case "height": {
+                selected_polygon.update_data_from_dimensions(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  (selected_polygon.dimensions[0], n),
+                  camera
+                );
+              }
+              case "border_radius": {
+                selected_polygon.update_data_from_border_radius(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  n,
+                  camera
+                );
+              }
+              case "red": {
+                selected_polygon.update_data_from_fill(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  [
+                    color_to_wgpu(n),
+                    selected_polygon.fill[1],
+                    selected_polygon.fill[2],
+                    selected_polygon.fill[3],
+                  ],
+                  camera
+                );
+              }
+              case "green": {
+                selected_polygon.update_data_from_fill(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  [
+                    selected_polygon.fill[0],
+                    color_to_wgpu(n),
+                    selected_polygon.fill[2],
+                    selected_polygon.fill[3],
+                  ],
+                  camera
+                );
+              }
+              case "blue": {
+                selected_polygon.update_data_from_fill(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  [
+                    selected_polygon.fill[0],
+                    selected_polygon.fill[1],
+                    color_to_wgpu(n),
+                    selected_polygon.fill[3],
+                  ],
+                  camera
+                );
+              }
+              case "stroke_thickness": {
+                selected_polygon.update_data_from_stroke(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  {
+                    thickness: n,
+                    fill: selected_polygon.stroke.fill,
+                  },
+                  camera
+                );
+              }
+              case "stroke_red": {
+                selected_polygon.update_data_from_stroke(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  {
+                    thickness: selected_polygon.stroke.thickness,
+                    fill: [
+                      color_to_wgpu(n),
+                      selected_polygon.stroke.fill[1],
+                      selected_polygon.stroke.fill[2],
+                      selected_polygon.stroke.fill[3],
+                    ],
+                  },
+                  camera
+                );
+              }
+              case "stroke_green": {
+                selected_polygon.update_data_from_stroke(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  {
+                    thickness: selected_polygon.stroke.thickness,
+                    fill: [
+                      selected_polygon.stroke.fill[0],
+                      color_to_wgpu(n),
+                      selected_polygon.stroke.fill[2],
+                      selected_polygon.stroke.fill[3],
+                    ],
+                  },
+                  camera
+                );
+              }
+              case "stroke_blue": {
+                selected_polygon.update_data_from_stroke(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  {
+                    thickness: selected_polygon.stroke.thickness,
+                    fill: [
+                      selected_polygon.stroke.fill[0],
+                      selected_polygon.stroke.fill[1],
+                      color_to_wgpu(n),
+                      selected_polygon.stroke.fill[3],
+                    ],
+                  },
+                  camera
+                );
+              }
+            }
+          }
+        }
+      }
+    } else {
+      console.info("No polygon found with the selected ID: {}", selected_id);
+    }
+  }
+
+  update_text(selected_id: string, key: str, new_value: InputValue) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+
+    if (!gpuResources || !camera) {
+      return;
+    }
+
+    // First iteration: find the index of the selected polygon
+    let text_index = this.textItems.findIndex((p) => p.id == selected_id);
+
+    if (text_index) {
+      console.info("Found selected text with ID: {}", selected_id);
+
+      // Get the necessary data from editor
+      let viewport_width = camera.windowSize.width;
+      let viewport_height = camera.windowSize.height;
+      let device = gpuResources.device;
+      let queue = gpuResources.queue;
+
+      let windowSize = camera.windowSize;
+      // Second iteration: update the selected polygon
+      if (this.textItems[text_index]) {
+        let selected_text = this.textItems[text_index];
+
+        switch (new_value) {
+          case InputValue.Number: {
+            switch (key) {
+              case "width": {
+                selected_text.update_data_from_dimensions(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  (n, selected_text.dimensions[1]),
+                  camera
+                );
+              }
+              case "height": {
+                selected_text.update_data_from_dimensions(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  (selected_text.dimensions[0], n),
+                  camera
+                );
+              }
+              case "red_fill": {
+                selected_text.backgroundPolygon.update_data_from_fill(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  [
+                    n,
+                    selected_text.backgroundPolygon.fill[1],
+                    selected_text.backgroundPolygon.fill[2],
+                    selected_text.backgroundPolygon.fill[3],
+                  ],
+                  camera
+                );
+              }
+              case "green_fill": {
+                selected_text.backgroundPolygon.update_data_from_fill(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  [
+                    selected_text.backgroundPolygon.fill[0],
+                    n,
+                    selected_text.backgroundPolygon.fill[2],
+                    selected_text.backgroundPolygon.fill[3],
+                  ],
+                  camera
+                );
+              }
+              case "blue_fill": {
+                selected_text.backgroundPolygon.update_data_from_fill(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  [
+                    selected_text.backgroundPolygon.fill[0],
+                    selected_text.backgroundPolygon.fill[1],
+                    n,
+                    selected_text.backgroundPolygon.fill[3],
+                  ],
+                  camera
+                );
+              }
+            }
+          }
+        }
+      }
+    } else {
+      console.info("No text found with the selected ID: {}", selected_id);
+    }
+  }
+
+  update_image(selected_id: string, key: str, new_value: InputValue) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+
+    if (!gpuResources || !camera) {
+      return;
+    }
+
+    // First iteration: find the index of the selected polygon
+    let image_index = this.imageItems.findIndex((p) => p.id == selected_id);
+
+    if (image_index) {
+      console.info("Found selected image with ID: {}", selected_id);
+
+      // Get the necessary data from editor
+      let viewport_width = camera.windowSize.width;
+      let viewport_height = camera.windowSize.height;
+      let device = gpuResources.device;
+      let queue = gpuResources.queue;
+
+      let windowSize = camera.windowSize;
+      // Second iteration: update the selected polygon
+      if (this.imageItems[image_index]) {
+        let selected_image = this.imageItems[image_index];
+
+        switch (new_value) {
+          case InputValue.Number: {
+            switch (key) {
+              case "width": {
+                selected_image.updateDataFromDimensions(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  (n as number, selected_image.dimensions[1] as number),
+                  camera
+                );
+              }
+              case "height": {
+                selected_image.updateDataFromDimensions(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  (selected_image.dimensions[0] as number, n as number),
+                  camera
+                );
+              }
+            }
+          }
+        }
+      }
+    } else {
+      console.info("No image found with the selected ID: {}", selected_id);
+    }
+  }
+
+  update_video(selected_id: string, key: str, new_value: InputValue) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+
+    if (!gpuResources || !camera) {
+      return;
+    }
+
+    // First iteration: find the index of the selected polygon
+    let video_index = this.videoItems.findIndex((p) => p.id == selected_id);
+
+    if (video_index) {
+      console.info("Found selected video with ID: {}", selected_id);
+
+      // Get the necessary data from editor
+      let viewport_width = camera.windowSize.width;
+      let viewport_height = camera.windowSize.height;
+      let device = gpuResources.device;
+      let queue = gpuResources.queue;
+
+      let windowSize = camera.windowSize;
+      // Second iteration: update the selected polygon
+      if (this.videoItems[video_index]) {
+        let selected_video = this.videoItems[video_index];
+
+        switch (new_value) {
+          case InputValue.Number: {
+            switch (key) {
+              case "width": {
+                selected_video.updateDataFromDimensions(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  (n as number, selected_video.dimensions[1] as number),
+                  camera
+                );
+              }
+              case "height": {
+                selected_video.updateDataFromDimensions(
+                  windowSize,
+                  device,
+                  queue,
+                  this.modelBindGroupLayout,
+                  (selected_video.dimensions[0] as number, n as number),
+                  camera
+                );
+              }
+            }
+          }
+        }
+      }
+    } else {
+      console.info("No image found with the selected ID: {}", selected_id);
+    }
+  }
+
+  get_object_width(selected_id: string, object_type: ObjectType): number {
+    switch (object_type) {
+      case ObjectType.Polygon: {
+        let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
+
+        if (polygon_index) {
+          if (this.polygons[polygon_index]) {
+            let selected_polygon = this.polygons[polygon_index];
+            return selected_polygon.dimensions[0];
+          } else {
+            return 0.0;
+          }
+        }
+      }
+      case ObjectType.TextItem: {
+        let polygon_index = this.textItems.findIndex(
+          (p) => p.id == selected_id
+        );
+
+        if (polygon_index) {
+          if (this.textItems[polygon_index]) {
+            let selected_polygon = this.textItems[polygon_index];
+            return selected_polygon.dimensions[0];
+          } else {
+            return 0.0;
+          }
+        }
+      }
+      case ObjectType.ImageItem: {
+        let polygon_index = this.imageItems.findIndex(
+          (p) => p.id == selected_id
+        );
+
+        if (polygon_index) {
+          if (this.imageItems[polygon_index]) {
+            let selected_polygon = this.imageItems[polygon_index];
+            return selected_polygon.dimensions[0] as number;
+          } else {
+            return 0.0;
+          }
+        }
+      }
+      case ObjectType.VideoItem: {
+        let polygon_index = this.videoItems.findIndex(
+          (p) => p.id == selected_id
+        );
+
+        if (polygon_index) {
+          if (this.videoItems[polygon_index]) {
+            let selected_polygon = this.videoItems[polygon_index];
+            return selected_polygon.dimensions[0] as number;
+          } else {
+            return 0.0;
+          }
+        }
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_object_height(selected_id: string, object_type: ObjectType): number {
+    switch (object_type) {
+      case ObjectType.Polygon: {
+        let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
+
+        if (polygon_index) {
+          if (this.polygons[polygon_index]) {
+            let selected_polygon = this.polygons[polygon_index];
+            return selected_polygon.dimensions[1];
+          } else {
+            return 0.0;
+          }
+        }
+      }
+      case ObjectType.TextItem: {
+        let polygon_index = this.textItems.findIndex(
+          (p) => p.id == selected_id
+        );
+
+        if (polygon_index) {
+          if (this.textItems[polygon_index]) {
+            let selected_polygon = this.textItems[polygon_index];
+            return selected_polygon.dimensions[1];
+          } else {
+            return 0.0;
+          }
+        }
+      }
+      case ObjectType.ImageItem: {
+        let polygon_index = this.imageItems.findIndex(
+          (p) => p.id == selected_id
+        );
+
+        if (polygon_index) {
+          if (this.imageItems[polygon_index]) {
+            let selected_polygon = this.imageItems[polygon_index];
+            return selected_polygon.dimensions[1] as number;
+          } else {
+            return 0.0;
+          }
+        }
+      }
+      case ObjectType.VideoItem: {
+        let polygon_index = this.videoItems.findIndex(
+          (p) => p.id == selected_id
+        );
+
+        if (polygon_index) {
+          if (this.videoItems[polygon_index]) {
+            let selected_polygon = this.videoItems[polygon_index];
+            return selected_polygon.dimensions[1] as number;
+          } else {
+            return 0.0;
+          }
+        }
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_fill_red(selected_id: string): number {
+    let polygon_index = this.textItems.findIndex((p) => p.id == selected_id);
+
+    if (polygon_index) {
+      if (this.textItems[polygon_index]) {
+        let selected_polygon = this.textItems[polygon_index];
+        return selected_polygon.backgroundPolygon.fill[0];
+      } else {
+        return 0.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_fill_green(selected_id: string): number {
+    let polygon_index = this.textItems.findIndex((p) => p.id == selected_id);
+
+    if (polygon_index) {
+      if (this.textItems[polygon_index]) {
+        let selected_polygon = this.textItems[polygon_index];
+        return selected_polygon.backgroundPolygon.fill[1];
+      } else {
+        return 0.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_fill_blue(selected_id: string): number {
+    let polygon_index = this.textItems.findIndex((p) => p.id == selected_id);
+
+    if (polygon_index) {
+      if (this.textItems[polygon_index]) {
+        let selected_polygon = this.textItems[polygon_index];
+        return selected_polygon.backgroundPolygon.fill[2];
+      } else {
+        return 0.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_background_red(selected_id: string): number {
+    let polygon_index = this.staticPolygons.findIndex(
+      (p) => p.id == selected_id
+    );
+
+    if (polygon_index) {
+      if (this.staticPolygons[polygon_index]) {
+        let selected_polygon = this.staticPolygons[polygon_index];
+
+        return selected_polygon.fill[0];
+      } else {
+        return 0.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_background_green(selected_id: string): number {
+    let polygon_index = this.staticPolygons.findIndex(
+      (p) => p.id == selected_id
+    );
+
+    if (polygon_index) {
+      if (this.staticPolygons[polygon_index]) {
+        let selected_polygon = this.staticPolygons[polygon_index];
+
+        return selected_polygon.fill[1];
+      } else {
+        return 0.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_background_blue(selected_id: string): number {
+    let polygon_index = this.staticPolygons.findIndex(
+      (p) => p.id == selected_id
+    );
+
+    if (polygon_index) {
+      if (this.staticPolygons[polygon_index]) {
+        let selected_polygon = this.staticPolygons[polygon_index];
+
+        return selected_polygon.fill[2];
+      } else {
+        return 0.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_polygon_red(selected_id: string): number {
+    let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
+
+    if (polygon_index) {
+      if (this.polygons[polygon_index]) {
+        let selected_polygon = this.polygons[polygon_index];
+
+        return selected_polygon.fill[0];
+      } else {
+        return 0.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_polygon_green(selected_id: string): number {
+    let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
+
+    if (polygon_index) {
+      if (this.polygons[polygon_index]) {
+        let selected_polygon = this.polygons[polygon_index];
+
+        return selected_polygon.fill[1];
+      } else {
+        return 0.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_polygon_blue(selected_id: string): number {
+    let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
+
+    if (polygon_index) {
+      if (this.polygons[polygon_index]) {
+        let selected_polygon = this.polygons[polygon_index];
+
+        return selected_polygon.fill[2];
+      } else {
+        return 0.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_polygon_border_radius(selected_id: string): number {
+    let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
+
+    if (polygon_index) {
+      if (this.polygons[polygon_index]) {
+        let selected_polygon = this.polygons[polygon_index];
+
+        return selected_polygon.borderRadius;
+      } else {
+        return 0.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_polygon_stroke_thickness(selected_id: string): number {
+    let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
+
+    if (polygon_index) {
+      if (this.polygons[polygon_index]) {
+        let selected_polygon = this.polygons[polygon_index];
+
+        return selected_polygon.stroke.thickness;
+      } else {
+        return 0.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_polygon_stroke_red(selected_id: string): number {
+    let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
+
+    if (polygon_index) {
+      if (this.polygons[polygon_index]) {
+        let selected_polygon = this.polygons[polygon_index];
+
+        return selected_polygon.stroke.fill[0];
+      } else {
+        return 0.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_polygon_stroke_green(selected_id: string): number {
+    let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
+
+    if (polygon_index) {
+      if (this.polygons[polygon_index]) {
+        let selected_polygon = this.polygons[polygon_index];
+
+        return selected_polygon.stroke.fill[1];
+      } else {
+        return 0.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  get_polygon_stroke_blue(selected_id: string): number {
+    let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
+
+    if (polygon_index) {
+      if (this.polygons[polygon_index]) {
+        let selected_polygon = this.polygons[polygon_index];
+
+        return selected_polygon.stroke.fill[2];
+      } else {
+        return 0.0;
+      }
+    }
+
+    return 0.0;
+  }
+
+  update_text_font_family(font_id: string, selected_text_id: string) {
+    let gpuResources = this.gpuResources;
+    let new_font_family = this.fontManager.loadFontByName(font_id);
+
+    let text_item = this.textItems.find((t) => t.id == selected_text_id);
+
+    if (!text_item || !gpuResources) {
+      return;
+    }
+
+    text_item.fontFamily = font_id;
+    text_item.updateFontFamily(new_font_family);
+    text_item.renderText(gpuResources.device, gpuResources.queue);
+  }
+
+  update_text_color(
+    selected_text_id: string,
+    color: [number, number, number, number]
+  ) {
+    let gpuResources = this.gpuResources;
+    let text_item = this.textItems.find((t) => t.id == selected_text_id);
+
+    if (!text_item || !gpuResources) {
+      return;
+    }
+
+    text_item.color = color;
+    text_item.renderText(gpuResources.device, gpuResources.queue);
+  }
+
+  update_text_size(selected_text_id: string, size: number) {
+    let gpuResources = this.gpuResources;
+    let text_item = this.textItems.find((t) => t.id == selected_text_id);
+
+    if (!text_item || !gpuResources) {
+      return;
+    }
+
+    text_item.fontSize = size;
+    text_item.renderText(gpuResources.device, gpuResources.queue);
+  }
+
+  update_text_content(selected_text_id: string, content: string) {
+    let gpuResources = this.gpuResources;
+    let text_item = this.textItems.find((t) => t.id == selected_text_id);
+
+    if (!text_item || !gpuResources) {
+      return;
+    }
+
+    text_item.text = content;
+    text_item.renderText(gpuResources.device, gpuResources.queue);
   }
 }
 
@@ -2001,7 +3081,7 @@ export class Ray implements IRay {
 }
 
 export function visualize_ray_intersection(
-  window_size: WindowSize,
+  window_size: windowSize,
   screen_x: number,
   screen_y: number,
   camera: Camera
@@ -2056,4 +3136,10 @@ export function getFullColor(index: number): [number, number, number] {
     default:
       throw new Error("Unreachable case in get_full_color"); // More appropriate than unreachable!()
   }
+}
+
+export enum InputValue {
+  Text,
+  Number,
+  // Points(Vec<Point>),
 }
