@@ -127,8 +127,12 @@ import { Polygon, PolygonConfig } from "./polygon";
 import { TextRenderer, TextRendererConfig } from "./text";
 import {
   AnimationData,
+  AnimationProperty,
+  calculateDefaultCurve,
   EasingType,
+  ObjectType,
   PathType,
+  RangeData,
   SavedTimelineStateConfig,
   Sequence,
   UIKeyframe,
@@ -150,11 +154,6 @@ export enum ObjectProperty {
   StrokeGreen = "StrokeGreen",
   StrokeBlue = "StrokeBlue",
   // Points = 'Points',
-}
-
-// Assuming ObjectType is defined elsewhere
-export interface ObjectType {
-  // Add properties as needed
 }
 
 export interface ObjectEditConfig {
@@ -301,6 +300,7 @@ import { MotionPath } from "./motionpath";
 import { Camera, CameraBinding } from "./camera";
 import { StImage, StImageConfig } from "./image";
 import { StVideo, StVideoConfig } from "./video";
+import { vec2 } from "gl-matrix";
 
 export class Editor {
   // visual
@@ -817,6 +817,1084 @@ export class Editor {
   call_motion_inference(prompt: string): AnimationData[] {
     // TODO: will call API.  Return a Promise<AnimationData[]> and use async/await
     return []; // Placeholder
+  }
+
+  create_motion_paths_from_predictions(
+    predictions: number[]
+    // this.generation_choreographed: boolean,
+    // this.generation_curved: boolean,
+    // this.generation_fade: boolean,
+    // polygons: Polygon[],
+    // text_items: TextRenderer[],
+    // image_items: StImage[],
+    // video_items: StVideo[],
+    // generation_count: number,
+  ): AnimationData[] {
+    const animation_data_vec: AnimationData[] = [];
+    const values_per_prediction = NUM_INFERENCE_FEATURES;
+    const keyframes_per_object = 6;
+
+    const timestamp_diffs = [0.0, 2500.0, 5000.0, -5000.0, -2500.0, 0.0];
+
+    const total_predictions = predictions.length;
+    const num_objects =
+      total_predictions / (values_per_prediction * keyframes_per_object);
+
+    const current_positions: [number, number, number, number][] = [];
+    let total = 0;
+
+    for (const polygon of this.polygons) {
+      if (!polygon.hidden) {
+        current_positions.push([
+          total,
+          20000,
+          polygon.transform.position[0] - CANVAS_HORIZ_OFFSET,
+          polygon.transform.position[1] - CANVAS_VERT_OFFSET,
+        ]);
+        total++;
+      }
+    }
+
+    for (const text of this.textItems) {
+      if (!text.hidden) {
+        current_positions.push([
+          total,
+          20000,
+          text.transform.position[0] - CANVAS_HORIZ_OFFSET,
+          text.transform.position[1] - CANVAS_VERT_OFFSET,
+        ]);
+        total++;
+      }
+    }
+
+    for (const image of this.imageItems) {
+      if (!image.hidden) {
+        current_positions.push([
+          total,
+          20000,
+          image.transform.position[0] - CANVAS_HORIZ_OFFSET,
+          image.transform.position[1] - CANVAS_VERT_OFFSET,
+        ]);
+        total++;
+      }
+    }
+
+    for (const video of this.videoItems) {
+      if (!video.hidden) {
+        current_positions.push([
+          total,
+          video.source_duration_ms,
+          video.transform.position.x - CANVAS_HORIZ_OFFSET,
+          video.transform.position.y - CANVAS_VERT_OFFSET,
+        ]);
+        total++;
+      }
+    }
+
+    let longest_path: number | null = null;
+    if (this.generationChoreographed) {
+      let max_distance = 0.0;
+      for (let object_idx = 0; object_idx < num_objects; object_idx++) {
+        let path_length = 0.0;
+        let prev_x: number | null = null;
+        let prev_y: number | null = null;
+
+        for (
+          let keyframe_idx = 0;
+          keyframe_idx < keyframes_per_object;
+          keyframe_idx++
+        ) {
+          const base_idx =
+            object_idx * (values_per_prediction * keyframes_per_object) +
+            keyframe_idx * values_per_prediction;
+
+          if (base_idx + 5 >= predictions.length) {
+            continue;
+          }
+
+          const x = Math.round(predictions[base_idx + 4] * 0.01 * 800.0);
+          const y = Math.round(predictions[base_idx + 5] * 0.01 * 450.0);
+
+          if (prev_x !== null && prev_y !== null) {
+            const dx = x - prev_x;
+            const dy = y - prev_y;
+            path_length += Math.sqrt(dx * dx + dy * dy);
+          }
+
+          prev_x = x;
+          prev_y = y;
+        }
+
+        if (path_length > max_distance) {
+          max_distance = path_length;
+          longest_path = object_idx;
+        }
+      }
+    }
+
+    for (
+      let object_idx = 0;
+      object_idx < current_positions.length;
+      object_idx++
+    ) {
+      const itemId = this.getItemId(object_idx);
+      const objectType = this.getObjectType(object_idx);
+
+      if (!itemId || !objectType) continue; // Skip if ID or type is not found
+
+      const totalDuration =
+        objectType === ObjectType.VideoItem
+          ? this.videoItems.find((v) => v.id === itemId)?.sourceDurationMs ||
+            20000 // Provide a default
+          : 20000.0;
+
+      const timestamps = [
+        0.0,
+        2500.0,
+        5000.0,
+        totalDuration - 5000.0,
+        totalDuration - 2500.0,
+        totalDuration,
+      ];
+
+      const pathSourceIdx = this.generationChoreographed
+        ? longest_path ?? object_idx
+        : object_idx; // Use nullish coalescing
+
+      const positionKeyframes: UIKeyframe[] = [];
+
+      const [, , currentX, currentY] = current_positions[object_idx];
+
+      const rangeCenterIdx =
+        pathSourceIdx * (values_per_prediction * keyframes_per_object) +
+        2 * values_per_prediction;
+      const centerX = Math.round(
+        predictions[rangeCenterIdx + 4] * 0.01 * 800.0
+      );
+      const centerY = Math.round(
+        predictions[rangeCenterIdx + 5] * 0.01 * 450.0
+      );
+
+      const offsetX = currentX - centerX;
+      const offsetY = currentY - centerY;
+
+      for (
+        let keyframeTimeIdx = 0;
+        keyframeTimeIdx < keyframes_per_object;
+        keyframeTimeIdx++
+      ) {
+        if (
+          this.generationCount === 4 &&
+          (keyframeTimeIdx === 1 || keyframeTimeIdx === 4)
+        ) {
+          continue;
+        }
+
+        const baseIdx =
+          pathSourceIdx * (values_per_prediction * keyframes_per_object) +
+          keyframeTimeIdx * values_per_prediction;
+
+        if (baseIdx + 5 >= predictions.length) {
+          continue;
+        }
+
+        const predictedX =
+          Math.round(predictions[baseIdx + 4] * 0.01 * 800.0) + offsetX;
+        const predictedY =
+          Math.round(predictions[baseIdx + 5] * 0.01 * 450.0) + offsetY;
+
+        const timestamp =
+          keyframeTimeIdx < 3
+            ? timestamp_diffs[keyframeTimeIdx]
+            : totalDuration + timestamp_diffs[keyframeTimeIdx];
+
+        const keyframe: UIKeyframe = {
+          id: uuidv4(),
+          time: timestamp,
+          value: { type: "Position", value: [predictedX, predictedY] },
+          easing: EasingType.EaseInOut,
+          pathType: PathType.Linear,
+          curveData: null,
+          keyType: { type: "Frame" },
+        };
+
+        positionKeyframes.push(keyframe);
+      }
+
+      // ... (rest of the code for range keyframes and final keyframes)
+
+      if (positionKeyframes.length === 6) {
+        const forthKeyframe = { ...positionKeyframes[3] }; // Create a copy
+        const thirdKeyframe = positionKeyframes[2];
+        thirdKeyframe.keyType = {
+          type: "Range",
+          data: {
+            endTime: forthKeyframe.time, // Duration in milliseconds
+          },
+        };
+        positionKeyframes.splice(3, 1); // Remove the 4th element
+      }
+
+      if (positionKeyframes.length === 4) {
+        const mid2Keyframe = { ...positionKeyframes[2] }; // Create a copy
+        const midKeyframe = positionKeyframes[1];
+        // midKeyframe.keyType = KeyType.Range({ end_time: mid2Keyframe.time });
+        midKeyframe.keyType = {
+          type: "Range",
+          data: {
+            endTime: mid2Keyframe.time, // Duration in milliseconds
+          },
+        };
+        positionKeyframes.splice(2, 1); // Remove the 3rd element (index 2)
+      }
+
+      let final_position_keyframes: UIKeyframe[] = [];
+      if (this.generationCurved) {
+        for (const keyframe of positionKeyframes) {
+          if (final_position_keyframes.length > 0) {
+            // Check if there's a previous keyframe
+            const prevKeyframe =
+              final_position_keyframes[final_position_keyframes.length - 1];
+            const curveData = calculateDefaultCurve(prevKeyframe, keyframe); // Implement this function
+            prevKeyframe.pathType = PathType.Bezier;
+            if (prevKeyframe.pathType === PathType.Bezier && curveData) {
+              prevKeyframe.curveData = curveData;
+            }
+          }
+          final_position_keyframes.push({ ...keyframe }); // Push a copy
+        }
+      } else {
+        final_position_keyframes = [...positionKeyframes]; // Create a copy
+      }
+
+      if (final_position_keyframes.length > 0 && itemId) {
+        // Check if itemId is defined
+        const properties: AnimationProperty[] = [
+          {
+            name: "Position",
+            propertyPath: "position",
+            children: [],
+            keyframes: final_position_keyframes,
+            depth: 0,
+          },
+          {
+            name: "Rotation",
+            propertyPath: "rotation",
+            children: [],
+            keyframes: timestamps.map((t) => ({
+              id: uuidv4(),
+              time: t,
+              value: {
+                type: "Rotation",
+                value: 0,
+              }, // Assuming 0 for rotation
+              easing: EasingType.EaseInOut,
+              pathType: PathType.Linear,
+              keyType: { type: "Frame" },
+              curveData: null,
+            })),
+            depth: 0,
+          },
+          {
+            name: "Scale",
+            propertyPath: "scale",
+            children: [],
+            keyframes: timestamps.map((t) => ({
+              id: uuidv4(),
+              time: t,
+              value: {
+                type: "Scale",
+                value: 100,
+              }, // Assuming 100 for scale
+              easing: EasingType.EaseInOut,
+              pathType: PathType.Linear,
+              keyType: { type: "Frame" },
+              curveData: null,
+            })),
+            depth: 0,
+          },
+          {
+            name: "Opacity",
+            propertyPath: "opacity",
+            children: [],
+            keyframes: timestamps.map((t, i) => {
+              let opacity = 100;
+              if (
+                this.generationFade &&
+                (i === 0 || i === timestamps.length - 1)
+              ) {
+                opacity = 0;
+              }
+
+              return {
+                id: uuidv4(),
+                time: t,
+                value: {
+                  type: "Opacity",
+                  value: opacity,
+                },
+                easing: EasingType.EaseInOut,
+                pathType: PathType.Linear,
+                keyType: { type: "Frame" },
+                curveData: null,
+              };
+            }),
+            depth: 0,
+          },
+        ];
+
+        if (objectType === ObjectType.VideoItem) {
+          properties.push({
+            name: "Zoom / Popout",
+            propertyPath: "zoom",
+            children: [],
+            keyframes: timestamps.map((t) => ({
+              id: uuidv4(),
+              time: t,
+              value: {
+                type: "Zoom",
+                value: 100,
+              },
+              easing: EasingType.EaseInOut,
+              pathType: PathType.Linear,
+              keyType: { type: "Frame" },
+              curveData: null,
+            })),
+            depth: 0,
+          });
+        }
+
+        animation_data_vec.push({
+          id: uuidv4(),
+          objectType: objectType,
+          polygonId: itemId,
+          duration: totalDuration,
+          startTimeMs: 0,
+          position: [0, 0],
+          properties,
+        });
+      }
+    }
+
+    return animation_data_vec;
+  }
+
+  // Helper function to get item ID based on object index
+  getItemId(objectIdx: number): string | null {
+    const visiblePolygons: Polygon[] = this.polygons.filter((p) => !p.hidden);
+    const visibleTexts: TextRenderer[] = this.textItems.filter(
+      (t) => !t.hidden
+    );
+    const visibleImages: StImage[] = this.imageItems.filter((i) => !i.hidden);
+    const visibleVideos: StVideo[] = this.videoItems.filter((v) => !v.hidden);
+
+    const polygonCount = visiblePolygons.length;
+    const textCount = visibleTexts.length;
+    const imageCount = visibleImages.length;
+    const videoCount = visibleVideos.length;
+
+    if (objectIdx < polygonCount) {
+      return visiblePolygons[objectIdx].id;
+    } else if (objectIdx < polygonCount + textCount) {
+      return visibleTexts[objectIdx - polygonCount].id;
+    } else if (objectIdx < polygonCount + textCount + imageCount) {
+      return visibleImages[objectIdx - (polygonCount + textCount)].id;
+    } else if (objectIdx < polygonCount + textCount + imageCount + videoCount) {
+      return visibleVideos[objectIdx - (polygonCount + textCount + imageCount)]
+        .id;
+    } else {
+      return null;
+    }
+  }
+
+  // Helper function to get object type based on object index
+  getObjectType(objectIdx: number): ObjectType | null {
+    const polygonCount = this.polygons.filter((p) => !p.hidden).length;
+    const textCount = this.textItems.filter((t) => !t.hidden).length;
+    const imageCount = this.imageItems.filter((i) => !i.hidden).length;
+    const videoCount = this.videoItems.filter((v) => !v.hidden).length;
+
+    if (objectIdx < polygonCount) {
+      return ObjectType.Polygon;
+    } else if (objectIdx < polygonCount + textCount) {
+      return ObjectType.TextItem;
+    } else if (objectIdx < polygonCount + textCount + imageCount) {
+      return ObjectType.ImageItem;
+    } else if (objectIdx < polygonCount + textCount + imageCount + videoCount) {
+      return ObjectType.VideoItem;
+    } else {
+      return null;
+    }
+  }
+
+  stepVideoAnimations(camera: Camera, providedCurrentTimeS?: number): void {
+    if (!this.videoIsPlaying || !this.videoCurrentSequenceTimeline) {
+      return;
+    }
+
+    const now = Date.now();
+    const totalDt = this.videoStartPlayingTime
+      ? (now - this.videoStartPlayingTime) / 1000
+      : 0;
+
+    const sequenceTimeline = this.videoCurrentSequenceTimeline;
+
+    // Convert totalDt from seconds to milliseconds for comparison with timeline
+    const currentTimeMs = providedCurrentTimeS
+      ? Math.floor(providedCurrentTimeS * 1000)
+      : Math.floor(totalDt * 1000);
+
+    // Get the sequences data
+    const videoCurrentSequencesData = this.videoCurrentSequencesData;
+    if (!videoCurrentSequencesData) {
+      return;
+    }
+
+    let updateBackground = false;
+
+    if (totalDt <= 1.0 / 60.0) {
+      console.log("Update initial background...");
+      updateBackground = true;
+    }
+
+    // Iterate through timeline sequences in order
+    for (const ts of sequenceTimeline.timeline_sequences) {
+      // Skip audio tracks as we're only handling video
+      if (ts.track_type !== "Video") {
+        continue;
+      }
+
+      // Find the duration of the sequence
+      const durationMs =
+        videoCurrentSequencesData.find((s) => s.id === ts.sequence_id)
+          ?.durationMs || 0;
+
+      // Check if this sequence should be playing at the current time
+      if (
+        currentTimeMs >= ts.start_time_ms &&
+        currentTimeMs < ts.start_time_ms + durationMs
+      ) {
+        // Find the corresponding sequence data
+        const sequence = videoCurrentSequencesData.find(
+          (s) => s.id === ts.sequence_id
+        );
+        if (sequence) {
+          // Calculate local time within this sequence
+          const sequenceLocalTime = (currentTimeMs - ts.start_time_ms) / 1000;
+
+          if (this.currentSequenceData) {
+            // Check id to avoid unnecessary cloning
+            if (sequence.id !== this.currentSequenceData.id) {
+              this.currentSequenceData = sequence;
+
+              // Set hidden attribute on relevant objects
+              const currentSequenceId = sequence.id;
+
+              for (const polygon of this.polygons) {
+                polygon.hidden =
+                  polygon.currentSequenceId !== currentSequenceId;
+              }
+              for (const text of this.textItems) {
+                text.hidden = text.currentSequenceId !== currentSequenceId;
+              }
+              for (const image of this.imageItems) {
+                image.hidden = image.currentSequenceId !== currentSequenceId;
+              }
+              for (const video of this.videoItems) {
+                video.hidden = video.currentSequenceId !== currentSequenceId;
+              }
+
+              updateBackground = true;
+            }
+          } else {
+            this.currentSequenceData = sequence;
+          }
+        }
+      }
+    }
+
+    if (updateBackground && this.currentSequenceData) {
+      const backgroundFill = this.currentSequenceData.backgroundFill;
+      if (backgroundFill && backgroundFill.type === "Color") {
+        const [r, g, b, a] = backgroundFill.value;
+        this.replaceBackground(
+          this.currentSequenceData.id,
+          rgbToWgpu(r, g, b, a)
+        );
+      } else {
+        console.log("Not supported yet...");
+      }
+    }
+  }
+
+  stepMotionPathAnimations(
+    camera: Camera,
+    providedCurrentTimeS?: number
+  ): void {
+    if (!this.isPlaying || !this.currentSequenceData) {
+      return;
+    }
+
+    const now = Date.now();
+    let totalDt = this.startPlayingTime
+      ? (now - this.startPlayingTime) / 1000
+      : 0;
+    totalDt =
+      providedCurrentTimeS !== undefined ? providedCurrentTimeS : totalDt;
+    this.lastFrameTime = now;
+
+    this.stepAnimateSequence(totalDt, camera);
+  }
+
+  stepAnimateSequence(totalDt: number, camera: Camera): void {
+    const gpuResources = this.gpuResources;
+    if (!gpuResources) {
+      throw new Error("Couldn't get GPU Resources");
+    }
+
+    const sequence = this.currentSequenceData;
+    if (!sequence) {
+      throw new Error("Couldn't get sequence");
+    }
+
+    // Update each animation path
+    for (const animation of sequence.polygonMotionPaths) {
+      // Group transform position
+      const pathGroupPosition = animation.position;
+
+      // Get current time within animation duration
+      const currentTime = totalDt % (sequence.durationMs / 1000);
+      const startTime = animation.startTimeMs / 1000;
+
+      // Check if the current time is within the animation's active period
+      if (
+        currentTime < startTime ||
+        currentTime > startTime + animation.duration
+      ) {
+        continue;
+      }
+
+      // Find the object to update
+      let objectIdx: number | undefined;
+      switch (animation.objectType) {
+        case "Polygon":
+          objectIdx = this.polygons.findIndex(
+            (p) => p.id === animation.polygonId
+          );
+          break;
+        case "TextItem":
+          objectIdx = this.textItems.findIndex(
+            (t) => t.id === animation.polygonId
+          );
+          break;
+        case "ImageItem":
+          objectIdx = this.imageItems.findIndex(
+            (i) => i.id === animation.polygonId
+          );
+          break;
+        case "VideoItem":
+          objectIdx = this.videoItems.findIndex(
+            (i) => i.id === animation.polygonId
+          );
+          break;
+      }
+
+      if (objectIdx === undefined || objectIdx === -1) {
+        continue;
+      }
+
+      // Determine whether to draw the video frame based on the frame rate and current time
+      let animateProperties = false;
+
+      if (animation.objectType === "VideoItem") {
+        const videoItem = this.videoItems[objectIdx];
+        const frameRate = videoItem.sourceFrameRate;
+        const sourceDurationMs = videoItem.sourceDurationMs;
+        const frameInterval = 1.0 / frameRate;
+
+        // Calculate the number of frames that should have been displayed by now
+        const elapsedTime = currentTime - startTime;
+        const currentFrameTime = videoItem.numFramesDrawn * frameInterval;
+
+        // Only draw the frame if the current time is within the frame's display interval
+        if (
+          currentTime >= currentFrameTime &&
+          currentTime < currentFrameTime + frameInterval
+        ) {
+          if (currentTime * 1000 + 1000 < sourceDurationMs) {
+            videoItem.drawVideoFrame(gpuResources.device, gpuResources.queue);
+            animateProperties = true;
+            videoItem.numFramesDrawn += 1;
+          }
+        } else {
+          // Determine how many video frames to draw to catch up
+          const difference = currentTime - currentFrameTime;
+          const catchUpFrames = Math.floor(difference / frameInterval);
+
+          // Only catch up if we're behind and within the video duration
+          if (
+            catchUpFrames > 0 &&
+            currentTime * 1000 + 1000 < sourceDurationMs
+          ) {
+            // Limit the maximum number of frames to catch up to avoid excessive CPU usage
+            const maxCatchUp = 5;
+            const framesToDraw = Math.min(catchUpFrames, maxCatchUp);
+
+            for (let i = 0; i < framesToDraw; i++) {
+              videoItem.drawVideoFrame(gpuResources.device, gpuResources.queue);
+              videoItem.numFramesDrawn += 1;
+            }
+
+            animateProperties = true;
+          }
+        }
+      } else {
+        animateProperties = true;
+      }
+
+      if (!animateProperties) {
+        continue;
+      }
+
+      // Go through each property
+      for (const property of animation.properties) {
+        if (property.keyframes.length < 2) {
+          continue;
+        }
+
+        if (startTime > currentTime) {
+          continue;
+        }
+
+        // Find the surrounding keyframes
+        const surroundingKeyframes = this.getSurroundingKeyframes(
+          property.keyframes,
+          currentTime - startTime
+        );
+        if (!surroundingKeyframes) {
+          continue;
+        }
+
+        const [startFrame, endFrame] = surroundingKeyframes;
+
+        if (!startFrame || !endFrame) {
+          continue;
+        }
+
+        // Calculate interpolation progress
+        const duration = endFrame.time - startFrame.time; // duration between keyframes
+        const elapsed = currentTime - startTime - startFrame.time; // elapsed since start keyframe
+        let progress = elapsed / duration;
+
+        // Apply easing (EaseInOut)
+        progress =
+          progress < 0.5
+            ? 2.0 * progress * progress
+            : 1.0 - Math.pow(-2.0 * progress + 2.0, 2) / 2.0;
+
+        // Apply the interpolated value to the object's property
+        const startValue = startFrame.value;
+        const endValue = endFrame.value;
+
+        // Add property-specific interpolation logic here
+        // Example:
+        // if (property.type === 'Position') {
+        //     const interpolatedValue = startValue + (endValue - startValue) * progress;
+        //     this.updateObjectProperty(objectIdx, property.type, interpolatedValue);
+        // }
+
+        switch (
+          true // Using switch(true) for cleaner type checking
+        ) {
+          case startFrame.value.type === "Position" &&
+            endFrame.value.type === "Position": {
+            const start = startFrame.value.value as [number, number]; // Type assertion for clarity
+            const end = endFrame.value.value as [number, number];
+
+            const x = this.lerp(start[0], end[0], progress);
+            const y = this.lerp(start[1], end[1], progress);
+
+            const position: Point = {
+              x: CANVAS_HORIZ_OFFSET + x + pathGroupPosition[0],
+              y: CANVAS_VERT_OFFSET + y + pathGroupPosition[1],
+            };
+
+            // const positionVec: vec2 = vec2.fromValues(position.x, position.y);
+            let positionVec = [position.x, position.y] as [number, number];
+            // const windowSizeVec: vec2 = vec2.fromValues(
+            //   camera.windowSize.width,
+            //   camera.windowSize.height
+            // ); // Assuming camera.window_size is an array [width, height]
+
+            switch (animation.object_type) {
+              case ObjectType.Polygon:
+                (this.polygons[objectIdx] as Polygon).transform.updatePosition(
+                  positionVec,
+                  camera.windowSize
+                );
+                break;
+              case ObjectType.TextItem:
+                this.textItems[objectIdx].transform.updatePosition(
+                  positionVec,
+                  camera.windowSize
+                );
+                this.textItems[
+                  objectIdx
+                ].backgroundPolygon.transform.updatePosition(
+                  positionVec,
+                  camera.windowSize
+                );
+                break;
+              case ObjectType.ImageItem:
+                this.imageItems[objectIdx].transform.updatePosition(
+                  positionVec,
+                  camera.windowSize
+                );
+                break;
+              case ObjectType.VideoItem:
+                this.videoItems[objectIdx].transform.updatePosition(
+                  positionVec,
+                  camera.windowSize
+                );
+                break;
+            }
+            break;
+          }
+
+          case startFrame.value.type === "Rotation" &&
+            endFrame.value.type === "Rotation": {
+            const start = startFrame.value.value as number;
+            const end = endFrame.value.value as number;
+            const new_rotation = this.lerp(start, end, progress);
+            const new_rotation_rad = toRadians(new_rotation);
+
+            switch (animation.object_type) {
+              case ObjectType.Polygon:
+                this.polygons[objectIdx].transform.updateRotation(
+                  new_rotation_rad
+                );
+                break;
+              case ObjectType.TextItem:
+                this.textItems[objectIdx].transform.updateRotation(
+                  new_rotation_rad
+                );
+                break;
+              case ObjectType.ImageItem:
+                this.imageItems[objectIdx].transform.updateRotation(
+                  new_rotation_rad
+                );
+                break;
+              case ObjectType.VideoItem:
+                this.videoItems[objectIdx].transform.updateRotation(
+                  new_rotation_rad
+                );
+                break;
+            }
+            break;
+          }
+          case startFrame.value.type === "Scale" &&
+            endFrame.value.type === "Scale": {
+            const start = startFrame.value.value as number;
+            const end = endFrame.value.value as number;
+            const new_scale = this.lerp(start, end, progress) / 100.0;
+            // const scaleVec: vec2 = vec2.fromValues(new_scale, new_scale); // Create scale vector
+            const scaleVec = [new_scale, new_scale] as [number, number];
+
+            switch (animation.object_type) {
+              case ObjectType.Polygon:
+                (this.polygons[objectIdx] as Polygon).transform.updateScale(
+                  scaleVec
+                );
+                break;
+              case ObjectType.TextItem:
+                this.textItems[objectIdx].transform.updateScale(scaleVec);
+                this.textItems[
+                  objectIdx
+                ].backgroundPolygon.transform.updateScale(scaleVec);
+                break;
+              case ObjectType.ImageItem:
+                const originalScaleImage =
+                  this.imageItems[objectIdx].dimensions;
+                const scaledImageDimensions = vec2.fromValues(
+                  originalScaleImage[0] * new_scale,
+                  originalScaleImage[1] * new_scale
+                );
+                this.imageItems[objectIdx].transform.updateScale(
+                  scaledImageDimensions
+                );
+                break;
+              case ObjectType.VideoItem:
+                const originalScaleVideo =
+                  this.videoItems[objectIdx].dimensions;
+                const scaledVideoDimensions = vec2.fromValues(
+                  originalScaleVideo[0] * new_scale,
+                  originalScaleVideo[1] * new_scale
+                );
+                this.videoItems[objectIdx].transform.updateScale(
+                  scaledVideoDimensions
+                );
+                break;
+            }
+            break;
+          }
+
+          case startFrame.value.type === "Opacity" &&
+            endFrame.value.type === "Opacity": {
+            const start = startFrame.value.value as number;
+            const end = endFrame.value.value as number;
+            const opacity = this.lerp(start, end, progress) / 100.0;
+
+            const gpuResources = this.gpuResources;
+
+            if (gpuResources) {
+              const queue = gpuResources.queue;
+              switch (animation.object_type) {
+                case ObjectType.Polygon:
+                  this.polygons[objectIdx].updateOpacity(queue, opacity);
+                  break;
+                case ObjectType.TextItem:
+                  this.textItems[objectIdx].updateOpacity(queue, opacity);
+                  this.textItems[objectIdx].backgroundPolygon.updateOpacity(
+                    queue,
+                    opacity
+                  );
+                  break;
+                case ObjectType.ImageItem:
+                  this.imageItems[objectIdx].updateOpacity(queue, opacity);
+                  break;
+                case ObjectType.VideoItem:
+                  this.videoItems[objectIdx].updateOpacity(queue, opacity);
+                  break;
+              }
+            } else {
+              console.error("GPU resources not available.");
+            }
+            break;
+          }
+
+          default:
+            break; // Or handle the default case as needed
+        }
+      }
+    }
+  }
+
+  getSurroundingKeyframes(
+    keyframes: UIKeyframe[],
+    current_time: number
+  ): [UIKeyframe | null, UIKeyframe | null] {
+    let prev_frame: UIKeyframe | null = null;
+    let next_frame: UIKeyframe | null = null;
+
+    keyframes.sort((a, b) => a.time - b.time); // Sort keyframes by time
+
+    for (let i = 0; i < keyframes.length; i++) {
+      const frame = keyframes[i];
+
+      if (frame.time > current_time) {
+        if (i > 0) {
+          const prevKeyframe = keyframes[i - 1];
+          if (prevKeyframe.keyType.type === "Range") {
+            // Check the 'type' property
+            const range_data = prevKeyframe.keyType.data as RangeData; // Type assertion
+
+            if (
+              current_time >= prevKeyframe.time &&
+              current_time < range_data.endTime
+            ) {
+              prev_frame = { ...prevKeyframe }; // Create a copy
+              next_frame = {
+                id: "virtual",
+                time: range_data.endTime,
+                value: prevKeyframe.value,
+                easing: EasingType.Linear,
+                pathType: PathType.Linear,
+                keyType: { type: "Frame" }, // Virtual keyframe is a Frame
+                curveData: null,
+              };
+              return [prev_frame, next_frame];
+            }
+
+            if (
+              current_time >= range_data.endTime &&
+              current_time < frame.time
+            ) {
+              prev_frame = {
+                id: "virtual",
+                time: range_data.endTime,
+                value: prevKeyframe.value,
+                easing: EasingType.Linear,
+                pathType: PathType.Linear,
+                keyType: { type: "Frame" },
+                curveData: null,
+              };
+              next_frame = { ...frame }; // Create a copy
+              return [prev_frame, next_frame];
+            }
+          }
+        }
+
+        next_frame = { ...frame }; // Create a copy
+        prev_frame =
+          i > 0
+            ? { ...keyframes[i - 1] }
+            : { ...keyframes[keyframes.length - 1] }; // Create a copy
+        break;
+      }
+    }
+
+    return [prev_frame, next_frame];
+  }
+
+  lerp(start: number, end: number, progress: number): number {
+    return start + (end - start) * progress;
+  }
+
+  createMotionPathVisualization(
+    sequence: Sequence,
+    polygonId: string,
+    colorIndex: number
+  ): void {
+    const animationData = sequence.polygonMotionPaths.find(
+      (anim) => anim.polygonId === polygonId
+    );
+    if (!animationData) {
+      console.error(`Couldn't find animation data for polygon ${polygonId}`);
+      return;
+    }
+
+    const positionProperty = animationData.properties.find((prop) =>
+      prop.name.startsWith("Position")
+    );
+    if (!positionProperty) {
+      console.error(`Couldn't find position property for polygon ${polygonId}`);
+      return;
+    }
+
+    // Sort keyframes by time
+    const keyframes = [...positionProperty.keyframes].sort(
+      (a, b) => a.time - b.time
+    );
+
+    const newId = animationData.id; // Directly using string ID
+    const initialPosition: [number, number] = animationData.position;
+
+    if (
+      !this.camera ||
+      !this.gpuResources ||
+      !this.modelBindGroupLayout ||
+      !this.groupBindGroupLayout
+    ) {
+      console.error(
+        "Missing required resources for motion path visualization."
+      );
+      return;
+    }
+
+    const motionPath = new MotionPath(
+      this.gpuResources.device,
+      this.gpuResources.queue,
+      this.modelBindGroupLayout,
+      this.groupBindGroupLayout,
+      newId,
+      this.camera.windowSize,
+      keyframes,
+      this.camera,
+      sequence,
+      colorIndex,
+      polygonId,
+      initialPosition
+    );
+
+    this.motionPaths.push(motionPath);
+  }
+
+  updateMotionPaths(sequence: Sequence): void {
+    this.motionPaths = [];
+
+    let colorIndex = 1;
+    const allItems = [
+      ...sequence.activePolygons,
+      ...sequence.activeTextItems,
+      ...sequence.activeImageItems,
+      ...sequence.activeVideoItems,
+    ];
+
+    for (const item of allItems) {
+      this.createMotionPathVisualization(sequence, item.id, colorIndex);
+      colorIndex += 1;
+    }
+  }
+
+  updateCameraBinding() {
+    if (this.cameraBinding && this.camera && this.gpuResources) {
+      this.cameraBinding.update(this.gpuResources.queue, this.camera);
+    }
+  }
+
+  handleWHeel(delta: number, mouse_pos: Point) {
+    let camera = this.camera;
+
+    if (
+      this.lastScreen.x < this.interactiveBounds.min.x ||
+      this.lastScreen.x > this.interactiveBounds.max.x ||
+      this.lastScreen.y < this.interactiveBounds.min.y ||
+      this.lastScreen.y > this.interactiveBounds.max.y
+    ) {
+      return;
+    }
+
+    // let zoom_factor = if delta > 0.0 { 1.1 } else { 0.9 };
+    let zoom_factor = delta / 10.0;
+    camera?.update_zoom(zoom_factor, mouse_pos);
+    this.updateCameraBinding();
+  }
+
+  add_polygon(
+    polygon_config: PolygonConfig,
+    polygon_name: string,
+    new_id: string,
+    selected_sequence_id: string
+  ) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+    let window_size = camera?.windowSize;
+
+    if (
+      !camera ||
+      !window_size ||
+      !gpuResources ||
+      !this.modelBindGroupLayout ||
+      !this.groupBindGroupLayout
+    ) {
+      return;
+    }
+
+    let polygon = new Polygon(
+      window_size,
+      gpuResources.device,
+      gpuResources.queue,
+      this.modelBindGroupLayout,
+      this.groupBindGroupLayout,
+      camera,
+      polygon_config.points,
+      polygon_config.dimensions,
+      polygon_config.position,
+      0.0,
+      polygon_config.borderRadius,
+      polygon_config.fill,
+      {
+        thickness: 2.0,
+        fill: rgbToWgpu(0, 0, 0, 255.0),
+      },
+      0.0,
+      polygon_config.layer,
+      polygon_name,
+      new_id,
+      selected_sequence_id
+    );
+
+    this.polygons.push(polygon);
   }
 }
 

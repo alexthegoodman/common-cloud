@@ -138,7 +138,7 @@ export type KeyType = { type: "Frame" } | { type: "Range"; data: RangeData };
 export function calculateDefaultCurve(
   currentKeyframe: UIKeyframe,
   nextKeyframe: UIKeyframe
-): PathType | CurveData {
+): CurveData {
   if (
     currentKeyframe.value.type === "Position" &&
     nextKeyframe.value.type === "Position"
@@ -158,9 +158,9 @@ export function calculateDefaultCurve(
     const velocity = distance / timeDiff;
 
     // If the movement is very small, use Linear
-    if (distance < 10.0) {
-      return PathType.Linear;
-    }
+    // if (distance < 10.0) {
+    //   return PathType.Linear;
+    // }
 
     // Calculate control points with perpendicular offset
     const controlPoints = calculateNaturalControlPoints(
@@ -174,9 +174,20 @@ export function calculateDefaultCurve(
       controlPoint1: controlPoints[0],
       controlPoint2: controlPoints[1],
     };
+  } else {
+    return {
+      controlPoint1: {
+        x: 0,
+        y: 0,
+      },
+      controlPoint2: {
+        x: 0,
+        y: 0,
+      },
+    };
   }
 
-  return PathType.Linear;
+  // return PathType.Linear;
 }
 
 function calculateNaturalControlPoints(
