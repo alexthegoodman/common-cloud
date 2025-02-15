@@ -17,7 +17,7 @@ export default function Header({ showLogo = false }) {
             </Link>
           )}
         </div>
-        <ul className="flex flex-row gap-5">
+        <ul className="flex flex-row gap-5 text-white">
           <li>
             <Link href="/blog/">Blog</Link>
           </li>

@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* :root {
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -18,4 +18,12 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+} */
+
+.success-gradient {
+  background: linear-gradient(145deg, #99c7a2 65%, #c8cc7c 100%);
+}
+
+.stunts-gradient {
+  background: linear-gradient(145deg, #ff6b6b 60%, #feca57 100%);
 }

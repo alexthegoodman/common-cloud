@@ -50,8 +50,8 @@ export default function AuthForm({ type = "login" }) {
         JSON.stringify(json.jwtData)
       );
 
-      localStorage.setItem("jwtData", JSON.stringify(json.jwtData));
-      router.push("/dashboard");
+      localStorage.setItem("auth-token", JSON.stringify(json.jwtData));
+      router.push("/projects");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");
     } finally {

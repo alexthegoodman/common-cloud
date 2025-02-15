@@ -4,6 +4,20 @@ import { SavedPolygonConfig } from "./polygon";
 import { SavedStImageConfig } from "./image";
 import { SavedStVideoConfig } from "./video";
 
+export interface SavedState {
+  sequences: Sequence[];
+  timeline_state: SavedTimelineStateConfig;
+}
+
+export interface ProjectData {
+  project_id: string;
+  project_name: string;
+}
+
+export interface ProjectsDataFile {
+  projects: ProjectData[];
+}
+
 export interface TimelineSequence {
   id: String;
   sequence_id: String;
