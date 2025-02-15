@@ -3,6 +3,13 @@ import * as fontkit from "fontkit";
 import { createEmptyGroupTransform, Transform } from "./transform";
 import { Camera, WindowSize } from "./camera";
 import { getZLayer, Vertex } from "./vertex";
+import {
+  CANVAS_HORIZ_OFFSET,
+  CANVAS_VERT_OFFSET,
+  rgbToWgpu,
+  wgpuToHuman,
+} from "./editor";
+import { INTERNAL_LAYER_SPACE, Polygon } from "./polygon";
 
 export interface TextRendererConfig {
   id: string;

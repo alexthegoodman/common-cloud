@@ -1,5 +1,25 @@
 import { v4 as uuidv4 } from "uuid";
 import { SavedTextRendererConfig } from "./text";
+import { SavedPolygonConfig } from "./polygon";
+import { SavedStImageConfig } from "./image";
+import { SavedStVideoConfig } from "./video";
+
+export interface TimelineSequence {
+  id: String;
+  sequence_id: String;
+  track_type: TrackType;
+  start_time_ms: number; // in milliseconds
+  // pub duration_ms: i32,   // in milliseconds
+}
+
+export enum TrackType {
+  Audio,
+  Video,
+}
+
+export interface SavedTimelineStateConfig {
+  timeline_sequences: TimelineSequence[];
+}
 
 // Enums
 export enum ObjectType {

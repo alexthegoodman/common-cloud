@@ -6,7 +6,7 @@ export interface FontInfo {
 
 export class FontManager {
   private fontData: FontInfo[];
-  private loadedFonts: Map<string, ArrayBuffer> = new Map();
+  private loadedFonts: Map<string, Buffer> = new Map();
 
   constructor() {
     // List of available fonts with their paths
@@ -299,7 +299,7 @@ export class FontManager {
   }
 
   // Asynchronously load a font by name
-  async loadFontByName(name: string): Promise<ArrayBuffer | null> {
+  async loadFontByName(name: string): Promise<Buffer | null> {
     const normalizedName = name.toLowerCase();
 
     // Check if already loaded
@@ -322,7 +322,8 @@ export class FontManager {
       }
 
       // Get the binary data
-      const fontData = await response.arrayBuffer();
+      const fontDataArray = await response.arrayBuffer();
+      const fontData = Buffer.from(fontDataArray);
 
       // Cache the loaded font
       this.loadedFonts.set(normalizedName, fontData);

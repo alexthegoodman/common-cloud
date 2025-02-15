@@ -12,7 +12,7 @@ import { Camera } from "./camera"; // Import your camera type
 import {
   get_full_color,
   interpolate_position,
-  rgb_to_wgpu,
+  rgbToWgpu,
   Point,
   WindowSize,
 } from "./editor"; // Import your editor functions and types
@@ -48,7 +48,7 @@ export class MotionPath {
     initialPosition: [number, number]
   ) {
     const [fillR, fillG, fillB] = get_full_color(colorIndex);
-    const pathFill = rgb_to_wgpu(fillR, fillG, fillB, 255.0);
+    const pathFill = rgbToWgpu(fillR, fillG, fillB, 255.0);
 
     const polygonId = associatedPolygonId;
 
@@ -240,8 +240,8 @@ export class MotionPath {
       vec2.fromValues(initialPosition[0], initialPosition[1]), // everything can move relative to this
       0.0,
       vec2.fromValues(1.0, 1.0),
-      uniformBuffer,
-      windowSize
+      uniformBuffer
+      //   windowSize
     );
 
     groupTransform.updateUniformBuffer(queue, windowSize);
@@ -308,10 +308,10 @@ function createPathSegment(
     0.0,
     // [0.5, 0.8, 1.0, 1.0], // light blue with some transparency
     fill,
-    new Stroke({
+    {
       thickness: 0.0,
-      fill: rgb_to_wgpu(0, 0, 0, 255.0),
-    }),
+      fill: rgbToWgpu(0, 0, 0, 255.0),
+    },
     -1.0,
     1, // positive to use INTERNAL_LAYER_SPACE
     "motion_path_segment",
@@ -352,10 +352,10 @@ function createPathHandle(
     rotation,
     0.0,
     fill,
-    new Stroke({
+    {
       thickness: 0.0,
-      fill: rgb_to_wgpu(0, 0, 0, 255.0),
-    }),
+      fill: rgbToWgpu(0, 0, 0, 255.0),
+    },
     -1.0,
     1,
     "motion_path_handle",
@@ -402,10 +402,10 @@ function createPathArrow(
     rotation,
     0.0,
     fill,
-    new Stroke({
+    {
       thickness: 0.0,
-      fill: rgb_to_wgpu(0, 0, 0, 255.0),
-    }),
+      fill: rgbToWgpu(0, 0, 0, 255.0),
+    },
     -1.0,
     1,
     "motion_path_arrow",
