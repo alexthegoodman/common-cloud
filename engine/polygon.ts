@@ -350,136 +350,201 @@ export class Polygon implements PolygonShape {
     this.transform = transform;
   }
 
-  // updateDataFromPosition(
+  updateDataFromPosition(
+    window_size: WindowSize,
+    device: GPUDevice,
+    bind_group_layout: GPUBindGroupLayout,
+    position: Point,
+    camera: Camera
+  ) {
+    this.transform.updatePosition([position.x, position.y], camera.windowSize);
+  }
 
-  //     window_size: WindowSize,
-  //     device: GPUDevice,
-  //     bind_group_layout: GPUBindGroupLayout,
-  //     position: Point,
-  //     camera: Camera,
-  // ) {
-  //     this.transform
-  //         .update_position([position.x, position.y], camera.window_size);
-  // }
+  updateDataFromBorderRadius(
+    window_size: WindowSize,
+    device: GPUDevice,
+    queue: GPUQueue,
+    bind_group_layout: GPUBindGroupLayout,
+    borderRadius: number,
+    camera: Camera
+  ) {
+    let config: PolygonConfig = {
+      id: this.id,
+      name: this.name,
+      dimensions: this.dimensions,
+      points: this.points,
+      position: {
+        x: this.transform.position[0],
+        y: this.transform.position[1],
+      },
+      // this.transform.rotation,
+      borderRadius: borderRadius,
+      fill: this.fill,
+      stroke: this.stroke,
+      // 0.0,
+      layer: this.layer + INTERNAL_LAYER_SPACE,
+    };
 
-  // updateDataFromBorderRadius(
+    let [
+      vertices,
+      indices,
+      vertex_buffer,
+      index_buffer,
+      bind_group,
+      transform,
+    ] = getPolygonData(
+      window_size,
+      device,
+      queue,
+      bind_group_layout,
+      camera,
+      config
+      // this.points,
+      // this.dimensions,
+      // Point {
+      //     x: this.transform.position.x,
+      //     y: this.transform.position.y,
+      // },
+      // this.transform.rotation,
+      // border_radius,
+      // this.fill,
+      // this.stroke,
+      // 0.0,
+      // this.layer + INTERNAL_LAYER_SPACE,
+    );
 
-  //     window_size: WindowSize,
-  //     device: GPUDevice,
-  //     queue:GPUQueue,
-  //     bind_group_layout: GPUBindGroupLayout,
-  //     border_radius: number,
-  //     camera: Camera,
-  // ) {
-  //     let (vertices, indices, vertex_buffer, index_buffer, bind_group, transform) =
-  //         getPolygonData(
-  //             window_size,
-  //             device,
-  //             queue,
-  //             bind_group_layout,
-  //             camera,
-  //             this.points,
-  //             this.dimensions,
-  //             Point {
-  //                 x: this.transform.position.x,
-  //                 y: this.transform.position.y,
-  //             },
-  //             this.transform.rotation,
-  //             border_radius,
-  //             this.fill,
-  //             this.stroke,
-  //             0.0,
-  //             this.layer + INTERNAL_LAYER_SPACE,
-  //         );
+    this.borderRadius = borderRadius;
+    this.vertices = vertices;
+    this.indices = indices;
+    this.vertexBuffer = vertex_buffer;
+    this.indexBuffer = index_buffer;
+    this.bindGroup = bind_group;
+    this.transform = transform;
+  }
 
-  //     this.border_radius = border_radius;
-  //     this.vertices = vertices;
-  //     this.indices = indices;
-  //     this.vertex_buffer = vertex_buffer;
-  //     this.index_buffer = index_buffer;
-  //     this.bind_group = bind_group;
-  //     this.transform = transform;
-  // }
+  updateDataFromStroke(
+    window_size: WindowSize,
+    device: GPUDevice,
+    queue: GPUQueue,
+    bind_group_layout: GPUBindGroupLayout,
+    stroke: Stroke,
+    camera: Camera
+  ) {
+    let config: PolygonConfig = {
+      id: this.id,
+      name: this.name,
+      dimensions: this.dimensions,
+      points: this.points,
+      position: {
+        x: this.transform.position[0],
+        y: this.transform.position[1],
+      },
+      // this.transform.rotation,
+      borderRadius: this.borderRadius,
+      fill: this.fill,
+      stroke: stroke,
+      // 0.0,
+      layer: this.layer + INTERNAL_LAYER_SPACE,
+    };
 
-  // updateDataFromStroke(
+    let [
+      vertices,
+      indices,
+      vertex_buffer,
+      index_buffer,
+      bind_group,
+      transform,
+    ] = getPolygonData(
+      window_size,
+      device,
+      queue,
+      bind_group_layout,
+      camera,
+      config
+      // this.points,
+      // this.dimensions,
+      // Point {
+      //     x: this.transform.position.x,
+      //     y: this.transform.position.y,
+      // },
+      // this.transform.rotation,
+      // this.border_radius,
+      // this.fill,
+      // stroke,
+      // 0.0,
+      // this.layer + INTERNAL_LAYER_SPACE,
+    );
 
-  //     window_size: WindowSize,
-  //     device: GPUDevice,
-  //     queue:GPUQueue,
-  //     bind_group_layout: GPUBindGroupLayout,
-  //     stroke: Stroke,
-  //     camera: Camera,
-  // ) {
-  //     let (vertices, indices, vertex_buffer, index_buffer, bind_group, transform) =
-  //         getPolygonData(
-  //             window_size,
-  //             device,
-  //             queue,
-  //             bind_group_layout,
-  //             camera,
-  //             this.points,
-  //             this.dimensions,
-  //             Point {
-  //                 x: this.transform.position.x,
-  //                 y: this.transform.position.y,
-  //             },
-  //             this.transform.rotation,
-  //             this.border_radius,
-  //             this.fill,
-  //             stroke,
-  //             0.0,
-  //             this.layer + INTERNAL_LAYER_SPACE,
-  //         );
+    this.stroke = stroke;
+    this.vertices = vertices;
+    this.indices = indices;
+    this.vertexBuffer = vertex_buffer;
+    this.indexBuffer = index_buffer;
+    this.bindGroup = bind_group;
+    this.transform = transform;
+  }
 
-  //     this.stroke = stroke;
-  //     this.vertices = vertices;
-  //     this.indices = indices;
-  //     this.vertex_buffer = vertex_buffer;
-  //     this.index_buffer = index_buffer;
-  //     this.bind_group = bind_group;
-  //     this.transform = transform;
-  // }
+  updateDataFromFill(
+    window_size: WindowSize,
+    device: GPUDevice,
+    queue: GPUQueue,
+    bind_group_layout: GPUBindGroupLayout,
+    fill: [number, number, number, number],
+    camera: Camera
+  ) {
+    let config: PolygonConfig = {
+      id: this.id,
+      name: this.name,
+      dimensions: this.dimensions,
+      points: this.points,
+      position: {
+        x: this.transform.position[0],
+        y: this.transform.position[1],
+      },
+      // this.transform.rotation,
+      borderRadius: this.borderRadius,
+      fill: fill,
+      stroke: this.stroke,
+      // 0.0,
+      layer: this.layer + INTERNAL_LAYER_SPACE,
+    };
 
-  // updateDataFromFill(
+    let [
+      vertices,
+      indices,
+      vertex_buffer,
+      index_buffer,
+      bind_group,
+      transform,
+    ] = getPolygonData(
+      window_size,
+      device,
+      queue,
+      bind_group_layout,
+      camera,
+      config
+      // this.points,
+      // this.dimensions,
+      // Point {
+      //     x: this.transform.position.x,
+      //     y: this.transform.position.y,
+      // },
+      // this.transform.rotation,
+      // this.border_radius,
+      // fill,
+      // this.stroke,
+      // 0.0,
+      // this.layer + INTERNAL_LAYER_SPACE,
+    );
 
-  //     window_size: WindowSize,
-  //     device: GPUDevice,
-  //     queue:GPUQueue,
-  //     bind_group_layout: GPUBindGroupLayout,
-  //     fill: [number, number, number, number],
-  //     camera: Camera,
-  // ) {
-  //     println!("Update polygon fill {:?} {:?}", this.id, fill);
-
-  //     let (vertices, indices, vertex_buffer, index_buffer, bind_group, transform) =
-  //         getPolygonData(
-  //             window_size,
-  //             device,
-  //             queue,
-  //             bind_group_layout,
-  //             camera,
-  //             this.points,
-  //             this.dimensions,
-  //             Point {
-  //                 x: this.transform.position.x,
-  //                 y: this.transform.position.y,
-  //             },
-  //             this.transform.rotation,
-  //             this.border_radius,
-  //             fill,
-  //             this.stroke,
-  //             0.0,
-  //             this.layer + INTERNAL_LAYER_SPACE,
-  //         );
-
-  //     this.fill = fill;
-  //     this.vertices = vertices;
-  //     this.indices = indices;
-  //     this.vertex_buffer = vertex_buffer;
-  //     this.index_buffer = index_buffer;
-  //     this.bind_group = bind_group;
-  //     this.transform = transform;
-  // }
+    this.fill = fill;
+    this.vertices = vertices;
+    this.indices = indices;
+    this.vertexBuffer = vertex_buffer;
+    this.indexBuffer = index_buffer;
+    this.bindGroup = bind_group;
+    this.transform = transform;
+  }
 
   //  worldBoundingBox() -> BoundingBox {
   //     let mut min_x = number::MAX;

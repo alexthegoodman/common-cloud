@@ -103,10 +103,11 @@ export class StVideo {
     windowSize: { width: number; height: number },
     bindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
-    zIndex: number
+    zIndex: number,
+    currentSequenceId: string
   ) {
-    this.id = uuidv4();
-    this.currentSequenceId = uuidv4();
+    this.id = videoConfig.id;
+    this.currentSequenceId = currentSequenceId;
     this.name = videoConfig.name;
     this.path = path;
     this.hidden = false;

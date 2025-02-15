@@ -53,10 +53,11 @@ export class StImage {
     windowSize: { width: number; height: number },
     bindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
-    zIndex: number
+    zIndex: number,
+    currentSequenceId: string
   ) {
-    this.id = uuidv4();
-    this.currentSequenceId = uuidv4();
+    this.id = imageConfig.id;
+    this.currentSequenceId = currentSequenceId;
     this.name = imageConfig.name;
     this.url = url;
     this.hidden = false;
@@ -332,7 +333,8 @@ export class StImage {
       windowSize,
       bindGroupLayout,
       groupBindGroupLayout,
-      -2.0
+      -2.0,
+      selectedSequenceId
     );
     return stImage;
   }

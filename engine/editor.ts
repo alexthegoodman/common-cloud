@@ -1910,7 +1910,7 @@ export class Editor {
     this.polygons.push(polygon);
   }
 
-  add_text_item(
+  async add_text_item(
     text_config: TextRendererConfig,
     text_content: string,
     new_id: string,
@@ -1932,20 +1932,22 @@ export class Editor {
 
     let windowSize = camera.windowSize;
 
-    let default_font_family = this.fontManager.loadFontByName(
+    let default_font_family = await this.fontManager.loadFontByName(
       text_config.fontFamily
     );
+
+    if (!default_font_family) {
+      return;
+    }
 
     let text_item = new TextRenderer(
       device,
       queue,
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
+      text_config,
       default_font_family, // load font data ahead of time
       windowSize,
-      // text_content,
-      text_config,
-      // new_id,
       selected_sequence_id,
       camera
     );
@@ -1992,7 +1994,6 @@ export class Editor {
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
       0.0,
-      new_id,
       selected_sequence_id
     );
 
@@ -2013,7 +2014,12 @@ export class Editor {
     let gpuResources = this.gpuResources;
     let camera = this.camera;
 
-    if (!gpuResources || !camera) {
+    if (
+      !gpuResources ||
+      !camera ||
+      !this.modelBindGroupLayout ||
+      !this.groupBindGroupLayout
+    ) {
       return;
     }
 
@@ -2026,7 +2032,6 @@ export class Editor {
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
       0.0,
-      new_id,
       selected_sequence_id
     );
     // .expect("Couldn't create video item");
@@ -2051,14 +2056,19 @@ export class Editor {
 
     let gpuResources = this.gpuResources;
     let camera = this.camera;
+    let modelBindGroupLayout = this.modelBindGroupLayout;
+    let groupBindGroupLayout = this.groupBindGroupLayout;
 
-    if (!gpuResources || !camera) {
+    if (
+      !gpuResources ||
+      !camera ||
+      !modelBindGroupLayout ||
+      !groupBindGroupLayout
+    ) {
       return;
     }
 
     let windowSize = camera.windowSize;
-    let modelBindGroupLayout = this.modelBindGroupLayout;
-    let groupBindGroupLayout = this.groupBindGroupLayout;
 
     // Remove existing background
     this.staticPolygons = this.staticPolygons.filter(
@@ -2078,7 +2088,7 @@ export class Editor {
         { x: 1.0, y: 1.0 },
         { x: 0.0, y: 1.0 },
       ],
-      (800.0 as number, 450.0 as number),
+      [800.0 as number, 450.0 as number],
       {
         x: 900.0 / 2.0,
         y: 550.0 / 2.0,
@@ -2100,11 +2110,16 @@ export class Editor {
     this.staticPolygons.push(canvas_polygon);
   }
 
-  update_background(selected_id: string, key: string, new_value: InputValue) {
+  update_background(
+    selected_id: string,
+    key: string,
+    new_value_type: InputValue,
+    new_value: number
+  ) {
     let gpuResources = this.gpuResources;
     let camera = this.camera;
 
-    if (!gpuResources || !camera) {
+    if (!gpuResources || !camera || !this.modelBindGroupLayout) {
       return;
     }
 
@@ -2133,17 +2148,17 @@ export class Editor {
       if (this.staticPolygons[polygon_index]) {
         let selected_polygon = this.staticPolygons[polygon_index];
 
-        switch (new_value) {
+        switch (new_value_type) {
           case InputValue.Number:
             switch (key) {
               case "red": {
-                selected_polygon.update_data_from_fill(
+                selected_polygon.updateDataFromFill(
                   windowSize,
                   device,
                   queue,
                   this.modelBindGroupLayout,
                   [
-                    colorToWgpu(n),
+                    colorToWgpu(new_value),
                     selected_polygon.fill[1],
                     selected_polygon.fill[2],
                     selected_polygon.fill[3],
@@ -2152,14 +2167,14 @@ export class Editor {
                 );
               }
               case "green": {
-                selected_polygon.update_data_from_fill(
+                selected_polygon.updateDataFromFill(
                   windowSize,
                   device,
                   queue,
                   this.modelBindGroupLayout,
                   [
                     selected_polygon.fill[0],
-                    colorToWgpu(n),
+                    colorToWgpu(new_value),
                     selected_polygon.fill[2],
                     selected_polygon.fill[3],
                   ],
@@ -2167,7 +2182,7 @@ export class Editor {
                 );
               }
               case "blue": {
-                selected_polygon.update_data_from_fill(
+                selected_polygon.updateDataFromFill(
                   windowSize,
                   device,
                   queue,
@@ -2175,7 +2190,7 @@ export class Editor {
                   [
                     selected_polygon.fill[0],
                     selected_polygon.fill[1],
-                    colorToWgpu(n),
+                    colorToWgpu(new_value),
                     selected_polygon.fill[3],
                   ],
                   camera
@@ -2192,11 +2207,16 @@ export class Editor {
     }
   }
 
-  update_polygon(selected_id: string, key: str, new_value: InputValue) {
+  update_polygon(
+    selected_id: string,
+    key: string,
+    new_value_type: InputValue,
+    new_value: number
+  ) {
     let gpuResources = this.gpuResources;
     let camera = this.camera;
 
-    if (!gpuResources || !camera) {
+    if (!gpuResources || !camera || !this.modelBindGroupLayout) {
       return;
     }
 
@@ -2217,47 +2237,47 @@ export class Editor {
       if (this.polygons[polygon_index]) {
         let selected_polygon = this.polygons[polygon_index];
 
-        switch (new_value) {
+        switch (new_value_type) {
           case InputValue.Number: {
             switch (key) {
               case "width": {
-                selected_polygon.update_data_from_dimensions(
+                selected_polygon.updateDataFromDimensions(
                   windowSize,
                   device,
                   queue,
                   this.modelBindGroupLayout,
-                  (n, selected_polygon.dimensions[1]),
+                  [new_value, selected_polygon.dimensions[1]],
                   camera
                 );
               }
               case "height": {
-                selected_polygon.update_data_from_dimensions(
+                selected_polygon.updateDataFromDimensions(
                   windowSize,
                   device,
                   queue,
                   this.modelBindGroupLayout,
-                  (selected_polygon.dimensions[0], n),
+                  [selected_polygon.dimensions[0], new_value],
                   camera
                 );
               }
               case "border_radius": {
-                selected_polygon.update_data_from_border_radius(
+                selected_polygon.updateDataFromBorderRadius(
                   windowSize,
                   device,
                   queue,
                   this.modelBindGroupLayout,
-                  n,
+                  new_value,
                   camera
                 );
               }
               case "red": {
-                selected_polygon.update_data_from_fill(
+                selected_polygon.updateDataFromFill(
                   windowSize,
                   device,
                   queue,
                   this.modelBindGroupLayout,
                   [
-                    color_to_wgpu(n),
+                    colorToWgpu(new_value),
                     selected_polygon.fill[1],
                     selected_polygon.fill[2],
                     selected_polygon.fill[3],
@@ -2266,14 +2286,14 @@ export class Editor {
                 );
               }
               case "green": {
-                selected_polygon.update_data_from_fill(
+                selected_polygon.updateDataFromFill(
                   windowSize,
                   device,
                   queue,
                   this.modelBindGroupLayout,
                   [
                     selected_polygon.fill[0],
-                    color_to_wgpu(n),
+                    colorToWgpu(new_value),
                     selected_polygon.fill[2],
                     selected_polygon.fill[3],
                   ],
@@ -2281,7 +2301,7 @@ export class Editor {
                 );
               }
               case "blue": {
-                selected_polygon.update_data_from_fill(
+                selected_polygon.updateDataFromFill(
                   windowSize,
                   device,
                   queue,
@@ -2289,27 +2309,27 @@ export class Editor {
                   [
                     selected_polygon.fill[0],
                     selected_polygon.fill[1],
-                    color_to_wgpu(n),
+                    colorToWgpu(new_value),
                     selected_polygon.fill[3],
                   ],
                   camera
                 );
               }
               case "stroke_thickness": {
-                selected_polygon.update_data_from_stroke(
+                selected_polygon.updateDataFromStroke(
                   windowSize,
                   device,
                   queue,
                   this.modelBindGroupLayout,
                   {
-                    thickness: n,
+                    thickness: new_value,
                     fill: selected_polygon.stroke.fill,
                   },
                   camera
                 );
               }
               case "stroke_red": {
-                selected_polygon.update_data_from_stroke(
+                selected_polygon.updateDataFromStroke(
                   windowSize,
                   device,
                   queue,
@@ -2317,7 +2337,7 @@ export class Editor {
                   {
                     thickness: selected_polygon.stroke.thickness,
                     fill: [
-                      color_to_wgpu(n),
+                      colorToWgpu(new_value),
                       selected_polygon.stroke.fill[1],
                       selected_polygon.stroke.fill[2],
                       selected_polygon.stroke.fill[3],
@@ -2327,7 +2347,7 @@ export class Editor {
                 );
               }
               case "stroke_green": {
-                selected_polygon.update_data_from_stroke(
+                selected_polygon.updateDataFromStroke(
                   windowSize,
                   device,
                   queue,
@@ -2336,7 +2356,7 @@ export class Editor {
                     thickness: selected_polygon.stroke.thickness,
                     fill: [
                       selected_polygon.stroke.fill[0],
-                      color_to_wgpu(n),
+                      colorToWgpu(new_value),
                       selected_polygon.stroke.fill[2],
                       selected_polygon.stroke.fill[3],
                     ],
@@ -2345,7 +2365,7 @@ export class Editor {
                 );
               }
               case "stroke_blue": {
-                selected_polygon.update_data_from_stroke(
+                selected_polygon.updateDataFromStroke(
                   windowSize,
                   device,
                   queue,
@@ -2355,7 +2375,7 @@ export class Editor {
                     fill: [
                       selected_polygon.stroke.fill[0],
                       selected_polygon.stroke.fill[1],
-                      color_to_wgpu(n),
+                      colorToWgpu(new_value),
                       selected_polygon.stroke.fill[3],
                     ],
                   },
@@ -2371,11 +2391,16 @@ export class Editor {
     }
   }
 
-  update_text(selected_id: string, key: str, new_value: InputValue) {
+  update_text(
+    selected_id: string,
+    key: string,
+    new_value_type: InputValue,
+    new_value: number
+  ) {
     let gpuResources = this.gpuResources;
     let camera = this.camera;
 
-    if (!gpuResources || !camera) {
+    if (!gpuResources || !camera || !this.modelBindGroupLayout) {
       return;
     }
 
@@ -2396,37 +2421,37 @@ export class Editor {
       if (this.textItems[text_index]) {
         let selected_text = this.textItems[text_index];
 
-        switch (new_value) {
+        switch (new_value_type) {
           case InputValue.Number: {
             switch (key) {
               case "width": {
-                selected_text.update_data_from_dimensions(
+                selected_text.updateDataFromDimensions(
                   windowSize,
                   device,
                   queue,
                   this.modelBindGroupLayout,
-                  (n, selected_text.dimensions[1]),
+                  [new_value, selected_text.dimensions[1]],
                   camera
                 );
               }
               case "height": {
-                selected_text.update_data_from_dimensions(
+                selected_text.updateDataFromDimensions(
                   windowSize,
                   device,
                   queue,
                   this.modelBindGroupLayout,
-                  (selected_text.dimensions[0], n),
+                  [selected_text.dimensions[0], new_value],
                   camera
                 );
               }
               case "red_fill": {
-                selected_text.backgroundPolygon.update_data_from_fill(
+                selected_text.backgroundPolygon.updateDataFromFill(
                   windowSize,
                   device,
                   queue,
                   this.modelBindGroupLayout,
                   [
-                    n,
+                    new_value,
                     selected_text.backgroundPolygon.fill[1],
                     selected_text.backgroundPolygon.fill[2],
                     selected_text.backgroundPolygon.fill[3],
@@ -2435,14 +2460,14 @@ export class Editor {
                 );
               }
               case "green_fill": {
-                selected_text.backgroundPolygon.update_data_from_fill(
+                selected_text.backgroundPolygon.updateDataFromFill(
                   windowSize,
                   device,
                   queue,
                   this.modelBindGroupLayout,
                   [
                     selected_text.backgroundPolygon.fill[0],
-                    n,
+                    new_value,
                     selected_text.backgroundPolygon.fill[2],
                     selected_text.backgroundPolygon.fill[3],
                   ],
@@ -2450,7 +2475,7 @@ export class Editor {
                 );
               }
               case "blue_fill": {
-                selected_text.backgroundPolygon.update_data_from_fill(
+                selected_text.backgroundPolygon.updateDataFromFill(
                   windowSize,
                   device,
                   queue,
@@ -2458,7 +2483,7 @@ export class Editor {
                   [
                     selected_text.backgroundPolygon.fill[0],
                     selected_text.backgroundPolygon.fill[1],
-                    n,
+                    new_value,
                     selected_text.backgroundPolygon.fill[3],
                   ],
                   camera
@@ -2473,11 +2498,16 @@ export class Editor {
     }
   }
 
-  update_image(selected_id: string, key: str, new_value: InputValue) {
+  update_image(
+    selected_id: string,
+    key: string,
+    new_value_type: InputValue,
+    new_value: number
+  ) {
     let gpuResources = this.gpuResources;
     let camera = this.camera;
 
-    if (!gpuResources || !camera) {
+    if (!gpuResources || !camera || !this.modelBindGroupLayout) {
       return;
     }
 
@@ -2498,7 +2528,7 @@ export class Editor {
       if (this.imageItems[image_index]) {
         let selected_image = this.imageItems[image_index];
 
-        switch (new_value) {
+        switch (new_value_type) {
           case InputValue.Number: {
             switch (key) {
               case "width": {
@@ -2507,8 +2537,8 @@ export class Editor {
                   device,
                   queue,
                   this.modelBindGroupLayout,
-                  (n as number, selected_image.dimensions[1] as number),
-                  camera
+                  [new_value as number, selected_image.dimensions[1] as number]
+                  //   camera
                 );
               }
               case "height": {
@@ -2517,8 +2547,8 @@ export class Editor {
                   device,
                   queue,
                   this.modelBindGroupLayout,
-                  (selected_image.dimensions[0] as number, n as number),
-                  camera
+                  [selected_image.dimensions[0] as number, new_value as number]
+                  //   camera
                 );
               }
             }
@@ -2530,11 +2560,16 @@ export class Editor {
     }
   }
 
-  update_video(selected_id: string, key: str, new_value: InputValue) {
+  update_video(
+    selected_id: string,
+    key: string,
+    new_value_type: InputValue,
+    new_value: number
+  ) {
     let gpuResources = this.gpuResources;
     let camera = this.camera;
 
-    if (!gpuResources || !camera) {
+    if (!gpuResources || !camera || !this.modelBindGroupLayout) {
       return;
     }
 
@@ -2564,8 +2599,8 @@ export class Editor {
                   device,
                   queue,
                   this.modelBindGroupLayout,
-                  (n as number, selected_video.dimensions[1] as number),
-                  camera
+                  [new_value as number, selected_video.dimensions[1] as number]
+                  //   camera
                 );
               }
               case "height": {
@@ -2574,8 +2609,8 @@ export class Editor {
                   device,
                   queue,
                   this.modelBindGroupLayout,
-                  (selected_video.dimensions[0] as number, n as number),
-                  camera
+                  [selected_video.dimensions[0] as number, new_value as number]
+                  //   camera
                 );
               }
             }
@@ -2936,9 +2971,13 @@ export class Editor {
     return 0.0;
   }
 
-  update_text_font_family(font_id: string, selected_text_id: string) {
+  async update_text_font_family(font_id: string, selected_text_id: string) {
     let gpuResources = this.gpuResources;
-    let new_font_family = this.fontManager.loadFontByName(font_id);
+    let new_font_family = await this.fontManager.loadFontByName(font_id);
+
+    if (!new_font_family) {
+      return;
+    }
 
     let text_item = this.textItems.find((t) => t.id == selected_text_id);
 

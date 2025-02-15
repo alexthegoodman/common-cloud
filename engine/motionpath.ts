@@ -8,14 +8,8 @@ import {
   Sequence,
   UIKeyframe,
 } from "./animations"; // Import your animation types
-import { Camera } from "./camera"; // Import your camera type
-import {
-  getFullColor,
-  interpolatePosition,
-  rgbToWgpu,
-  Point,
-  WindowSize,
-} from "./editor"; // Import your editor functions and types
+import { Camera, WindowSize } from "./camera"; // Import your camera type
+import { getFullColor, interpolatePosition, rgbToWgpu, Point } from "./editor"; // Import your editor functions and types
 import { Polygon, SavedPoint, Stroke, INTERNAL_LAYER_SPACE } from "./polygon"; // Import your polygon types
 import { matrix4ToRawArray, Transform } from "./transform"; // Import your transform functions and types
 import { getZLayer, Vertex } from "./vertex"; // Import your vertex functions and types
