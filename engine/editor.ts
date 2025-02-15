@@ -2,6 +2,10 @@ const NUM_INFERENCE_FEATURES: number = 7;
 export const CANVAS_HORIZ_OFFSET: number = 0.0;
 export const CANVAS_VERT_OFFSET: number = 0.0;
 
+export function toRadians(degrees: number): number {
+  return degrees * (Math.PI / 180);
+}
+
 export class Viewport {
   width: number;
   height: number;
@@ -135,6 +139,7 @@ import {
   RangeData,
   SavedTimelineStateConfig,
   Sequence,
+  TrackType,
   UIKeyframe,
 } from "./animations";
 
@@ -883,9 +888,9 @@ export class Editor {
       if (!video.hidden) {
         current_positions.push([
           total,
-          video.source_duration_ms,
-          video.transform.position.x - CANVAS_HORIZ_OFFSET,
-          video.transform.position.y - CANVAS_VERT_OFFSET,
+          video.sourceDurationMs,
+          video.transform.position[0] - CANVAS_HORIZ_OFFSET,
+          video.transform.position[1] - CANVAS_VERT_OFFSET,
         ]);
         total++;
       }
@@ -1260,7 +1265,7 @@ export class Editor {
     // Iterate through timeline sequences in order
     for (const ts of sequenceTimeline.timeline_sequences) {
       // Skip audio tracks as we're only handling video
-      if (ts.track_type !== "Video") {
+      if (ts.track_type !== TrackType.Video) {
         continue;
       }
 
@@ -1317,10 +1322,10 @@ export class Editor {
       const backgroundFill = this.currentSequenceData.backgroundFill;
       if (backgroundFill && backgroundFill.type === "Color") {
         const [r, g, b, a] = backgroundFill.value;
-        this.replaceBackground(
-          this.currentSequenceData.id,
-          rgbToWgpu(r, g, b, a)
-        );
+        // this.replaceBackground(
+        //   this.currentSequenceData.id,
+        //   rgbToWgpu(r, g, b, a)
+        // );
       } else {
         console.log("Not supported yet...");
       }
@@ -1526,7 +1531,7 @@ export class Editor {
             //   camera.windowSize.height
             // ); // Assuming camera.window_size is an array [width, height]
 
-            switch (animation.object_type) {
+            switch (animation.objectType) {
               case ObjectType.Polygon:
                 (this.polygons[objectIdx] as Polygon).transform.updatePosition(
                   positionVec,
@@ -1568,7 +1573,7 @@ export class Editor {
             const new_rotation = this.lerp(start, end, progress);
             const new_rotation_rad = toRadians(new_rotation);
 
-            switch (animation.object_type) {
+            switch (animation.objectType) {
               case ObjectType.Polygon:
                 this.polygons[objectIdx].transform.updateRotation(
                   new_rotation_rad
@@ -1600,7 +1605,7 @@ export class Editor {
             // const scaleVec: vec2 = vec2.fromValues(new_scale, new_scale); // Create scale vector
             const scaleVec = [new_scale, new_scale] as [number, number];
 
-            switch (animation.object_type) {
+            switch (animation.objectType) {
               case ObjectType.Polygon:
                 (this.polygons[objectIdx] as Polygon).transform.updateScale(
                   scaleVec
@@ -1615,10 +1620,14 @@ export class Editor {
               case ObjectType.ImageItem:
                 const originalScaleImage =
                   this.imageItems[objectIdx].dimensions;
-                const scaledImageDimensions = vec2.fromValues(
+                // const scaledImageDimensions = vec2.fromValues(
+                //   originalScaleImage[0] * new_scale,
+                //   originalScaleImage[1] * new_scale
+                // );
+                const scaledImageDimensions = [
                   originalScaleImage[0] * new_scale,
-                  originalScaleImage[1] * new_scale
-                );
+                  originalScaleImage[1] * new_scale,
+                ] as [number, number];
                 this.imageItems[objectIdx].transform.updateScale(
                   scaledImageDimensions
                 );
@@ -1626,10 +1635,14 @@ export class Editor {
               case ObjectType.VideoItem:
                 const originalScaleVideo =
                   this.videoItems[objectIdx].dimensions;
-                const scaledVideoDimensions = vec2.fromValues(
+                // const scaledVideoDimensions = vec2.fromValues(
+                //   originalScaleVideo[0] * new_scale,
+                //   originalScaleVideo[1] * new_scale
+                // );
+                const scaledVideoDimensions = [
                   originalScaleVideo[0] * new_scale,
-                  originalScaleVideo[1] * new_scale
-                );
+                  originalScaleVideo[1] * new_scale,
+                ] as [number, number];
                 this.videoItems[objectIdx].transform.updateScale(
                   scaledVideoDimensions
                 );
@@ -1648,7 +1661,7 @@ export class Editor {
 
             if (gpuResources) {
               const queue = gpuResources.queue;
-              switch (animation.object_type) {
+              switch (animation.objectType) {
                 case ObjectType.Polygon:
                   this.polygons[objectIdx].updateOpacity(queue, opacity);
                   break;

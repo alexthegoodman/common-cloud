@@ -77,6 +77,7 @@ export class TextRenderer {
   dimensions: [number, number];
   initialized: boolean;
   fontFamily: string;
+  currentSequenceId: string;
 
   constructor(
     device: GPUDevice,
@@ -99,6 +100,7 @@ export class TextRenderer {
     this.dimensions = textConfig.dimensions;
     this.fontFamily = textConfig.fontFamily;
     this.initialized = false;
+    this.currentSequenceId = currentSequenceId;
 
     this.glyphCache = new Map();
     this.atlasSize = [4096, 4096];

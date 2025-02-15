@@ -219,6 +219,8 @@ export class StImage {
         groupBindGroupLayout,
         windowSize
       );
+
+      this.groupBindGroup = group_bind_group;
     });
     // return imgBitmap;
   }
