@@ -85,7 +85,9 @@ export class TextRenderer {
     groupBindGroupLayout: GPUBindGroupLayout,
     textConfig: TextRendererConfig,
     fontData: Buffer,
-    window_size: WindowSize
+    windowSize: WindowSize,
+    currentSequenceId: string,
+    camera: Camera
   ) {
     this.id = textConfig.id;
     this.name = textConfig.name;
@@ -161,22 +163,52 @@ export class TextRenderer {
       this.uniformBuffer
     );
 
+    // this.backgroundPolygon = new Polygon(
+    //   textConfig.dimensions,
+    //   textConfig.position,
+    //   textConfig.backgroundFill
+    // );
+
     this.backgroundPolygon = new Polygon(
-      textConfig.dimensions,
+      windowSize,
+      device,
+      queue,
+      bindGroupLayout,
+      groupBindGroupLayout,
+      camera,
+      [
+        { x: 0.0, y: 0.0 },
+        { x: 1.0, y: 0.0 },
+        { x: 1.0, y: 1.0 },
+        { x: 0.0, y: 1.0 },
+      ],
+      textConfig.dimensions, // width = length of segment, height = thickness
       textConfig.position,
-      textConfig.backgroundFill
+      0.0,
+      0.0,
+      // [0.5, 0.8, 1.0, 1.0], // light blue with some transparency
+      textConfig.backgroundFill,
+      {
+        thickness: 0.0,
+        fill: rgbToWgpu(0, 0, 0, 255.0),
+      },
+      -1.0,
+      1, // positive to use INTERNAL_LAYER_SPACE
+      "motion_path_segment",
+      this.id,
+      currentSequenceId
     );
 
     this.backgroundPolygon.hidden = false;
 
     // -10.0 to provide 10 spots for internal items on top of objects
     this.transform.layer = textConfig.layer - INTERNAL_LAYER_SPACE;
-    this.transform.updateUniformBuffer(queue, window_size);
+    this.transform.updateUniformBuffer(queue, windowSize);
 
     let [tmp_group_bind_group, tmp_group_transform] = createEmptyGroupTransform(
       device,
       groupBindGroupLayout,
-      window_size
+      windowSize
     );
 
     this.groupBindGroup = tmp_group_bind_group;
@@ -542,7 +574,9 @@ export class TextRenderer {
       groupBindGroupLayout,
       config,
       fontData,
-      windowSize
+      windowSize,
+      selectedSequenceId,
+      camera
     );
   }
 }

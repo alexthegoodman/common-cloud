@@ -125,7 +125,14 @@ export function stringToU32(s: string): number {
 import { v4 as uuidv4 } from "uuid";
 import { Polygon, PolygonConfig } from "./polygon";
 import { TextRenderer, TextRendererConfig } from "./text";
-import { SavedTimelineStateConfig, Sequence, UIKeyframe } from "./animations";
+import {
+  AnimationData,
+  EasingType,
+  PathType,
+  SavedTimelineStateConfig,
+  Sequence,
+  UIKeyframe,
+} from "./animations";
 
 // Define all possible edit operations
 export enum ObjectProperty {
@@ -533,12 +540,12 @@ export class Editor {
         this.groupBindGroupLayout!,
         config,
         fontData,
-        windowSize
+        windowSize,
         // t.text,
         // config,
         // t.id,
-        // saved_sequence.id,
-        // camera
+        saved_sequence.id,
+        camera
       );
 
       restored_text.hidden = hidden;
@@ -551,8 +558,8 @@ export class Editor {
 
     // saved_sequence.activeImageItems.forEach((i) => {
     //   const position = {
-    //     x: CANVAS_HORIZ_OFFSET + i.position.x,
-    //     y: CANVAS_VERT_OFFSET + i.position.y,
+    //     x: CANVAS_HORIZ_OFFSET + i.position[0],
+    //     y: CANVAS_VERT_OFFSET + i.position[1],
     //   };
 
     //   const image_config: StImageConfig = {
@@ -604,8 +611,8 @@ export class Editor {
     //   }
 
     //   const position = {
-    //     x: CANVAS_HORIZ_OFFSET + i.position.x,
-    //     y: CANVAS_VERT_OFFSET + i.position.y,
+    //     x: CANVAS_HORIZ_OFFSET + i.position[0],
+    //     y: CANVAS_VERT_OFFSET + i.position[1],
     //   };
 
     //   const video_config: StVideoConfig = {
@@ -640,5 +647,322 @@ export class Editor {
     //   this.videoItems.push(restored_video);
     //   console.log("Video restored...");
     // });
+  }
+
+  reset_sequence_objects() {
+    if (this.currentSequenceData) {
+      const gpu_resources = this.gpuResources!;
+      const camera = this.camera!;
+
+      this.currentSequenceData.activePolygons.forEach((p) => {
+        const polygon = this.polygons.find((polygon) => polygon.id === p.id);
+        if (!polygon) {
+          throw new Error("Couldn't find polygon");
+        }
+
+        polygon.transform.position[0] = p.position.x + CANVAS_HORIZ_OFFSET;
+        polygon.transform.position[1] = p.position.y + CANVAS_VERT_OFFSET;
+        polygon.transform.rotation = 0.0;
+        polygon.transform.updateScale([1.0, 1.0]);
+
+        polygon.transform.updateUniformBuffer(
+          gpu_resources.queue,
+          camera.windowSize
+        );
+        polygon.updateOpacity(gpu_resources.queue, 1.0);
+      });
+
+      this.currentSequenceData.activeTextItems.forEach((t) => {
+        const text = this.textItems.find((text) => text.id === t.id);
+        if (!text) {
+          throw new Error("Couldn't find text");
+        }
+
+        text.transform.position[0] = t.position.x + CANVAS_HORIZ_OFFSET;
+        text.transform.position[1] = t.position.y + CANVAS_VERT_OFFSET;
+        text.transform.rotation = 0.0;
+
+        text.transform.updateUniformBuffer(
+          gpu_resources.queue,
+          camera.windowSize
+        );
+        text.updateOpacity(gpu_resources.queue, 1.0);
+
+        text.backgroundPolygon.transform.position[0] =
+          t.position.x + CANVAS_HORIZ_OFFSET;
+        text.backgroundPolygon.transform.position[1] =
+          t.position.y + CANVAS_VERT_OFFSET;
+        text.backgroundPolygon.transform.rotation = 0.0;
+
+        text.backgroundPolygon.transform.updateUniformBuffer(
+          gpu_resources.queue,
+          camera.windowSize
+        );
+        text.backgroundPolygon.updateOpacity(gpu_resources.queue, 1.0);
+      });
+
+      // this.currentSequenceData.active_image_items.forEach(i => {
+      //     const image = this.imageItems.find(image => image.id === i.id);
+      //     if (!image) {
+      //         throw new Error("Couldn't find image");
+      //     }
+
+      //     image.transform.position[0] = i.position[0] + CANVAS_HORIZ_OFFSET;
+      //     image.transform.position[1] = i.position[1] + CANVAS_VERT_OFFSET;
+      //     image.transform.rotation = 0.0;
+
+      //     image.transform.update_uniform_buffer(gpu_resources.queue, camera.window_size);
+      //     image.update_opacity(gpu_resources.queue, 1.0);
+      // });
+
+      // this.currentSequenceData.active_video_items.forEach(i => {
+      //     const video = this.videoItems.find(video => video.id === i.id);
+      //     if (!video) {
+      //         throw new Error("Couldn't find video");
+      //     }
+
+      //     video.transform.position[0] = i.position[0] + CANVAS_HORIZ_OFFSET;
+      //     video.transform.position[1] = i.position[1] + CANVAS_VERT_OFFSET;
+      //     video.transform.rotation = 0.0;
+
+      //     video.transform.update_uniform_buffer(gpu_resources.queue, camera.window_size);
+      //     video.update_opacity(gpu_resources.queue, 1.0);
+
+      //     video.reset_playback().catch(console.error); // Handle potential errors
+      // });
+    }
+  }
+
+  run_motion_inference(): AnimationData[] {
+    let prompt = "";
+    let total = 0;
+
+    for (const polygon of this.polygons) {
+      if (!polygon.hidden) {
+        let x = polygon.transform.position[0] - CANVAS_HORIZ_OFFSET;
+        x = (x / 800.0) * 100.0;
+        let y = polygon.transform.position[1] - CANVAS_VERT_OFFSET;
+        y = (y / 450.0) * 100.0;
+
+        prompt += `${total}, 5, ${polygon.dimensions[0]}, ${
+          polygon.dimensions[1]
+        }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
+        total++;
+
+        if (total > 6) {
+          break;
+        }
+      }
+    }
+
+    for (const text of this.textItems) {
+      if (!text.hidden) {
+        let x = text.transform.position[0] - CANVAS_HORIZ_OFFSET;
+        x = (x / 800.0) * 100.0;
+        let y = text.transform.position[1] - CANVAS_VERT_OFFSET;
+        y = (y / 450.0) * 100.0;
+
+        prompt += `${total}, 5, ${text.dimensions[0]}, ${
+          text.dimensions[1]
+        }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
+        total++;
+
+        if (total > 6) {
+          break;
+        }
+      }
+    }
+
+    // for (const image of this.imageItems) {
+    //   if (!image.hidden) {
+    //     let x = image.transform.position[0] - CANVAS_HORIZ_OFFSET;
+    //     x = (x / 800.0) * 100.0;
+    //     let y = image.transform.position[1] - CANVAS_VERT_OFFSET;
+    //     y = (y / 450.0) * 100.0;
+
+    //     prompt += `${total}, 5, ${image.dimensions.x}, ${
+    //       image.dimensions.y
+    //     }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
+    //     total++;
+
+    //     if (total > 6) {
+    //       break;
+    //     }
+    //   }
+    // }
+
+    // for (const video of this.videoItems) {
+    //   if (!video.hidden) {
+    //     let x = video.transform.position[0] - CANVAS_HORIZ_OFFSET;
+    //     x = (x / 800.0) * 100.0;
+    //     let y = video.transform.position[1] - CANVAS_VERT_OFFSET;
+    //     y = (y / 450.0) * 100.0;
+
+    //     prompt += `${total}, 5, ${video.dimensions.x}, ${
+    //       video.dimensions.y
+    //     }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
+    //     total++;
+
+    //     if (total > 6) {
+    //       break;
+    //     }
+    //   }
+    // }
+
+    console.log("prompt", prompt);
+
+    return this.call_motion_inference(prompt);
+  }
+
+  call_motion_inference(prompt: string): AnimationData[] {
+    // TODO: will call API.  Return a Promise<AnimationData[]> and use async/await
+    return []; // Placeholder
+  }
+}
+
+export function interpolatePosition(
+  start: UIKeyframe,
+  end: UIKeyframe,
+  time: number
+): [number, number] {
+  const startPos = start.value.value as [number, number];
+  const endPos = end.value.value as [number, number];
+
+  const progress = (() => {
+    const total_time = end.time - start.time;
+    const current_time = time - start.time;
+    const t = current_time / total_time;
+
+    switch (start.easing) {
+      case EasingType.Linear:
+        return t;
+      case EasingType.EaseIn:
+        return t * t;
+      case EasingType.EaseOut:
+        return 1.0 - (1.0 - t) * (1.0 - t);
+      case EasingType.EaseInOut:
+        return t < 0.5 ? 2.0 * t * t : 1.0 - Math.pow(-2.0 * t + 2.0, 2) / 2.0;
+      default:
+        return t; // Default case, or throw an error if you want to be stricter
+    }
+  })();
+
+  switch (start.pathType) {
+    case PathType.Linear:
+      return [
+        Math.round(startPos[0] + (endPos[0] - startPos[0]) * progress),
+        Math.round(startPos[1] + (endPos[1] - startPos[1]) * progress),
+      ];
+    case PathType.Bezier:
+      const p0 = [startPos[0], startPos[1]];
+      const p3 = [endPos[0], endPos[1]];
+
+      const p1 =
+        start.pathType === PathType.Bezier && start.curveData?.controlPoint1
+          ? [start.curveData.controlPoint1.x, start.curveData.controlPoint1.y]
+          : [p0[0] + (p3[0] - p0[0]) * 0.33, p0[1] + (p3[1] - p0[1]) * 0.33];
+
+      const p2 =
+        start.pathType === PathType.Bezier && start.curveData?.controlPoint2
+          ? [start.curveData.controlPoint2.x, start.curveData.controlPoint2.y]
+          : [p0[0] + (p3[0] - p0[0]) * 0.66, p0[1] + (p3[1] - p0[1]) * 0.66];
+
+      const t = progress;
+      const t2 = t * t;
+      const t3 = t2 * t;
+      const mt = 1.0 - t;
+      const mt2 = mt * mt;
+      const mt3 = mt2 * mt;
+
+      const x =
+        p0[0] * mt3 +
+        3.0 * p1[0] * mt2 * t +
+        3.0 * p2[0] * mt * t2 +
+        p3[0] * t3;
+      const y =
+        p0[1] * mt3 +
+        3.0 * p1[1] * mt2 * t +
+        3.0 * p2[1] * mt * t2 +
+        p3[1] * t3;
+
+      return [Math.round(x), Math.round(y)];
+    default:
+      throw new Error("Invalid PathType");
+  }
+}
+
+export interface IRay {
+  top_left: Point;
+}
+
+export class Ray implements IRay {
+  // Use a class for better type handling
+  top_left: Point;
+
+  constructor(top_left: Point) {
+    this.top_left = top_left;
+  }
+
+  static new(top_left: Point): Ray {
+    // Static factory method (optional)
+    return new Ray(top_left);
+  }
+}
+
+export function visualize_ray_intersection(
+  window_size: WindowSize,
+  screen_x: number,
+  screen_y: number,
+  camera: Camera
+): Ray {
+  const scale_factor = camera.zoom;
+  const zoom_center_x = window_size.width / 2.0;
+  const zoom_center_y = window_size.height / 2.0;
+
+  const translated_screen_x = screen_x - zoom_center_x;
+  const translated_screen_y = screen_y - zoom_center_y;
+
+  const zoomed_screen_x = translated_screen_x / scale_factor;
+  const zoomed_screen_y = translated_screen_y / scale_factor;
+
+  const scaled_screen_x = zoomed_screen_x + zoom_center_x;
+  const scaled_screen_y = zoomed_screen_y + zoom_center_y;
+
+  const pan_offset_x = camera.position[0] * 0.5;
+  const pan_offset_y = camera.position[1] * 0.5;
+
+  const top_left: Point = {
+    x: scaled_screen_x + pan_offset_x,
+    y: scaled_screen_y - pan_offset_y,
+  };
+
+  return Ray.new(top_left);
+}
+
+export enum InteractionTarget {
+  Polygon,
+  Text,
+  Image,
+  Video,
+}
+
+export function getColor(color_index: number): number {
+  const normalized_index = color_index % 30;
+  const shade_index = Math.floor(normalized_index / 3); // Use Math.floor for integer division
+  return 155 + shade_index * 10;
+}
+
+export function getFullColor(index: number): [number, number, number] {
+  const normalized_index = index % 30;
+
+  switch (normalized_index % 3) {
+    case 0:
+      return [getColor(index), 10, 10];
+    case 1:
+      return [10, getColor(index), 10];
+    case 2:
+      return [10, 10, getColor(index)];
+    default:
+      throw new Error("Unreachable case in get_full_color"); // More appropriate than unreachable!()
   }
 }

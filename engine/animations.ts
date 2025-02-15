@@ -82,12 +82,35 @@ export interface AnimationProperty {
   depth: number;
 }
 
+export interface ControlPoint {
+  x: number;
+  y: number;
+}
+
+export interface CurveData {
+  control_point1?: ControlPoint;
+  control_point2?: ControlPoint;
+}
+
+// export enum PathType {
+//   Linear = "Linear",
+//   Bezier = "Bezier",
+// }
+
+// export enum EasingType {
+//   Linear = "Linear",
+//   EaseIn = "EaseIn",
+//   EaseOut = "EaseOut",
+//   EaseInOut = "EaseInOut",
+// }
+
 export interface UIKeyframe {
   id: string;
   time: number; // Duration in milliseconds
   value: KeyframeValue;
   easing: EasingType;
-  pathType: PathType | CurveData;
+  pathType: PathType;
+  curveData: CurveData | null;
   keyType: KeyType;
 }
 

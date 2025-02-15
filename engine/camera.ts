@@ -1,5 +1,6 @@
 // Import necessary libraries - you'll need to install gl-matrix or a similar library
 import { mat4, vec2, vec3, vec4 } from "gl-matrix";
+import { Point } from "./editor";
 
 // Types
 export interface WindowSize {
@@ -7,7 +8,7 @@ export interface WindowSize {
   height: number;
 }
 
-export type Point = [number, number]; // Assuming this is the type from editor
+// export type Point = [number, number]; // Assuming this is the type from editor
 
 // Helper functions (assumed to be imported from elsewhere in your project)
 function pointToNdc(

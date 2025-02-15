@@ -1,5 +1,6 @@
 import { mat4, vec2, vec3, quat } from "gl-matrix";
-import { Point, WindowSize } from "./editor"; // Import your editor types
+import { WindowSize } from "./camera";
+import { Point } from "./editor";
 
 export class Transform {
   position: vec2;
@@ -152,8 +153,8 @@ export function createEmptyGroupTransform(
     vec2.fromValues(0.0, 0.0),
     0.0,
     vec2.fromValues(1.0, 1.0),
-    uniformBuffer,
-    windowSize
+    uniformBuffer
+    // windowSize
   );
 
   return [bindGroup, groupTransform];

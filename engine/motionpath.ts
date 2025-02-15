@@ -10,8 +10,8 @@ import {
 } from "./animations"; // Import your animation types
 import { Camera } from "./camera"; // Import your camera type
 import {
-  get_full_color,
-  interpolate_position,
+  getFullColor,
+  interpolatePosition,
   rgbToWgpu,
   Point,
   WindowSize,
@@ -47,7 +47,7 @@ export class MotionPath {
     associatedPolygonId: string,
     initialPosition: [number, number]
   ) {
-    const [fillR, fillG, fillB] = get_full_color(colorIndex);
+    const [fillR, fillG, fillB] = getFullColor(colorIndex);
     const pathFill = rgbToWgpu(fillR, fillG, fillB, 255.0);
 
     const polygonId = associatedPolygonId;
@@ -146,8 +146,8 @@ export class MotionPath {
           const t1 = startKf.time + segmentDuration * j;
           const t2 = startKf.time + segmentDuration * (j + 1);
 
-          const pos1 = interpolate_position(startKf, endKf, t1);
-          const pos2 = interpolate_position(startKf, endKf, t2);
+          const pos1 = interpolatePosition(startKf, endKf, t1);
+          const pos2 = interpolatePosition(startKf, endKf, t2);
 
           const pathStart: Point = { x: pos1[0], y: pos1[1] };
           const pathEnd: Point = { x: pos2[0], y: pos2[1] };

@@ -1,7 +1,12 @@
 import { mat4, vec2, vec3 } from "gl-matrix";
 
 import { Camera, WindowSize } from "./camera"; // Import your camera type
-import { BoundingBox, CANVAS_HORIZ_OFFSET, CANVAS_VERT_OFFSET } from "./editor"; // Import your types
+import {
+  BoundingBox,
+  CANVAS_HORIZ_OFFSET,
+  CANVAS_VERT_OFFSET,
+  Point,
+} from "./editor"; // Import your types
 import {
   createEmptyGroupTransform,
   matrix4ToRawArray,
@@ -28,12 +33,6 @@ export interface PolygonConfig {
   borderRadius: number;
   stroke: Stroke;
   layer: number;
-}
-
-export interface Point {
-  // Consistent Point interface
-  x: number;
-  y: number;
 }
 
 export interface SavedPoint {
@@ -81,6 +80,7 @@ export class Polygon implements PolygonShape {
   baseLayer: number;
   transformLayer: number;
   id: string;
+  name: string;
   currentSequenceId: string;
   sourcePolygonId?: string;
   sourceKeyframeId?: string;
@@ -90,10 +90,11 @@ export class Polygon implements PolygonShape {
   hidden: boolean;
   vertices: Vertex[];
   indices: number[];
-  vertex_buffer: GPUBuffer;
-  index_buffer: GPUBuffer;
-  bind_group: GPUBindGroup;
+  vertexBuffer: GPUBuffer;
+  indexBuffer: GPUBuffer;
+  bindGroup: GPUBindGroup;
   transform: Transform;
+  layer: number;
 
   constructor(
     window_size: WindowSize,
@@ -125,6 +126,7 @@ export class Polygon implements PolygonShape {
     this.baseLayer = baseLayer;
     this.transformLayer = transformLayer;
     this.id = id;
+    this.name = name;
     this.hidden = false;
 
     this.currentSequenceId = currentSequenceId;
@@ -171,6 +173,7 @@ export class Polygon implements PolygonShape {
 
     // -10.0 to provide 10 spots for internal items on top of objects
     this.transformLayer = transformLayer - INTERNAL_LAYER_SPACE;
+    this.layer = transformLayer;
 
     let [tmp_group_bind_group, tmp_group_transform] = createEmptyGroupTransform(
       device,
@@ -182,9 +185,9 @@ export class Polygon implements PolygonShape {
 
     this.vertices = vertices;
     this.indices = indices;
-    this.vertex_buffer = vertex_buffer;
-    this.index_buffer = index_buffer;
-    this.bind_group = bind_group;
+    this.vertexBuffer = vertex_buffer;
+    this.indexBuffer = index_buffer;
+    this.bindGroup = bind_group;
     this.transform = transform;
   }
 
@@ -229,15 +232,30 @@ export class Polygon implements PolygonShape {
     return inside;
   }
 
-  // updateOpacity( queue:GPUQueue, opacity: number) {
-  //     let new_color = [this.fill[0], this.fill[1], this.fill[2], opacity];
+  updateOpacity(queue: GPUQueue, opacity: number) {
+    let new_color = [this.fill[0], this.fill[1], this.fill[2], opacity] as [
+      number,
+      number,
+      number,
+      number
+    ];
 
-  //     this.vertices.for_each(|v| {
-  //         v.color = new_color;
-  //     });
+    this.vertices.forEach((v) => {
+      v.color = new_color;
+    });
 
-  //     queue.writeBuffer(this.vertexBuffer, 0, bytemuck::cast_slice(this.vertices));
-  // }
+    queue.writeBuffer(
+      this.vertexBuffer,
+      0,
+      new Float32Array(
+        this.vertices.flatMap((v) => [
+          ...v.position,
+          ...v.tex_coords,
+          ...v.color,
+        ])
+      )
+    );
+  }
 
   // updateLayer( layer_index: number) {
   //     // -10.0 to provide 10 spots for internal items on top of objects
@@ -281,44 +299,56 @@ export class Polygon implements PolygonShape {
     return local_point;
   }
 
-  // updateDataFromDimensions(
+  updateDataFromDimensions(
+    window_size: WindowSize,
+    device: GPUDevice,
+    queue: GPUQueue,
+    bind_group_layout: GPUBindGroupLayout,
+    dimensions: [number, number],
+    camera: Camera
+  ) {
+    let config: PolygonConfig = {
+      id: this.id,
+      name: this.name,
+      dimensions,
+      points: this.points,
+      position: {
+        x: this.transform.position[0],
+        y: this.transform.position[1],
+      },
+      // this.transform.rotation,
+      borderRadius: this.borderRadius,
+      fill: this.fill,
+      stroke: this.stroke,
+      // 0.0,
+      layer: this.layer + INTERNAL_LAYER_SPACE,
+    };
 
-  //     window_size: WindowSize,
-  //     device: GPUDevice,
-  //     queue:GPUQueue,
-  //     bind_group_layout: GPUBindGroupLayout,
-  //     dimensions: [number, number],
-  //     camera: Camera,
-  // ) {
-  //     let (vertices, indices, vertex_buffer, index_buffer, bind_group, transform) =
-  //         getPolygonData(
-  //             window_size,
-  //             device,
-  //             queue,
-  //             bind_group_layout,
-  //             camera,
-  //             this.points,
-  //             dimensions,
-  //             Point {
-  //                 x: this.transform.position.x,
-  //                 y: this.transform.position.y,
-  //             },
-  //             this.transform.rotation,
-  //             this.border_radius,
-  //             this.fill,
-  //             this.stroke,
-  //             0.0,
-  //             this.layer + INTERNAL_LAYER_SPACE,
-  //         );
+    let [
+      vertices,
+      indices,
+      vertex_buffer,
+      index_buffer,
+      bind_group,
+      transform,
+    ] = getPolygonData(
+      window_size,
+      device,
+      queue,
+      bind_group_layout,
+      camera,
+      // this.points,
+      config
+    );
 
-  //     this.dimensions = dimensions;
-  //     this.vertices = vertices;
-  //     this.indices = indices;
-  //     this.vertex_buffer = vertex_buffer;
-  //     this.index_buffer = index_buffer;
-  //     this.bind_group = bind_group;
-  //     this.transform = transform;
-  // }
+    this.dimensions = dimensions;
+    this.vertices = vertices;
+    this.indices = indices;
+    this.vertexBuffer = vertex_buffer;
+    this.indexBuffer = index_buffer;
+    this.bindGroup = bind_group;
+    this.transform = transform;
+  }
 
   // updateDataFromPosition(
 
