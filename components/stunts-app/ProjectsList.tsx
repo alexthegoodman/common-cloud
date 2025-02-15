@@ -10,10 +10,11 @@ import {
   ProjectsResponse,
 } from "@/fetchers/projects";
 import useSWR from "swr";
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 export const ProjectsList = () => {
   const router = useRouter();
-  const authToken = localStorage.getItem("auth-token"); // Retrieve from localStorage
+  const [authToken] = useLocalStorage("auth-token", null);
 
   let {
     data: projects,
@@ -26,7 +27,7 @@ export const ProjectsList = () => {
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div>Error</div>;
   }
 
   if (!projects) {

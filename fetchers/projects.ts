@@ -1,6 +1,11 @@
 import { SavedState } from "@/engine/animations";
 import { DateTime } from "luxon";
 
+export interface AuthToken {
+  token: string;
+  expiry: number;
+}
+
 export interface SingleProjectResponse {
   project: {
     id: string;
@@ -39,7 +44,7 @@ export interface CreateProjectResponse {
 }
 
 export const getSingleProject = async (
-  authToken: string | null,
+  authToken: AuthToken | null,
   project_id: string
 ): Promise<SingleProjectResponse> => {
   if (!authToken) {
@@ -48,8 +53,6 @@ export const getSingleProject = async (
     };
   }
 
-  let tokenData = JSON.parse(authToken);
-
   const url = new URL("http://localhost:3000/api/projects/single");
   url.searchParams.set("projectId", project_id);
 
@@ -57,7 +60,7 @@ export const getSingleProject = async (
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${tokenData.token}`,
+      Authorization: `Bearer ${authToken.token}`,
     },
   });
 
@@ -72,19 +75,17 @@ export const getSingleProject = async (
 };
 
 export const getProjects = async (
-  authToken: string | null
+  authToken: AuthToken | null
 ): Promise<ProjectInfo[]> => {
   if (!authToken) {
     return [];
   }
 
-  let tokenData = JSON.parse(authToken);
-
   const response = await fetch("http://localhost:3000/api/projects/all", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${tokenData.token}`,
+      Authorization: `Bearer ${authToken.token}`,
     },
   });
 
@@ -110,7 +111,7 @@ export const getProjects = async (
 export const createProject = async (
   token: string,
   name: string,
-  empty_file_data: any
+  emptyFileData: any
 ): Promise<CreateProjectResponse> => {
   const response = await fetch("http://localhost:3000/api/projects/create", {
     method: "POST",
@@ -118,7 +119,7 @@ export const createProject = async (
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ name, empty_file_data }),
+    body: JSON.stringify({ name, emptyFileData }),
   });
 
   if (!response.ok) {
