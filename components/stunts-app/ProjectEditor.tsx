@@ -1,21 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { DebouncedInput, NavButton, OptionButton } from "./items";
 import { CreateIcon } from "./icon";
+import { Sequence } from "@/engine/animations";
+import { v4 as uuidv4 } from "uuid";
+import { useRouter } from "next/navigation";
+import { useLocalStorage } from "@uidotdev/usehooks";
+import { AuthToken, updateSequences } from "@/fetchers/projects";
+import { useDevEffectOnce } from "@/hooks/useDevOnce";
+import { Editor, Viewport } from "@/engine/editor";
 
-export const ProjectEditor: React.FC<any> = () => {
-  let project_id;
+export const ProjectEditor: React.FC<any> = ({ projectId }) => {
+  const router = useRouter();
+  const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
-  let [sequences, set_sequences] = useState([]);
+  let [sequences, set_sequences] = useState<Sequence[]>([]);
   let [loading, set_loading] = useState(false);
-  let on_create_sequence = () => {};
-  let on_open_sequence = (sequence_id: string) => {};
-  let on_add_square = () => {};
-  let on_add_image = () => {};
-  let on_add_text = () => {};
-  let on_add_video = () => {};
-  let on_open_capture = () => {};
   let [section, set_section] = useState("SequenceList");
   let [keyframe_count, set_keyframe_count] = useState(0);
   let [is_curved, set_is_curved] = useState(false);
@@ -23,9 +24,67 @@ export const ProjectEditor: React.FC<any> = () => {
   let [auto_fade, set_auto_fade] = useState(true);
   let [layers, set_layers] = useState([]);
   let [dragger_id, set_dragger_id] = useState(null);
+
+  const editorRef = useRef<Editor | null>(null);
+
+  useDevEffectOnce(() => {
+    console.info("Starting Editor...");
+
+    let viewport = new Viewport(900, 550);
+
+    editorRef.current = new Editor(viewport);
+  });
+
+  let on_create_sequence = async () => {
+    if (!authToken) {
+      return;
+    }
+
+    set_loading(true);
+
+    let new_sequences = sequences;
+
+    new_sequences.push({
+      id: uuidv4().toString(),
+      name: "New Sequence",
+      backgroundFill: { type: "Color", value: [200, 200, 200, 255] },
+      durationMs: 20000,
+      activePolygons: [],
+      polygonMotionPaths: [],
+      activeTextItems: [],
+      activeImageItems: [],
+      activeVideoItems: [],
+    });
+
+    set_sequences(new_sequences);
+
+    let response = await updateSequences(
+      authToken.token,
+      projectId,
+      new_sequences
+    );
+
+    set_loading(false);
+  };
+
+  let on_open_sequence = (sequence_id: string) => {};
+
+  let on_add_square = () => {};
+
+  let on_add_image = () => {};
+
+  let on_add_text = () => {};
+
+  let on_add_video = () => {};
+
+  let on_open_capture = () => {};
+
   let on_items_updated = () => {};
+
   let on_item_duplicated = () => {};
+
   let on_item_deleted = () => {};
+
   let [background_red, set_background_red] = useState(0);
   let [background_green, set_background_green] = useState(0);
   let [background_blue, set_background_blue] = useState(0);
@@ -99,7 +158,7 @@ export const ProjectEditor: React.FC<any> = () => {
         <NavButton
           label="Motion"
           icon="brush"
-          destination={`/project/${project_id}`}
+          destination={`/project/${projectId}`}
         />
         <NavButton label="Settings" icon="gear" destination="/settings" />
       </div>
