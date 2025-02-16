@@ -7,7 +7,11 @@ import { Sequence } from "@/engine/animations";
 import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/navigation";
 import { useLocalStorage } from "@uidotdev/usehooks";
-import { AuthToken, updateSequences } from "@/fetchers/projects";
+import {
+  AuthToken,
+  getSingleProject,
+  updateSequences,
+} from "@/fetchers/projects";
 import { useDevEffectOnce } from "@/hooks/useDevOnce";
 import { Editor, Viewport } from "@/engine/editor";
 
@@ -26,14 +30,69 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
   let [dragger_id, set_dragger_id] = useState(null);
 
   const editorRef = useRef<Editor | null>(null);
+  const [editorIsSet, setEditorIsSet] = useState(false);
 
   useDevEffectOnce(() => {
+    if (editorIsSet) {
+      return;
+    }
+
     console.info("Starting Editor...");
 
     let viewport = new Viewport(900, 550);
 
     editorRef.current = new Editor(viewport);
+
+    setEditorIsSet(true);
   });
+
+  let fetch_data = async () => {
+    if (!authToken) {
+      return;
+    }
+
+    set_loading(true);
+
+    let response = await getSingleProject(authToken.token, projectId);
+
+    // let mut editor_state = editor_state.lock().unwrap();
+
+    // editor_state.record_state.saved_state =
+    //     Some(response.project.file_data.clone());
+
+    let cloned_sequences = response.project?.fileData.sequences;
+
+    if (!cloned_sequences) {
+      return;
+    }
+
+    set_sequences(cloned_sequences);
+    // set_timeline_state(response.project?.fileData.timeline_state);
+
+    // drop(editor_state);
+
+    // let canvas_renderer = canvas_renderer.lock().unwrap();
+    // let editor = canvas_renderer.editor.clone();
+
+    // console.info("Restoring objects...");
+
+    // restore_sequence_objects(
+    //     editor.clone(),
+    //     cloned_sequences,
+    //     true,
+    //     authToken.token,
+    // );
+
+    set_loading(false);
+  };
+
+  useEffect(() => {
+    if (editorIsSet) {
+      console.info("Fetch data...");
+
+      fetch_data();
+    }
+  }, [editorIsSet]);
 
   let on_create_sequence = async () => {
     if (!authToken) {

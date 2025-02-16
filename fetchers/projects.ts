@@ -61,14 +61,14 @@ export interface UploadResponse {
 }
 
 export const getSingleProject = async (
-  authToken: AuthToken | null,
+  authToken: string | null,
   project_id: string
 ): Promise<SingleProjectResponse> => {
-  if (!authToken) {
-    return {
-      project: null,
-    };
-  }
+  // if (!authToken) {
+  //   return {
+  //     project: null,
+  //   };
+  // }
 
   const url = new URL("http://localhost:3000/api/projects/single");
   url.searchParams.set("projectId", project_id);
@@ -77,7 +77,7 @@ export const getSingleProject = async (
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${authToken.token}`,
+      Authorization: `Bearer ${authToken}`,
     },
   });
 
