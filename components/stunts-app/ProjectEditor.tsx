@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { DebouncedInput, NavButton, OptionButton } from "./items";
 import { CreateIcon } from "./icon";
-import { BackgroundFill, Sequence } from "@/engine/animations";
+import { BackgroundFill, Sequence, UIKeyframe } from "@/engine/animations";
 import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/navigation";
 import { useLocalStorage } from "@uidotdev/usehooks";
@@ -45,10 +45,102 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     null
   );
 
+  // polygon_selected
+  let [selected_polygon_id, set_selected_polygon_id] = useState<string | null>(
+    null
+  );
+  // selected_polygon_data
+  // image_selected
+  let [selected_image_id, set_selected_image_id] = useState<string | null>(
+    null
+  );
+  // selected_image_data
+  // text_selected
+  let [selected_text_id, set_selected_text_id] = useState<string | null>(null);
+  // selected_text_data
+  // video_selected
+  let [selected_video_id, set_selected_video_id] = useState<string | null>(
+    null
+  );
+  // selected_video_data
+  // animation_data
+  let [animation_data_id, set_animation_data_id] = useState<string | null>(
+    null
+  );
+  let [selected_keyframes, set_selected_keyframes] = useState<string[] | null>(
+    null
+  );
+
   const editorRef = useRef<Editor | null>(null);
   const editorStateRef = useRef<EditorState | null>(null);
   const canvasPipelineRef = useRef<CanvasPipeline | null>(null);
   const [editorIsSet, setEditorIsSet] = useState(false);
+
+  let setupCanvasMouseTracking = (canvas: HTMLCanvasElement) => {
+    let editor = editorRef.current;
+
+    if (!editor) {
+      return;
+    }
+
+    canvas.addEventListener("mousemove", (event: MouseEvent) => {
+      // Get the canvas's bounding rectangle
+      const rect = canvas.getBoundingClientRect();
+
+      // Calculate position relative to the canvas
+      const positionX = event.clientX - rect.left;
+      const positionY = event.clientY - rect.top;
+
+      // Get current viewport size
+      // const viewport = getViewportSize();
+
+      editor.handle_mouse_move(positionX, positionY);
+    });
+
+    canvas.addEventListener("mousedown", () => {
+      editor.handle_mouse_down();
+    });
+
+    canvas.addEventListener("mouseup", () => {
+      editor.handle_mouse_up();
+    });
+
+    canvas.addEventListener("mouseleave", () => {
+      // Handle mouse leaving canvas if needed
+    });
+  };
+
+  let select_polygon = (polygon_id: string) => {
+    set_selected_polygon_id(polygon_id);
+    set_selected_text_id(polygon_id);
+    set_selected_image_id(polygon_id);
+    set_selected_video_id(polygon_id);
+
+    // let editor_state = editorStateRef.current;
+
+    // if (!editor_state) {
+    //   return;
+    // }
+
+    // editor_state.selected_polygon_id = polygon_id;
+    // editor_state.polygon_selected = true;
+
+    // editor_state.selected_text_id = Uuid::nil();
+    // editor_state.text_selected = false;
+    // editor_state.selected_image_id = Uuid::nil();
+    // editor_state.image_selected = false;
+    // editor_state.selected_video_id = Uuid::nil();
+    // editor_state.video_selected = false;
+
+    // drop(editor_state);
+  };
+
+  let handle_polygon_click = (
+    polygon_id: string,
+    polygon_config: PolygonConfig
+  ) => {
+    select_polygon(polygon_id);
+  };
 
   useDevEffectOnce(() => {
     if (editorIsSet) {
@@ -126,6 +218,12 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
         // authToken.token,
       );
     }
+
+    // set handlers
+    const canvas = document.getElementById("scene-canvas") as HTMLCanvasElement;
+    setupCanvasMouseTracking(canvas);
+
+    editorRef.current.handlePolygonClick = handle_polygon_click;
 
     set_loading(false);
   };

@@ -170,9 +170,10 @@ export interface ObjectEditConfig {
 }
 
 // Type definitions for handlers
-export type PolygonClickHandler = () =>
-  | ((id: string, config: PolygonConfig) => void)
-  | null;
+export type PolygonClickHandler = (
+  polygon_id: string,
+  polygon_config: PolygonConfig
+) => void | null;
 export type TextItemClickHandler = () =>
   | ((id: string, config: TextRendererConfig) => void)
   | null;
@@ -3034,7 +3035,7 @@ export class Editor {
   }
 
   // handlers
-  handle_mouse_down(windowSize: WindowSize, device: GPUDevice) {
+  handle_mouse_down() {
     let camera = this.camera;
 
     if (!camera) {
@@ -3101,43 +3102,51 @@ export class Editor {
     }
 
     // Finally, check for object interation
-    let intersecting_objects: [number, InteractionTarget][] = [];
+    let intersecting_objects: [number, InteractionTarget, number][] = [];
 
     // Collect intersecting polygons
-    for (let polygon of this.polygons) {
+    for (let [i, polygon] of this.polygons.entries()) {
       if (polygon.hidden) {
         continue;
       }
 
       if (polygon.containsPoint(this.lastTopLeft, camera)) {
-        intersecting_objects.push([polygon.layer, InteractionTarget.Polygon]);
+        intersecting_objects.push([
+          polygon.layer,
+          InteractionTarget.Polygon,
+          i,
+        ]);
       }
     }
 
     // Collect intersecting text items
-    for (let text_item of this.textItems) {
+    for (let [i, text_item] of this.textItems.entries()) {
       if (text_item.hidden) {
         continue;
       }
 
       if (text_item.containsPoint(this.lastTopLeft, camera)) {
-        intersecting_objects.push([text_item.layer, InteractionTarget.Text]);
+        intersecting_objects.push([text_item.layer, InteractionTarget.Text, i]);
       }
     }
 
     // Collect intersecting image items
-    for (let image_item of this.imageItems) {
+    for (let [i, image_item] of this.imageItems.entries()) {
       if (image_item.hidden) {
         continue;
       }
 
       if (image_item.containsPoint(this.lastTopLeft)) {
-        intersecting_objects.push([image_item.layer, InteractionTarget.Image]);
+        intersecting_objects.push([
+          image_item.layer,
+          InteractionTarget.Image,
+          i,
+        ]);
       }
     }
 
     // Collect intersecting image items
-    for (let video_item of this.videoItems) {
+    for (let [i, video_item] of this.videoItems.entries()) {
       if (video_item.hidden) {
         continue;
       }
@@ -3146,7 +3155,11 @@ export class Editor {
 
       if (video_item.containsPoint(this.lastTopLeft)) {
         console.info("Video contains point");
-        intersecting_objects.push([video_item.layer, InteractionTarget.Video]);
+        intersecting_objects.push([
+          video_item.layer,
+          InteractionTarget.Video,
+          i,
+        ]);
       }
     }
 
@@ -3164,7 +3177,7 @@ export class Editor {
     //     .map(((_, target)) => target);
     let target: InteractionTarget =
       intersecting_objects[intersecting_objects.length - 1][1];
-    let index = intersecting_objects[intersecting_objects.length - 1][0];
+    let index = intersecting_objects[intersecting_objects.length - 1][2];
 
     // if (target) {
     switch (target) {
@@ -3176,14 +3189,14 @@ export class Editor {
 
         // TODO: make DRY with below
         if (this.handlePolygonClick) {
-          let handler_creator = this.handlePolygonClick;
-          let handle_click = handler_creator();
+          // let handler_creator = this.handlePolygonClick;
+          // let handle_click = handler_creator();
 
-          if (!handle_click) {
-            return;
-          }
+          // if (!handle_click) {
+          //   return;
+          // }
 
-          handle_click(polygon.id, {
+          this.handlePolygonClick(polygon.id, {
             id: polygon.id,
             name: polygon.name,
             points: polygon.points,
@@ -3335,15 +3348,19 @@ export class Editor {
   }
 
   handle_mouse_move(
-    windowSize: WindowSize,
-    device: GPUDevice,
-    queue: GPUQueue,
+    // windowSize: WindowSize,
+    // device: GPUDevice,
+    // queue: GPUQueue,
     x: number,
     y: number
   ) {
     let camera = this.camera;
+    let windowSize = camera?.windowSize;
+    let gpuResources = this.gpuResources;
+    let device = gpuResources?.device;
+    let queue = gpuResources?.queue;
 
-    if (!camera) {
+    if (!camera || !windowSize || !device || !queue) {
       return;
     }
 
@@ -3749,11 +3766,11 @@ export class Editor {
     }
 
     let new_position = {
-      x: polygon.transform.position[0] + dx * 0.9, // not sure relation with aspect_ratio?
+      x: polygon.transform.position[0] + dx, // not sure relation with aspect_ratio?
       y: polygon.transform.position[1] + dy,
     };
 
-    console.info("move_polygon {:?}", new_position);
+    // console.info("move_polygon {:?}", new_position);
 
     polygon.updateDataFromPosition(
       windowSize,
@@ -3791,11 +3808,11 @@ export class Editor {
     }
 
     let new_position = {
-      x: polygon.transform.position[0] + dx * 0.9, // not sure relation with aspect_ratio?
+      x: polygon.transform.position[0] + dx, // not sure relation with aspect_ratio?
       y: polygon.transform.position[1] + dy,
     };
 
-    console.info("move_polygon {:?}", new_position);
+    // console.info("move_polygon {:?}", new_position);
 
     polygon.updateDataFromPosition(
       windowSize,
@@ -3840,11 +3857,11 @@ export class Editor {
     }
 
     let new_position = {
-      x: polygon.transform.position[0] + dx * 0.9, // not sure relation with aspect_ratio?
+      x: polygon.transform.position[0] + dx, // not sure relation with aspect_ratio?
       y: polygon.transform.position[1] + dy,
     };
 
-    console.info("move path polygon {:?}", new_position);
+    // console.info("move path polygon {:?}", new_position);
 
     polygon.updateDataFromPosition(
       windowSize,
@@ -3882,11 +3899,11 @@ export class Editor {
     }
 
     let new_position = {
-      x: path.transform.position[0] + dx * 0.9, // not sure relation with aspect_ratio? probably not needed now
+      x: path.transform.position[0] + dx, // not sure relation with aspect_ratio? probably not needed now
       y: path.transform.position[1] + dy,
     };
 
-    console.info("move_path {:?}", new_position);
+    // console.info("move_path {:?}", new_position);
 
     path.updateDataFromPosition(
       windowSize,
@@ -3925,7 +3942,7 @@ export class Editor {
     }
 
     let new_position = {
-      x: text_item.transform.position[0] + dx * 0.9, // not sure relation with aspect_ratio?
+      x: text_item.transform.position[0] + dx, // not sure relation with aspect_ratio?
       y: text_item.transform.position[1] + dy,
     };
 
@@ -3969,11 +3986,11 @@ export class Editor {
     }
 
     let new_position = {
-      x: image_item.transform.position[0] + dx * 0.9, // not sure relation with aspect_ratio?
+      x: image_item.transform.position[0] + dx, // not sure relation with aspect_ratio?
       y: image_item.transform.position[1] + dy,
     };
 
-    console.info("move_image {:?}", new_position);
+    // console.info("move_image {:?}", new_position);
 
     image_item.transform.updatePosition(
       [new_position.x, new_position.y],
@@ -4009,11 +4026,11 @@ export class Editor {
     }
 
     let new_position = {
-      x: video_item.transform.position[0] + dx * 0.9, // not sure relation with aspect_ratio?
+      x: video_item.transform.position[0] + dx, // not sure relation with aspect_ratio?
       y: video_item.transform.position[1] + dy,
     };
 
-    console.info("move_video {:?}", new_position);
+    // console.info("move_video {:?}", new_position);
 
     video_item.transform.updatePosition(
       [new_position.x, new_position.y],
