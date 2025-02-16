@@ -316,7 +316,7 @@ export class FontManager {
 
     try {
       // Fetch the font file
-      const response = await fetch(fontInfo.path);
+      const response = await fetch("/public/" + fontInfo.path);
       if (!response.ok) {
         throw new Error(`Failed to load font: ${response.statusText}`);
       }
