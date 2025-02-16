@@ -20,6 +20,7 @@ import { TextRendererConfig } from "@/engine/text";
 import { PolygonConfig } from "@/engine/polygon";
 import EditorState from "@/engine/editor_state";
 import LayerPanel, { Layer, LayerFromConfig } from "./layers";
+import { CanvasPipeline } from "@/engine/pipeline";
 
 export const ProjectEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
@@ -37,6 +38,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
 
   const editorRef = useRef<Editor | null>(null);
   const editorStateRef = useRef<EditorState | null>(null);
+  const canvasPipelineRef = useRef<CanvasPipeline | null>(null);
   const [editorIsSet, setEditorIsSet] = useState(false);
 
   useDevEffectOnce(() => {
@@ -53,19 +55,18 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     setEditorIsSet(true);
   });
 
+  useEffect(() => {
+    console.info("remount");
+  }, []);
+
   let fetch_data = async () => {
-    if (!authToken) {
+    if (!authToken || !editorRef.current) {
       return;
     }
 
     set_loading(true);
 
     let response = await getSingleProject(authToken.token, projectId);
-
-    // let mut editor_state = editor_state.lock().unwrap();
-
-    // editor_state.record_state.saved_state =
-    //     Some(response.project.file_data.clone());
 
     let fileData = response.project?.fileData;
 
@@ -86,8 +87,26 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
 
     // drop(editor_state);
 
-    // let canvas_renderer = canvas_renderer.lock().unwrap();
-    // let editor = canvas_renderer.editor.clone();
+    console.info("Initializing pipeline...");
+
+    let pipeline = new CanvasPipeline();
+
+    canvasPipelineRef.current = await pipeline.new(editorRef.current);
+
+    let windowSize = editorRef.current.camera?.windowSize;
+
+    if (!windowSize?.width || !windowSize?.height) {
+      return;
+    }
+
+    canvasPipelineRef.current.recreateDepthView(
+      windowSize?.width,
+      windowSize?.height
+    );
+
+    console.info("Beginning rendering...");
+
+    canvasPipelineRef.current.beginRendering(editorRef.current);
 
     // console.info("Restoring objects...");
 
@@ -632,6 +651,8 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
           <canvas
             id="scene-canvas"
             className="w-[900px] h-[450px] border border-black"
+            width="900"
+            height="550"
           />
         </div>
       </div>

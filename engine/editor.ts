@@ -347,6 +347,7 @@ export class Editor {
   windowSizeBindGroupLayout: GPUBindGroupLayout | null;
   windowSizeBindGroup: GPUBindGroup | null;
   windowSizeBuffer: GPUBuffer | null;
+  renderPipeline: GPURenderPipeline | null;
   onMouseUp: OnMouseUp | null;
   onHandleMouseUp: OnHandleMouseUp | null;
   onPathMouseUp: OnPathMouseUp | null;
@@ -401,6 +402,7 @@ export class Editor {
     this.handleImageClick = null;
     this.handleVideoClick = null;
     this.gpuResources = null;
+    this.renderPipeline = null;
     this.window = null;
     this.camera = null;
     this.cameraBinding = null;

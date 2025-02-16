@@ -11,6 +11,14 @@ import { headers } from "next/headers";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  webpack: (config: any, options: any) => {
+    config.module.rules.push({
+      test: /\.(wgsl|vs|fs|vert|frag)$/,
+      use: ["shader-loader"],
+    });
+
+    return config;
+  },
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   // eslint is not helpful imo
