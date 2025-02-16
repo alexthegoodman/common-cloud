@@ -709,6 +709,12 @@ export function getPolygonData(
 
   // ... (In getPolygonData)
 
+  console.info(
+    "polygon vertices",
+    vertices.length,
+    vertices.length * vertexByteSize
+  );
+
   const vertexBuffer = device.createBuffer({
     label: "Vertex Buffer",
     size: vertices.length * vertexByteSize, // Use the helper function
@@ -734,10 +740,10 @@ export function getPolygonData(
 
   const indexBuffer = device.createBuffer({
     label: "Index Buffer",
-    size: indices.length * Uint16Array.BYTES_PER_ELEMENT, // Correct size calculation
+    size: indices.length * Uint32Array.BYTES_PER_ELEMENT, // Correct size calculation
     usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
   });
-  queue.writeBuffer(indexBuffer, 0, new Uint16Array(indices).buffer);
+  queue.writeBuffer(indexBuffer, 0, new Uint32Array(indices).buffer);
 
   //   if (polygon.stroke.thickness > 0.0) {
   //     strokeTessellator.tessellatePath(

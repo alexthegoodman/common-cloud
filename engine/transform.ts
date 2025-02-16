@@ -132,8 +132,8 @@ export function createEmptyGroupTransform(
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     mappedAtCreation: true,
   });
-  //   new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
-  //   uniformBuffer.unmap();
+  new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
+  uniformBuffer.unmap();
 
   // Now create your bind group with these defaults
   const bindGroup = device.createBindGroup({
