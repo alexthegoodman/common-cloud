@@ -1,4 +1,8 @@
-import { SavedState } from "@/engine/animations";
+import {
+  SavedState,
+  SavedTimelineStateConfig,
+  Sequence,
+} from "@/engine/animations";
 import { DateTime } from "luxon";
 
 export interface AuthToken {
@@ -41,6 +45,19 @@ export interface ProjectData {
 
 export interface CreateProjectResponse {
   newProject: ProjectData;
+}
+
+export interface UpdateSequencesResponse {
+  updatedProject: ProjectData;
+}
+export interface UpdateTimelineResponse {
+  updatedProject: ProjectData;
+}
+export interface UploadResponse {
+  url: String;
+  fileName: String;
+  size: number;
+  mimeType: String;
 }
 
 export const getSingleProject = async (
@@ -126,6 +143,109 @@ export const createProject = async (
     const errorText = await response.text();
     throw new Error(
       `Create project request failed: ${response.status} - ${response.statusText} - ${errorText}`
+    );
+  }
+
+  return response.json();
+};
+
+// export const saveSequencesData
+// = async (
+//   token: string,
+//   name: string,
+//   emptyFileData: any
+// ): Promise<CreateProjectResponse> => {
+//   const response = await fetch("http://localhost:3000/api/projects/create", {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//       Authorization: `Bearer ${token}`,
+//     },
+//     body: JSON.stringify({ name, emptyFileData }),
+//   });
+
+//   if (!response.ok) {
+//     const errorText = await response.text();
+//     throw new Error(
+//       `Create project request failed: ${response.status} - ${response.statusText} - ${errorText}`
+//     );
+//   }
+
+//   return response.json();
+// };
+
+export const updateSequences = async (
+  token: string,
+  projectId: string,
+  sequences: Sequence[]
+): Promise<UpdateSequencesResponse> => {
+  const response = await fetch(
+    "http://localhost:3000/api/projects/update-sequences",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ projectId, sequences }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Update sequences request failed: ${response.status} - ${response.statusText} - ${errorText}`
+    );
+  }
+
+  return response.json();
+};
+
+export const updateTimeline = async (
+  token: string,
+  projectId: string,
+  timelineState: SavedTimelineStateConfig
+): Promise<UpdateTimelineResponse> => {
+  const response = await fetch(
+    "http://localhost:3000/api/projects/update-timeline",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ projectId, timelineState }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Create project request failed: ${response.status} - ${response.statusText} - ${errorText}`
+    );
+  }
+
+  return response.json();
+};
+
+export const saveImage = async (
+  token: string,
+  fileName: string,
+  data: Blob
+): Promise<UploadResponse> => {
+  const response = await fetch("http://localhost:3000/api/upload/image", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    // data
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Save image request failed: ${response.status} - ${response.statusText} - ${errorText}`
     );
   }
 
