@@ -21,6 +21,8 @@ import {
 } from "@/fetchers/projects";
 import { useDevEffectOnce } from "@/hooks/useDevOnce";
 import {
+  CANVAS_HORIZ_OFFSET,
+  CANVAS_VERT_OFFSET,
   Editor,
   getRandomNumber,
   Point,
@@ -772,7 +774,86 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
 
   let on_add_image = () => {};
 
-  let on_add_text = () => {};
+  let on_add_text = async (sequence_id: string) => {
+    let editor = editorRef.current;
+    let editor_state = editorStateRef.current;
+
+    if (!editor || !editor_state) {
+      return;
+    }
+
+    // let mut rng = rand::thread_rng();
+    // let random_number_800 = rng.gen_range(0..=800);
+    // let random_number_450 = rng.gen_range(0..=450);
+    let random_number_800 = getRandomNumber(0, 800);
+    let random_number_450 = getRandomNumber(0, 450);
+
+    let new_id = uuidv4();
+    let new_text = "New text";
+    let font_family = "Aleo";
+
+    let position = {
+      x: random_number_800 + CANVAS_HORIZ_OFFSET,
+      y: random_number_450 + CANVAS_VERT_OFFSET,
+    };
+
+    let text_config = {
+      id: new_id,
+      name: "New Text Item",
+      text: new_text,
+      fontFamily: font_family,
+      dimensions: [100.0, 100.0] as [number, number],
+      position,
+      layer: -2,
+      // color: rgbToWgpu(20, 20, 200, 255) as [number, number, number, number],
+      color: [20, 20, 200, 255] as [number, number, number, number],
+      fontSize: 28,
+      backgroundFill: rgbToWgpu(200, 200, 200, 255) as [
+        number,
+        number,
+        number,
+        number
+      ],
+    };
+
+    await editor.add_text_item(text_config, new_text, new_id, sequence_id);
+
+    editor_state.add_saved_text_item(sequence_id, {
+      id: text_config.id,
+      name: text_config.name,
+      text: new_text,
+      fontFamily: text_config.fontFamily,
+      dimensions: [text_config.dimensions[0], text_config.dimensions[1]],
+      position: {
+        x: position.x,
+        y: position.y,
+      },
+      layer: text_config.layer,
+      color: text_config.color,
+      fontSize: text_config.fontSize,
+      backgroundFill: text_config.backgroundFill,
+    });
+
+    let saved_state = editor_state.savedState;
+    let updated_sequence = saved_state.sequences.find(
+      (s) => s.id == sequence_id
+    );
+
+    let sequence_cloned = updated_sequence;
+
+    if (!sequence_cloned) {
+      return;
+    }
+
+    set_sequences(saved_state.sequences);
+
+    // let mut editor = editor_m.lock().unwrap();
+
+    editor.currentSequenceData = sequence_cloned;
+    editor.updateMotionPaths(sequence_cloned);
+
+    // drop(editor);
+  };
 
   let on_add_video = () => {};
 
@@ -998,7 +1079,13 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                     style=""
                     label="Add Text"
                     icon="text"
-                    callback={() => {}}
+                    callback={() => {
+                      if (!current_sequence_id) {
+                        return;
+                      }
+
+                      on_add_text(current_sequence_id);
+                    }}
                   />
                   <OptionButton
                     style=""

@@ -10,6 +10,7 @@ import {
 } from "./animations";
 import { SavedPoint, SavedPolygonConfig } from "./polygon";
 import { v4 as uuidv4 } from "uuid";
+import { SavedTextRendererConfig } from "./text";
 
 export default class EditorState {
   selected_polygon_id: string = "";
@@ -408,6 +409,32 @@ export default class EditorState {
     saved_state.sequences.forEach((s) => {
       if (s.id == selected_sequence_id) {
         s.activePolygons.push(savable_polygon);
+        s.polygonMotionPaths.push(new_motion_path);
+      }
+    });
+
+    let sequences = saved_state.sequences;
+
+    await saveSequencesData(sequences);
+
+    this.savedState = saved_state;
+  }
+
+  async add_saved_text_item(
+    selected_sequence_id: string,
+    savable_text: SavedTextRendererConfig
+  ) {
+    let new_motion_path = this.save_default_keyframes(
+      savable_text.id,
+      ObjectType.Polygon,
+      savable_text.position
+    );
+
+    let saved_state = this.savedState;
+
+    saved_state.sequences.forEach((s) => {
+      if (s.id == selected_sequence_id) {
+        s.activeTextItems.push(savable_text);
         s.polygonMotionPaths.push(new_motion_path);
       }
     });

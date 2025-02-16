@@ -27,3 +27,424 @@ body {
 .stunts-gradient {
   background: linear-gradient(145deg, #ff6b6b 60%, #feca57 100%);
 }
+
+/* Define each font using @font-face */
+@font-face {
+  font-family: "Actor";
+  src: url("/fonts/actor/Actor-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Aladin";
+  src: url("/fonts/aladin/Aladin-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Aleo";
+  src: url("/fonts/aleo/Aleo[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Amiko";
+  src: url("/fonts/amiko/Amiko-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Ballet";
+  src: url("/fonts/ballet/Ballet[opsz].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Basic";
+  src: url("/fonts/basic/Basic-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Bungee";
+  src: url("/fonts/bungee/Bungee-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Caramel";
+  src: url("/fonts/caramel/Caramel-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Cherish";
+  src: url("/fonts/cherish/Cherish-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Coda";
+  src: url("/fonts/coda/Coda-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "David Libre";
+  src: url("/fonts/davidlibre/DavidLibre-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Dorsa";
+  src: url("/fonts/dorsa/Dorsa-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Duru Sans";
+  src: url("/fonts/durusans/DuruSans-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Dynalight";
+  src: url("/fonts/dynalight/Dynalight-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Eater";
+  src: url("/fonts/eater/Eater-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Epilogue";
+  src: url("/fonts/epilogue/Epilogue[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Exo";
+  src: url("/fonts/exo/Exo[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Explora";
+  src: url("/fonts/explora/Explora-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Federo";
+  src: url("/fonts/federo/Federo-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Figtree";
+  src: url("/fonts/figtree/Figtree[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Flavors";
+  src: url("/fonts/flavors/Flavors-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Galada";
+  src: url("/fonts/galada/Galada-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Gantari";
+  src: url("/fonts/gantari/Gantari[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Geo";
+  src: url("/fonts/geo/Geo-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Glory";
+  src: url("/fonts/glory/Glory[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "HappyMonkey";
+  src: url("/fonts/happymonkey/HappyMonkey-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "HennyPenny";
+  src: url("/fonts/hennypenny/HennyPenny-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Iceberg";
+  src: url("/fonts/iceberg/Iceberg-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Inika";
+  src: url("/fonts/inika/Inika-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "InriaSans";
+  src: url("/fonts/inriasans/InriaSans-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Jaro";
+  src: url("/fonts/jaro/Jaro[opsz].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Kavoon";
+  src: url("/fonts/kavoon/Kavoon-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Khula";
+  src: url("/fonts/khula/Khula-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Kokoro";
+  src: url("/fonts/kokoro/Kokoro-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Lemon";
+  src: url("/fonts/lemon/Lemon-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Lexend";
+  src: url("/fonts/lexend/Lexend[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Macondo";
+  src: url("/fonts/macondo/Macondo-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Maitree";
+  src: url("/fonts/maitree/Maitree-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Martel";
+  src: url("/fonts/martel/Martel-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Maven Pro";
+  src: url("/fonts/mavenpro/MavenPro[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Neuton";
+  src: url("/fonts/neuton/Neuton-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "News Cycle";
+  src: url("/fonts/newscycle/NewsCycle-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Nixie One";
+  src: url("/fonts/nixieone/NixieOne-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Overlock";
+  src: url("/fonts/overlock/Overlock-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Oxygen";
+  src: url("/fonts/oxygen/Oxygen-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Play";
+  src: url("/fonts/play/Play-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Quicksand";
+  src: url("/fonts/quicksand/Quicksand[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Radley";
+  src: url("/fonts/radley/Radley-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Rethink Sans";
+  src: url("/fonts/rethinksans/RethinkSans[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Rosario";
+  src: url("/fonts/rosario/Rosario[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Sacramento";
+  src: url("/fonts/sacramento/Sacramento-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Salsa";
+  src: url("/fonts/salsa/Salsa-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Scope One";
+  src: url("/fonts/scopeone/ScopeOne-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Teachers";
+  src: url("/fonts/teachers/Teachers[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Underdog";
+  src: url("/fonts/underdog/Underdog-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Vibes";
+  src: url("/fonts/vibes/Vibes-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Vina Sans";
+  src: url("/fonts/vinasans/VinaSans-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Water Brush";
+  src: url("/fonts/waterbrush/WaterBrush-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Wind Song";
+  src: url("/fonts/windsong/WindSong-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Zain";
+  src: url("/fonts/zain/Zain-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}

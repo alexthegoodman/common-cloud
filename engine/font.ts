@@ -314,9 +314,11 @@ export class FontManager {
       return null;
     }
 
+    let f = new FontFace(fontInfo.name, `url(${fontInfo.path})`);
+
     try {
       // Fetch the font file
-      const response = await fetch("/public/" + fontInfo.path);
+      const response = await fetch(fontInfo.path);
       if (!response.ok) {
         throw new Error(`Failed to load font: ${response.statusText}`);
       }
@@ -327,6 +329,8 @@ export class FontManager {
 
       // Cache the loaded font
       this.loadedFonts.set(normalizedName, fontData);
+
+      await f.load(); // explicity load font before usage
 
       return fontData;
     } catch (error) {

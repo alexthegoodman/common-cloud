@@ -537,9 +537,17 @@ export class Editor {
         dimensions: [t.dimensions[0], t.dimensions[1]],
         position,
         layer: t.layer,
+        // color: rgbToWgpu(t.color[0], t.color[1], t.color[2], t.color[3]),
         color: t.color,
         fontSize: t.fontSize,
-        backgroundFill: t.backgroundFill ?? [200, 200, 200, 255],
+        backgroundFill: t.backgroundFill
+          ? rgbToWgpu(
+              t.backgroundFill[0],
+              t.backgroundFill[1],
+              t.backgroundFill[2],
+              t.backgroundFill[3]
+            )
+          : rgbToWgpu(100, 100, 100, 255),
       };
 
       const restored_text = new TextRenderer(
@@ -2099,7 +2107,8 @@ export class Editor {
       },
       0.0,
       0.0,
-      fill,
+      // fill,
+      [0.2, 0.5, 0.2, 0.5],
       {
         thickness: 0.0,
         fill: rgbToWgpu(0, 0, 0, 255.0),
@@ -3935,7 +3944,7 @@ export class Editor {
       y: text_item.transform.position[1] + dy,
     };
 
-    console.info("move_text {:?}", new_position);
+    // console.info("move_text {:?}", new_position);
 
     text_item.transform.updatePosition(
       [new_position.x, new_position.y],
