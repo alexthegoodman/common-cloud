@@ -119,12 +119,13 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
 
     // console.info("Restoring objects...");
 
-    // restore_sequence_objects(
-    //     editor.clone(),
-    //     cloned_sequences,
-    //     true,
-    //     authToken.token,
-    // );
+    for (let sequence of cloned_sequences) {
+      editorRef.current.restore_sequence_objects(
+        sequence,
+        true
+        // authToken.token,
+      );
+    }
 
     set_loading(false);
   };
@@ -330,6 +331,8 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
         new_layers.push(new_layer);
       }
     });
+
+    // console.info("new_layers", new_layers);
 
     // sort layers by layer_index property, lower values should come first in the list
     // but reverse the order because the UI outputs the first one first, thus it displays last
