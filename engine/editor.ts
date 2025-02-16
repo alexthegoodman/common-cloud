@@ -2054,8 +2054,6 @@ export class Editor {
     sequence_id: string,
     fill: [number, number, number, number]
   ) {
-    // console.info("replace background {:?} {:?}", sequence_id, fill);
-
     let gpuResources = this.gpuResources;
     let camera = this.camera;
     let modelBindGroupLayout = this.modelBindGroupLayout;
@@ -2069,6 +2067,8 @@ export class Editor {
     ) {
       return;
     }
+
+    console.info("replace background {:?} {:?}", sequence_id, fill);
 
     let windowSize = camera.windowSize;
 
@@ -2108,6 +2108,8 @@ export class Editor {
       sequence_id,
       sequence_id
     );
+
+    console.info("bg poly", canvas_polygon);
 
     this.staticPolygons.push(canvas_polygon);
   }

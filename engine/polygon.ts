@@ -640,6 +640,8 @@ export function getPolygonData(
     polygon.borderRadius
   );
 
+  console.info("rounded_points", rounded_points);
+
   const tessellationResult = gt.tessellate(
     rounded_points.map((p) => [p[0], p[1]]),
     gt.triFan
@@ -839,16 +841,11 @@ export function createRoundedPolygonPath(
   dimensions: [number, number],
   borderRadius: number
 ): number[][] {
-  // Return points suitable for @thi.ng/geom-tessellate
-
   const n = normalizedPoints.length;
-
   const scaledRadius = borderRadius / Math.min(dimensions[0], dimensions[1]);
-
   const halfWidth = dimensions[0] / 2.0;
   const halfHeight = dimensions[1] / 2.0;
-
-  const pathPoints: number[][] = []; // Array to hold the final path points
+  const pathPoints: number[][] = [];
 
   for (let i = 0; i < n; i++) {
     const p0 = normalizedPoints[(i + n - 1) % n];
@@ -861,17 +858,23 @@ export function createRoundedPolygonPath(
     const len1 = vec2.length(v1);
     const len2 = vec2.length(v2);
 
+    // Skip if vectors have zero length
+    if (len1 === 0 || len2 === 0) {
+      console.error("Zero-length vector detected at index", i);
+      continue;
+    }
+
     const radius = Math.min(scaledRadius, len1 / 2.0, len2 / 2.0);
 
     const offset1 = vec2.create();
-    vec2.scale(offset1, vec2.normalize(v1, vec2.create()), radius);
+    vec2.scale(offset1, vec2.normalize(vec2.create(), v1), radius);
     const offset2 = vec2.create();
-    vec2.scale(offset2, vec2.normalize(v2, vec2.create()), radius);
+    vec2.scale(offset2, vec2.normalize(vec2.create(), v2), radius);
 
-    const p1Scaled = lyonPoint(
-      p1.x * dimensions[0] - halfWidth,
-      p1.y * dimensions[1] - halfHeight
-    );
+    const p1Scaled = {
+      x: p1.x * dimensions[0] - halfWidth,
+      y: p1.y * dimensions[1] - halfHeight,
+    };
 
     const cornerStart = [
       p1Scaled.x - offset1[0] * dimensions[0],
@@ -886,25 +889,59 @@ export function createRoundedPolygonPath(
       pathPoints.push(cornerStart);
     }
 
-    const angle = Math.acos(
-      vec2.dot(offset1, offset2) / (vec2.length(offset1) * vec2.length(offset2))
-    ); // Angle between vectors
-    const steps = 5; // Number of segments to approximate the arc (adjust as needed)
+    const dotProduct = vec2.dot(offset1, offset2);
 
-    for (let j = 1; j <= steps; j++) {
-      const t = j / steps;
-      const currentAngle = angle * t;
-      const rotatedOffset = vec2.create();
-      vec2.rotate(rotatedOffset, vec2.create(), offset1, currentAngle); // Rotate offset1
+    // Handle orthogonal vectors (dotProduct === 0)
+    if (dotProduct === 0) {
+      // For orthogonal vectors, the rounded corner is a quarter-circle
+      const steps = 5; // Number of segments to approximate the arc
+      const angleIncrement = Math.PI / 2 / steps; // 90 degrees divided into steps
 
-      const cornerPoint = [
-        p1Scaled.x + rotatedOffset[0] * dimensions[0],
-        p1Scaled.y + rotatedOffset[1] * dimensions[1],
-      ];
-      pathPoints.push(cornerPoint);
+      for (let j = 1; j <= steps; j++) {
+        const currentAngle = angleIncrement * j;
+        const rotatedOffset = vec2.create();
+        vec2.rotate(rotatedOffset, offset1, vec2.create(), currentAngle);
+
+        const cornerPoint = [
+          p1Scaled.x + rotatedOffset[0] * dimensions[0],
+          p1Scaled.y + rotatedOffset[1] * dimensions[1],
+        ];
+        pathPoints.push(cornerPoint);
+      }
+    } else {
+      // For non-orthogonal vectors, compute the angle dynamically
+      const angleInput =
+        dotProduct / (vec2.length(offset1) * vec2.length(offset2));
+      const clampedAngleInput = Math.max(-1, Math.min(1, angleInput));
+
+      if (isNaN(clampedAngleInput)) {
+        console.error(
+          "Invalid input to Math.acos at index",
+          i,
+          ":",
+          clampedAngleInput
+        );
+        continue;
+      }
+
+      const angle = Math.acos(clampedAngleInput);
+      const steps = 5; // Number of segments to approximate the arc
+
+      for (let j = 1; j <= steps; j++) {
+        const t = j / steps;
+        const currentAngle = angle * t;
+        const rotatedOffset = vec2.create();
+        vec2.rotate(rotatedOffset, offset1, vec2.create(), currentAngle);
+
+        const cornerPoint = [
+          p1Scaled.x + rotatedOffset[0] * dimensions[0],
+          p1Scaled.y + rotatedOffset[1] * dimensions[1],
+        ];
+        pathPoints.push(cornerPoint);
+      }
     }
 
-    pathPoints.push(cornerEnd); // Add the final corner point
+    pathPoints.push(cornerEnd);
   }
 
   return pathPoints;
