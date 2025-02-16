@@ -44,7 +44,7 @@ export interface BoundingBox {
 }
 
 export function sizeToNormal(
-  windowSize: windowSize,
+  windowSize: WindowSize,
   x: number,
   y: number
 ): [number, number] {
@@ -54,7 +54,7 @@ export function sizeToNormal(
   return [ndcX, ndcY];
 }
 
-export function pointToNdc(point: Point, windowSize: windowSize): Point {
+export function pointToNdc(point: Point, windowSize: WindowSize) {
   const aspectRatio = windowSize.width / windowSize.height;
 
   return {
@@ -87,7 +87,7 @@ export function stringToF32(s: string): number {
     return 0.0;
   }
 
-  // Check if there's at least one digit in the string
+  // Check if there's at least one digit of the string
   if (!/\d/.test(trimmed)) {
     return 0.0;
   }
@@ -116,7 +116,7 @@ export function stringToU32(s: string): number {
     return 0;
   }
 
-  // Check if there's at least one digit in the string
+  // Check if there's at least one digit of the string
   if (!/\d/.test(trimmed)) {
     return 0;
   }
@@ -227,7 +227,7 @@ export class WebGpuResources {
 
   static async request(
     canvas: HTMLCanvasElement,
-    windowSize: windowSize
+    windowSize: WindowSize
   ): Promise<WebGpuResources> {
     if (!navigator.gpu) {
       throw new Error("WebGPU not supported on this browser");
@@ -302,7 +302,7 @@ function getErrorMessage(errorType: string, originalError?: Error): string {
 // import { ControlMode, PolygonClickHandler, TextItemClickHandler, ImageItemClickHandler, VideoItemClickHandler, OnMouseUp, OnHandleMouseUp, OnPathMouseUp } from './control-types';
 import { FontManager } from "./font";
 import { MotionPath } from "./motionpath";
-import { Camera, CameraBinding } from "./camera";
+import { Camera, CameraBinding, WindowSize } from "./camera";
 import { StImage, StImageConfig } from "./image";
 import { MousePosition, SourceData, StVideo, StVideoConfig } from "./video";
 import { vec2 } from "gl-matrix";
@@ -582,7 +582,7 @@ export class Editor {
     //     device,
     //     queue,
     //     i.url,
-    //     [], // TODO: load in image data
+    //     [], // TODO: load of image data
     //     image_config,
     //     windowSize,
     //     this.modelBindGroupLayout!,
@@ -603,7 +603,7 @@ export class Editor {
 
     //   if (i.mouse_path) {
     //     try {
-    //       // Assuming you have a way to read files in your TS environment (e.g., using fetch or Node.js's fs)
+    //       // Assuming you have a way to read files of your TS environment (e.g., using fetch or Node.js's fs)
     //       const sourceDataPath =
     //         i.mouse_path.substring(0, i.mouse_path.lastIndexOf("/")) +
     //         "/sourceData.json";
@@ -708,7 +708,7 @@ export class Editor {
         text.backgroundPolygon.updateOpacity(gpu_resources.queue, 1.0);
       });
 
-      // this.currentSequenceData.active_image_items.forEach(i => {
+      // this.currentSequenceData.active_imageItems.forEach(i => {
       //     const image = this.imageItems.find(image => image.id === i.id);
       //     if (!image) {
       //         throw new Error("Couldn't find image");
@@ -718,11 +718,11 @@ export class Editor {
       //     image.transform.position[1] = i.position[1] + CANVAS_VERT_OFFSET;
       //     image.transform.rotation = 0.0;
 
-      //     image.transform.update_uniform_buffer(gpu_resources.queue, camera.window_size);
+      //     image.transform.update_uniform_buffer(gpu_resources.queue, camera.windowSize);
       //     image.update_opacity(gpu_resources.queue, 1.0);
       // });
 
-      // this.currentSequenceData.active_video_items.forEach(i => {
+      // this.currentSequenceData.active_videoItems.forEach(i => {
       //     const video = this.videoItems.find(video => video.id === i.id);
       //     if (!video) {
       //         throw new Error("Couldn't find video");
@@ -732,7 +732,7 @@ export class Editor {
       //     video.transform.position[1] = i.position[1] + CANVAS_VERT_OFFSET;
       //     video.transform.rotation = 0.0;
 
-      //     video.transform.update_uniform_buffer(gpu_resources.queue, camera.window_size);
+      //     video.transform.update_uniform_buffer(gpu_resources.queue, camera.windowSize);
       //     video.update_opacity(gpu_resources.queue, 1.0);
 
       //     video.reset_playback().catch(console.error); // Handle potential errors
@@ -826,15 +826,15 @@ export class Editor {
     return []; // Placeholder
   }
 
-  create_motion_paths_from_predictions(
+  create_motionPaths_from_predictions(
     predictions: number[]
     // this.generation_choreographed: boolean,
     // this.generation_curved: boolean,
     // this.generation_fade: boolean,
     // polygons: Polygon[],
-    // text_items: TextRenderer[],
-    // image_items: StImage[],
-    // video_items: StVideo[],
+    // textItems: TextRenderer[],
+    // imageItems: StImage[],
+    // videoItems: StVideo[],
     // generation_count: number,
   ): AnimationData[] {
     const animation_data_vec: AnimationData[] = [];
@@ -1036,7 +1036,7 @@ export class Editor {
         thirdKeyframe.keyType = {
           type: "Range",
           data: {
-            endTime: forthKeyframe.time, // Duration in milliseconds
+            endTime: forthKeyframe.time, // Duration of milliseconds
           },
         };
         positionKeyframes.splice(3, 1); // Remove the 4th element
@@ -1049,7 +1049,7 @@ export class Editor {
         midKeyframe.keyType = {
           type: "Range",
           data: {
-            endTime: mid2Keyframe.time, // Duration in milliseconds
+            endTime: mid2Keyframe.time, // Duration of milliseconds
           },
         };
         positionKeyframes.splice(2, 1); // Remove the 3rd element (index 2)
@@ -1264,7 +1264,7 @@ export class Editor {
       updateBackground = true;
     }
 
-    // Iterate through timeline sequences in order
+    // Iterate through timeline sequences of order
     for (const ts of sequenceTimeline.timeline_sequences) {
       // Skip audio tracks as we're only handling video
       if (ts.track_type !== TrackType.Video) {
@@ -1531,7 +1531,7 @@ export class Editor {
             // const windowSizeVec: vec2 = vec2.fromValues(
             //   camera.windowSize.width,
             //   camera.windowSize.height
-            // ); // Assuming camera.window_size is an array [width, height]
+            // ); // Assuming camera.windowSize is an array [width, height]
 
             switch (animation.objectType) {
               case ObjectType.Polygon:
@@ -1873,11 +1873,11 @@ export class Editor {
   ) {
     let gpuResources = this.gpuResources;
     let camera = this.camera;
-    let window_size = camera?.windowSize;
+    let windowSize = camera?.windowSize;
 
     if (
       !camera ||
-      !window_size ||
+      !windowSize ||
       !gpuResources ||
       !this.modelBindGroupLayout ||
       !this.groupBindGroupLayout
@@ -1886,7 +1886,7 @@ export class Editor {
     }
 
     let polygon = new Polygon(
-      window_size,
+      windowSize,
       gpuResources.device,
       gpuResources.queue,
       this.modelBindGroupLayout,
@@ -1934,11 +1934,11 @@ export class Editor {
 
     let windowSize = camera.windowSize;
 
-    let default_font_family = await this.fontManager.loadFontByName(
+    let default_fontFamily = await this.fontManager.loadFontByName(
       text_config.fontFamily
     );
 
-    if (!default_font_family) {
+    if (!default_fontFamily) {
       return;
     }
 
@@ -1948,7 +1948,7 @@ export class Editor {
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
       text_config,
-      default_font_family, // load font data ahead of time
+      default_fontFamily, // load font data ahead of time
       windowSize,
       selected_sequence_id,
       camera
@@ -1960,7 +1960,7 @@ export class Editor {
   }
 
   add_image_item(
-    // windowSize: windowSize,
+    // windowSize: WindowSize,
     // device: GPUDevice,
     // queue: GPUQueue,
     image_config: StImageConfig,
@@ -2003,7 +2003,7 @@ export class Editor {
   }
 
   add_video_item(
-    windowSize: windowSize,
+    windowSize: WindowSize,
     device: GPUDevice,
     queue: GPUQueue,
     video_config: StVideoConfig,
@@ -2264,7 +2264,7 @@ export class Editor {
                   camera
                 );
               }
-              case "border_radius": {
+              case "borderRadius": {
                 selected_polygon.updateDataFromBorderRadius(
                   windowSize,
                   device,
@@ -2895,7 +2895,7 @@ export class Editor {
     return 0.0;
   }
 
-  get_polygon_border_radius(selected_id: string): number {
+  get_polygon_borderRadius(selected_id: string): number {
     let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
 
     if (polygon_index) {
@@ -2975,11 +2975,11 @@ export class Editor {
     return 0.0;
   }
 
-  async update_text_font_family(font_id: string, selected_text_id: string) {
+  async update_text_fontFamily(font_id: string, selected_text_id: string) {
     let gpuResources = this.gpuResources;
-    let new_font_family = await this.fontManager.loadFontByName(font_id);
+    let new_fontFamily = await this.fontManager.loadFontByName(font_id);
 
-    if (!new_font_family) {
+    if (!new_fontFamily) {
       return;
     }
 
@@ -2990,7 +2990,7 @@ export class Editor {
     }
 
     text_item.fontFamily = font_id;
-    text_item.updateFontFamily(new_font_family);
+    text_item.updateFontFamily(new_fontFamily);
     text_item.renderText(gpuResources.device, gpuResources.queue);
   }
 
@@ -3031,6 +3031,1027 @@ export class Editor {
 
     text_item.text = content;
     text_item.renderText(gpuResources.device, gpuResources.queue);
+  }
+
+  // handlers
+  handle_mouse_down(windowSize: WindowSize, device: GPUDevice) {
+    let camera = this.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    if (
+      this.lastScreen.x < this.interactiveBounds.min.x ||
+      this.lastScreen.x > this.interactiveBounds.max.x ||
+      this.lastScreen.y < this.interactiveBounds.min.y ||
+      this.lastScreen.y > this.interactiveBounds.max.y
+    ) {
+      return;
+    }
+
+    // First, check if panning
+    if (this.controlMode == ControlMode.Pan) {
+      this.isPanning = true;
+      this.dragStart = this.lastTopLeft;
+
+      return;
+    }
+
+    // Next, check if we're clicking on a motion path handle to drag
+    // for (poly_index, polygon) of this.staticPolygons {
+    //     if polygon.name != "motion_path_handle" {
+    //         continue;
+    //     }
+
+    //     if polygon.containsPoint(this.lastTopLeft, camera) {
+    //         this.draggingPathHandle = (polygon.id);
+    //         this.draggingPathObject = polygon.sourcePolygonId;
+    //         this.draggingPathKeyframe = polygon.sourceKeyframeId;
+    //         this.dragStart = (this.lastTopLeft);
+
+    //         return; // nothing to add to undo stack
+    //     }
+    // }
+
+    for (let path of this.motionPaths) {
+      for (let polygon of path.staticPolygons) {
+        // check if we're clicking on a motion path handle to drag
+        if (polygon.name == "motion_path_handle") {
+          if (polygon.containsPoint(this.lastTopLeft, camera)) {
+            this.draggingPathHandle = polygon.id;
+            this.draggingPathAssocPath = polygon.sourcePathId;
+            this.draggingPathObject = polygon.sourcePolygonId;
+            this.draggingPathKeyframe = polygon.sourceKeyframeId;
+            this.dragStart = this.lastTopLeft;
+
+            return; // nothing to add to undo stack
+          }
+        }
+        if (polygon.name == "motion_path_segment") {
+          if (polygon.containsPoint(this.lastTopLeft, camera)) {
+            this.draggingPath = path.id;
+            this.draggingPathObject = polygon.sourcePolygonId;
+            this.dragStart = this.lastTopLeft;
+
+            return; // nothing to add to undo stack
+          }
+        }
+      }
+    }
+
+    // Finally, check for object interation
+    let intersecting_objects: [number, InteractionTarget][] = [];
+
+    // Collect intersecting polygons
+    for (let polygon of this.polygons) {
+      if (polygon.hidden) {
+        continue;
+      }
+
+      if (polygon.containsPoint(this.lastTopLeft, camera)) {
+        intersecting_objects.push([polygon.layer, InteractionTarget.Polygon]);
+      }
+    }
+
+    // Collect intersecting text items
+    for (let text_item of this.textItems) {
+      if (text_item.hidden) {
+        continue;
+      }
+
+      if (text_item.containsPoint(this.lastTopLeft, camera)) {
+        intersecting_objects.push([text_item.layer, InteractionTarget.Text]);
+      }
+    }
+
+    // Collect intersecting image items
+    for (let image_item of this.imageItems) {
+      if (image_item.hidden) {
+        continue;
+      }
+
+      if (image_item.containsPoint(this.lastTopLeft)) {
+        intersecting_objects.push([image_item.layer, InteractionTarget.Image]);
+      }
+    }
+
+    // Collect intersecting image items
+    for (let video_item of this.videoItems) {
+      if (video_item.hidden) {
+        continue;
+      }
+
+      // console.info("Checking video point");
+
+      if (video_item.containsPoint(this.lastTopLeft)) {
+        console.info("Video contains point");
+        intersecting_objects.push([video_item.layer, InteractionTarget.Video]);
+      }
+    }
+
+    // Sort intersecting objects by layer of descending order (highest layer first)
+    // intersecting_objects.sort_by(|a, b| b.0.cmp(a.0));
+
+    // sort by lowest layer first, for this system
+    // intersecting_objects.sort_by((a, b) a.0.cmp(b.0));
+    intersecting_objects.sort((a, b) => a[0] - b[0]);
+
+    // Return the topmost intersecting object, if any
+    // let target = intersecting_objects
+    //     .into_iter()
+    //     .next()
+    //     .map(((_, target)) => target);
+    let target: InteractionTarget =
+      intersecting_objects[intersecting_objects.length - 1][1];
+    let index = intersecting_objects[intersecting_objects.length - 1][0];
+
+    // if (target) {
+    switch (target) {
+      case InteractionTarget.Polygon: {
+        let polygon = this.polygons[index];
+
+        this.draggingPolygon = polygon.id;
+        this.dragStart = this.lastTopLeft;
+
+        // TODO: make DRY with below
+        if (this.handlePolygonClick) {
+          let handler_creator = this.handlePolygonClick;
+          let handle_click = handler_creator();
+
+          if (!handle_click) {
+            return;
+          }
+
+          handle_click(polygon.id, {
+            id: polygon.id,
+            name: polygon.name,
+            points: polygon.points,
+            dimensions: polygon.dimensions,
+            position: {
+              x: polygon.transform.position[0],
+              y: polygon.transform.position[1],
+            },
+            borderRadius: polygon.borderRadius,
+            fill: polygon.fill,
+            stroke: polygon.stroke,
+            layer: polygon.layer,
+          });
+          this.selectedPolygonId = polygon.id;
+          // polygon.old_points = polygon.points;
+        }
+
+        break; // nothing to add to undo stack
+      }
+      case InteractionTarget.Text: {
+        let text_item = this.textItems[index];
+
+        this.draggingText = text_item.id;
+        this.dragStart = this.lastTopLeft;
+
+        // TODO: make DRY with below
+        if (this.handleTextClick) {
+          let handler_creator = this.handleTextClick;
+          let handle_click = handler_creator();
+
+          if (!handle_click) {
+            return;
+          }
+
+          handle_click(text_item.id, {
+            id: text_item.id,
+            name: text_item.name,
+            text: text_item.text,
+            fontFamily: text_item.fontFamily,
+            // points: polygon.points,
+            dimensions: text_item.dimensions,
+            position: {
+              x: text_item.transform.position[0],
+              y: text_item.transform.position[1],
+            },
+            layer: text_item.layer,
+            color: text_item.color,
+            fontSize: text_item.fontSize,
+            backgroundFill: [
+              wgpuToHuman(text_item.backgroundPolygon.fill[0]) as number,
+              wgpuToHuman(text_item.backgroundPolygon.fill[1]) as number,
+              wgpuToHuman(text_item.backgroundPolygon.fill[2]) as number,
+              wgpuToHuman(text_item.backgroundPolygon.fill[3]) as number,
+            ],
+            // borderRadius: polygon.borderRadius,
+            // fill: polygon.fill,
+            // stroke: polygon.stroke,
+          });
+          this.selectedPolygonId = text_item.id; // TODO: separate property for each object type?
+          // polygon.old_points = (polygon.points);
+        }
+
+        break; // nothing to add to undo stack
+      }
+      case InteractionTarget.Image: {
+        let image_item = this.imageItems[index];
+
+        this.draggingImage = image_item.id;
+        this.dragStart = this.lastTopLeft;
+
+        // TODO: make DRY with below
+        if (this.handleImageClick) {
+          let handler_creator = this.handleImageClick;
+          let handle_click = handler_creator();
+
+          if (!handle_click) {
+            return;
+          }
+
+          let uuid = image_item.id;
+          handle_click(uuid, {
+            id: image_item.id,
+            name: image_item.name,
+            url: image_item.url,
+            // points: polygon.points,
+            dimensions: image_item.dimensions,
+            position: {
+              x: image_item.transform.position[0],
+              y: image_item.transform.position[1],
+            },
+            layer: image_item.layer, // borderRadius: polygon.borderRadius,
+            // fill: polygon.fill,
+            // stroke: polygon.stroke,
+          });
+          this.selectedPolygonId = uuid; // TODO: separate property for each object type?
+          // polygon.old_points = (polygon.points);
+        }
+
+        break; // nothing to add to undo stack
+      }
+      case InteractionTarget.Video: {
+        let video_item = this.videoItems[index];
+
+        this.draggingVideo = video_item.id;
+        this.dragStart = this.lastTopLeft;
+
+        console.info("Video interaction");
+
+        // TODO: make DRY with below
+        if (this.handleVideoClick) {
+          console.info("Video click");
+
+          let handler_creator = this.handleVideoClick;
+          let handle_click = handler_creator();
+
+          if (!handle_click) {
+            return;
+          }
+
+          let uuid = video_item.id;
+          handle_click(uuid, {
+            id: video_item.id,
+            name: video_item.name,
+            path: video_item.path,
+            // points: polygon.points,
+            dimensions: video_item.dimensions,
+            position: {
+              x: video_item.transform.position[0],
+              y: video_item.transform.position[1],
+            },
+            layer: video_item.layer,
+            mousePath: video_item.mousePath as string, // borderRadius: polygon.borderRadius,
+            // fill: polygon.fill,
+            // stroke: polygon.stroke,
+          });
+          this.selectedPolygonId = uuid; // TODO: separate property for each object type?
+          // polygon.old_points = (polygon.points);
+        }
+
+        break; // nothing to add to undo stack
+      }
+      default:
+        const _exhaustiveCheck: never = target;
+        console.error("Unhandled InteractionTarget:", target);
+    }
+    // }
+
+    return;
+  }
+
+  handle_mouse_move(
+    windowSize: WindowSize,
+    device: GPUDevice,
+    queue: GPUQueue,
+    x: number,
+    y: number
+  ) {
+    let camera = this.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    let mouse_pos = { x, y };
+    let ray = visualize_ray_intersection(windowSize, x, y, camera);
+    let top_left = ray.top_left;
+    // let top_left = camera.screen_to_world(x, y);
+    // let top_left = mouse_pos;
+
+    this.globalTopLeft = top_left;
+    this.lastScreen = { x, y };
+
+    if (
+      this.lastScreen.x < this.interactiveBounds.min.x ||
+      this.lastScreen.x > this.interactiveBounds.max.x ||
+      this.lastScreen.y < this.interactiveBounds.min.y ||
+      this.lastScreen.y > this.interactiveBounds.max.y
+    ) {
+      // reset when out of bounds
+      this.isPanning = false;
+      return;
+    }
+
+    this.lastTopLeft = top_left;
+    // this.ds_ndc_pos = ds_ndc_pos;
+    // this.ndc = ds_ndc.ndc;
+
+    // this.last_world = camera.screen_to_world(mouse_pos);
+
+    // this.update_cursor();
+
+    // if (dot) = .cursor_dot {
+    //     // let ndc_position = point_to_ndc(this.lastTopLeft, windowSize);
+    //     // console.info("move dot {:?}", this.lastTopLeft);
+    //     dot.transform
+    //         .updatePosition([this.lastTopLeft.x, this.lastTopLeft.y], windowSize);
+    // }
+
+    // handle panning
+    if (this.controlMode == ControlMode.Pan && this.isPanning) {
+      let dx = this.previousTopLeft.x - this.lastTopLeft.x;
+      let dy = this.lastTopLeft.y - this.previousTopLeft.y;
+      let new_x = camera.position[0] + dx;
+      let new_y = camera.position[1] + dy;
+
+      // camera.position = Vector2.new(new_x, new_y);
+      let new_position = vec2.create();
+      vec2.set(new_position, new_x, new_y);
+      camera.position = new_position;
+
+      // this.updateCameraBinding(); // call of render loop, much more efficient
+      // this.interactiveBounds = {
+      //     max: {
+      //         x: this.interactiveBounds.max.x + dx,
+      //         y: this.interactiveBounds.max.y + dy,
+      //     },
+      //     min: {
+      //         x: this.interactiveBounds.min.x + dx,
+      //         y: this.interactiveBounds.min.y + dy,
+      //     },
+      // }
+    }
+
+    // handle dragging paths
+    if (this.draggingPath) {
+      if (this.dragStart) {
+        this.move_path(
+          this.lastTopLeft,
+          this.dragStart,
+          this.draggingPath,
+          windowSize,
+          device
+        );
+      }
+    }
+
+    // handle motion path handles
+    if (this.draggingPathHandle) {
+      if (this.draggingPathAssocPath) {
+        if (this.dragStart) {
+          // this.move_static_polygon(this.lastTopLeft, start, poly_id, windowSize, device);
+          this.move_path_static_polygon(
+            this.lastTopLeft,
+            this.dragStart,
+            this.draggingPathHandle,
+            this.draggingPathAssocPath,
+            windowSize,
+            device
+          );
+        }
+      }
+    }
+
+    // handle dragging to move objects (polygons, images, text, etc)
+    if (this.draggingPolygon) {
+      if (this.dragStart) {
+        this.move_polygon(
+          this.lastTopLeft,
+          this.dragStart,
+          this.draggingPolygon,
+          windowSize,
+          device
+        );
+      }
+    }
+
+    if (this.draggingText) {
+      if (this.dragStart) {
+        this.move_text(
+          this.lastTopLeft,
+          this.dragStart,
+          this.draggingText,
+          windowSize,
+          device
+        );
+      }
+    }
+
+    if (this.draggingImage) {
+      if (this.dragStart) {
+        this.move_image(
+          this.lastTopLeft,
+          this.dragStart,
+          this.draggingImage,
+          windowSize,
+          device
+        );
+      }
+    }
+
+    if (this.draggingVideo) {
+      if (this.dragStart) {
+        this.move_video(
+          this.lastTopLeft,
+          this.dragStart,
+          this.draggingVideo,
+          windowSize,
+          device
+        );
+      }
+    }
+
+    this.previousTopLeft = this.lastTopLeft;
+  }
+
+  handle_mouse_up() {
+    // let action_edit = None;
+
+    let camera = this.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    // TODO: does another bounds cause this to get stuck?
+    if (
+      this.lastScreen.x < this.interactiveBounds.min.x ||
+      this.lastScreen.x > this.interactiveBounds.max.x ||
+      this.lastScreen.y < this.interactiveBounds.min.y ||
+      this.lastScreen.y > this.interactiveBounds.max.y
+    ) {
+      return;
+    }
+
+    // handle object on mouse up
+    let object_id = null;
+    let active_point = null;
+    if (this.draggingPolygon) {
+      object_id = this.draggingPolygon;
+      let active_polygon = this.polygons.find(
+        (p) => p.id == this.draggingPolygon
+      );
+
+      if (!active_polygon) {
+        return;
+      }
+
+      active_point = {
+        x: active_polygon.transform.position[0],
+        y: active_polygon.transform.position[1],
+      };
+    } else if (this.draggingImage) {
+      object_id = this.draggingImage;
+      let active_image = this.imageItems.find(
+        (i) => i.id == this.draggingImage
+      );
+
+      if (!active_image) {
+        return;
+      }
+
+      active_point = {
+        x: active_image.transform.position[0],
+        y: active_image.transform.position[1],
+      };
+    } else if (this.draggingText) {
+      object_id = this.draggingText;
+      let active_text = this.textItems.find((t) => t.id == this.draggingText);
+
+      if (!active_text) {
+        return;
+      }
+
+      active_point = {
+        x: active_text.transform.position[0],
+        y: active_text.transform.position[1],
+      };
+    } else if (this.draggingVideo) {
+      object_id = this.draggingVideo;
+      let active_video = this.videoItems.find(
+        (t) => t.id == this.draggingVideo
+      );
+
+      if (!active_video) {
+        return;
+      }
+
+      active_point = {
+        x: active_video.transform.position[0],
+        y: active_video.transform.position[1],
+      };
+    }
+
+    if (object_id && active_point) {
+      if (this.onMouseUp) {
+        let on_up = this.onMouseUp();
+
+        if (!on_up) {
+          return;
+        }
+
+        // let active_point = active_point;
+        let [selected_sequence_data, selected_keyframes] = on_up(object_id, {
+          x: active_point.x - CANVAS_HORIZ_OFFSET,
+          y: active_point.y - CANVAS_VERT_OFFSET,
+        });
+
+        // need some way of seeing if keyframe selected
+        // perhaps need some way of opening keyframes explicitly
+        // perhaps a toggle between keyframes and layout
+        if (selected_keyframes.length > 0) {
+          this.updateMotionPaths(selected_sequence_data);
+          console.info("Motion Paths updated!");
+        }
+      }
+    }
+
+    // handle handle on mouse up
+    let handle_id = this.draggingPathHandle ? this.draggingPathHandle : null;
+    let handle_point = null;
+    if (handle_id) {
+      let active_handle = this.motionPaths
+        .map((m) => m.staticPolygons)
+        .flat()
+        .find((p) => p.id == handle_id);
+
+      if (!active_handle) {
+        return;
+      }
+
+      handle_point = {
+        x: active_handle.transform.position[0],
+        y: active_handle.transform.position[1],
+      };
+    }
+
+    // the object (polygon, text image, etc) related to this motion path handle
+    let handle_object_id = this.draggingPathObject
+      ? this.draggingPathObject
+      : null;
+    // the keyframe associated with this motion path handle
+    let handle_keyframe_id = this.draggingPathKeyframe
+      ? this.draggingPathKeyframe
+      : null;
+    if (handle_keyframe_id && handle_point) {
+      // need to update saved state and motion paths, handle polygon position already updated
+      if (this.onHandleMouseUp) {
+        let on_up = this.onHandleMouseUp();
+
+        if (!on_up || !handle_object_id) {
+          return;
+        }
+
+        // let handle_point = handle_point.expect("Couldn't get handle point");
+        let [selected_sequence_data, selected_keyframes] = on_up(
+          handle_keyframe_id,
+          handle_object_id,
+          {
+            x: handle_point.x - CANVAS_HORIZ_OFFSET,
+            y: handle_point.y - CANVAS_VERT_OFFSET,
+          }
+        );
+
+        // always updated when handle is moved
+        this.updateMotionPaths(selected_sequence_data);
+        console.info("Motion Paths updated!");
+      }
+    }
+
+    // handle path mouse up
+    if (this.draggingPath) {
+      let active_path = this.motionPaths.find((p) => p.id == this.draggingPath);
+
+      if (!active_path) {
+        return;
+      }
+
+      let path_point = {
+        x: active_path.transform.position[0],
+        y: active_path.transform.position[1],
+      };
+
+      if (this.onPathMouseUp) {
+        let on_up = this.onPathMouseUp();
+
+        if (!on_up) {
+          return;
+        }
+
+        let [selected_sequence_data, selected_keyframes] = on_up(
+          this.draggingPath,
+          // {
+          //     x: path_point.x - 600.0,
+          //     y: path_point.y - 50.0,
+          // },
+          // no offset needed because all relative?
+          {
+            x: path_point.x,
+            y: path_point.y,
+          }
+        );
+
+        // always updated when handle is moved
+        // not necessary to update motion paths here? seems redundant
+        // this.updateMotionPaths(selected_sequence_data);
+        // console.info("Motion Paths updated!");
+      }
+    }
+
+    // reset variables
+    this.draggingPolygon = null;
+    this.draggingText = null;
+    this.draggingImage = null;
+    this.draggingVideo = null;
+    this.dragStart = null;
+    this.draggingPath = null;
+    this.draggingPathAssocPath = null;
+    this.draggingPathHandle = null;
+    this.draggingPathObject = null;
+    this.draggingPathKeyframe = null;
+    this.isPanning = false;
+
+    // this.dragging_edge = None;
+    // this.guide_lines.clear();
+    // this.update_cursor();
+
+    // action_edit
+    return;
+  }
+
+  reset_bounds(windowSize: WindowSize) {
+    let camera = this.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    // camera.position = Vector2.new(0.0, 0.0);
+    camera.position = vec2.create();
+    camera.zoom = 1.0;
+    this.updateCameraBinding();
+    this.interactiveBounds = {
+      min: { x: 550.0, y: 0.0 }, // account for aside width, allow for some off-canvas positioning
+      max: {
+        x: windowSize.width as number,
+        // y: windowSize.height as number - 350.0, // 350.0 for timeline space
+        y: 550.0, // allow for 50.0 padding below and above the canvas
+      },
+    };
+  }
+
+  move_polygon(
+    mouse_pos: Point,
+    start: Point,
+    poly_id: string,
+    windowSize: WindowSize,
+    device: GPUDevice
+  ) {
+    let camera = this.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    let aspect_ratio = ((camera.windowSize.width as number) /
+      camera.windowSize.height) as number;
+    let dx = mouse_pos.x - start.x;
+    let dy = mouse_pos.y - start.y;
+    let polygon = this.polygons.find((p) => p.id == poly_id);
+
+    if (!polygon || !this.modelBindGroupLayout) {
+      return;
+    }
+
+    let new_position = {
+      x: polygon.transform.position[0] + dx * 0.9, // not sure relation with aspect_ratio?
+      y: polygon.transform.position[1] + dy,
+    };
+
+    console.info("move_polygon {:?}", new_position);
+
+    polygon.updateDataFromPosition(
+      windowSize,
+      device,
+      this.modelBindGroupLayout,
+      new_position,
+      camera
+    );
+
+    this.dragStart = mouse_pos;
+    // this.update_guide_lines(poly_index, windowSize);
+  }
+
+  move_static_polygon(
+    mouse_pos: Point,
+    start: Point,
+    poly_id: string,
+    windowSize: WindowSize,
+    device: GPUDevice
+  ) {
+    let camera = this.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    let aspect_ratio = ((camera.windowSize.width as number) /
+      camera.windowSize.height) as number;
+    let dx = mouse_pos.x - start.x;
+    let dy = mouse_pos.y - start.y;
+    let polygon = this.staticPolygons.find((p) => p.id == poly_id);
+
+    if (!polygon || !this.modelBindGroupLayout) {
+      return;
+    }
+
+    let new_position = {
+      x: polygon.transform.position[0] + dx * 0.9, // not sure relation with aspect_ratio?
+      y: polygon.transform.position[1] + dy,
+    };
+
+    console.info("move_polygon {:?}", new_position);
+
+    polygon.updateDataFromPosition(
+      windowSize,
+      device,
+      this.modelBindGroupLayout,
+      new_position,
+      camera
+    );
+
+    this.dragStart = mouse_pos;
+    // this.update_guide_lines(poly_index, windowSize);
+  }
+
+  move_path_static_polygon(
+    mouse_pos: Point,
+    start: Point,
+    poly_id: string,
+    path_id: string,
+    windowSize: WindowSize,
+    device: GPUDevice
+  ) {
+    let camera = this.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    let aspect_ratio = ((camera.windowSize.width as number) /
+      camera.windowSize.height) as number;
+    let dx = mouse_pos.x - start.x;
+    let dy = mouse_pos.y - start.y;
+    let path = this.motionPaths.find((p) => p.id == path_id);
+
+    if (!path) {
+      return;
+    }
+
+    let polygon = path.staticPolygons.find((p) => p.id == poly_id);
+
+    if (!polygon || !this.modelBindGroupLayout) {
+      return;
+    }
+
+    let new_position = {
+      x: polygon.transform.position[0] + dx * 0.9, // not sure relation with aspect_ratio?
+      y: polygon.transform.position[1] + dy,
+    };
+
+    console.info("move path polygon {:?}", new_position);
+
+    polygon.updateDataFromPosition(
+      windowSize,
+      device,
+      this.modelBindGroupLayout,
+      new_position,
+      camera
+    );
+
+    this.dragStart = mouse_pos;
+    // this.update_guide_lines(poly_index, windowSize);
+  }
+
+  move_path(
+    mouse_pos: Point,
+    start: Point,
+    poly_id: string,
+    windowSize: WindowSize,
+    device: GPUDevice
+  ) {
+    let camera = this.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    let aspect_ratio = ((camera.windowSize.width as number) /
+      camera.windowSize.height) as number;
+    let dx = mouse_pos.x - start.x;
+    let dy = mouse_pos.y - start.y;
+    let path = this.motionPaths.find((p) => p.id == poly_id);
+
+    if (!path || !this.modelBindGroupLayout) {
+      return;
+    }
+
+    let new_position = {
+      x: path.transform.position[0] + dx * 0.9, // not sure relation with aspect_ratio? probably not needed now
+      y: path.transform.position[1] + dy,
+    };
+
+    console.info("move_path {:?}", new_position);
+
+    path.updateDataFromPosition(
+      windowSize,
+      device,
+      this.modelBindGroupLayout,
+      new_position,
+      camera
+    );
+
+    this.dragStart = mouse_pos;
+    // this.update_guide_lines(poly_index, windowSize);
+  }
+
+  move_text(
+    mouse_pos: Point,
+    start: Point,
+    text_id: string,
+    windowSize: WindowSize,
+    device: GPUDevice
+  ) {
+    let camera = this.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    let aspect_ratio = ((camera.windowSize.width as number) /
+      camera.windowSize.height) as number;
+    let dx = mouse_pos.x - start.x;
+    let dy = mouse_pos.y - start.y;
+    // let text_item = .textItems[text_index];
+    let text_item = this.textItems.find((t) => t.id == text_id);
+
+    if (!text_item) {
+      return;
+    }
+
+    let new_position = {
+      x: text_item.transform.position[0] + dx * 0.9, // not sure relation with aspect_ratio?
+      y: text_item.transform.position[1] + dy,
+    };
+
+    console.info("move_text {:?}", new_position);
+
+    text_item.transform.updatePosition(
+      [new_position.x, new_position.y],
+      windowSize
+    );
+    text_item.backgroundPolygon.transform.updatePosition(
+      [new_position.x, new_position.y],
+      windowSize
+    );
+
+    this.dragStart = mouse_pos;
+    // this.update_guide_lines(poly_index, windowSize);
+  }
+
+  move_image(
+    mouse_pos: Point,
+    start: Point,
+    image_id: string,
+    windowSize: WindowSize,
+    device: GPUDevice
+  ) {
+    let camera = this.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    let aspect_ratio = ((camera.windowSize.width as number) /
+      camera.windowSize.height) as number;
+    let dx = mouse_pos.x - start.x;
+    let dy = mouse_pos.y - start.y;
+    // let image_item = .imageItems[image_index];
+    let image_item = this.imageItems.find((i) => i.id == image_id);
+
+    if (!image_item) {
+      return;
+    }
+
+    let new_position = {
+      x: image_item.transform.position[0] + dx * 0.9, // not sure relation with aspect_ratio?
+      y: image_item.transform.position[1] + dy,
+    };
+
+    console.info("move_image {:?}", new_position);
+
+    image_item.transform.updatePosition(
+      [new_position.x, new_position.y],
+      windowSize
+    );
+
+    this.dragStart = mouse_pos;
+    // this.update_guide_lines(poly_index, windowSize);
+  }
+
+  move_video(
+    mouse_pos: Point,
+    start: Point,
+    video_id: string,
+    windowSize: WindowSize,
+    device: GPUDevice
+  ) {
+    let camera = this.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    let aspect_ratio = ((camera.windowSize.width as number) /
+      camera.windowSize.height) as number;
+    let dx = mouse_pos.x - start.x;
+    let dy = mouse_pos.y - start.y;
+    // let image_item = .imageItems[image_index];
+    let video_item = this.videoItems.find((i) => i.id == video_id);
+
+    if (!video_item) {
+      return;
+    }
+
+    let new_position = {
+      x: video_item.transform.position[0] + dx * 0.9, // not sure relation with aspect_ratio?
+      y: video_item.transform.position[1] + dy,
+    };
+
+    console.info("move_video {:?}", new_position);
+
+    video_item.transform.updatePosition(
+      [new_position.x, new_position.y],
+      windowSize
+    );
+
+    this.dragStart = mouse_pos;
+    // this.update_guide_lines(poly_index, windowSize);
+  }
+
+  // is_close(a: number, b: number, threshold: number): boolean {
+  //   return (a - b).abs() < threshold;
+  // }
+
+  hide_all_objects() {
+    // Remove objects
+    this.polygons.forEach((p) => {
+      p.hidden = true;
+    });
+    this.textItems.forEach((t) => {
+      t.hidden = true;
+    });
+    this.imageItems.forEach((i) => {
+      i.hidden = true;
+    });
+    this.videoItems.forEach((v) => {
+      v.hidden = true;
+    });
+
+    // Remove existing motion path segments
+    // this.staticPolygons.retain(|p| {
+    //     p.name != "motion_path_segment"
+    //          p.name != "motion_path_handle"
+    //          p.name != "motion_path_arrow"
+    // });
+
+    // Remove existing motion paths
+    this.motionPaths = [];
   }
 }
 
@@ -3124,14 +4145,14 @@ export class Ray implements IRay {
 }
 
 export function visualize_ray_intersection(
-  window_size: windowSize,
+  windowSize: WindowSize,
   screen_x: number,
   screen_y: number,
   camera: Camera
 ): Ray {
   const scale_factor = camera.zoom;
-  const zoom_center_x = window_size.width / 2.0;
-  const zoom_center_y = window_size.height / 2.0;
+  const zoom_center_x = windowSize.width / 2.0;
+  const zoom_center_y = windowSize.height / 2.0;
 
   const translated_screen_x = screen_x - zoom_center_x;
   const translated_screen_y = screen_y - zoom_center_y;
@@ -3177,7 +4198,7 @@ export function getFullColor(index: number): [number, number, number] {
     case 2:
       return [10, 10, getColor(index)];
     default:
-      throw new Error("Unreachable case in get_full_color"); // More appropriate than unreachable!()
+      throw new Error("Unreachable case of get_full_color"); // More appropriate than unreachable!()
   }
 }
 

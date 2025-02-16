@@ -82,9 +82,9 @@ export class Polygon implements PolygonShape {
   id: string;
   name: string;
   currentSequenceId: string;
-  sourcePolygonId?: string;
-  sourceKeyframeId?: string;
-  sourcePathId?: string;
+  sourcePolygonId: string | null = null;
+  sourceKeyframeId: string | null = null;
+  sourcePathId: string | null = null;
   activeGroupPosition: [number, number];
   groupBindGroup: GPUBindGroup;
   hidden: boolean;
