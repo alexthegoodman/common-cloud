@@ -3,19 +3,27 @@
 import React, { useEffect, useRef, useState } from "react";
 import { DebouncedInput, NavButton, OptionButton } from "./items";
 import { CreateIcon } from "./icon";
-import { BackgroundFill, Sequence, UIKeyframe } from "@/engine/animations";
+import {
+  BackgroundFill,
+  ObjectType,
+  SavedState,
+  Sequence,
+  UIKeyframe,
+} from "@/engine/animations";
 import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/navigation";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import {
   AuthToken,
   getSingleProject,
+  saveSequencesData,
   updateSequences,
 } from "@/fetchers/projects";
 import { useDevEffectOnce } from "@/hooks/useDevOnce";
 import {
   Editor,
   getRandomNumber,
+  Point,
   rgbToWgpu,
   Viewport,
   wgpuToHuman,
@@ -27,6 +35,133 @@ import { PolygonConfig } from "@/engine/polygon";
 import EditorState from "@/engine/editor_state";
 import LayerPanel, { Layer, LayerFromConfig } from "./layers";
 import { CanvasPipeline } from "@/engine/pipeline";
+
+export function update_keyframe(
+  editor_state: EditorState,
+  // mut current_animation_data: AnimationData,
+  // mut current_keyframe: &mut UIKeyframe,
+  current_keyframe: UIKeyframe,
+  current_sequence: Sequence,
+  selected_keyframes: UIKeyframe[],
+  set_selected_keyframes: React.Dispatch<React.SetStateAction<UIKeyframe[]>>,
+  // animation_data: RwSignal<Option<AnimationData>>,
+  // selected_sequence_data: RwSignal<Sequence>,
+  selected_sequence_id: string
+  // sequence_selected: RwSignal<bool>,
+) {
+  if (selected_keyframes[0]) {
+    let selected_keyframe = selected_keyframes[0];
+    if (current_keyframe.id != selected_keyframe.id) {
+      let new_keyframes = [];
+      new_keyframes.push(current_keyframe);
+
+      set_selected_keyframes(new_keyframes);
+    }
+  } else {
+    let new_keyframes = [];
+    new_keyframes.push(current_keyframe);
+
+    set_selected_keyframes(new_keyframes);
+  }
+
+  // update animation data
+  // current_animation_data.properties.iter_mut().for_each(|p| {
+  //     p.keyframes.iter_mut().for_each(|mut k| {
+  //         if k.id == current_keyframe.id {
+  //             *k = current_keyframe.to_owned();
+  //         }
+  //     });
+  // });
+
+  // animation_data.set(Some(current_animation_data));
+
+  // update sequence
+  current_sequence.polygonMotionPaths.forEach((pm) => {
+    pm.properties.forEach((p) => {
+      p.keyframes.forEach((k) => {
+        if (k.id == current_keyframe.id) {
+          k = current_keyframe;
+        }
+      });
+    });
+  });
+
+  // set_selected_sequence_data(current_sequence);
+
+  // sequence_selected.set(true);
+
+  // save to file
+  // let last_saved_state = editor_state
+  //     .saved_state;
+
+  // last_saved_state.sequences.forEach((s) => {
+  //     if s.id == selected_sequence_id {
+  current_sequence.polygonMotionPaths.forEach((pm) => {
+    pm.properties.forEach((p) => {
+      p.keyframes.forEach((k) => {
+        if (k.id == current_keyframe.id) {
+          k = current_keyframe;
+        }
+      });
+    });
+  });
+  // }
+  // });
+
+  // TODO: probably perf hit with larger files, or does it get released?
+  // let new_saved_state = last_saved_state.to_owned();
+
+  editor_state.savedState.sequences.forEach((s) => {
+    if (s.id == current_sequence.id) {
+      s = current_sequence;
+    }
+  });
+
+  saveSequencesData(editor_state.savedState.sequences);
+}
+
+function findObjectType(
+  lastSavedState: SavedState,
+  objectId: string
+): ObjectType | null {
+  // Check active polygons
+  if (
+    lastSavedState.sequences.some((s) =>
+      s.activePolygons.some((ap) => ap.id === objectId)
+    )
+  ) {
+    return ObjectType.Polygon;
+  }
+
+  // Check active images
+  if (
+    lastSavedState.sequences.some((s) =>
+      s.activeImageItems.some((ai) => ai.id === objectId)
+    )
+  ) {
+    return ObjectType.ImageItem;
+  }
+
+  // Check active text
+  if (
+    lastSavedState.sequences.some((s) =>
+      s.activeTextItems.some((at) => at.id === objectId)
+    )
+  ) {
+    return ObjectType.TextItem;
+  }
+
+  // Check active videos
+  if (
+    lastSavedState.sequences.some((s) =>
+      s.activeVideoItems.some((av) => av.id === objectId)
+    )
+  ) {
+    return ObjectType.VideoItem;
+  }
+
+  return null;
+}
 
 export const ProjectEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
@@ -102,6 +237,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     });
 
     canvas.addEventListener("mouseup", () => {
+      console.info("handle mouse up");
       editor.handle_mouse_up();
     });
 
@@ -140,6 +276,96 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     polygon_config: PolygonConfig
   ) => {
     select_polygon(polygon_id);
+  };
+
+  let handle_mouse_up = (
+    object_id: string,
+    point: Point
+  ): [Sequence, string[]] | null => {
+    let last_saved_state = editorStateRef.current?.savedState;
+
+    if (!last_saved_state) {
+      return null;
+    }
+
+    let object_type = findObjectType(last_saved_state, object_id);
+
+    console.info(
+      "see type",
+      object_type,
+      "id",
+      object_id,
+      "id2",
+      current_sequence_id
+    );
+
+    last_saved_state.sequences.forEach((s) => {
+      if (s.id == current_sequence_id) {
+        switch (object_type) {
+          case ObjectType.Polygon: {
+            s.activePolygons.forEach((ap) => {
+              if (ap.id == object_id) {
+                console.info("updating position...");
+                ap.position = {
+                  x: point.x,
+                  y: point.y,
+                };
+              }
+            });
+            break;
+          }
+          case ObjectType.TextItem: {
+            s.activeTextItems.forEach((tr) => {
+              if (tr.id == object_id) {
+                tr.position = {
+                  x: point.x,
+                  y: point.y,
+                };
+              }
+            });
+            break;
+          }
+          case ObjectType.ImageItem: {
+            s.activeImageItems.forEach((si) => {
+              if (si.id == object_id) {
+                si.position = {
+                  x: point.x,
+                  y: point.y,
+                };
+              }
+            });
+            break;
+          }
+          case ObjectType.VideoItem: {
+            s.activeVideoItems.forEach((si) => {
+              if (si.id == object_id) {
+                si.position = {
+                  x: point.x,
+                  y: point.y,
+                };
+              }
+            });
+            break;
+          }
+        }
+      }
+    });
+
+    // last_saved_state.sequences = updatedSequences;
+
+    saveSequencesData(last_saved_state.sequences);
+
+    console.info("Position updated!");
+
+    let current_sequence_data = last_saved_state.sequences.find(
+      (s) => s.id === current_sequence_id
+    );
+
+    if (!current_sequence_data || !selected_keyframes) {
+      return null;
+    }
+
+    return [current_sequence_data, selected_keyframes];
   };
 
   useDevEffectOnce(() => {
@@ -223,8 +449,6 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     const canvas = document.getElementById("scene-canvas") as HTMLCanvasElement;
     setupCanvasMouseTracking(canvas);
 
-    editorRef.current.handlePolygonClick = handle_polygon_click;
-
     set_loading(false);
   };
 
@@ -235,6 +459,18 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
       fetch_data();
     }
   }, [editorIsSet]);
+
+  useEffect(() => {
+    if (editorIsSet) {
+      if (!editorRef.current) {
+        return;
+      }
+
+      // set handlers that rely on state
+      editorRef.current.handlePolygonClick = handle_polygon_click;
+      editorRef.current.onMouseUp = handle_mouse_up;
+    }
+  }, [editorIsSet, current_sequence_id]);
 
   let on_create_sequence = async () => {
     if (!authToken) {
@@ -437,6 +673,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     new_layers.sort((a, b) => a.initial_layer_index);
 
     set_layers(new_layers);
+    console.info("set current", sequence_id);
     set_current_sequence_id(sequence_id);
 
     // drop(editor);

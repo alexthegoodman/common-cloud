@@ -183,9 +183,10 @@ export type ImageItemClickHandler = () =>
 export type VideoItemClickHandler = () =>
   | ((id: string, config: StVideoConfig) => void)
   | null;
-export type OnMouseUp = () =>
-  | ((id: string, point: Point) => [Sequence, UIKeyframe[]])
-  | null;
+export type OnMouseUp = (
+  id: string,
+  point: Point
+) => [Sequence, string[]] | null;
 export type OnHandleMouseUp = () =>
   | ((
       objectId: string,
@@ -3534,77 +3535,72 @@ export class Editor {
         (p) => p.id == this.draggingPolygon
       );
 
-      if (!active_polygon) {
-        return;
+      if (active_polygon) {
+        active_point = {
+          x: active_polygon.transform.position[0],
+          y: active_polygon.transform.position[1],
+        };
       }
-
-      active_point = {
-        x: active_polygon.transform.position[0],
-        y: active_polygon.transform.position[1],
-      };
     } else if (this.draggingImage) {
       object_id = this.draggingImage;
       let active_image = this.imageItems.find(
         (i) => i.id == this.draggingImage
       );
 
-      if (!active_image) {
-        return;
+      if (active_image) {
+        active_point = {
+          x: active_image.transform.position[0],
+          y: active_image.transform.position[1],
+        };
       }
-
-      active_point = {
-        x: active_image.transform.position[0],
-        y: active_image.transform.position[1],
-      };
     } else if (this.draggingText) {
       object_id = this.draggingText;
       let active_text = this.textItems.find((t) => t.id == this.draggingText);
 
-      if (!active_text) {
-        return;
+      if (active_text) {
+        active_point = {
+          x: active_text.transform.position[0],
+          y: active_text.transform.position[1],
+        };
       }
-
-      active_point = {
-        x: active_text.transform.position[0],
-        y: active_text.transform.position[1],
-      };
     } else if (this.draggingVideo) {
       object_id = this.draggingVideo;
       let active_video = this.videoItems.find(
         (t) => t.id == this.draggingVideo
       );
 
-      if (!active_video) {
-        return;
+      if (active_video) {
+        active_point = {
+          x: active_video.transform.position[0],
+          y: active_video.transform.position[1],
+        };
       }
-
-      active_point = {
-        x: active_video.transform.position[0],
-        y: active_video.transform.position[1],
-      };
     }
 
     if (object_id && active_point) {
       if (this.onMouseUp) {
-        let on_up = this.onMouseUp();
+        // let on_up = this.onMouseUp();
 
-        if (!on_up) {
-          return;
-        }
+        // if (!on_up) {
+        //   return;
+        // }
 
         // let active_point = active_point;
-        let [selected_sequence_data, selected_keyframes] = on_up(object_id, {
+        let data = this.onMouseUp(object_id, {
           x: active_point.x - CANVAS_HORIZ_OFFSET,
           y: active_point.y - CANVAS_VERT_OFFSET,
         });
 
+        if (data) {
+          let [selected_sequence_data, selected_keyframes] = data;
+        }
         // need some way of seeing if keyframe selected
         // perhaps need some way of opening keyframes explicitly
         // perhaps a toggle between keyframes and layout
-        if (selected_keyframes.length > 0) {
-          this.updateMotionPaths(selected_sequence_data);
-          console.info("Motion Paths updated!");
-        }
+        // if (selected_keyframes.length > 0) {
+        //   this.updateMotionPaths(selected_sequence_data);
+        //   console.info("Motion Paths updated!");
+        // }
       }
     }
 
@@ -3617,14 +3613,12 @@ export class Editor {
         .flat()
         .find((p) => p.id == handle_id);
 
-      if (!active_handle) {
-        return;
+      if (active_handle) {
+        handle_point = {
+          x: active_handle.transform.position[0],
+          y: active_handle.transform.position[1],
+        };
       }
-
-      handle_point = {
-        x: active_handle.transform.position[0],
-        y: active_handle.transform.position[1],
-      };
     }
 
     // the object (polygon, text image, etc) related to this motion path handle
@@ -3640,23 +3634,21 @@ export class Editor {
       if (this.onHandleMouseUp) {
         let on_up = this.onHandleMouseUp();
 
-        if (!on_up || !handle_object_id) {
-          return;
+        if (on_up && handle_object_id) {
+          // let handle_point = handle_point.expect("Couldn't get handle point");
+          let [selected_sequence_data, selected_keyframes] = on_up(
+            handle_keyframe_id,
+            handle_object_id,
+            {
+              x: handle_point.x - CANVAS_HORIZ_OFFSET,
+              y: handle_point.y - CANVAS_VERT_OFFSET,
+            }
+          );
+
+          // always updated when handle is moved
+          this.updateMotionPaths(selected_sequence_data);
+          console.info("Motion Paths updated!");
         }
-
-        // let handle_point = handle_point.expect("Couldn't get handle point");
-        let [selected_sequence_data, selected_keyframes] = on_up(
-          handle_keyframe_id,
-          handle_object_id,
-          {
-            x: handle_point.x - CANVAS_HORIZ_OFFSET,
-            y: handle_point.y - CANVAS_VERT_OFFSET,
-          }
-        );
-
-        // always updated when handle is moved
-        this.updateMotionPaths(selected_sequence_data);
-        console.info("Motion Paths updated!");
       }
     }
 
@@ -3664,43 +3656,40 @@ export class Editor {
     if (this.draggingPath) {
       let active_path = this.motionPaths.find((p) => p.id == this.draggingPath);
 
-      if (!active_path) {
-        return;
-      }
+      if (active_path) {
+        let path_point = {
+          x: active_path.transform.position[0],
+          y: active_path.transform.position[1],
+        };
 
-      let path_point = {
-        x: active_path.transform.position[0],
-        y: active_path.transform.position[1],
-      };
+        if (this.onPathMouseUp) {
+          let on_up = this.onPathMouseUp();
 
-      if (this.onPathMouseUp) {
-        let on_up = this.onPathMouseUp();
+          if (on_up) {
+            let [selected_sequence_data, selected_keyframes] = on_up(
+              this.draggingPath,
+              // {
+              //     x: path_point.x - 600.0,
+              //     y: path_point.y - 50.0,
+              // },
+              // no offset needed because all relative?
+              {
+                x: path_point.x,
+                y: path_point.y,
+              }
+            );
 
-        if (!on_up) {
-          return;
-        }
-
-        let [selected_sequence_data, selected_keyframes] = on_up(
-          this.draggingPath,
-          // {
-          //     x: path_point.x - 600.0,
-          //     y: path_point.y - 50.0,
-          // },
-          // no offset needed because all relative?
-          {
-            x: path_point.x,
-            y: path_point.y,
+            // always updated when handle is moved
+            // not necessary to update motion paths here? seems redundant
+            // this.updateMotionPaths(selected_sequence_data);
+            // console.info("Motion Paths updated!");
           }
-        );
-
-        // always updated when handle is moved
-        // not necessary to update motion paths here? seems redundant
-        // this.updateMotionPaths(selected_sequence_data);
-        // console.info("Motion Paths updated!");
+        }
       }
     }
 
     // reset variables
+    console.info("reset vars");
     this.draggingPolygon = null;
     this.draggingText = null;
     this.draggingImage = null;
