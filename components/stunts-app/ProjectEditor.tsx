@@ -19,7 +19,7 @@ import { StImageConfig } from "@/engine/image";
 import { TextRendererConfig } from "@/engine/text";
 import { PolygonConfig } from "@/engine/polygon";
 import EditorState from "@/engine/editor_state";
-import { Layer, LayerFromConfig } from "./layers";
+import LayerPanel, { Layer, LayerFromConfig } from "./layers";
 
 export const ProjectEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
@@ -613,10 +613,16 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                     }}
                   />
                 </div>
-                <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                  {/* ... (LayerPanel code remains the same) */}
-                </div>
               </div>
+            </div>
+            <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+              <LayerPanel
+                layers={layers}
+                setLayers={set_layers}
+                onItemDeleted={on_item_deleted}
+                onItemDuplicated={on_item_duplicated}
+                onItemsUpdated={on_items_updated}
+              />
             </div>
           </div>
         ) : (
