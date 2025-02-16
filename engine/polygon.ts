@@ -567,22 +567,24 @@ export class Polygon implements PolygonShape {
   //     }
   // }
 
-  // toConfig() -> PolygonConfig {
-  //     PolygonConfig {
-  //         id: this.id,
-  //         name: this.name,
-  //         points: this.points,
-  //         fill: this.fill,
-  //         dimensions: this.dimensions,
-  //         position: Point {
-  //             x: this.transform.position.x - CANVAS_HORIZ_OFFSET,
-  //             y: this.transform.position.y - CANVAS_VERT_OFFSET,
-  //         },
-  //         border_radius: this.border_radius,
-  //         stroke: this.stroke,
-  //         layer: this.layer,
-  //     }
-  // }
+  toConfig(): PolygonConfig {
+    let config: PolygonConfig = {
+      id: this.id,
+      name: this.name,
+      points: this.points,
+      fill: this.fill,
+      dimensions: this.dimensions,
+      position: {
+        x: this.transform.position[0] - CANVAS_HORIZ_OFFSET,
+        y: this.transform.position[1] - CANVAS_VERT_OFFSET,
+      },
+      borderRadius: this.borderRadius,
+      stroke: this.stroke,
+      layer: this.layer,
+    };
+
+    return config;
+  }
 
   // fromConfig(
   //     config: PolygonConfig,

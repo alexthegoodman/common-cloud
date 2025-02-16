@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { DebouncedInput, NavButton, OptionButton } from "./items";
 import { CreateIcon } from "./icon";
-import { Sequence } from "@/engine/animations";
+import { BackgroundFill, Sequence } from "@/engine/animations";
 import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/navigation";
 import { useLocalStorage } from "@uidotdev/usehooks";
@@ -13,7 +13,13 @@ import {
   updateSequences,
 } from "@/fetchers/projects";
 import { useDevEffectOnce } from "@/hooks/useDevOnce";
-import { Editor, Viewport } from "@/engine/editor";
+import { Editor, rgbToWgpu, Viewport, wgpuToHuman } from "@/engine/editor";
+import { StVideoConfig } from "@/engine/video";
+import { StImageConfig } from "@/engine/image";
+import { TextRendererConfig } from "@/engine/text";
+import { PolygonConfig } from "@/engine/polygon";
+import EditorState from "@/engine/editor_state";
+import { Layer, LayerFromConfig } from "./layers";
 
 export const ProjectEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
@@ -26,10 +32,11 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
   let [is_curved, set_is_curved] = useState(false);
   let [auto_choreograph, set_auto_choreograph] = useState(true);
   let [auto_fade, set_auto_fade] = useState(true);
-  let [layers, set_layers] = useState([]);
+  let [layers, set_layers] = useState<Layer[]>([]);
   let [dragger_id, set_dragger_id] = useState(null);
 
   const editorRef = useRef<Editor | null>(null);
+  const editorStateRef = useRef<EditorState | null>(null);
   const [editorIsSet, setEditorIsSet] = useState(false);
 
   useDevEffectOnce(() => {
@@ -60,7 +67,15 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     // editor_state.record_state.saved_state =
     //     Some(response.project.file_data.clone());
 
-    let cloned_sequences = response.project?.fileData.sequences;
+    let fileData = response.project?.fileData;
+
+    if (!fileData) {
+      return;
+    }
+
+    editorStateRef.current = new EditorState(fileData);
+
+    let cloned_sequences = fileData?.sequences;
 
     if (!cloned_sequences) {
       return;
@@ -126,7 +141,176 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     set_loading(false);
   };
 
-  let on_open_sequence = (sequence_id: string) => {};
+  let on_open_sequence = (sequence_id: string) => {
+    set_section("SequenceView");
+
+    console.info("Open Sequence...");
+
+    let editor = editorRef.current;
+    let editor_state = editorStateRef.current;
+
+    if (!editor || !editor_state) {
+      return;
+    }
+
+    let saved_state = editor_state?.savedState;
+
+    if (!saved_state) {
+      return;
+    }
+
+    let saved_sequence = saved_state.sequences.find((s) => s.id == sequence_id);
+
+    if (!saved_sequence) {
+      return;
+    }
+
+    let background_fill = {
+      type: "Color",
+      value: [
+        wgpuToHuman(0.8) as number,
+        wgpuToHuman(0.8) as number,
+        wgpuToHuman(0.8) as number,
+        255,
+      ],
+    } as BackgroundFill;
+
+    if (saved_sequence?.backgroundFill) {
+      background_fill = saved_sequence.backgroundFill;
+    }
+
+    // for the background polygon and its signal
+    editor_state.selected_polygon_id = saved_sequence.id;
+
+    // drop(editor_state);
+
+    console.info("Opening Sequence...");
+
+    // let mut editor = editor.lock().unwrap();
+
+    // let camera = editor.camera.expect("Couldn't get camera");
+    // let viewport = editor.viewport.lock().unwrap();
+
+    // let window_size = WindowSize {
+    //     width: viewport.width as u32,
+    //     height: viewport.height as u32,
+    // };
+
+    // drop(viewport);
+
+    // let mut rng = rand::thread_rng();
+
+    // set hidden to false based on sequence
+    // also reset all objects to hidden=true beforehand
+    editor.polygons.forEach((p) => {
+      p.hidden = true;
+    });
+    editor?.imageItems.forEach((i) => {
+      i.hidden = true;
+    });
+    editor?.textItems.forEach((t) => {
+      t.hidden = true;
+    });
+    editor?.videoItems.forEach((t) => {
+      t.hidden = true;
+    });
+
+    saved_sequence.activePolygons.forEach((ap) => {
+      let polygon = editor.polygons.find((p) => p.id == ap.id);
+
+      if (!polygon) {
+        return;
+      }
+
+      polygon.hidden = false;
+    });
+    saved_sequence.activeImageItems.forEach((si) => {
+      let image = editor.imageItems.find((i) => i.id == si.id);
+
+      if (!image) {
+        return;
+      }
+
+      image.hidden = false;
+    });
+    saved_sequence.activeTextItems.forEach((tr) => {
+      let text = editor.textItems.find((t) => t.id == tr.id);
+
+      if (!text) {
+        return;
+      }
+
+      text.hidden = false;
+    });
+    saved_sequence.activeVideoItems.forEach((tr) => {
+      let video = editor.videoItems.find((t) => t.id == tr.id);
+
+      if (!video) {
+        return;
+      }
+
+      video.hidden = false;
+    });
+
+    if (background_fill.type === "Color") {
+      editor.replace_background(
+        saved_sequence.id,
+        rgbToWgpu(
+          background_fill.value[0],
+          background_fill.value[1],
+          background_fill.value[2],
+          background_fill.value[3]
+        )
+      );
+    }
+
+    console.info("Objects restored!");
+
+    editor?.updateMotionPaths(saved_sequence);
+
+    console.info("Motion Paths restored!");
+
+    console.info("Restoring layers...");
+
+    let new_layers: Layer[] = [];
+    editor.polygons.forEach((polygon) => {
+      if (!polygon.hidden) {
+        let polygon_config: PolygonConfig = polygon.toConfig();
+        let new_layer: Layer =
+          LayerFromConfig.fromPolygonConfig(polygon_config);
+        new_layers.push(new_layer);
+      }
+    });
+    editor.textItems.forEach((text) => {
+      if (!text.hidden) {
+        let text_config: TextRendererConfig = text.toConfig();
+        let new_layer: Layer = LayerFromConfig.fromTextConfig(text_config);
+        new_layers.push(new_layer);
+      }
+    });
+    editor.imageItems.forEach((image) => {
+      if (!image.hidden) {
+        let image_config: StImageConfig = image.toConfig();
+        let new_layer: Layer = LayerFromConfig.fromImageConfig(image_config);
+        new_layers.push(new_layer);
+      }
+    });
+    editor.videoItems.forEach((video) => {
+      if (!video.hidden) {
+        let video_config: StVideoConfig = video.toConfig();
+        let new_layer: Layer = LayerFromConfig.fromVideoConfig(video_config);
+        new_layers.push(new_layer);
+      }
+    });
+
+    // sort layers by layer_index property, lower values should come first in the list
+    // but reverse the order because the UI outputs the first one first, thus it displays last
+    new_layers.sort((a, b) => a.initial_layer_index);
+
+    set_layers(new_layers);
+
+    // drop(editor);
+  };
 
   let on_add_square = () => {};
 
@@ -375,7 +559,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                 </div>
 
                 <div className="flex flex-row flex-wrap gap-2">
-                  {themes.map((theme: number[]) => {
+                  {themes.map((theme: number[], i) => {
                     const backgroundColorRow = Math.floor(theme[0]);
                     const backgroundColorColumn = Math.floor(
                       (theme[0] % 1) * 10
@@ -388,7 +572,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
 
                     return (
                       <OptionButton
-                        key={`${backgroundColor}-${textColor}`} // Add a key!
+                        key={`${backgroundColor}-${textColor}-${i}`} // Add a key!
                         style={`color: ${textColor}; background-color: ${backgroundColor};`}
                         label="Apply Theme"
                         icon="brush"
@@ -433,17 +617,17 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                   {/* ... (LayerPanel code remains the same) */}
                 </div>
               </div>
-              <div>
-                <canvas
-                  id="scene-canvas"
-                  className="w-[900px] h-[450px] border border-black"
-                />
-              </div>
             </div>
           </div>
         ) : (
           <></>
         )}
+        <div>
+          <canvas
+            id="scene-canvas"
+            className="w-[900px] h-[450px] border border-black"
+          />
+        </div>
       </div>
     </div>
   );
