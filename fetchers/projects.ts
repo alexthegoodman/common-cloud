@@ -149,30 +149,37 @@ export const createProject = async (
   return response.json();
 };
 
-// export const saveSequencesData
-// = async (
-//   token: string,
-//   name: string,
-//   emptyFileData: any
-// ): Promise<CreateProjectResponse> => {
-//   const response = await fetch("http://localhost:3000/api/projects/create", {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//       Authorization: `Bearer ${token}`,
-//     },
-//     body: JSON.stringify({ name, emptyFileData }),
-//   });
+export async function saveSequencesData(
+  sequences: Sequence[]
+): Promise<UpdateSequencesResponse> {
+  try {
+    // Get stored-project and auth-token from local storage
+    const storedProjectString = localStorage.getItem("stored-project");
+    const authTokenString = localStorage.getItem("auth-token");
 
-//   if (!response.ok) {
-//     const errorText = await response.text();
-//     throw new Error(
-//       `Create project request failed: ${response.status} - ${response.statusText} - ${errorText}`
-//     );
-//   }
+    if (!storedProjectString || !authTokenString) {
+      throw new Error(
+        "Couldn't get stored project or auth token from local storage"
+      );
+    }
 
-//   return response.json();
-// };
+    const storedProject = JSON.parse(storedProjectString);
+    const authToken: AuthToken = JSON.parse(authTokenString);
+
+    // Call the updateSequences function
+    return await updateSequences(
+      authToken.token,
+      storedProject.project_id,
+      sequences
+    );
+  } catch (error) {
+    console.error("Error saving sequences data:", error);
+    // Handle the error appropriately, e.g., return a default response or throw the error
+    throw error; // Re-throw if you want the calling function to handle it
+    // Or return a default/error response:
+    // return { success: false, message: error.message }; // Example
+  }
+}
 
 export const updateSequences = async (
   token: string,

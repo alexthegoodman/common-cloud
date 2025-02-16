@@ -208,13 +208,13 @@ export class MotionPath {
     const rawMatrix = matrix4ToRawArray(emptyBuffer);
 
     const uniformBuffer = device.createBuffer({
-      label: "Image Uniform Buffer",
+      label: "MotionPath Uniform Buffer",
       size: rawMatrix.byteLength,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       mappedAtCreation: true,
     });
-    // new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
-    // uniformBuffer.unmap();
+    new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
+    uniformBuffer.unmap();
 
     // Now create your bind group with these defaults
     this.bindGroup = device.createBindGroup({

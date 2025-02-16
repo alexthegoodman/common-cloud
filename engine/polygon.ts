@@ -640,7 +640,7 @@ export function getPolygonData(
     polygon.borderRadius
   );
 
-  console.info("rounded_points", rounded_points);
+  // console.info("rounded_points", rounded_points);
 
   const tessellationResult = gt.tessellate(
     rounded_points.map((p) => [p[0], p[1]]),
@@ -711,11 +711,11 @@ export function getPolygonData(
 
   // ... (In getPolygonData)
 
-  console.info(
-    "polygon vertices",
-    vertices.length,
-    vertices.length * vertexByteSize
-  );
+  // console.info(
+  //   "polygon vertices",
+  //   vertices.length,
+  //   vertices.length * vertexByteSize
+  // );
 
   const vertexBuffer = device.createBuffer({
     label: "Vertex Buffer",
@@ -771,7 +771,10 @@ export function getPolygonData(
     label: "Polygon Uniform Buffer",
     size: rawMatrix.byteLength,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    // mappedAtCreation: true,
   });
+  // new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
+  // uniformBuffer.unmap();
   queue.writeBuffer(uniformBuffer, 0, rawMatrix);
 
   const textureSize = { width: 1, height: 1, depthOrArrayLayers: 1 };

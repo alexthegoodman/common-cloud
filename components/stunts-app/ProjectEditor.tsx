@@ -13,7 +13,13 @@ import {
   updateSequences,
 } from "@/fetchers/projects";
 import { useDevEffectOnce } from "@/hooks/useDevOnce";
-import { Editor, rgbToWgpu, Viewport, wgpuToHuman } from "@/engine/editor";
+import {
+  Editor,
+  getRandomNumber,
+  rgbToWgpu,
+  Viewport,
+  wgpuToHuman,
+} from "@/engine/editor";
 import { StVideoConfig } from "@/engine/video";
 import { StImageConfig } from "@/engine/image";
 import { TextRendererConfig } from "@/engine/text";
@@ -35,6 +41,9 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
   let [auto_fade, set_auto_fade] = useState(true);
   let [layers, set_layers] = useState<Layer[]>([]);
   let [dragger_id, set_dragger_id] = useState(null);
+  let [current_sequence_id, set_current_sequence_id] = useState<string | null>(
+    null
+  );
 
   const editorRef = useRef<Editor | null>(null);
   const editorStateRef = useRef<EditorState | null>(null);
@@ -327,11 +336,101 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     new_layers.sort((a, b) => a.initial_layer_index);
 
     set_layers(new_layers);
+    set_current_sequence_id(sequence_id);
 
     // drop(editor);
   };
 
-  let on_add_square = () => {};
+  let on_add_square = (sequence_id: string) => {
+    console.info("Adding Square...");
+
+    let editor = editorRef.current;
+    let editor_state = editorStateRef.current;
+
+    if (!editor || !editor_state) {
+      return;
+    }
+
+    // let mut rng = rand::thread_rng();
+    // let random_number_800 = rng.gen_range(0..=800);
+    // let random_number_450 = rng.gen_range(0..=450);
+    let random_number_800 = getRandomNumber(0, 800);
+    let random_number_450 = getRandomNumber(0, 450);
+
+    let new_id = uuidv4();
+
+    let polygon_config: PolygonConfig = {
+      id: new_id,
+      name: "Square",
+      points: [
+        { x: 0.0, y: 0.0 },
+        { x: 1.0, y: 0.0 },
+        { x: 1.0, y: 1.0 },
+        { x: 0.0, y: 1.0 },
+      ],
+      dimensions: [100.0, 100.0],
+      position: {
+        x: random_number_800,
+        y: random_number_450,
+      },
+      borderRadius: 0.0,
+      fill: [1.0, 1.0, 1.0, 1.0],
+      stroke: {
+        fill: [1.0, 1.0, 1.0, 1.0],
+        thickness: 2.0,
+      },
+      layer: -2,
+    };
+
+    editor.add_polygon(polygon_config, "Polygon", new_id, sequence_id);
+
+    editor_state.add_saved_polygon(sequence_id, {
+      id: polygon_config.id,
+      name: polygon_config.name,
+      dimensions: [polygon_config.dimensions[0], polygon_config.dimensions[1]],
+      fill: [
+        polygon_config.fill[0],
+        polygon_config.fill[1],
+        polygon_config.fill[2],
+        polygon_config.fill[3],
+      ],
+      borderRadius: polygon_config.borderRadius,
+      position: {
+        x: polygon_config.position.x,
+        y: polygon_config.position.y,
+      },
+      stroke: {
+        thickness: polygon_config.stroke.thickness,
+        fill: [
+          polygon_config.stroke.fill[0],
+          polygon_config.stroke.fill[1],
+          polygon_config.stroke.fill[2],
+          polygon_config.stroke.fill[3],
+        ],
+      },
+      layer: polygon_config.layer,
+    });
+
+    let saved_state = editor_state.savedState;
+
+    let updated_sequence = saved_state.sequences.find(
+      (s) => s.id == sequence_id
+    );
+
+    let sequence_cloned = updated_sequence;
+
+    if (!sequence_cloned) {
+      throw Error("Sequence does not exist");
+    }
+
+    set_sequences(saved_state.sequences);
+
+    editor.currentSequenceData = sequence_cloned;
+
+    editor.updateMotionPaths(sequence_cloned);
+
+    console.info("Square added!");
+  };
 
   let on_add_image = () => {};
 
@@ -549,7 +648,13 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                     style=""
                     label="Add Square"
                     icon="square"
-                    callback={() => {}}
+                    callback={() => {
+                      if (!current_sequence_id) {
+                        return;
+                      }
+
+                      on_add_square(current_sequence_id);
+                    }}
                   />
                   <OptionButton
                     style=""
