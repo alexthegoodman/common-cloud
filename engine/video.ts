@@ -5,6 +5,7 @@ import { createEmptyGroupTransform, Transform } from "./transform";
 import { Vertex } from "./vertex";
 import { INTERNAL_LAYER_SPACE, SavedPoint } from "./polygon";
 import MP4Box, { DataStream, MP4ArrayBuffer, MP4VideoTrack } from "mp4box";
+import { WindowSize } from "./camera";
 
 export interface RectInfo {
   left: number;
@@ -684,32 +685,63 @@ export class StVideo {
   }
 
   updateOpacity(queue: GPUQueue, opacity: number): void {
+    const newColor: [number, number, number, number] = [1.0, 1.0, 1.0, opacity];
+
+    this.vertices.forEach((v) => {
+      v.color = newColor;
+    });
+
+    queue.writeBuffer(
+      this.vertexBuffer,
+      0,
+      new Float32Array(this.vertices.flat() as unknown as ArrayBuffer)
+    );
+  }
+
+  update(queue: GPUQueue, windowSize: { width: number; height: number }): void {
     /* ... */
   }
+
+  getDimensions(): [number, number] {
+    return [0, 0];
+  }
+
   updateDataFromDimensions(
-    windowSize: { width: number; height: number },
+    windowSize: WindowSize,
     device: GPUDevice,
     queue: GPUQueue,
     bindGroupLayout: GPUBindGroupLayout,
     dimensions: [number, number]
   ): void {
-    /* ... */
+    this.dimensions = [dimensions[0], dimensions[1]];
+    this.transform.updateScale([dimensions[0], dimensions[1]]);
+    this.transform.updateUniformBuffer(queue, windowSize);
   }
+
   updateLayer(layerIndex: number): void {
-    /* ... */
+    let layer = layerIndex - INTERNAL_LAYER_SPACE;
+    this.layer = layer;
+    this.transform.layer = layer;
   }
-  update(queue: GPUQueue, windowSize: { width: number; height: number }): void {
-    /* ... */
-  }
-  getDimensions(): [number, number] {
-    return [0, 0];
-  }
+
   containsPoint(point: Point): boolean {
-    return false;
+    const untranslated: Point = {
+      x: point.x - this.transform.position[0], // Access translation from matrix
+      y: point.y - this.transform.position[1],
+    };
+
+    return (
+      untranslated.x >= -0.5 * this.dimensions[0] &&
+      untranslated.x <= 0.5 * this.dimensions[0] &&
+      untranslated.y >= -0.5 * this.dimensions[1] &&
+      untranslated.y <= 0.5 * this.dimensions[1]
+    );
   }
+
   toLocalSpace(worldPoint: Point): Point {
     return { x: 0, y: 0 };
   }
+
   toConfig(): StVideoConfig {
     return {
       id: this.id,
