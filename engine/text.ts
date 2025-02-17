@@ -163,7 +163,7 @@ export class TextRenderer {
       ],
     });
 
-    console.info("text config", textConfig);
+    // console.info("text config", textConfig);
 
     this.transform = new Transform(
       vec2.fromValues(textConfig.position.x, textConfig.position.y),
@@ -272,13 +272,13 @@ export class TextRenderer {
     canvas.width = canvas_width;
     canvas.height = canvas_height;
 
-    console.info(
-      "text canvas dimensions",
-      rasterConfig,
-      this.font.familyName,
-      canvas.width,
-      canvas.height
-    );
+    // console.info(
+    //   "text canvas dimensions",
+    //   rasterConfig,
+    //   this.font.familyName,
+    //   canvas.width,
+    //   canvas.height
+    // );
 
     // Render the glyph onto the canvas using native Canvas API
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -324,7 +324,7 @@ export class TextRenderer {
       canvas.height / this.atlasSize[1],
     ];
 
-    console.info("rgbData", rgbaData.length);
+    // console.info("rgbData", rgbaData.length);
 
     // Write glyph bitmap to atlas
     queue.writeTexture(
@@ -353,7 +353,7 @@ export class TextRenderer {
     // Update atlas position for next glyph
     this.nextAtlasPosition[0] += canvas.width;
 
-    console.info("atlas position", this.nextAtlasPosition);
+    // console.info("atlas position", this.nextAtlasPosition);
 
     return {
       uv_rect,
@@ -374,7 +374,7 @@ export class TextRenderer {
     // Calculate the scale factor based on the font's unitsPerEm
     const scale = this.fontSize / this.font.unitsPerEm;
 
-    // console.info("glyph scale", scale);
+    // // console.info("glyph scale", scale);
 
     // Calculate the total width and height of the text
     let totalWidth = 0;
@@ -382,14 +382,14 @@ export class TextRenderer {
     for (const position of glyphRun.positions) {
       // Scale xAdvance and add to total width
       totalWidth += position.xAdvance * scale;
-      // console.info("added width", position.xAdvance * scale);
+      // // console.info("added width", position.xAdvance * scale);
       totalHeight = Math.max(
         totalHeight,
         (position.yOffset + glyphRun.bbox.maxY - glyphRun.bbox.minY) * scale
       );
     }
 
-    console.info("totals", totalWidth, totalHeight);
+    // console.info("totals", totalWidth, totalHeight);
 
     // Calculate the starting x and y positions to center the text
     const startX = -totalWidth / 2.0;
@@ -401,7 +401,7 @@ export class TextRenderer {
       const glyph = glyphRun.glyphs[i];
       const position = glyphRun.positions[i];
 
-      console.info("glyph pos", position);
+      // console.info("glyph pos", position);
 
       // Create a unique key for the glyph (e.g., glyph ID + font size)
       const key = `${glyph.id}-${this.fontSize}`;
@@ -417,7 +417,7 @@ export class TextRenderer {
 
       const atlasGlyph = this.glyphCache.get(key)!;
 
-      // console.info("rendering glyph", atlasGlyph, glyph, position);
+      // // console.info("rendering glyph", atlasGlyph, glyph, position);
 
       const baseVertex = vertices.length;
 
@@ -458,7 +458,7 @@ export class TextRenderer {
       y0 = y0 === -Infinity || y0 === Infinity ? 0 : y0;
       y1 = y1 === -Infinity || y1 === Infinity ? 0 : y1;
 
-      console.info("vertice pos", x0, x1, y0, y1);
+      // console.info("vertice pos", x0, x1, y0, y1);
 
       // Add vertices for the glyph quad
       vertices.push(
@@ -479,7 +479,7 @@ export class TextRenderer {
       );
     }
 
-    console.info("vertices", vertices);
+    // console.info("vertices", vertices);
 
     // Update buffers
     queue.writeBuffer(

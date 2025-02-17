@@ -308,6 +308,7 @@ import { Camera, CameraBinding, WindowSize } from "./camera";
 import { StImage, StImageConfig } from "./image";
 import { MousePosition, SourceData, StVideo, StVideoConfig } from "./video";
 import { vec2 } from "gl-matrix";
+import { getUploadedImage, getUploadedImageData } from "@/fetchers/projects";
 
 export class Editor {
   // visual
@@ -573,39 +574,40 @@ export class Editor {
       console.log("Text restored...");
     });
 
-    // saved_sequence.activeImageItems.forEach((i) => {
-    //   const position = {
-    //     x: CANVAS_HORIZ_OFFSET + i.position[0],
-    //     y: CANVAS_VERT_OFFSET + i.position[1],
-    //   };
+    saved_sequence.activeImageItems.forEach((i) => {
+      const position = {
+        x: CANVAS_HORIZ_OFFSET + i.position.x,
+        y: CANVAS_VERT_OFFSET + i.position.y,
+      };
 
-    //   const image_config: StImageConfig = {
-    //     id: i.id,
-    //     name: i.name,
-    //     dimensions: i.dimensions,
-    //     url: i.url,
-    //     position,
-    //     layer: i.layer,
-    //   };
+      const image_config: StImageConfig = {
+        id: i.id,
+        name: i.name,
+        dimensions: i.dimensions,
+        url: i.url,
+        position,
+        layer: i.layer,
+      };
 
-    //   const restored_image = new StImage(
-    //     device,
-    //     queue,
-    //     i.url,
-    //     [], // TODO: load of image data
-    //     image_config,
-    //     windowSize,
-    //     this.modelBindGroupLayout!,
-    //     this.groupBindGroupLayout!,
-    //     -2.0,
-    //     i.id,
-    //     saved_sequence.id
-    //   );
+      getUploadedImageData(i.url).then((blob) => {
+        const restored_image = new StImage(
+          device,
+          queue,
+          i.url,
+          blob, // load of image data
+          image_config,
+          windowSize,
+          this.modelBindGroupLayout!,
+          this.groupBindGroupLayout!,
+          -2.0,
+          saved_sequence.id
+        );
 
-    //   restored_image.hidden = hidden;
-    //   this.imageItems.push(restored_image);
-    //   console.log("Image restored...");
-    // });
+        restored_image.hidden = hidden;
+        this.imageItems.push(restored_image);
+        console.log("Image restored...");
+      });
+    });
 
     // saved_sequence.activeVideoItems.forEach((i) => {
     //   let stored_source_data: SourceData | null = null;

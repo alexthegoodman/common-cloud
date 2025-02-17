@@ -60,7 +60,7 @@ export class StImage {
     this.currentSequenceId = currentSequenceId;
     this.name = imageConfig.name;
     this.url = url;
-    this.hidden = false;
+    // this.hidden = false;
     this.layer = imageConfig.layer;
     this.dimensions = imageConfig.dimensions;
     this.vertices = [];
@@ -75,25 +75,32 @@ export class StImage {
     new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
     uniformBuffer.unmap();
 
-    let pos = vec2.create();
-    vec2.set(pos, imageConfig.position.x, imageConfig.position.y);
-    let scl = vec2.create();
-    vec2.set(scl, imageConfig.dimensions[0], imageConfig.dimensions[1]);
+    // let pos = vec2.create();
+    // vec2.set(pos, imageConfig.position.x, imageConfig.position.y);
+    // let scl = vec2.create();
+    // vec2.set(scl, imageConfig.dimensions[0], imageConfig.dimensions[1]);
+
     this.transform = new Transform(
-      pos,
+      vec2.fromValues(imageConfig.position.x, imageConfig.position.y),
       0.0,
-      scl, // Apply scaling here instead of resizing image
+      vec2.fromValues(imageConfig.dimensions[0], imageConfig.dimensions[1]), // Apply scaling here instead of resizing image
       uniformBuffer
       // window_size,
     );
+
+    console.info("image spot", imageConfig.position.x, imageConfig.position.y);
 
     // -10.0 to provide 10 spots for internal items on top of objects
     this.transform.layer = imageConfig.layer - INTERNAL_LAYER_SPACE;
     this.transform.updateUniformBuffer(queue, windowSize);
 
+    this.hidden = true; // true till bitmap loaded?
+
     const imgBitmap = createImageBitmap(blob).then(async (imageBitmap) => {
       const originalDimensions = [imageBitmap.width, imageBitmap.height];
       const dimensions = imageConfig.dimensions;
+
+      console.info("imgBitmap", originalDimensions);
 
       const textureSize: GPUExtent3DStrict = {
         width: dimensions[0],
@@ -123,6 +130,8 @@ export class StImage {
         dimensions[0],
         dimensions[1]
       ).data;
+
+      console.info("rgba", rgba.length);
 
       queue.writeTexture(
         {
@@ -200,7 +209,13 @@ export class StImage {
       queue.writeBuffer(
         this.vertexBuffer,
         0,
-        new Float32Array(this.vertices.flat() as unknown as ArrayBuffer)
+        new Float32Array(
+          this.vertices.flatMap((v) => [
+            ...v.position,
+            ...v.tex_coords,
+            ...v.color,
+          ])
+        )
       ); // Correct writeBuffer call
 
       const indices = new Uint32Array([0, 1, 2, 0, 2, 3]);
@@ -222,6 +237,7 @@ export class StImage {
       );
 
       this.groupBindGroup = group_bind_group;
+      // this.hidden = false;
     });
     // return imgBitmap;
   }
@@ -337,5 +353,16 @@ export class StImage {
       selectedSequenceId
     );
     return stImage;
+  }
+}
+
+export async function fileToBlob(file: File) {
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const blob = new Blob([arrayBuffer], { type: file.type });
+    return blob;
+  } catch (error) {
+    console.error("Error converting file to blob:", error);
+    return null;
   }
 }

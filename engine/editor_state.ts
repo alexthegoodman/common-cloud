@@ -11,6 +11,7 @@ import {
 import { SavedPoint, SavedPolygonConfig } from "./polygon";
 import { v4 as uuidv4 } from "uuid";
 import { SavedTextRendererConfig } from "./text";
+import { SavedStImageConfig } from "./image";
 
 export default class EditorState {
   selected_polygon_id: string = "";
@@ -435,6 +436,32 @@ export default class EditorState {
     saved_state.sequences.forEach((s) => {
       if (s.id == selected_sequence_id) {
         s.activeTextItems.push(savable_text);
+        s.polygonMotionPaths.push(new_motion_path);
+      }
+    });
+
+    let sequences = saved_state.sequences;
+
+    await saveSequencesData(sequences);
+
+    this.savedState = saved_state;
+  }
+
+  async add_saved_image_item(
+    selected_sequence_id: string,
+    savable_text: SavedStImageConfig
+  ) {
+    let new_motion_path = this.save_default_keyframes(
+      savable_text.id,
+      ObjectType.ImageItem,
+      savable_text.position
+    );
+
+    let saved_state = this.savedState;
+
+    saved_state.sequences.forEach((s) => {
+      if (s.id == selected_sequence_id) {
+        s.activeImageItems.push(savable_text);
         s.polygonMotionPaths.push(new_motion_path);
       }
     });

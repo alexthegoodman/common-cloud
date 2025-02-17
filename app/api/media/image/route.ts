@@ -3,7 +3,17 @@ import { verifyJWT } from "@/lib/jwt";
 import fs from "fs/promises";
 import path from "path";
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "image-uploads");
+export const config = {
+  api: {
+    responseLimit: false,
+  },
+};
+
+const UPLOAD_DIR = path.join(
+  process.cwd(),
+  "public"
+  //, "image-uploads" // already supplied in stored url
+);
 
 export async function GET(req: Request) {
   try {
@@ -27,8 +37,8 @@ export async function GET(req: Request) {
     }
 
     // Ensure the filename is sanitized and within the uploads directory
-    const sanitizedFilename = path.basename(filename);
-    const filePath = path.join(UPLOAD_DIR, sanitizedFilename);
+    // const sanitizedFilename = path.basename(filename);
+    const filePath = path.join(UPLOAD_DIR, filename);
 
     // Check if file exists
     try {
@@ -48,8 +58,10 @@ export async function GET(req: Request) {
       mimeType = "image/png";
     }
 
+    console.info("mimeType", mimeType, "buffer size", fileBuffer.length);
+
     // Return the file as a response with appropriate headers
-    return new Response(fileBuffer, {
+    return new NextResponse(fileBuffer, {
       headers: {
         "Content-Type": mimeType,
         "Content-Length": fileBuffer.length.toString(),
