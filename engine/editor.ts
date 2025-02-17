@@ -464,6 +464,62 @@ export class Editor {
     };
   }
 
+  private processPrmoptItem(
+    item: StImage | StVideo | Polygon | TextRenderer,
+    total: number
+  ): [string, number] {
+    if (item.hidden) {
+      return ["", total];
+    }
+
+    // Convert coordinates to percentage-based values
+    const x = item.transform.position[0] - CANVAS_HORIZ_OFFSET;
+    const xPercent = (x / 800.0) * 100.0;
+    const y = item.transform.position[1] - CANVAS_VERT_OFFSET;
+    const yPercent = (y / 450.0) * 100.0;
+
+    // Build the prompt string for this item
+    const promptLine = [
+      total.toString(),
+      "5",
+      item.dimensions[0].toString(),
+      item.dimensions[1].toString(),
+      Math.round(xPercent).toString(),
+      Math.round(yPercent).toString(),
+      "0.000", // direction
+      "\n",
+    ].join(", ");
+
+    return [promptLine, total + 1];
+  }
+
+  createInferencePrompt(): string {
+    let prompt = "";
+    let total = 0;
+
+    // Process each type of item
+    for (const itemArrays of [
+      this.polygons,
+      this.textItems,
+      this.imageItems,
+      this.videoItems,
+    ]) {
+      for (const item of itemArrays) {
+        if (total > 6) break;
+
+        const [promptLine, newTotal] = this.processPrmoptItem(item, total);
+        prompt += promptLine;
+        total = newTotal;
+      }
+
+      if (total > 6) break;
+    }
+
+    console.log("prompt", prompt);
+
+    return prompt;
+  }
+
   async restore_sequence_objects(saved_sequence: Sequence, hidden: boolean) {
     const camera = this.camera!; // Non-null assertion, assuming camera is initialized
     const windowSize = camera.windowSize;
@@ -758,103 +814,93 @@ export class Editor {
     }
   }
 
-  run_motion_inference(): AnimationData[] {
-    let prompt = "";
-    let total = 0;
+  // run_motion_inference(): AnimationData[] {
+  //   let prompt = "";
+  //   let total = 0;
 
-    for (const polygon of this.polygons) {
-      if (!polygon.hidden) {
-        let x = polygon.transform.position[0] - CANVAS_HORIZ_OFFSET;
-        x = (x / 800.0) * 100.0;
-        let y = polygon.transform.position[1] - CANVAS_VERT_OFFSET;
-        y = (y / 450.0) * 100.0;
+  //   for (const polygon of this.polygons) {
+  //     if (!polygon.hidden) {
+  //       let x = polygon.transform.position[0] - CANVAS_HORIZ_OFFSET;
+  //       x = (x / 800.0) * 100.0;
+  //       let y = polygon.transform.position[1] - CANVAS_VERT_OFFSET;
+  //       y = (y / 450.0) * 100.0;
 
-        prompt += `${total}, 5, ${polygon.dimensions[0]}, ${
-          polygon.dimensions[1]
-        }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
-        total++;
+  //       prompt += `${total}, 5, ${polygon.dimensions[0]}, ${
+  //         polygon.dimensions[1]
+  //       }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
+  //       total++;
 
-        if (total > 6) {
-          break;
-        }
-      }
-    }
+  //       if (total > 6) {
+  //         break;
+  //       }
+  //     }
+  //   }
 
-    for (const text of this.textItems) {
-      if (!text.hidden) {
-        let x = text.transform.position[0] - CANVAS_HORIZ_OFFSET;
-        x = (x / 800.0) * 100.0;
-        let y = text.transform.position[1] - CANVAS_VERT_OFFSET;
-        y = (y / 450.0) * 100.0;
+  //   for (const text of this.textItems) {
+  //     if (!text.hidden) {
+  //       let x = text.transform.position[0] - CANVAS_HORIZ_OFFSET;
+  //       x = (x / 800.0) * 100.0;
+  //       let y = text.transform.position[1] - CANVAS_VERT_OFFSET;
+  //       y = (y / 450.0) * 100.0;
 
-        prompt += `${total}, 5, ${text.dimensions[0]}, ${
-          text.dimensions[1]
-        }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
-        total++;
+  //       prompt += `${total}, 5, ${text.dimensions[0]}, ${
+  //         text.dimensions[1]
+  //       }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
+  //       total++;
 
-        if (total > 6) {
-          break;
-        }
-      }
-    }
+  //       if (total > 6) {
+  //         break;
+  //       }
+  //     }
+  //   }
 
-    // for (const image of this.imageItems) {
-    //   if (!image.hidden) {
-    //     let x = image.transform.position[0] - CANVAS_HORIZ_OFFSET;
-    //     x = (x / 800.0) * 100.0;
-    //     let y = image.transform.position[1] - CANVAS_VERT_OFFSET;
-    //     y = (y / 450.0) * 100.0;
+  //   // for (const image of this.imageItems) {
+  //   //   if (!image.hidden) {
+  //   //     let x = image.transform.position[0] - CANVAS_HORIZ_OFFSET;
+  //   //     x = (x / 800.0) * 100.0;
+  //   //     let y = image.transform.position[1] - CANVAS_VERT_OFFSET;
+  //   //     y = (y / 450.0) * 100.0;
 
-    //     prompt += `${total}, 5, ${image.dimensions.x}, ${
-    //       image.dimensions.y
-    //     }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
-    //     total++;
+  //   //     prompt += `${total}, 5, ${image.dimensions.x}, ${
+  //   //       image.dimensions.y
+  //   //     }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
+  //   //     total++;
 
-    //     if (total > 6) {
-    //       break;
-    //     }
-    //   }
-    // }
+  //   //     if (total > 6) {
+  //   //       break;
+  //   //     }
+  //   //   }
+  //   // }
 
-    // for (const video of this.videoItems) {
-    //   if (!video.hidden) {
-    //     let x = video.transform.position[0] - CANVAS_HORIZ_OFFSET;
-    //     x = (x / 800.0) * 100.0;
-    //     let y = video.transform.position[1] - CANVAS_VERT_OFFSET;
-    //     y = (y / 450.0) * 100.0;
+  //   // for (const video of this.videoItems) {
+  //   //   if (!video.hidden) {
+  //   //     let x = video.transform.position[0] - CANVAS_HORIZ_OFFSET;
+  //   //     x = (x / 800.0) * 100.0;
+  //   //     let y = video.transform.position[1] - CANVAS_VERT_OFFSET;
+  //   //     y = (y / 450.0) * 100.0;
 
-    //     prompt += `${total}, 5, ${video.dimensions.x}, ${
-    //       video.dimensions.y
-    //     }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
-    //     total++;
+  //   //     prompt += `${total}, 5, ${video.dimensions.x}, ${
+  //   //       video.dimensions.y
+  //   //     }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
+  //   //     total++;
 
-    //     if (total > 6) {
-    //       break;
-    //     }
-    //   }
-    // }
+  //   //     if (total > 6) {
+  //   //       break;
+  //   //     }
+  //   //   }
+  //   // }
 
-    console.log("prompt", prompt);
+  //   console.log("prompt", prompt);
 
-    return this.call_motion_inference(prompt);
-  }
+  //   return this.call_motion_inference(prompt);
+  // }
 
-  call_motion_inference(prompt: string): AnimationData[] {
-    // TODO: will call API.  Return a Promise<AnimationData[]> and use async/await
-    return []; // Placeholder
-  }
+  // call_motion_inference(prompt: string): AnimationData[] {
+  //   // TODO: will call API.  Return a Promise<AnimationData[]> and use async/await
+  //   return []; // Placeholder
+  // }
 
-  create_motionPaths_from_predictions(
-    predictions: number[]
-    // this.generation_choreographed: boolean,
-    // this.generation_curved: boolean,
-    // this.generation_fade: boolean,
-    // polygons: Polygon[],
-    // textItems: TextRenderer[],
-    // imageItems: StImage[],
-    // videoItems: StVideo[],
-    // generation_count: number,
-  ): AnimationData[] {
+  createMotionPathsFromPredictions(predictions: number[]): AnimationData[] {
     const animation_data_vec: AnimationData[] = [];
     const values_per_prediction = NUM_INFERENCE_FEATURES;
     const keyframes_per_object = 6;

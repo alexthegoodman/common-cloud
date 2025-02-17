@@ -50,6 +50,7 @@ import {
   TextProperties,
   VideoProperties,
 } from "./Properties";
+import { callMotionInference } from "@/fetchers/inference";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -744,6 +745,48 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     // drop(editor);
   };
 
+  let on_generate_animation = async () => {
+    let editor = editorRef.current;
+    let editor_state = editorStateRef.current;
+
+    if (!editor || !editor_state) {
+      return;
+    }
+
+    set_loading(true);
+
+    console.info("create prompt");
+
+    let prompt = editor.createInferencePrompt();
+    let predictions = await callMotionInference(prompt);
+
+    console.info("predictions", predictions);
+
+    let animation = editor.createMotionPathsFromPredictions(predictions);
+
+    editor_state.savedState.sequences.forEach((s) => {
+      if (s.id === current_sequence_id) {
+        s.polygonMotionPaths = animation;
+      }
+    });
+
+    let updatedSequence = editor_state.savedState.sequences.find(
+      (s) => s.id === current_sequence_id
+    );
+
+    if (!updatedSequence) {
+      return;
+    }
+
+    console.info("update paths");
+
+    editor.updateMotionPaths(updatedSequence);
+
+    saveSequencesData(editor_state.savedState.sequences);
+
+    set_loading(false);
+  };
+
   let on_add_square = (sequence_id: string) => {
     console.info("Adding Square...");
 
@@ -1351,6 +1394,9 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                         type="submit"
                         className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={loading}
+                        onClick={() => {
+                          on_generate_animation();
+                        }}
                       >
                         {loading ? "Generating..." : "Generate Animation"}
                       </button>
