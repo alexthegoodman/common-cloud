@@ -26,11 +26,15 @@ export class CanvasPipeline {
 
   constructor() {}
 
-  async new(editor: Editor) {
+  async new(editor: Editor, onScreenCanvas: boolean) {
     console.log("Initializing Canvas Renderer...");
 
-    const canvas = document.getElementById("scene-canvas") as HTMLCanvasElement;
-    if (!canvas) throw new Error("Canvas not found");
+    let canvas = null;
+    if (onScreenCanvas) {
+      canvas = document.getElementById("scene-canvas") as HTMLCanvasElement;
+
+      if (!canvas) throw new Error("Canvas not found");
+    }
 
     // Set canvas dimensions
     const width = 900;
@@ -308,7 +312,11 @@ export class CanvasPipeline {
     this.multisampledView = multisampledView;
   }
 
-  renderFrame(editor: Editor): void {
+  renderFrame(
+    editor: Editor,
+    frameEncoder?: (renderTexture: GPUTexture) => void,
+    currentTimeS?: number
+  ): void {
     if (!editor.camera || !editor.gpuResources) {
       return;
     }
@@ -363,8 +371,8 @@ export class CanvasPipeline {
     renderPass.setPipeline(renderPipeline);
 
     // Animation steps
-    editor.stepVideoAnimations(editor.camera);
-    editor.stepMotionPathAnimations(editor.camera);
+    editor.stepVideoAnimations(editor.camera, currentTimeS);
+    editor.stepMotionPathAnimations(editor.camera, currentTimeS);
 
     // Set camera bind group
     if (!editor.cameraBinding) {
@@ -517,11 +525,14 @@ export class CanvasPipeline {
       editor.updateCameraBinding();
     }
 
+    if (frameEncoder) {
+      frameEncoder(currentTexture);
+    }
+
     // End the render pass
     renderPass.end();
 
     // Submit command buffer and present
     queue.submit([encoder.finish()]);
-    // No need for device.poll() in WebGPU JS API
   }
 }

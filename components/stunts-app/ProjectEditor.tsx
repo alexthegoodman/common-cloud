@@ -480,7 +480,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
 
     let pipeline = new CanvasPipeline();
 
-    canvasPipelineRef.current = await pipeline.new(editorRef.current);
+    canvasPipelineRef.current = await pipeline.new(editorRef.current, true);
 
     let windowSize = editorRef.current.camera?.windowSize;
 
