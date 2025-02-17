@@ -2070,7 +2070,7 @@ export class Editor {
     video_item.mousePositions = mouse_positions;
 
     // render 1 frame to provide preview image
-    video_item.drawVideoFrame(device, queue);
+    // video_item.drawVideoFrame(device, queue);
 
     this.videoItems.push(video_item);
   }
