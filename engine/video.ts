@@ -3,8 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 import { Point } from "./editor";
 import { createEmptyGroupTransform, Transform } from "./transform";
 import { Vertex } from "./vertex";
-import { SavedPoint } from "./polygon";
-import MP4Box, { MP4ArrayBuffer } from "mp4box";
+import { INTERNAL_LAYER_SPACE, SavedPoint } from "./polygon";
+import MP4Box, { DataStream, MP4ArrayBuffer, MP4VideoTrack } from "mp4box";
 
 export interface RectInfo {
   left: number;
@@ -70,6 +70,8 @@ interface VideoMetadata {
   frameRate: number;
   trackId?: number;
   timescale: number;
+  codecs: string;
+  description?: Uint8Array;
 }
 
 interface DecodedFrameInfo {
@@ -109,7 +111,7 @@ export class StVideo {
   lastStartPoint: MousePosition | undefined;
   lastEndPoint: MousePosition | undefined;
   lastShiftTime: number | undefined;
-  sourceData: SourceData | undefined;
+  sourceData: SourceData | null = null;
   gridResolution: [number, number];
   //   frameTimer: FrameTimer | undefined;
   dynamicAlpha: number;
@@ -124,6 +126,7 @@ export class StVideo {
   private currentSampleIndex: number = 0;
   private decodingPromise?: Promise<DecodedFrameInfo>;
   private frameCallback?: (frame: DecodedFrameInfo) => void;
+  private codecString?: string;
 
   constructor(
     device: GPUDevice,
@@ -141,7 +144,7 @@ export class StVideo {
     this.name = videoConfig.name;
     this.path = videoConfig.path;
     // this.blob = blob;
-    this.hidden = false;
+    this.hidden = true;
     this.layer = videoConfig.layer;
     this.currentZoom = 1.0;
     this.mousePath = videoConfig.mousePath;
@@ -174,6 +177,9 @@ export class StVideo {
       uniformBuffer
       // window_size,
     );
+
+    this.transform.layer = videoConfig.layer - INTERNAL_LAYER_SPACE;
+    this.transform.updateUniformBuffer(queue, windowSize);
 
     // Placeholder for media initialization
     this.initializeMediaSource(blob).then((mediaInfo) => {
@@ -302,16 +308,50 @@ export class StVideo {
         );
 
         this.groupBindGroup = group_bind_group;
+
+        this.initializeDecoder().then(() => {
+          // draw initial preview frame
+          this.drawVideoFrame(device, queue).catch(console.error); // Handle potential errors
+        });
       }
     });
   }
 
+  private avcDecoderConfig?: Uint8Array;
+
+  description(track: MP4VideoTrack) {
+    if (!this.mp4File) {
+      return;
+    }
+
+    const trak = this.mp4File.getTrackById(track.id);
+
+    if (
+      !trak.mdia ||
+      !trak.mdia.minf ||
+      !trak.mdia.minf.stbl ||
+      !trak.mdia.minf.stbl.stsd
+    ) {
+      return;
+    }
+
+    for (const entry of trak.mdia.minf.stbl.stsd.entries) {
+      const box = entry.avcC || entry.hvcC;
+      // || entry.vpcC || entry.av1C;
+      if (box) {
+        console.info("prepare box!");
+        const stream = new DataStream(undefined, 0, DataStream.BIG_ENDIAN);
+        box.write(stream);
+        return new Uint8Array(stream.buffer, 8); // Remove the box header.
+      }
+    }
+    throw new Error("avcC, hvcC, vpcC, or av1C box not found");
+  }
+
   async initializeMediaSource(blob: Blob): Promise<VideoMetadata | null> {
     try {
-      // Convert blob to ArrayBuffer
       this.sourceBuffer = (await blob.arrayBuffer()) as MP4ArrayBuffer;
-
-      // Initialize MP4Box
+      this.sourceBuffer.fileStart = 0;
       this.mp4File = MP4Box.createFile();
 
       return new Promise((resolve, reject) => {
@@ -324,7 +364,6 @@ export class StVideo {
           reject(new Error(`MP4Box error: ${error}`));
         };
 
-        // Handle MP4 parsing completion
         this.mp4File.onReady = (info: MP4Box.MP4Info) => {
           const videoTrack = info.videoTracks[0];
 
@@ -333,7 +372,38 @@ export class StVideo {
             return;
           }
 
-          // Extract all samples to calculate actual FPS
+          // Store codec string for decoder configuration
+          this.codecString = videoTrack.codec;
+
+          // Extract AVC decoder configuration
+          // if (videoTrack.codec.startsWith("avc1")) {
+          //   // Access MP4Box's internal track information to get the AVC configuration
+          //   const track = (this.mp4File as any).getTrackById(videoTrack.id);
+          //   if (
+          //     track &&
+          //     track.mdia &&
+          //     track.mdia.minf &&
+          //     track.mdia.minf.stbl &&
+          //     track.mdia.minf.stbl.stsd &&
+          //     track.mdia.minf.stbl.stsd.entries
+          //   ) {
+          //     const avcC = track.mdia.minf.stbl.stsd.entries[0].avcC;
+          //     // Convert the AVC configuration to a Uint8Array
+          //     if (avcC) {
+          //       const stream = new DataStream(
+          //         // new ArrayBuffer(avcC.size),
+          //         undefined,
+          //         0,
+          //         DataStream.BIG_ENDIAN
+          //       );
+          //       avcC.write(stream);
+          //       this.avcDecoderConfig = new Uint8Array(stream.buffer);
+          //     }
+          //   }
+          // }
+
+          this.avcDecoderConfig = this.description(videoTrack);
+
           this.mp4File!.setExtractionOptions(videoTrack.id, null, {
             nbSamples: Infinity,
           });
@@ -343,9 +413,10 @@ export class StVideo {
             user: any,
             samples: MP4Box.MP4Sample[]
           ) => {
+            console.info("onSamples");
+
             this.samples = samples;
 
-            // Calculate FPS from sample count and duration
             const durationInSeconds =
               videoTrack.duration / videoTrack.timescale;
             const frameRate = samples.length / durationInSeconds;
@@ -358,6 +429,8 @@ export class StVideo {
               frameRate: frameRate,
               trackId: videoTrack.id,
               timescale: videoTrack.timescale,
+              codecs: videoTrack.codec,
+              description: this.avcDecoderConfig,
             };
 
             this.isInitialized = true;
@@ -367,11 +440,12 @@ export class StVideo {
           this.mp4File!.start();
         };
 
-        // Process the file
-        const chunk = this.sourceBuffer;
-        if (chunk) {
-          this.mp4File.appendBuffer(chunk);
+        // (this.mp4File as any).fileStart = 0;
+        if (!this.sourceBuffer) {
+          return;
         }
+
+        this.mp4File.appendBuffer(this.sourceBuffer);
       });
     } catch (error) {
       console.error("Error initializing media source:", error);
@@ -381,14 +455,22 @@ export class StVideo {
   }
 
   private async initializeDecoder(): Promise<void> {
+    console.info("initializeDecoder");
+
     if (this.videoDecoder) {
       return;
     }
 
     return new Promise((resolve, reject) => {
+      if (!this.codecString || !this.videoMetadata) {
+        throw new Error("Codec information not available");
+      }
+
       this.videoDecoder = new VideoDecoder({
         output: async (frame: VideoFrame) => {
           try {
+            console.info("decoder output");
+
             const frameData = new Uint8Array(frame.allocationSize());
             await frame.copyTo(frameData);
 
@@ -412,6 +494,20 @@ export class StVideo {
           reject(error);
         },
       });
+
+      // Configure the decoder with the codec information and AVC configuration
+      const config: VideoDecoderConfig = {
+        codec: this.codecString,
+        optimizeForLatency: true,
+        hardwareAcceleration: "prefer-hardware",
+
+        // Add description for AVC/H.264
+        description: this.avcDecoderConfig,
+      };
+
+      this.videoDecoder.configure(config);
+
+      console.info("decoder configured");
 
       resolve();
     });
@@ -440,11 +536,11 @@ export class StVideo {
   }
 
   async decodeNextFrame(): Promise<DecodedFrameInfo> {
+    console.info("decodeNextFrame");
+
     if (!this.isInitialized || this.currentSampleIndex >= this.samples.length) {
       throw new Error("No more frames to decode");
     }
-
-    await this.initializeDecoder();
 
     return new Promise((resolve, reject) => {
       this.frameCallback = (frameInfo: DecodedFrameInfo) => {
@@ -460,12 +556,19 @@ export class StVideo {
         data: sample.data,
       });
 
+      console.info("decode chunk");
+
       this.videoDecoder!.decode(chunk);
+
+      console.info("chunk decoded");
+
       this.currentSampleIndex++;
     });
   }
 
   async drawVideoFrame(device: GPUDevice, queue: GPUQueue, timeMs?: number) {
+    console.info("drawVideoFrame");
+
     if (timeMs !== undefined) {
       await this.seekToTime(timeMs);
     }

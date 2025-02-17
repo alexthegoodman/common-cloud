@@ -322,3 +322,91 @@ export async function getUploadedImageData(filename: string): Promise<Blob> {
     // return { success: false, message: error.message }; // Example
   }
 }
+
+export const saveVideo = async (
+  token: string,
+  fileName: string,
+  data: Blob
+): Promise<UploadResponse> => {
+  const response = await fetch("http://localhost:3000/api/upload/video", {
+    method: "POST",
+    headers: {
+      // Remove Content-Type: application/json since we're sending raw binary data
+      Authorization: `Bearer ${token}`,
+      "X-File-Name": fileName,
+    },
+    body: data, // Send the Blob directly as the body
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Save image request failed: ${response.status} - ${response.statusText} - ${errorText}`
+    );
+  }
+
+  return response.json();
+};
+
+export const getUploadedVideo = async (
+  token: string,
+  filename: string
+): Promise<Blob> => {
+  const response = await fetch(
+    // `http://localhost:3000/api/media/image?filename=${encodeURIComponent(
+    //   filename
+    // )}`,
+    // for now or forever, just fetch directly from url
+    `http://localhost:3000${filename}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Get image request failed: ${response.status} - ${response.statusText} - ${errorText}`
+    );
+  }
+
+  // let blob = await response.blob();
+
+  // console.info("blob details", blob.size);
+
+  // return blob;
+
+  const arrayBuffer = await response.arrayBuffer();
+
+  // Create a properly typed Blob specifically for image data
+  return new Blob([arrayBuffer], {
+    type: response.headers.get("Content-Type") || "image/jpeg",
+  });
+};
+
+export async function getUploadedVideoData(filename: string): Promise<Blob> {
+  try {
+    // Get stored-project and auth-token from local storage
+    // const storedProjectString = localStorage.getItem("stored-project");
+    const authTokenString = localStorage.getItem("auth-token");
+
+    if (!authTokenString) {
+      throw new Error("Couldn't get auth token from local storage");
+    }
+
+    // const storedProject = JSON.parse(storedProjectString);
+    const authToken: AuthToken = JSON.parse(authTokenString);
+
+    // Call the updateSequences function
+    return await getUploadedVideo(authToken.token, filename);
+  } catch (error) {
+    console.error("Error getting image data:", error);
+    // Handle the error appropriately, e.g., return a default response or throw the error
+    throw error; // Re-throw if you want the calling function to handle it
+    // Or return a default/error response:
+    // return { success: false, message: error.message }; // Example
+  }
+}

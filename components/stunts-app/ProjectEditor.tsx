@@ -18,6 +18,7 @@ import {
   getSingleProject,
   saveImage,
   saveSequencesData,
+  saveVideo,
   updateSequences,
 } from "@/fetchers/projects";
 import { useDevEffectOnce } from "@/hooks/useDevOnce";
@@ -210,6 +211,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
   );
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const videoInputRef = useRef<HTMLInputElement | null>(null);
 
   const editorRef = useRef<Editor | null>(null);
   const editorStateRef = useRef<EditorState | null>(null);
@@ -618,6 +620,8 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
       }
 
       video.hidden = false;
+
+      console.info("Video restored!");
     });
 
     if (background_fill.type === "Color") {
@@ -944,7 +948,95 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     // drop(editor);
   };
 
-  let on_add_video = () => {};
+  let on_add_video = async (sequence_id: string, file: File) => {
+    let editor = editorRef.current;
+    let editor_state = editorStateRef.current;
+
+    if (!editor || !editor_state) {
+      return;
+    }
+
+    if (!authToken) {
+      return;
+    }
+
+    let blob = await fileToBlob(file);
+
+    if (!blob) {
+      return;
+    }
+
+    let response = await saveVideo(authToken.token, file.name, blob);
+
+    if (response) {
+      let url = response.url;
+
+      console.info("File url:", url);
+
+      // let mut rng = rand::thread_rng();
+      // let random_number_800 = rng.gen_range(0..=800);
+      // let random_number_450 = rng.gen_range(0..=450);
+
+      let random_number_800 = getRandomNumber(0, 800);
+      let random_number_450 = getRandomNumber(0, 450);
+
+      let new_id = uuidv4();
+
+      let position = {
+        x: random_number_800 + CANVAS_HORIZ_OFFSET,
+        y: random_number_450 + CANVAS_VERT_OFFSET,
+      };
+
+      let video_config = {
+        id: new_id,
+        name: "New Video Item",
+        dimensions: [100, 100] as [number, number],
+        position,
+        // path: new_path.clone(),
+        path: url,
+        mousePath: "",
+        layer: -1,
+      };
+
+      editor.add_video_item(video_config, blob, new_id, sequence_id, [], null);
+
+      console.info("Adding video: {:?}", new_id);
+
+      editor_state.add_saved_video_item(sequence_id, {
+        id: video_config.id,
+        name: video_config.name,
+        // path: new_path.clone(),
+        path: url,
+        dimensions: [video_config.dimensions[0], video_config.dimensions[1]],
+        position: {
+          x: position.x,
+          y: position.y,
+        },
+        layer: video_config.layer,
+        mousePath: video_config.mousePath,
+      });
+
+      console.info("Saved video!");
+
+      let saved_state = editor_state.savedState;
+      let updated_sequence = saved_state.sequences.find(
+        (s) => s.id == sequence_id
+      );
+
+      let sequence_cloned = updated_sequence;
+
+      if (!sequence_cloned) {
+        return;
+      }
+
+      set_sequences(saved_state.sequences);
+
+      editor.currentSequenceData = sequence_cloned;
+      editor.updateMotionPaths(sequence_cloned);
+
+      console.info("video added!");
+    }
+  };
 
   let on_open_capture = () => {};
 
@@ -1203,11 +1295,30 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                     callback={() => fileInputRef.current?.click()}
                   />
 
+                  <input
+                    type="file"
+                    ref={videoInputRef}
+                    accept="video/*"
+                    style={{ display: "none" }}
+                    onChange={(e) => {
+                      // Handle the selected file here
+                      if (!e.target.files || !current_sequence_id) {
+                        return;
+                      }
+
+                      const file = e.target.files[0];
+                      if (file) {
+                        // Do something with the file
+                        console.log("Selected file:", file);
+                        on_add_video(current_sequence_id, file);
+                      }
+                    }}
+                  />
                   <OptionButton
                     style=""
                     label="Add Video"
                     icon="video"
-                    callback={() => {}}
+                    callback={() => videoInputRef.current?.click()}
                   />
                   <OptionButton
                     style=""

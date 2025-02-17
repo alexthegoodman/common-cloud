@@ -308,7 +308,11 @@ import { Camera, CameraBinding, WindowSize } from "./camera";
 import { StImage, StImageConfig } from "./image";
 import { MousePosition, SourceData, StVideo, StVideoConfig } from "./video";
 import { vec2 } from "gl-matrix";
-import { getUploadedImage, getUploadedImageData } from "@/fetchers/projects";
+import {
+  getUploadedImage,
+  getUploadedImageData,
+  getUploadedVideoData,
+} from "@/fetchers/projects";
 
 export class Editor {
   // visual
@@ -609,63 +613,65 @@ export class Editor {
       });
     });
 
-    // saved_sequence.activeVideoItems.forEach((i) => {
-    //   let stored_source_data: SourceData | null = null;
-    //   let stored_mouse_positions: MousePosition[] | null = null;
+    saved_sequence.activeVideoItems.forEach((i) => {
+      // let stored_source_data: SourceData | null = null;
+      // let stored_mouse_positions: MousePosition[] | null = null;
 
-    //   if (i.mouse_path) {
-    //     try {
-    //       // Assuming you have a way to read files of your TS environment (e.g., using fetch or Node.js's fs)
-    //       const sourceDataPath =
-    //         i.mouse_path.substring(0, i.mouse_path.lastIndexOf("/")) +
-    //         "/sourceData.json";
-    //       const sourceData = // however you read it, you'll need to await, etc.
-    //         (stored_source_data = sourceData as SourceData); // parse the json
+      // if (i.mouse_path) {
+      //   try {
+      //     // Assuming you have a way to read files of your TS environment (e.g., using fetch or Node.js's fs)
+      //     const sourceDataPath =
+      //       i.mouse_path.substring(0, i.mouse_path.lastIndexOf("/")) +
+      //       "/sourceData.json";
+      //     const sourceData = // however you read it, you'll need to await, etc.
+      //       (stored_source_data = sourceData as SourceData); // parse the json
 
-    //       const mousePositions = // read the mouse position file
-    //         (stored_mouse_positions = mousePositions as MousePosition[]); // parse the json
-    //     } catch (error) {
-    //       console.error("Error reading video data:", error);
-    //     }
-    //   }
+      //     const mousePositions = // read the mouse position file
+      //       (stored_mouse_positions = mousePositions as MousePosition[]); // parse the json
+      //   } catch (error) {
+      //     console.error("Error reading video data:", error);
+      //   }
+      // }
 
-    //   const position = {
-    //     x: CANVAS_HORIZ_OFFSET + i.position[0],
-    //     y: CANVAS_VERT_OFFSET + i.position[1],
-    //   };
+      const position = {
+        x: CANVAS_HORIZ_OFFSET + i.position.x,
+        y: CANVAS_VERT_OFFSET + i.position.y,
+      };
 
-    //   const video_config: StVideoConfig = {
-    //     id: i.id,
-    //     name: i.name,
-    //     dimensions: i.dimensions,
-    //     path: i.path,
-    //     position,
-    //     layer: i.layer,
-    //     mouse_path: i.mouse_path,
-    //   };
+      const video_config: StVideoConfig = {
+        id: i.id,
+        name: i.name,
+        dimensions: i.dimensions,
+        path: i.path,
+        position,
+        layer: i.layer,
+        mousePath: i.mousePath,
+      };
 
-    //   const restored_video = new StVideo(
-    //     device,
-    //     queue,
-    //     i.path,
-    //     video_config,
-    //     windowSize,
-    //     this.modelBindGroupLayout!,
-    //     this.groupBindGroupLayout!,
-    //     -2.0,
-    //     i.id,
-    //     saved_sequence.id
-    //   );
+      getUploadedVideoData(i.path).then((blob) => {
+        const restored_video = new StVideo(
+          device,
+          queue,
+          blob,
+          video_config,
+          windowSize,
+          this.modelBindGroupLayout!,
+          this.groupBindGroupLayout!,
+          -2.0,
+          // i.id,
+          saved_sequence.id
+        );
 
-    //   restored_video.hidden = hidden;
-    //   restored_video.source_data = stored_source_data;
-    //   restored_video.mouse_positions = stored_mouse_positions;
+        restored_video.hidden = hidden;
+        // restored_video.source_data = stored_source_data;
+        // restored_video.mouse_positions = stored_mouse_positions;
 
-    //   restored_video.draw_video_frame(device, queue).catch(console.error); // Handle potential errors
+        // restored_video.drawVideoFrame(device, queue).catch(console.error); // Handle potential errors
 
-    //   this.videoItems.push(restored_video);
-    //   console.log("Video restored...");
-    // });
+        this.videoItems.push(restored_video);
+        console.log("Video restored...");
+      });
+    });
   }
 
   reset_sequence_objects() {
@@ -2015,24 +2021,31 @@ export class Editor {
   }
 
   add_video_item(
-    windowSize: WindowSize,
-    device: GPUDevice,
-    queue: GPUQueue,
+    // windowSize: WindowSize,
+    // device: GPUDevice,
+    // queue: GPUQueue,
     video_config: StVideoConfig,
     blob: Blob,
     new_id: string,
     selected_sequence_id: string,
     mouse_positions: MousePosition[],
-    stored_source_data: SourceData
+    stored_source_data: SourceData | null
   ) {
     let gpuResources = this.gpuResources;
     let camera = this.camera;
+
+    let device = gpuResources?.device;
+    let queue = gpuResources?.queue;
+    let windowSize = camera?.windowSize;
 
     if (
       !gpuResources ||
       !camera ||
       !this.modelBindGroupLayout ||
-      !this.groupBindGroupLayout
+      !this.groupBindGroupLayout ||
+      !device ||
+      !queue ||
+      !windowSize
     ) {
       return;
     }
