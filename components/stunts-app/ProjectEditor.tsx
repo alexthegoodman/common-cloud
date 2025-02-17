@@ -1128,7 +1128,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
         />
         <NavButton label="Settings" icon="gear" destination="/settings" />
       </div>
-      <div className="flex flex-row">
+      <div className="flex flex-row w-full">
         {section === "SequenceList" ? (
           <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
             <div className="flex flex-col w-full">
@@ -1403,7 +1403,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
         ) : (
           <></>
         )}
-        <div>
+        <div className="flex flex-col justify-center items-center w-[calc(100vw-420px)] gap-2">
           <canvas
             id="scene-canvas"
             className="w-[900px] h-[550px] border border-black"

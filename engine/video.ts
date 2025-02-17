@@ -678,6 +678,11 @@ export class StVideo {
     return this.currentSampleIndex;
   }
 
+  resetPlayback() {
+    this.currentSampleIndex = 0;
+    this.numFramesDrawn = 0;
+  }
+
   updateOpacity(queue: GPUQueue, opacity: number): void {
     /* ... */
   }

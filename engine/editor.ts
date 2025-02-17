@@ -726,35 +726,41 @@ export class Editor {
         text.backgroundPolygon.updateOpacity(gpu_resources.queue, 1.0);
       });
 
-      // this.currentSequenceData.active_imageItems.forEach(i => {
-      //     const image = this.imageItems.find(image => image.id === i.id);
-      //     if (!image) {
-      //         throw new Error("Couldn't find image");
-      //     }
+      this.currentSequenceData.activeImageItems.forEach((i) => {
+        const image = this.imageItems.find((image) => image.id === i.id);
+        if (!image) {
+          throw new Error("Couldn't find image");
+        }
 
-      //     image.transform.position[0] = i.position[0] + CANVAS_HORIZ_OFFSET;
-      //     image.transform.position[1] = i.position[1] + CANVAS_VERT_OFFSET;
-      //     image.transform.rotation = 0.0;
+        image.transform.position[0] = i.position.x + CANVAS_HORIZ_OFFSET;
+        image.transform.position[1] = i.position.y + CANVAS_VERT_OFFSET;
+        image.transform.rotation = 0.0;
 
-      //     image.transform.update_uniform_buffer(gpu_resources.queue, camera.windowSize);
-      //     image.update_opacity(gpu_resources.queue, 1.0);
-      // });
+        image.transform.updateUniformBuffer(
+          gpu_resources.queue,
+          camera.windowSize
+        );
+        image.updateOpacity(gpu_resources.queue, 1.0);
+      });
 
-      // this.currentSequenceData.active_videoItems.forEach(i => {
-      //     const video = this.videoItems.find(video => video.id === i.id);
-      //     if (!video) {
-      //         throw new Error("Couldn't find video");
-      //     }
+      this.currentSequenceData.activeVideoItems.forEach((i) => {
+        const video = this.videoItems.find((video) => video.id === i.id);
+        if (!video) {
+          throw new Error("Couldn't find video");
+        }
 
-      //     video.transform.position[0] = i.position[0] + CANVAS_HORIZ_OFFSET;
-      //     video.transform.position[1] = i.position[1] + CANVAS_VERT_OFFSET;
-      //     video.transform.rotation = 0.0;
+        video.transform.position[0] = i.position.x + CANVAS_HORIZ_OFFSET;
+        video.transform.position[1] = i.position.y + CANVAS_VERT_OFFSET;
+        video.transform.rotation = 0.0;
 
-      //     video.transform.update_uniform_buffer(gpu_resources.queue, camera.windowSize);
-      //     video.update_opacity(gpu_resources.queue, 1.0);
+        video.transform.updateUniformBuffer(
+          gpu_resources.queue,
+          camera.windowSize
+        );
+        video.updateOpacity(gpu_resources.queue, 1.0);
 
-      //     video.reset_playback().catch(console.error); // Handle potential errors
-      // });
+        video.resetPlayback();
+      });
     }
   }
 
