@@ -3273,6 +3273,7 @@ export class Editor {
             name: polygon.name,
             points: polygon.points,
             dimensions: polygon.dimensions,
+            rotation: polygon.rotation,
             position: {
               x: polygon.transform.position[0],
               y: polygon.transform.position[1],

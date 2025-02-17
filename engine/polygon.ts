@@ -29,6 +29,7 @@ export interface PolygonConfig {
   points: Point[];
   fill: [number, number, number, number];
   dimensions: [number, number]; // [width, height]
+  rotation: number;
   position: Point;
   borderRadius: number;
   stroke: Stroke;
@@ -146,7 +147,7 @@ export class Polygon implements PolygonShape {
       points,
       dimensions,
       position,
-      // rotation,
+      rotation,
       borderRadius,
       fill,
       stroke,
@@ -316,7 +317,7 @@ export class Polygon implements PolygonShape {
         x: this.transform.position[0],
         y: this.transform.position[1],
       },
-      // this.transform.rotation,
+      rotation: this.transform.rotation,
       borderRadius: this.borderRadius,
       fill: this.fill,
       stroke: this.stroke,
@@ -377,7 +378,7 @@ export class Polygon implements PolygonShape {
         x: this.transform.position[0],
         y: this.transform.position[1],
       },
-      // this.transform.rotation,
+      rotation: this.transform.rotation,
       borderRadius: borderRadius,
       fill: this.fill,
       stroke: this.stroke,
@@ -439,7 +440,7 @@ export class Polygon implements PolygonShape {
         x: this.transform.position[0],
         y: this.transform.position[1],
       },
-      // this.transform.rotation,
+      rotation: this.transform.rotation,
       borderRadius: this.borderRadius,
       fill: this.fill,
       stroke: stroke,
@@ -501,7 +502,7 @@ export class Polygon implements PolygonShape {
         x: this.transform.position[0],
         y: this.transform.position[1],
       },
-      // this.transform.rotation,
+      rotation: this.transform.rotation,
       borderRadius: this.borderRadius,
       fill: fill,
       stroke: this.stroke,
@@ -574,6 +575,7 @@ export class Polygon implements PolygonShape {
       points: this.points,
       fill: this.fill,
       dimensions: this.dimensions,
+      rotation: this.transform.rotation,
       position: {
         x: this.transform.position[0] - CANVAS_HORIZ_OFFSET,
         y: this.transform.position[1] - CANVAS_VERT_OFFSET,
@@ -823,8 +825,8 @@ export function getPolygonData(
 
   const transform = new Transform(
     vec2.fromValues(polygon.position.x, polygon.position.y),
-    // polygon.rotation,
-    0,
+    polygon.rotation,
+    // 0,
     vec2.fromValues(1, 1),
     uniformBuffer
     // camera.windowSize // Assuming camera has windowSize

@@ -819,6 +819,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
         x: random_number_800,
         y: random_number_450,
       },
+      rotation: 0,
       borderRadius: 0.0,
       fill: [1.0, 1.0, 1.0, 1.0],
       stroke: {
