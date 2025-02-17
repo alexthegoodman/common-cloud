@@ -128,6 +128,8 @@ export class StVideo {
   private frameCallback?: (frame: DecodedFrameInfo) => void;
   private codecString?: string;
 
+  bytesPerFrame: number | null = null;
+
   constructor(
     device: GPUDevice,
     queue: GPUQueue,
@@ -185,10 +187,14 @@ export class StVideo {
     this.initializeMediaSource(blob).then((mediaInfo) => {
       if (mediaInfo) {
         const { duration, durationMs, width, height, frameRate } = mediaInfo;
+
+        console.info("media info", mediaInfo);
+
         this.sourceDuration = duration;
         this.sourceDurationMs = durationMs;
         this.sourceDimensions = [width, height];
         this.sourceFrameRate = frameRate;
+        this.bytesPerFrame = width * 4 * height;
 
         const textureSize: GPUExtent3DStrict = {
           width: width,
@@ -202,7 +208,8 @@ export class StVideo {
           mipLevelCount: 1,
           sampleCount: 1,
           dimension: "2d",
-          format: "bgra8unorm", // Or appropriate format
+          // format: "bgra8unorm", // Or appropriate format
+          format: "rgba8unorm",
           usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
         });
         this.textureView = this.texture.createView();
@@ -248,6 +255,8 @@ export class StVideo {
             });
           }
         }
+
+        // console.info("vertices", this.vertices);
 
         this.vertexBuffer = device.createBuffer({
           label: "Vertex Buffer",
@@ -375,34 +384,16 @@ export class StVideo {
           // Store codec string for decoder configuration
           this.codecString = videoTrack.codec;
 
-          // Extract AVC decoder configuration
-          // if (videoTrack.codec.startsWith("avc1")) {
-          //   // Access MP4Box's internal track information to get the AVC configuration
-          //   const track = (this.mp4File as any).getTrackById(videoTrack.id);
-          //   if (
-          //     track &&
-          //     track.mdia &&
-          //     track.mdia.minf &&
-          //     track.mdia.minf.stbl &&
-          //     track.mdia.minf.stbl.stsd &&
-          //     track.mdia.minf.stbl.stsd.entries
-          //   ) {
-          //     const avcC = track.mdia.minf.stbl.stsd.entries[0].avcC;
-          //     // Convert the AVC configuration to a Uint8Array
-          //     if (avcC) {
-          //       const stream = new DataStream(
-          //         // new ArrayBuffer(avcC.size),
-          //         undefined,
-          //         0,
-          //         DataStream.BIG_ENDIAN
-          //       );
-          //       avcC.write(stream);
-          //       this.avcDecoderConfig = new Uint8Array(stream.buffer);
-          //     }
-          //   }
-          // }
-
           this.avcDecoderConfig = this.description(videoTrack);
+
+          console.log("Codec string:", videoTrack.codec);
+          console.log("avcC length:", this.avcDecoderConfig?.length);
+          if (this.avcDecoderConfig) {
+            const firstFewBytes = Array.from(this.avcDecoderConfig.slice(0, 10))
+              .map((byte) => byte.toString(16).padStart(2, "0"))
+              .join("");
+            console.log("First few bytes of avcC:", firstFewBytes);
+          }
 
           this.mp4File!.setExtractionOptions(videoTrack.id, null, {
             nbSamples: Infinity,
@@ -469,10 +460,25 @@ export class StVideo {
       this.videoDecoder = new VideoDecoder({
         output: async (frame: VideoFrame) => {
           try {
-            console.info("decoder output");
+            if (!this.bytesPerFrame) {
+              throw new Error("No bytesPerFrame");
+            }
 
-            const frameData = new Uint8Array(frame.allocationSize());
-            await frame.copyTo(frameData);
+            console.info(
+              "decoder output",
+              this.bytesPerFrame,
+              frame.allocationSize(),
+              frame.codedWidth,
+              frame.displayWidth,
+              frame.colorSpace
+            );
+
+            const frameData = new Uint8Array(this.bytesPerFrame);
+            const options: VideoFrameCopyToOptions = {
+              colorSpace: "srgb",
+              format: "RGBA",
+            };
+            await frame.copyTo(frameData, options);
 
             const frameInfo: DecodedFrameInfo = {
               timestamp: frame.timestamp,
@@ -496,10 +502,22 @@ export class StVideo {
       });
 
       // Configure the decoder with the codec information and AVC configuration
+      // const colorSpace: VideoColorSpaceInit = {
+      //   fullRange: false,
+      //   matrix: "rgb",
+      //   // primaries?: VideoColorPrimaries | null;
+      //   // transfer?: VideoTransferCharacteristics | null;
+      //   primaries: "bt709",
+      //   transfer: "iec61966-2-1",
+      // };
+
+      // let test  = new VideoColorSpace(colorSpace);
+
       const config: VideoDecoderConfig = {
         codec: this.codecString,
         optimizeForLatency: true,
         hardwareAcceleration: "prefer-hardware",
+        // colorSpace: colorSpace,
 
         // Add description for AVC/H.264
         description: this.avcDecoderConfig,
@@ -548,7 +566,8 @@ export class StVideo {
         resolve(frameInfo);
       };
 
-      const sample = this.samples[this.currentSampleIndex];
+      let sample = this.samples[this.currentSampleIndex];
+
       const chunk = new EncodedVideoChunk({
         type: sample.is_sync ? "key" : "delta",
         timestamp: sample.cts,
@@ -556,7 +575,21 @@ export class StVideo {
         data: sample.data,
       });
 
-      console.info("decode chunk");
+      console.log(
+        "EncodedVideoChunk:",
+        chunk.type,
+        chunk.timestamp,
+        chunk.duration,
+        chunk.byteLength
+      );
+
+      console.info(
+        "decode chunk",
+        this.samples.length,
+        chunk.type,
+        this.currentSampleIndex,
+        sample.is_sync
+      );
 
       this.videoDecoder!.decode(chunk);
 
@@ -567,19 +600,49 @@ export class StVideo {
   }
 
   async drawVideoFrame(device: GPUDevice, queue: GPUQueue, timeMs?: number) {
-    console.info("drawVideoFrame");
-
     if (timeMs !== undefined) {
       await this.seekToTime(timeMs);
     }
 
     const frameInfo = await this.decodeNextFrame();
 
+    console.info(
+      "write texture!",
+      frameInfo.width,
+      frameInfo.height,
+      frameInfo.frameData.length,
+      frameInfo.frameData.slice(0, 1000)
+    );
+
+    // this.bindGroup = device.createBindGroup({
+    //   layout: this.bindGroupLayout,
+    //   entries: [
+    //     {
+    //       binding: 0,
+    //       resource: {
+    //         buffer: this.uniformBuffer,
+    //       },
+    //     },
+    //     {
+    //       binding: 1,
+    //       resource: device.importExternalTexture({ source: frameInfo.frame }),
+    //     },
+    //     { binding: 2, resource: this.sampler },
+    //   ],
+    //   label: "Video Bind Group",
+    // });
+
     // Update WebGPU texture
     queue.writeTexture(
-      { texture: this.texture },
+      {
+        texture: this.texture,
+        mipLevel: 0,
+        origin: { x: 0, y: 0, z: 0 },
+        aspect: "all",
+      },
       frameInfo.frameData,
       {
+        offset: 0,
         bytesPerRow: frameInfo.width * 4,
         rowsPerImage: frameInfo.height,
       },
@@ -589,6 +652,9 @@ export class StVideo {
         depthOrArrayLayers: 1,
       }
     );
+
+    console.info("texture write succesful");
+    console.log("Texture format:", this.texture.format); // Log texture format
 
     return frameInfo;
   }
@@ -641,13 +707,16 @@ export class StVideo {
   }
   toConfig(): StVideoConfig {
     return {
-      id: "",
-      name: "",
-      path: "",
-      mousePath: "",
-      dimensions: [0, 0],
-      position: { x: 0, y: 0 },
-      layer: 0,
+      id: this.id,
+      name: this.name,
+      path: this.path,
+      mousePath: this.mousePath || "",
+      dimensions: this.dimensions,
+      position: {
+        x: this.transform.position[0],
+        y: this.transform.position[1],
+      },
+      layer: this.layer,
     };
   }
 }
