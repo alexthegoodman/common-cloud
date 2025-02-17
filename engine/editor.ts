@@ -2019,7 +2019,7 @@ export class Editor {
     device: GPUDevice,
     queue: GPUQueue,
     video_config: StVideoConfig,
-    path: string,
+    blob: Blob,
     new_id: string,
     selected_sequence_id: string,
     mouse_positions: MousePosition[],
@@ -2040,7 +2040,7 @@ export class Editor {
     let video_item = new StVideo(
       device,
       queue,
-      path,
+      blob,
       video_config,
       windowSize,
       this.modelBindGroupLayout,
