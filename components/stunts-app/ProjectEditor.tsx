@@ -44,6 +44,12 @@ import { PolygonConfig } from "@/engine/polygon";
 import EditorState from "@/engine/editor_state";
 import LayerPanel, { Layer, LayerFromConfig } from "./layers";
 import { CanvasPipeline } from "@/engine/pipeline";
+import {
+  ImageProperties,
+  PolygonProperties,
+  TextProperties,
+  VideoProperties,
+} from "./Properties";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -260,9 +266,9 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
 
   let select_polygon = (polygon_id: string) => {
     set_selected_polygon_id(polygon_id);
-    set_selected_text_id(polygon_id);
-    set_selected_image_id(polygon_id);
-    set_selected_video_id(polygon_id);
+    set_selected_text_id(null);
+    set_selected_image_id(null);
+    set_selected_video_id(null);
 
     // let editor_state = editorStateRef.current;
 
@@ -283,11 +289,53 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     // drop(editor_state);
   };
 
+  let select_text = (text_id: string) => {
+    set_selected_polygon_id(null);
+    set_selected_text_id(text_id);
+    set_selected_image_id(null);
+    set_selected_video_id(null);
+  };
+
+  let select_image = (image_id: string) => {
+    set_selected_polygon_id(null);
+    set_selected_text_id(null);
+    set_selected_image_id(image_id);
+    set_selected_video_id(null);
+  };
+
+  let select_video = (video_id: string) => {
+    set_selected_polygon_id(null);
+    set_selected_text_id(null);
+    set_selected_image_id(null);
+    set_selected_video_id(video_id);
+  };
+
   let handle_polygon_click = (
     polygon_id: string,
     polygon_config: PolygonConfig
   ) => {
     select_polygon(polygon_id);
+  };
+
+  let handle_text_click = (
+    text_id: string
+    // polygon_config: PolygonConfig
+  ) => {
+    select_text(text_id);
+  };
+
+  let handle_image_click = (
+    image_id: string
+    // polygon_config: PolygonConfig
+  ) => {
+    select_image(image_id);
+  };
+
+  let handle_video_click = (
+    video_id: string
+    // polygon_config: PolygonConfig
+  ) => {
+    select_video(video_id);
   };
 
   let handle_mouse_up = (
@@ -480,6 +528,9 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
 
       // set handlers that rely on state
       editorRef.current.handlePolygonClick = handle_polygon_click;
+      editorRef.current.handleTextClick = handle_text_click;
+      editorRef.current.handleImageClick = handle_image_click;
+      editorRef.current.handleVideoClick = handle_video_click;
       editorRef.current.onMouseUp = handle_mouse_up;
     }
   }, [editorIsSet, current_sequence_id]);
@@ -1178,227 +1229,287 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
         ) : (
           <></>
         )}
-        {section === "SequenceView" ? (
+        {section === "SequenceView" && current_sequence_id ? (
           <div className="flex flex-col gap-4">
-            <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-              <div className="flex flex-col w-full gap-4 mb-4">
-                <div className="flex flex-row items-center">
-                  <button
-                    className="flex flex-col justify-center items-center text-xs w-[35px] h-[35px] text-center rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors mr-2"
-                    disabled={loading}
-                    onClick={() => set_section("SequenceList")}
-                  >
-                    <CreateIcon icon="arrow-left" size="24px" />
-                  </button>
-                  <h5>Update Sequence</h5>
-                </div>
-                <div className="flex flex-row gap-2">
-                  <label htmlFor="keyframe_count" className="text-xs">
-                    Choose keyframe count
-                  </label>
-                  <select
-                    id="keyframe_count"
-                    name="keyframe_count"
-                    className="text-xs"
-                    value={keyframe_count}
-                    onChange={(ev) =>
-                      set_keyframe_count(parseInt(ev.target.value))
-                    }
-                  >
-                    <option value="4">4</option>
-                    <option value="6">6</option>
-                  </select>
-                  <input
-                    type="checkbox"
-                    id="is_curved"
-                    name="is_curved"
-                    checked={is_curved}
-                    onChange={(ev) => set_is_curved(ev.target.checked)}
-                  />
-                  <label htmlFor="is_curved" className="text-xs">
-                    Is Curved
-                  </label>
-                </div>
-                <div className="flex flex-row gap-2">
-                  <input
-                    type="checkbox"
-                    id="auto_choreograph"
-                    name="auto_choreograph"
-                    checked={auto_choreograph}
-                    onChange={(ev) => set_auto_choreograph(ev.target.checked)}
-                  />
-                  <label htmlFor="auto_choreograph" className="text-xs">
-                    Auto-Choreograph
-                  </label>
-                  <input
-                    type="checkbox"
-                    id="auto_fade"
-                    name="auto_fade"
-                    checked={auto_fade}
-                    onChange={(ev) => set_auto_fade(ev.target.checked)}
-                  />
-                  <label htmlFor="auto_fade" className="text-xs">
-                    Auto-Fade
-                  </label>
-                </div>
-                <button
-                  type="submit"
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={loading}
-                >
-                  {loading ? "Generating..." : "Generate Animation"}
-                </button>
-                <div className="flex flex-row flex-wrap gap-2">
-                  <OptionButton
-                    style=""
-                    label="Add Square"
-                    icon="square"
-                    callback={() => {
-                      if (!current_sequence_id) {
-                        return;
-                      }
-
-                      on_add_square(current_sequence_id);
-                    }}
-                  />
-                  <OptionButton
-                    style=""
-                    label="Add Text"
-                    icon="text"
-                    callback={() => {
-                      if (!current_sequence_id) {
-                        return;
-                      }
-
-                      on_add_text(current_sequence_id);
-                    }}
-                  />
-
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept="image/*"
-                    style={{ display: "none" }}
-                    onChange={(e) => {
-                      // Handle the selected file here
-                      if (!e.target.files || !current_sequence_id) {
-                        return;
-                      }
-
-                      const file = e.target.files[0];
-                      if (file) {
-                        // Do something with the file
-                        console.log("Selected file:", file);
-                        on_add_image(current_sequence_id, file);
-                      }
-                    }}
-                  />
-                  <OptionButton
-                    style=""
-                    label="Add Image"
-                    icon="image"
-                    callback={() => fileInputRef.current?.click()}
-                  />
-
-                  <input
-                    type="file"
-                    ref={videoInputRef}
-                    accept="video/*"
-                    style={{ display: "none" }}
-                    onChange={(e) => {
-                      // Handle the selected file here
-                      if (!e.target.files || !current_sequence_id) {
-                        return;
-                      }
-
-                      const file = e.target.files[0];
-                      if (file) {
-                        // Do something with the file
-                        console.log("Selected file:", file);
-                        on_add_video(current_sequence_id, file);
-                      }
-                    }}
-                  />
-                  <OptionButton
-                    style=""
-                    label="Add Video"
-                    icon="video"
-                    callback={() => videoInputRef.current?.click()}
-                  />
-                  <OptionButton
-                    style=""
-                    label="Screen Capture"
-                    icon="video"
-                    callback={() => {}}
-                  />
-                </div>
-
-                <div className="flex flex-row flex-wrap gap-2">
-                  {themes.map((theme: number[], i) => {
-                    const backgroundColorRow = Math.floor(theme[0]);
-                    const backgroundColorColumn = Math.floor(
-                      (theme[0] % 1) * 10
-                    );
-                    const backgroundColor =
-                      colors[backgroundColorRow][backgroundColorColumn];
-                    const textColorRow = Math.floor(theme[4]);
-                    const textColorColumn = Math.floor((theme[4] % 1) * 10);
-                    const textColor = colors[textColorRow][textColorColumn];
-
-                    return (
-                      <OptionButton
-                        key={`${backgroundColor}-${textColor}-${i}`} // Add a key!
-                        style={`color: ${textColor}; background-color: ${backgroundColor};`}
-                        label="Apply Theme"
-                        icon="brush"
-                        callback={() => {
-                          console.log("Apply Theme...");
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-                <label className="text-sm">Background Color</label>
-                <div className="flex flex-row gap-2">
-                  <DebouncedInput
-                    id="background_red"
-                    label="Red"
-                    placeholder="Red"
-                    initialValue={background_red.toString()}
-                    onDebounce={(value) => {
-                      set_background_red(parseInt(value));
-                    }}
-                  />
-                  <DebouncedInput
-                    id="background_green"
-                    label="Green"
-                    placeholder="Green"
-                    initialValue={background_green.toString()}
-                    onDebounce={(value) => {
-                      set_background_green(parseInt(value));
-                    }}
-                  />
-                  <DebouncedInput
-                    id="background_blue"
-                    label="Blue"
-                    placeholder="Blue"
-                    initialValue={background_blue.toString()}
-                    onDebounce={(value) => {
-                      set_background_blue(parseInt(value));
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-              <LayerPanel
-                layers={layers}
-                setLayers={set_layers}
-                onItemDeleted={on_item_deleted}
-                onItemDuplicated={on_item_duplicated}
-                onItemsUpdated={on_items_updated}
+            {selected_polygon_id && (
+              <PolygonProperties
+                editorRef={editorRef}
+                editorStateRef={editorStateRef}
+                currentSequenceId={current_sequence_id}
+                currentPolygonId={selected_polygon_id}
               />
-            </div>
+            )}
+
+            {selected_image_id && (
+              <>
+                <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                  <ImageProperties
+                    editorRef={editorRef}
+                    editorStateRef={editorStateRef}
+                    currentSequenceId={current_sequence_id}
+                    currentImageId={selected_image_id}
+                  />
+                </div>
+              </>
+            )}
+
+            {selected_text_id && (
+              <>
+                <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                  <TextProperties
+                    editorRef={editorRef}
+                    editorStateRef={editorStateRef}
+                    currentSequenceId={current_sequence_id}
+                    currentTextId={selected_text_id}
+                  />
+                </div>
+              </>
+            )}
+
+            {selected_video_id && (
+              <>
+                <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                  <VideoProperties
+                    editorRef={editorRef}
+                    editorStateRef={editorStateRef}
+                    currentSequenceId={current_sequence_id}
+                    currentVideoId={selected_video_id}
+                  />
+                </div>
+              </>
+            )}
+
+            {!selected_polygon_id &&
+              !selected_image_id &&
+              !selected_text_id &&
+              !selected_video_id && (
+                <>
+                  <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                    <div className="flex flex-col w-full gap-4 mb-4">
+                      <div className="flex flex-row items-center">
+                        <button
+                          className="flex flex-col justify-center items-center text-xs w-[35px] h-[35px] text-center rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors mr-2"
+                          disabled={loading}
+                          onClick={() => set_section("SequenceList")}
+                        >
+                          <CreateIcon icon="arrow-left" size="24px" />
+                        </button>
+                        <h5>Update Sequence</h5>
+                      </div>
+                      <div className="flex flex-row gap-2">
+                        <label htmlFor="keyframe_count" className="text-xs">
+                          Choose keyframe count
+                        </label>
+                        <select
+                          id="keyframe_count"
+                          name="keyframe_count"
+                          className="text-xs"
+                          value={keyframe_count}
+                          onChange={(ev) =>
+                            set_keyframe_count(parseInt(ev.target.value))
+                          }
+                        >
+                          <option value="4">4</option>
+                          <option value="6">6</option>
+                        </select>
+                        <input
+                          type="checkbox"
+                          id="is_curved"
+                          name="is_curved"
+                          checked={is_curved}
+                          onChange={(ev) => set_is_curved(ev.target.checked)}
+                        />
+                        <label htmlFor="is_curved" className="text-xs">
+                          Is Curved
+                        </label>
+                      </div>
+                      <div className="flex flex-row gap-2">
+                        <input
+                          type="checkbox"
+                          id="auto_choreograph"
+                          name="auto_choreograph"
+                          checked={auto_choreograph}
+                          onChange={(ev) =>
+                            set_auto_choreograph(ev.target.checked)
+                          }
+                        />
+                        <label htmlFor="auto_choreograph" className="text-xs">
+                          Auto-Choreograph
+                        </label>
+                        <input
+                          type="checkbox"
+                          id="auto_fade"
+                          name="auto_fade"
+                          checked={auto_fade}
+                          onChange={(ev) => set_auto_fade(ev.target.checked)}
+                        />
+                        <label htmlFor="auto_fade" className="text-xs">
+                          Auto-Fade
+                        </label>
+                      </div>
+                      <button
+                        type="submit"
+                        className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={loading}
+                      >
+                        {loading ? "Generating..." : "Generate Animation"}
+                      </button>
+                      <div className="flex flex-row flex-wrap gap-2">
+                        <OptionButton
+                          style=""
+                          label="Add Square"
+                          icon="square"
+                          callback={() => {
+                            if (!current_sequence_id) {
+                              return;
+                            }
+
+                            on_add_square(current_sequence_id);
+                          }}
+                        />
+                        <OptionButton
+                          style=""
+                          label="Add Text"
+                          icon="text"
+                          callback={() => {
+                            if (!current_sequence_id) {
+                              return;
+                            }
+
+                            on_add_text(current_sequence_id);
+                          }}
+                        />
+
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          accept="image/*"
+                          style={{ display: "none" }}
+                          onChange={(e) => {
+                            // Handle the selected file here
+                            if (!e.target.files || !current_sequence_id) {
+                              return;
+                            }
+
+                            const file = e.target.files[0];
+                            if (file) {
+                              // Do something with the file
+                              console.log("Selected file:", file);
+                              on_add_image(current_sequence_id, file);
+                            }
+                          }}
+                        />
+                        <OptionButton
+                          style=""
+                          label="Add Image"
+                          icon="image"
+                          callback={() => fileInputRef.current?.click()}
+                        />
+
+                        <input
+                          type="file"
+                          ref={videoInputRef}
+                          accept="video/*"
+                          style={{ display: "none" }}
+                          onChange={(e) => {
+                            // Handle the selected file here
+                            if (!e.target.files || !current_sequence_id) {
+                              return;
+                            }
+
+                            const file = e.target.files[0];
+                            if (file) {
+                              // Do something with the file
+                              console.log("Selected file:", file);
+                              on_add_video(current_sequence_id, file);
+                            }
+                          }}
+                        />
+                        <OptionButton
+                          style=""
+                          label="Add Video"
+                          icon="video"
+                          callback={() => videoInputRef.current?.click()}
+                        />
+                        <OptionButton
+                          style=""
+                          label="Screen Capture"
+                          icon="video"
+                          callback={() => {}}
+                        />
+                      </div>
+
+                      <div className="flex flex-row flex-wrap gap-2">
+                        {themes.map((theme: number[], i) => {
+                          const backgroundColorRow = Math.floor(theme[0]);
+                          const backgroundColorColumn = Math.floor(
+                            (theme[0] % 1) * 10
+                          );
+                          const backgroundColor =
+                            colors[backgroundColorRow][backgroundColorColumn];
+                          const textColorRow = Math.floor(theme[4]);
+                          const textColorColumn = Math.floor(
+                            (theme[4] % 1) * 10
+                          );
+                          const textColor =
+                            colors[textColorRow][textColorColumn];
+
+                          return (
+                            <OptionButton
+                              key={`${backgroundColor}-${textColor}-${i}`} // Add a key!
+                              style={`color: ${textColor}; background-color: ${backgroundColor};`}
+                              label="Apply Theme"
+                              icon="brush"
+                              callback={() => {
+                                console.log("Apply Theme...");
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+                      <label className="text-sm">Background Color</label>
+                      <div className="flex flex-row gap-2">
+                        <DebouncedInput
+                          id="background_red"
+                          label="Red"
+                          placeholder="Red"
+                          initialValue={background_red.toString()}
+                          onDebounce={(value) => {
+                            set_background_red(parseInt(value));
+                          }}
+                        />
+                        <DebouncedInput
+                          id="background_green"
+                          label="Green"
+                          placeholder="Green"
+                          initialValue={background_green.toString()}
+                          onDebounce={(value) => {
+                            set_background_green(parseInt(value));
+                          }}
+                        />
+                        <DebouncedInput
+                          id="background_blue"
+                          label="Blue"
+                          placeholder="Blue"
+                          initialValue={background_blue.toString()}
+                          onDebounce={(value) => {
+                            set_background_blue(parseInt(value));
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                    <LayerPanel
+                      layers={layers}
+                      setLayers={set_layers}
+                      onItemDeleted={on_item_deleted}
+                      onItemDuplicated={on_item_duplicated}
+                      onItemsUpdated={on_items_updated}
+                    />
+                  </div>
+                </>
+              )}
           </div>
         ) : (
           <></>

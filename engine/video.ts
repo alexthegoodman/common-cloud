@@ -713,6 +713,7 @@ export class StVideo {
     bindGroupLayout: GPUBindGroupLayout,
     dimensions: [number, number]
   ): void {
+    console.info("updateDataFromDimensions", dimensions);
     this.dimensions = [dimensions[0], dimensions[1]];
     this.transform.updateScale([dimensions[0], dimensions[1]]);
     this.transform.updateUniformBuffer(queue, windowSize);

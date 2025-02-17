@@ -174,15 +174,9 @@ export type PolygonClickHandler = (
   polygon_id: string,
   polygon_config: PolygonConfig
 ) => void | null;
-export type TextItemClickHandler = () =>
-  | ((id: string, config: TextRendererConfig) => void)
-  | null;
-export type ImageItemClickHandler = () =>
-  | ((id: string, config: StImageConfig) => void)
-  | null;
-export type VideoItemClickHandler = () =>
-  | ((id: string, config: StVideoConfig) => void)
-  | null;
+export type TextItemClickHandler = (text_id: string) => void | null;
+export type ImageItemClickHandler = (image_id: string) => void | null;
+export type VideoItemClickHandler = (video_id: string) => void | null;
 export type OnMouseUp = (
   id: string,
   point: Point
@@ -2260,7 +2254,7 @@ export class Editor {
     // First iteration: find the index of the selected polygon
     let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
 
-    if (polygon_index) {
+    if (polygon_index !== null) {
       console.info("Found selected polygon with ID: {}", selected_id);
 
       // Get the necessary data from editor
@@ -2444,7 +2438,7 @@ export class Editor {
     // First iteration: find the index of the selected polygon
     let text_index = this.textItems.findIndex((p) => p.id == selected_id);
 
-    if (text_index) {
+    if (text_index !== null) {
       console.info("Found selected text with ID: {}", selected_id);
 
       // Get the necessary data from editor
@@ -2551,7 +2545,7 @@ export class Editor {
     // First iteration: find the index of the selected polygon
     let image_index = this.imageItems.findIndex((p) => p.id == selected_id);
 
-    if (image_index) {
+    if (image_index !== null) {
       console.info("Found selected image with ID: {}", selected_id);
 
       // Get the necessary data from editor
@@ -2613,7 +2607,7 @@ export class Editor {
     // First iteration: find the index of the selected polygon
     let video_index = this.videoItems.findIndex((p) => p.id == selected_id);
 
-    if (video_index) {
+    if (video_index !== null) {
       console.info("Found selected video with ID: {}", selected_id);
 
       // Get the necessary data from editor
@@ -2627,7 +2621,7 @@ export class Editor {
       if (this.videoItems[video_index]) {
         let selected_video = this.videoItems[video_index];
 
-        switch (new_value) {
+        switch (new_value_type) {
           case InputValue.Number: {
             switch (key) {
               case "width": {
@@ -2655,7 +2649,7 @@ export class Editor {
         }
       }
     } else {
-      console.info("No image found with the selected ID: {}", selected_id);
+      console.info("No video found with the selected ID: {}", selected_id);
     }
   }
 
@@ -3256,37 +3250,40 @@ export class Editor {
 
         // TODO: make DRY with below
         if (this.handleTextClick) {
-          let handler_creator = this.handleTextClick;
-          let handle_click = handler_creator();
+          // let handler_creator = this.handleTextClick;
+          // let handle_click = handler_creator();
 
-          if (!handle_click) {
-            return;
-          }
+          // if (!handle_click) {
+          //   return;
+          // }
 
-          handle_click(text_item.id, {
-            id: text_item.id,
-            name: text_item.name,
-            text: text_item.text,
-            fontFamily: text_item.fontFamily,
-            // points: polygon.points,
-            dimensions: text_item.dimensions,
-            position: {
-              x: text_item.transform.position[0],
-              y: text_item.transform.position[1],
-            },
-            layer: text_item.layer,
-            color: text_item.color,
-            fontSize: text_item.fontSize,
-            backgroundFill: [
-              wgpuToHuman(text_item.backgroundPolygon.fill[0]) as number,
-              wgpuToHuman(text_item.backgroundPolygon.fill[1]) as number,
-              wgpuToHuman(text_item.backgroundPolygon.fill[2]) as number,
-              wgpuToHuman(text_item.backgroundPolygon.fill[3]) as number,
-            ],
-            // borderRadius: polygon.borderRadius,
-            // fill: polygon.fill,
-            // stroke: polygon.stroke,
-          });
+          this.handleTextClick(
+            text_item.id
+            //    {
+            //   id: text_item.id,
+            //   name: text_item.name,
+            //   text: text_item.text,
+            //   fontFamily: text_item.fontFamily,
+            //   // points: polygon.points,
+            //   dimensions: text_item.dimensions,
+            //   position: {
+            //     x: text_item.transform.position[0],
+            //     y: text_item.transform.position[1],
+            //   },
+            //   layer: text_item.layer,
+            //   color: text_item.color,
+            //   fontSize: text_item.fontSize,
+            //   backgroundFill: [
+            //     wgpuToHuman(text_item.backgroundPolygon.fill[0]) as number,
+            //     wgpuToHuman(text_item.backgroundPolygon.fill[1]) as number,
+            //     wgpuToHuman(text_item.backgroundPolygon.fill[2]) as number,
+            //     wgpuToHuman(text_item.backgroundPolygon.fill[3]) as number,
+            //   ],
+            //   // borderRadius: polygon.borderRadius,
+            //   // fill: polygon.fill,
+            //   // stroke: polygon.stroke,
+            // }
+          );
           this.selectedPolygonId = text_item.id; // TODO: separate property for each object type?
           // polygon.old_points = (polygon.points);
         }
@@ -3301,28 +3298,31 @@ export class Editor {
 
         // TODO: make DRY with below
         if (this.handleImageClick) {
-          let handler_creator = this.handleImageClick;
-          let handle_click = handler_creator();
+          // let handler_creator = this.handleImageClick;
+          // let handle_click = handler_creator();
 
-          if (!handle_click) {
-            return;
-          }
+          // if (!handle_click) {
+          //   return;
+          // }
 
           let uuid = image_item.id;
-          handle_click(uuid, {
-            id: image_item.id,
-            name: image_item.name,
-            url: image_item.url,
-            // points: polygon.points,
-            dimensions: image_item.dimensions,
-            position: {
-              x: image_item.transform.position[0],
-              y: image_item.transform.position[1],
-            },
-            layer: image_item.layer, // borderRadius: polygon.borderRadius,
-            // fill: polygon.fill,
-            // stroke: polygon.stroke,
-          });
+          this.handleImageClick(
+            uuid
+            //   {
+            //   id: image_item.id,
+            //   name: image_item.name,
+            //   url: image_item.url,
+            //   // points: polygon.points,
+            //   dimensions: image_item.dimensions,
+            //   position: {
+            //     x: image_item.transform.position[0],
+            //     y: image_item.transform.position[1],
+            //   },
+            //   layer: image_item.layer, // borderRadius: polygon.borderRadius,
+            //   // fill: polygon.fill,
+            //   // stroke: polygon.stroke,
+            // }
+          );
           this.selectedPolygonId = uuid; // TODO: separate property for each object type?
           // polygon.old_points = (polygon.points);
         }
@@ -3342,28 +3342,31 @@ export class Editor {
           console.info("Video click");
 
           let handler_creator = this.handleVideoClick;
-          let handle_click = handler_creator();
+          // let handle_click = handler_creator();
 
-          if (!handle_click) {
-            return;
-          }
+          // if (!handle_click) {
+          //   return;
+          // }
 
           let uuid = video_item.id;
-          handle_click(uuid, {
-            id: video_item.id,
-            name: video_item.name,
-            path: video_item.path,
-            // points: polygon.points,
-            dimensions: video_item.dimensions,
-            position: {
-              x: video_item.transform.position[0],
-              y: video_item.transform.position[1],
-            },
-            layer: video_item.layer,
-            mousePath: video_item.mousePath as string, // borderRadius: polygon.borderRadius,
-            // fill: polygon.fill,
-            // stroke: polygon.stroke,
-          });
+          this.handleVideoClick(
+            uuid
+            //   {
+            //   id: video_item.id,
+            //   name: video_item.name,
+            //   path: video_item.path,
+            //   // points: polygon.points,
+            //   dimensions: video_item.dimensions,
+            //   position: {
+            //     x: video_item.transform.position[0],
+            //     y: video_item.transform.position[1],
+            //   },
+            //   layer: video_item.layer,
+            //   mousePath: video_item.mousePath as string, // borderRadius: polygon.borderRadius,
+            //   // fill: polygon.fill,
+            //   // stroke: polygon.stroke,
+            // }
+          );
           this.selectedPolygonId = uuid; // TODO: separate property for each object type?
           // polygon.old_points = (polygon.points);
         }

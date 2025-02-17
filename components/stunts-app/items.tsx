@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { CreateIcon } from "./icon";
 import { useDebounce } from "@uidotdev/usehooks";
 import { Editor } from "@/engine/editor";
@@ -150,18 +150,18 @@ export const DebouncedInput: React.FC<DebouncedInputProps> = ({
   onDebounce,
 }) => {
   const [value, setValue] = useState(initialValue);
-  const [debouncedValue, setDebouncedValue] = useState("");
-
-  const debouncedFn = useDebounce(() => {
-    setDebouncedValue(value);
-    onDebounce(value);
-  }, 1000);
+  const debouncedValue = useDebounce(value, 300);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
     setValue(newValue);
-    debouncedFn();
   };
+
+  useEffect(() => {
+    if (debouncedValue) {
+      onDebounce(debouncedValue);
+    }
+  }, [debouncedValue]);
 
   return (
     <div className="space-y-4">
