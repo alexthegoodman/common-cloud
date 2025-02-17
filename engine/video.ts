@@ -189,7 +189,7 @@ export class StVideo {
       if (mediaInfo) {
         const { duration, durationMs, width, height, frameRate } = mediaInfo;
 
-        // console.info("media info", mediaInfo);
+        console.info("media info", mediaInfo);
 
         this.sourceDuration = duration;
         this.sourceDurationMs = durationMs;
@@ -409,13 +409,18 @@ export class StVideo {
 
             this.samples = samples;
 
+            // console.info("original duration", videoTrack.duration);
+
             const durationInSeconds =
               videoTrack.duration / videoTrack.timescale;
             const frameRate = samples.length / durationInSeconds;
+            let actualDurationInSeconds = durationInSeconds / frameRate;
+
+            // console.info("frameRate", frameRate, durationInSeconds);
 
             this.videoMetadata = {
-              duration: info.duration,
-              durationMs: info.duration * 1000,
+              duration: durationInSeconds,
+              durationMs: durationInSeconds * 1000,
               width: videoTrack.video.width,
               height: videoTrack.video.height,
               frameRate: frameRate,

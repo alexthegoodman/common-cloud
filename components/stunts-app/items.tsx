@@ -151,6 +151,7 @@ export const DebouncedInput: React.FC<DebouncedInputProps> = ({
 }) => {
   const [value, setValue] = useState(initialValue);
   const debouncedValue = useDebounce(value, 300);
+  const [debounced, setDebounced] = useState(false);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
@@ -158,8 +159,11 @@ export const DebouncedInput: React.FC<DebouncedInputProps> = ({
   };
 
   useEffect(() => {
-    if (debouncedValue) {
+    if (debouncedValue && debounced) {
+      console.info("on debounce!");
       onDebounce(debouncedValue);
+    } else if (debouncedValue) {
+      setDebounced(true);
     }
   }, [debouncedValue]);
 

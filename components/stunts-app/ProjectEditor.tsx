@@ -51,6 +51,7 @@ import {
   VideoProperties,
 } from "./Properties";
 import { callMotionInference } from "@/fetchers/inference";
+import KeyframeTimeline from "./KeyframeTimeline";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -215,9 +216,9 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
   );
   // selected_video_data
   // animation_data
-  let [animation_data_id, set_animation_data_id] = useState<string | null>(
-    null
-  );
+  // let [animation_data_id, set_animation_data_id] = useState<string | null>(
+  //   null
+  // );
   let [selected_keyframes, set_selected_keyframes] = useState<string[] | null>(
     null
   );
@@ -526,6 +527,8 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
       if (!editorRef.current) {
         return;
       }
+
+      console.info("Setting event handlers!");
 
       // set handlers that rely on state
       editorRef.current.handlePolygonClick = handle_polygon_click;
@@ -1573,6 +1576,62 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
               editorRef={editorRef}
               editorStateRef={editorStateRef}
               selected_sequence_id={current_sequence_id}
+            />
+          )}
+          {selected_polygon_id && current_sequence_id && (
+            <KeyframeTimeline
+              editorRef={editorRef}
+              editorStateRef={editorStateRef}
+              objectId={selected_polygon_id}
+              objectType={ObjectType.Polygon}
+              sequenceId={current_sequence_id}
+              width={900}
+              height={400}
+              headerHeight={40}
+              propertyWidth={40}
+              rowHeight={50}
+            />
+          )}
+          {selected_text_id && current_sequence_id && (
+            <KeyframeTimeline
+              editorRef={editorRef}
+              editorStateRef={editorStateRef}
+              objectId={selected_text_id}
+              objectType={ObjectType.TextItem}
+              sequenceId={current_sequence_id}
+              width={900}
+              height={400}
+              headerHeight={40}
+              propertyWidth={40}
+              rowHeight={50}
+            />
+          )}
+          {selected_image_id && current_sequence_id && (
+            <KeyframeTimeline
+              editorRef={editorRef}
+              editorStateRef={editorStateRef}
+              objectId={selected_image_id}
+              objectType={ObjectType.ImageItem}
+              sequenceId={current_sequence_id}
+              width={900}
+              height={400}
+              headerHeight={40}
+              propertyWidth={40}
+              rowHeight={50}
+            />
+          )}
+          {selected_video_id && current_sequence_id && (
+            <KeyframeTimeline
+              editorRef={editorRef}
+              editorStateRef={editorStateRef}
+              objectId={selected_video_id}
+              objectType={ObjectType.VideoItem}
+              sequenceId={current_sequence_id}
+              width={900}
+              height={400}
+              headerHeight={40}
+              propertyWidth={40}
+              rowHeight={50}
             />
           )}
         </div>
