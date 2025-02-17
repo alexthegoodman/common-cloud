@@ -188,7 +188,7 @@ export class StVideo {
       if (mediaInfo) {
         const { duration, durationMs, width, height, frameRate } = mediaInfo;
 
-        console.info("media info", mediaInfo);
+        // console.info("media info", mediaInfo);
 
         this.sourceDuration = duration;
         this.sourceDurationMs = durationMs;
@@ -256,7 +256,7 @@ export class StVideo {
           }
         }
 
-        // console.info("vertices", this.vertices);
+        // // console.info("vertices", this.vertices);
 
         this.vertexBuffer = device.createBuffer({
           label: "Vertex Buffer",
@@ -348,7 +348,7 @@ export class StVideo {
       const box = entry.avcC || entry.hvcC;
       // || entry.vpcC || entry.av1C;
       if (box) {
-        console.info("prepare box!");
+        // console.info("prepare box!");
         const stream = new DataStream(undefined, 0, DataStream.BIG_ENDIAN);
         box.write(stream);
         return new Uint8Array(stream.buffer, 8); // Remove the box header.
@@ -404,7 +404,7 @@ export class StVideo {
             user: any,
             samples: MP4Box.MP4Sample[]
           ) => {
-            console.info("onSamples");
+            // console.info("onSamples");
 
             this.samples = samples;
 
@@ -446,7 +446,7 @@ export class StVideo {
   }
 
   private async initializeDecoder(): Promise<void> {
-    console.info("initializeDecoder");
+    // console.info("initializeDecoder");
 
     if (this.videoDecoder) {
       return;
@@ -464,14 +464,14 @@ export class StVideo {
               throw new Error("No bytesPerFrame");
             }
 
-            console.info(
-              "decoder output",
-              this.bytesPerFrame,
-              frame.allocationSize(),
-              frame.codedWidth,
-              frame.displayWidth,
-              frame.colorSpace
-            );
+            // console.info(
+            //   "decoder output",
+            //   this.bytesPerFrame,
+            //   frame.allocationSize(),
+            //   frame.codedWidth,
+            //   frame.displayWidth,
+            //   frame.colorSpace
+            // );
 
             const frameData = new Uint8Array(this.bytesPerFrame);
             const options: VideoFrameCopyToOptions = {
@@ -525,7 +525,7 @@ export class StVideo {
 
       this.videoDecoder.configure(config);
 
-      console.info("decoder configured");
+      // console.info("decoder configured");
 
       resolve();
     });
@@ -554,7 +554,7 @@ export class StVideo {
   }
 
   async decodeNextFrame(): Promise<DecodedFrameInfo> {
-    console.info("decodeNextFrame");
+    // console.info("decodeNextFrame");
 
     if (!this.isInitialized || this.currentSampleIndex >= this.samples.length) {
       throw new Error("No more frames to decode");
@@ -575,25 +575,25 @@ export class StVideo {
         data: sample.data,
       });
 
-      console.log(
-        "EncodedVideoChunk:",
-        chunk.type,
-        chunk.timestamp,
-        chunk.duration,
-        chunk.byteLength
-      );
+      // console.log(
+      //   "EncodedVideoChunk:",
+      //   chunk.type,
+      //   chunk.timestamp,
+      //   chunk.duration,
+      //   chunk.byteLength
+      // );
 
-      console.info(
-        "decode chunk",
-        this.samples.length,
-        chunk.type,
-        this.currentSampleIndex,
-        sample.is_sync
-      );
+      // console.info(
+      //   "decode chunk",
+      //   this.samples.length,
+      //   chunk.type,
+      //   this.currentSampleIndex,
+      //   sample.is_sync
+      // );
 
       this.videoDecoder!.decode(chunk);
 
-      console.info("chunk decoded");
+      // console.info("chunk decoded");
 
       this.currentSampleIndex++;
     });
@@ -606,13 +606,13 @@ export class StVideo {
 
     const frameInfo = await this.decodeNextFrame();
 
-    console.info(
-      "write texture!",
-      frameInfo.width,
-      frameInfo.height,
-      frameInfo.frameData.length,
-      frameInfo.frameData.slice(0, 1000)
-    );
+    // console.info(
+    //   "write texture!",
+    //   frameInfo.width,
+    //   frameInfo.height,
+    //   frameInfo.frameData.length,
+    //   frameInfo.frameData.slice(0, 1000)
+    // );
 
     // this.bindGroup = device.createBindGroup({
     //   layout: this.bindGroupLayout,
@@ -653,8 +653,8 @@ export class StVideo {
       }
     );
 
-    console.info("texture write succesful");
-    console.log("Texture format:", this.texture.format); // Log texture format
+    // console.info("texture write succesful");
+    // console.log("Texture format:", this.texture.format); // Log texture format
 
     return frameInfo;
   }

@@ -1390,11 +1390,13 @@ export class Editor {
       // Get current time within animation duration
       const currentTime = totalDt % (sequence.durationMs / 1000);
       const startTime = animation.startTimeMs / 1000;
+      const currentTimeMs = currentTime * 1000;
+      const startTimeMs = startTime * 1000;
 
       // Check if the current time is within the animation's active period
       if (
-        currentTime < startTime ||
-        currentTime > startTime + animation.duration
+        currentTimeMs < startTimeMs ||
+        currentTimeMs > startTimeMs + animation.duration
       ) {
         continue;
       }
@@ -1438,7 +1440,7 @@ export class Editor {
         const frameInterval = 1.0 / frameRate;
 
         // Calculate the number of frames that should have been displayed by now
-        const elapsedTime = currentTime - startTime;
+        const elapsedTime = currentTimeMs - startTimeMs;
         const currentFrameTime = videoItem.numFramesDrawn * frameInterval;
 
         // Only draw the frame if the current time is within the frame's display interval
@@ -1457,10 +1459,7 @@ export class Editor {
           const catchUpFrames = Math.floor(difference / frameInterval);
 
           // Only catch up if we're behind and within the video duration
-          if (
-            catchUpFrames > 0 &&
-            currentTime * 1000 + 1000 < sourceDurationMs
-          ) {
+          if (catchUpFrames > 0 && currentTimeMs + 1000 < sourceDurationMs) {
             // Limit the maximum number of frames to catch up to avoid excessive CPU usage
             const maxCatchUp = 5;
             const framesToDraw = Math.min(catchUpFrames, maxCatchUp);
@@ -1494,9 +1493,10 @@ export class Editor {
         // Find the surrounding keyframes
         const surroundingKeyframes = this.getSurroundingKeyframes(
           property.keyframes,
-          currentTime - startTime
+          currentTimeMs - startTimeMs
         );
         if (!surroundingKeyframes) {
+          // console.info("no surrounding keyframes");
           continue;
         }
 
@@ -1508,7 +1508,7 @@ export class Editor {
 
         // Calculate interpolation progress
         const duration = endFrame.time - startFrame.time; // duration between keyframes
-        const elapsed = currentTime - startTime - startFrame.time; // elapsed since start keyframe
+        const elapsed = currentTimeMs - startTimeMs - startFrame.time; // elapsed since start keyframe
         let progress = elapsed / duration;
 
         // Apply easing (EaseInOut)
@@ -1577,6 +1577,7 @@ export class Editor {
                 );
                 break;
               case ObjectType.VideoItem:
+                // console.info("update video transform", positionVec);
                 this.videoItems[objectIdx].transform.updatePosition(
                   positionVec,
                   camera.windowSize

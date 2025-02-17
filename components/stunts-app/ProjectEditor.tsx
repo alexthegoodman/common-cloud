@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { DebouncedInput, NavButton, OptionButton } from "./items";
+import {
+  DebouncedInput,
+  NavButton,
+  OptionButton,
+  PlaySequenceButton,
+} from "./items";
 import { CreateIcon } from "./icon";
 import {
   BackgroundFill,
@@ -1401,10 +1406,17 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
         <div>
           <canvas
             id="scene-canvas"
-            className="w-[900px] h-[450px] border border-black"
+            className="w-[900px] h-[550px] border border-black"
             width="900"
             height="550"
           />
+          {current_sequence_id && (
+            <PlaySequenceButton
+              editorRef={editorRef}
+              editorStateRef={editorStateRef}
+              selected_sequence_id={current_sequence_id}
+            />
+          )}
         </div>
       </div>
     </div>

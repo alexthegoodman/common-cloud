@@ -1,9 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { CreateIcon } from "./icon";
 import { useDebounce } from "@uidotdev/usehooks";
+import { Editor } from "@/engine/editor";
+import EditorState from "@/engine/editor_state";
 
 export const ProjectItem = ({
   project_id,
@@ -180,5 +182,59 @@ export const DebouncedInput: React.FC<DebouncedInputProps> = ({
         <p>Debounced value: {debouncedValue}</p>
       </div> */}
     </div>
+  );
+};
+
+export const PlaySequenceButton: React.FC<{
+  editorRef: React.RefObject<Editor | null>;
+  editorStateRef: React.RefObject<EditorState | null>;
+  selected_sequence_id: string;
+}> = ({ editorRef, editorStateRef, selected_sequence_id }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  return (
+    <button
+      className="text-xs rounded-md text-black px-2 py-1"
+      onClick={() => {
+        let editor = editorRef.current;
+        let editorState = editorStateRef.current;
+
+        if (!editor || !editorState) {
+          return;
+        }
+
+        if (editor.isPlaying) {
+          console.info("Pause Sequence...");
+
+          editor.isPlaying = false;
+          editor.startPlayingTime = null;
+
+          // should return objects to the startup positions and state
+          editor.reset_sequence_objects();
+
+          setIsPlaying(false);
+        } else {
+          console.info("Play Sequence...");
+
+          let selected_sequence_data = editorState.savedState.sequences.find(
+            (s) => s.id === selected_sequence_id
+          );
+
+          if (!selected_sequence_data) {
+            return;
+          }
+
+          let now = Date.now();
+          editor.startPlayingTime = now;
+
+          editor.currentSequenceData = selected_sequence_data;
+          editor.isPlaying = true;
+
+          setIsPlaying(true);
+        }
+      }}
+    >
+      {isPlaying ? "Pause Sequence" : "Play Sequence"}
+    </button>
   );
 };
