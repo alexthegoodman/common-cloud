@@ -243,8 +243,8 @@ export class CanvasPipeline {
     }
 
     // Start the animation loop
-    const renderLoop = () => {
-      this.renderFrame(editor);
+    const renderLoop = async () => {
+      await this.renderFrame(editor);
 
       // Schedule the next frame
       this.animationFrameId = window.requestAnimationFrame(renderLoop);
@@ -312,11 +312,14 @@ export class CanvasPipeline {
     this.multisampledView = multisampledView;
   }
 
-  renderFrame(
+  async renderFrame(
     editor: Editor,
-    frameEncoder?: (renderTexture: GPUTexture) => void,
+    frameEncoder?: (
+      // commandEncoder: GPUCommandEncoder,
+      renderTexture: GPUTexture
+    ) => void,
     currentTimeS?: number
-  ): void {
+  ): Promise<void> {
     if (!editor.camera || !editor.gpuResources) {
       return;
     }
@@ -525,14 +528,14 @@ export class CanvasPipeline {
       editor.updateCameraBinding();
     }
 
-    if (frameEncoder) {
-      frameEncoder(currentTexture);
-    }
-
     // End the render pass
     renderPass.end();
 
     // Submit command buffer and present
     queue.submit([encoder.finish()]);
+
+    if (frameEncoder) {
+      await frameEncoder(currentTexture);
+    }
   }
 }

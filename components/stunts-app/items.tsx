@@ -6,6 +6,7 @@ import { CreateIcon } from "./icon";
 import { useDebounce } from "@uidotdev/usehooks";
 import { Editor } from "@/engine/editor";
 import EditorState from "@/engine/editor_state";
+import { FullExporter } from "@/engine/export";
 
 export const ProjectItem = ({
   project_id,
@@ -261,7 +262,7 @@ export const PlayVideoButton: React.FC<{
         }
 
         if (editor.isPlaying) {
-          console.info("Pause Sequence...");
+          console.info("Pause Video...");
 
           editor.videoIsPlaying = false;
           editor.videoStartPlayingTime = null;
@@ -277,7 +278,7 @@ export const PlayVideoButton: React.FC<{
 
           setIsPlaying(false);
         } else {
-          console.info("Play Sequence...");
+          console.info("Play Video...");
 
           let first_sequence_data = editorState.savedState.sequences[0];
 
@@ -371,7 +372,54 @@ export const PlayVideoButton: React.FC<{
         }
       }}
     >
-      {isPlaying ? "Pause Sequence" : "Play Sequence"}
+      {isPlaying ? "Pause Video" : "Play Video"}
     </button>
+  );
+};
+
+export const ExportVideoButton: React.FC<{
+  editorRef: React.RefObject<Editor | null>;
+  editorStateRef: React.RefObject<EditorState | null>;
+}> = ({ editorRef, editorStateRef }) => {
+  let [isExporting, setIsExporting] = useState(false);
+  let [progress, setProgress] = useState("0");
+
+  const exportHandler = async () => {
+    let editorState = editorStateRef.current;
+
+    if (!editorState) {
+      return;
+    }
+
+    const exporter = new FullExporter();
+
+    console.info("Initializing FullExporter");
+
+    await exporter.initialize(
+      editorState.savedState,
+      (progress, currentTime, totalDuration) => {
+        let perc = (progress * 100).toFixed(1);
+        console.log(`Export progress: ${perc}%`);
+        console.log(
+          `Time: ${currentTime.toFixed(1)}s / ${totalDuration.toFixed(1)}s`
+        );
+        setProgress(perc);
+      }
+    );
+  };
+
+  return (
+    <div className="flex flex-row gap-2 align-center">
+      <button
+        className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+        disabled={isExporting}
+        onClick={() => {
+          exportHandler();
+        }}
+      >
+        {isExporting ? "Exporting..." : "Export Video"}
+      </button>
+      {isExporting && <p>{progress}</p>}
+    </div>
   );
 };

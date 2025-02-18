@@ -696,7 +696,8 @@ export class Editor {
       console.log("Text restored...");
     });
 
-    saved_sequence.activeImageItems.forEach((i) => {
+    // saved_sequence.activeImageItems.forEach((i) => {
+    for (let i of saved_sequence.activeImageItems) {
       const position = {
         x: CANVAS_HORIZ_OFFSET + i.position.x,
         y: CANVAS_VERT_OFFSET + i.position.y,
@@ -711,27 +712,28 @@ export class Editor {
         layer: i.layer,
       };
 
-      getUploadedImageData(i.url).then((blob) => {
-        const restored_image = new StImage(
-          device,
-          queue,
-          i.url,
-          blob, // load of image data
-          image_config,
-          windowSize,
-          this.modelBindGroupLayout!,
-          this.groupBindGroupLayout!,
-          -2.0,
-          saved_sequence.id
-        );
+      let blob = await getUploadedImageData(i.url);
 
-        restored_image.hidden = hidden;
-        this.imageItems.push(restored_image);
-        console.log("Image restored...");
-      });
-    });
+      const restored_image = new StImage(
+        device,
+        queue,
+        i.url,
+        blob, // load of image data
+        image_config,
+        windowSize,
+        this.modelBindGroupLayout!,
+        this.groupBindGroupLayout!,
+        -2.0,
+        saved_sequence.id
+      );
 
-    saved_sequence.activeVideoItems.forEach((i) => {
+      restored_image.hidden = hidden;
+      this.imageItems.push(restored_image);
+      console.log("Image restored...");
+    }
+
+    // saved_sequence.activeVideoItems.forEach((i) => {
+    for (let i of saved_sequence.activeVideoItems) {
       // let stored_source_data: SourceData | null = null;
       // let stored_mouse_positions: MousePosition[] | null = null;
 
@@ -766,30 +768,30 @@ export class Editor {
         mousePath: i.mousePath,
       };
 
-      getUploadedVideoData(i.path).then((blob) => {
-        const restored_video = new StVideo(
-          device,
-          queue,
-          blob,
-          video_config,
-          windowSize,
-          this.modelBindGroupLayout!,
-          this.groupBindGroupLayout!,
-          -2.0,
-          // i.id,
-          saved_sequence.id
-        );
+      let blob = await getUploadedVideoData(i.path);
 
-        restored_video.hidden = hidden;
-        // restored_video.source_data = stored_source_data;
-        // restored_video.mouse_positions = stored_mouse_positions;
+      const restored_video = new StVideo(
+        device,
+        queue,
+        blob,
+        video_config,
+        windowSize,
+        this.modelBindGroupLayout!,
+        this.groupBindGroupLayout!,
+        -2.0,
+        // i.id,
+        saved_sequence.id
+      );
 
-        // restored_video.drawVideoFrame(device, queue).catch(console.error); // Handle potential errors
+      restored_video.hidden = hidden;
+      // restored_video.source_data = stored_source_data;
+      // restored_video.mouse_positions = stored_mouse_positions;
 
-        this.videoItems.push(restored_video);
-        console.log("Video restored...");
-      });
-    });
+      // restored_video.drawVideoFrame(device, queue).catch(console.error); // Handle potential errors
+
+      this.videoItems.push(restored_video);
+      console.log("Video restored...");
+    }
   }
 
   reset_sequence_objects() {

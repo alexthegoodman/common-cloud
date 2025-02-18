@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   DebouncedInput,
+  ExportVideoButton,
   NavButton,
   OptionButton,
   PlaySequenceButton,
@@ -441,6 +442,8 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     let response = await getSingleProject(authToken.token, projectId);
 
     let fileData = response.project?.fileData;
+
+    console.info("savedState", fileData);
 
     if (!fileData) {
       return;
@@ -1264,6 +1267,10 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
         {section === "SequenceList" ? (
           <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
             <div className="flex flex-col w-full">
+              <ExportVideoButton
+                editorRef={editorRef}
+                editorStateRef={editorStateRef}
+              />
               <div className="flex flex-row justify-between align-center w-full">
                 <h5>Sequences</h5>
                 <button

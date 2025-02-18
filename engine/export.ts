@@ -1,4 +1,4 @@
-import MP4Box from "mp4box";
+import MP4Box, { DataStream, MP4ArrayBuffer } from "mp4box";
 import { Editor, Viewport } from "./editor";
 import EditorState from "./editor_state";
 import { CanvasPipeline } from "./pipeline";
@@ -12,6 +12,8 @@ class WebGPUVideoEncoder {
   private readonly width: number;
   private readonly height: number;
   private readonly frameRate: number;
+  private fileOffset = 0; // Track file offset
+  trackId: any;
 
   constructor(
     device: GPUDevice,
@@ -24,23 +26,66 @@ class WebGPUVideoEncoder {
     this.height = height;
     this.frameRate = frameRate;
     this.mp4File = MP4Box.createFile();
-    this.initializeEncoder();
+    // this.initializeEncoder();
   }
 
-  private async initializeEncoder() {
+  async initializeEncoder() {
+    // return new Promise(async (resolve, reject) => {
     // Configure video encoder
     this.videoEncoder = new VideoEncoder({
       output: (
         chunk: EncodedVideoChunk,
         metadata: EncodedVideoChunkMetadata | undefined
       ) => {
+        if (!this.trackId) {
+          // Add video track
+          this.trackId = this.mp4File.addTrack({
+            // type: "video",
+            timescale: 1000,
+            width: this.width,
+            height: this.height,
+            // codec: "avc1.42001f",
+            brands: ["isom", "iso2", "avc1", "MP42", "MP41"],
+            avcDecoderConfigRecord: metadata?.decoderConfig?.description,
+          });
+
+          console.info(
+            "addTrack...",
+            this.trackId,
+            metadata?.decoderConfig?.description
+          );
+        }
+
         // Add encoded data to MP4 file
-        const buffer = new ArrayBuffer(chunk.byteLength);
+        const dts = chunk.timestamp;
+
+        console.info(
+          "chunk length",
+          this.frameRate,
+          chunk.type,
+          chunk.byteLength,
+          chunk.duration,
+          dts
+        );
+        const buffer = new ArrayBuffer(chunk.byteLength) as MP4ArrayBuffer;
+
+        // buffer.fileStart = this.fileOffset; // Use current offset
         chunk.copyTo(buffer);
-        this.mp4File.addSample(1, buffer, {
-          duration: 1000 / this.frameRate,
+
+        this.mp4File.addSample(this.trackId, buffer, {
+          // duration: 1000 / this.frameRate,
+          // duration: chunk.duration,
+          // duration: 1000000 / this.frameRate,
+          duration: 1 / this.frameRate,
           is_sync: chunk.type === "key",
+          // dts,
+          // cts: dts,
         });
+
+        // Update offset for next buffer
+        this.fileOffset += buffer.byteLength;
+
+        // TODO: now continue with next captureFrame()
       },
       error: (error: Error) => {
         console.error("Video encoder error:", error);
@@ -48,26 +93,42 @@ class WebGPUVideoEncoder {
     });
 
     // Initialize encoder with configuration
-    await this.videoEncoder.configure({
+    let config: VideoEncoderConfig = {
       codec: "avc1.42001f", // H.264 baseline profile
+      // codec: "avc1.4D0032",
       width: this.width,
       height: this.height,
       bitrate: 5_000_000, // 5 Mbps
       framerate: this.frameRate,
-    });
+      avc: { format: "avc" } as AvcEncoderConfig,
+    };
+    this.videoEncoder.configure(config);
 
-    // Initialize MP4 track
+    const support = await VideoEncoder.isConfigSupported(config);
+    console.log(
+      `VideoEncoder's config ${JSON.stringify(support.config)} support: ${
+        support.supported
+      }`
+    );
+
+    this.mp4File.onReady = (info: MP4Box.MP4Info) => {
+      console.info("ready info", info);
+      // resolve(info);
+    };
+
+    this.mp4File.onError = (e: any) => {
+      console.error("onError", e);
+      // reject(e);
+    };
+
+    this.mp4File.onMoovStart = function () {
+      console.info("Starting to receive File Information");
+    };
+
+    // Initialize MP4 file
     this.mp4File.init({
       timescale: 1000,
       fragmented: true,
-    });
-
-    this.mp4File.addTrack({
-      type: "video",
-      timescale: 1000,
-      width: this.width,
-      height: this.height,
-      codec: "avc1.42001f",
     });
   }
 
@@ -77,7 +138,11 @@ class WebGPUVideoEncoder {
     }
 
     // Create buffer to copy texture data
-    const bytesPerRow = this.width * 4; // RGBA8Unorm format
+    // const bytesPerRow = this.width * 4; // RGBA8Unorm format
+    // const bufferSize = bytesPerRow * this.height;
+
+    const minimumBytesPerRow = this.width * 4; // RGBA8Unorm format
+    const bytesPerRow = Math.ceil(minimumBytesPerRow / 256) * 256;
     const bufferSize = bytesPerRow * this.height;
 
     const outputBuffer = this.device.createBuffer({
@@ -110,30 +175,68 @@ class WebGPUVideoEncoder {
 
     try {
       await outputBuffer.mapAsync(GPUMapMode.READ);
-      const data = new Uint8Array(outputBuffer.getMappedRange());
+      const mappedData = outputBuffer.getMappedRange();
+      const paddedData = new Uint8Array(mappedData);
 
-      // Create a Blob from the image data (important for createImageBitmap)
-      const blob = new Blob([data], { type: "image/png" }); // Or appropriate MIME type
+      // Calculate the actual and padded bytes per row
+      const minimumBytesPerRow = this.width * 4;
+      const alignedBytesPerRow = Math.ceil(minimumBytesPerRow / 256) * 256;
 
-      // Create ImageBitmap (asynchronous)
-      // is creating a bitmap really the most performant way?
-      const imageBitmap = await createImageBitmap(blob, {
-        imageOrientation: "none", // or 'flipY' if needed
-        premultiplyAlpha: "none", // or 'premultiply' if needed
-      });
+      // Create an array with the correct size for the image without padding
+      const unpackedData = new Uint8Array(this.width * this.height * 4);
 
-      // Create VideoFrame from the ImageBitmap
-      const videoFrame = new VideoFrame(imageBitmap, {
-        timestamp: (this.frameCounter * 1000000) / this.frameRate,
+      // Copy the data row by row, removing the padding
+      for (let row = 0; row < this.height; row++) {
+        const sourceStart = row * alignedBytesPerRow;
+        const sourceEnd = sourceStart + minimumBytesPerRow;
+        const targetStart = row * minimumBytesPerRow;
+
+        unpackedData.set(paddedData.slice(sourceStart, sourceEnd), targetStart);
+      }
+
+      outputBuffer.unmap();
+
+      // Now create ImageData with the unpacked data
+      const imageData = new ImageData(
+        new Uint8ClampedArray(unpackedData.buffer),
+        this.width,
+        this.height
+      );
+
+      // Create a canvas to properly format the image data
+      const canvas = new OffscreenCanvas(this.width, this.height);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Failed to get canvas context");
+      }
+
+      // Put the image data on the canvas
+      ctx.fillStyle = "green";
+      ctx.fillRect(0, 0, this.width, this.height);
+      ctx.putImageData(imageData, 0, 0);
+
+      let timestamp = (this.frameCounter * 1000000) / this.frameRate;
+      let test_duration = timestamp + 1000000 / this.frameRate;
+
+      console.info("pre timestamp", timestamp, test_duration);
+
+      const videoFrame = new VideoFrame(canvas, {
+        timestamp: timestamp,
+        // duration: 1000000 / this.frameRate,
+        duration: 1 / this.frameRate,
+        // duration: 1,
+        // duration: test_duration,
+        // displayHeight: this.height,
+        // displayWidth: this.width,
       });
 
       this.frameCounter++;
 
       await this.videoEncoder.encode(videoFrame);
-      videoFrame.close();
-      imageBitmap.close(); // Very important: Release ImageBitmap resources!
 
-      outputBuffer.unmap();
+      videoFrame.close();
+      // imageBitmap.close();
+
       outputBuffer.destroy();
     } catch (error) {
       console.error("Error encoding frame:", error);
@@ -149,13 +252,22 @@ class WebGPUVideoEncoder {
         return;
       }
 
+      console.info("flushing...");
+
       // Flush the encoder
       this.videoEncoder
         .flush()
         .then(() => {
-          // Get MP4 data as Blob
-          const blob = this.mp4File.getBlob();
           this.mp4File.flush();
+          this.mp4File.stop();
+
+          const stream = new DataStream(undefined, 0, DataStream.BIG_ENDIAN);
+          for (let len = this.mp4File.boxes.length, i = 0; i < len; i++) {
+            this.mp4File.boxes[i].write(stream);
+          }
+
+          let blob = new Blob([stream.buffer], { type: "video/mp4" });
+
           resolve(blob);
         })
         .catch(reject);
@@ -177,6 +289,10 @@ export class WebExport {
     this.encoder = encoder;
   }
 
+  async initialize() {
+    await this.encoder.initializeEncoder();
+  }
+
   async encodeFrame(renderTexture: GPUTexture) {
     await this.encoder.captureFrame(renderTexture);
   }
@@ -196,73 +312,6 @@ export class WebExport {
     a.click();
   }
 }
-
-// export class FullExporter {
-//   viewport: Viewport | null = null;
-//   editor: Editor | null = null;
-//   editorState: EditorState | null = null;
-//   pipeline: CanvasPipeline | null = null;
-//   webExport: WebExport | null = null;
-
-//   constructor() {}
-
-//   async initialize(savedState: SavedState) {
-//     this.viewport = new Viewport(900, 550);
-
-//     this.editor = new Editor(this.viewport);
-//     this.editorState = new EditorState(savedState);
-
-//     let pipeline = new CanvasPipeline();
-
-//     this.pipeline = await pipeline.new(this.editor, false);
-
-//     let windowSize = this.editor.camera?.windowSize;
-
-//     if (!windowSize?.width || !windowSize?.height) {
-//       return;
-//     }
-
-//     if (!this.editor.gpuResources) {
-//       console.warn("No gpu resources");
-//       return;
-//     }
-
-//     let targetFrameRate = 60;
-
-//     this.webExport = new WebExport(
-//       this.editor.gpuResources?.device,
-//       windowSize?.width,
-//       windowSize?.height,
-//       targetFrameRate
-//     );
-
-//     this.pipeline.recreateDepthView(windowSize?.width, windowSize?.height);
-
-//     console.info("Export resore...");
-
-//     let cloned_sequences = savedState.sequences;
-
-//     for (let sequence of cloned_sequences) {
-//       this.editor.restore_sequence_objects(sequence, true);
-//     }
-
-//     console.info("Begin encoding frames...");
-
-//     const frameEncoder = (renderTexture: GPUTexture) => {
-//       if (!this.webExport) {
-//         return;
-//       }
-
-//       this.webExport.encodeFrame(renderTexture);
-//     };
-
-//     // TODO: frame loop
-//     let currentTime = 0; // current time of video in seconds
-//     this.pipeline.renderFrame(this.editor, frameEncoder, currentTime);
-
-//     // finish with this.webExport.finalize();
-//   }
-// }
 
 export class FullExporter {
   viewport: Viewport | null = null;
@@ -310,6 +359,8 @@ export class FullExporter {
       targetFrameRate
     );
 
+    await this.webExport.initialize();
+
     this.pipeline.recreateDepthView(windowSize?.width, windowSize?.height);
 
     console.info("Export restore...");
@@ -317,24 +368,26 @@ export class FullExporter {
     let cloned_sequences = savedState.sequences;
 
     for (let sequence of cloned_sequences) {
-      this.editor.restore_sequence_objects(sequence, true);
+      await this.editor.restore_sequence_objects(sequence, true);
     }
 
-    const frameEncoder = (renderTexture: GPUTexture) => {
+    const frameEncoder = async (renderTexture: GPUTexture) => {
       if (!this.webExport) {
         return;
       }
 
-      this.webExport.encodeFrame(renderTexture);
+      await this.webExport.encodeFrame(renderTexture);
     };
 
-    // Calculate total duration from sequences (rough for now)
-    let totalDuration = 0;
+    // Calculate total duration from sequences (in milliseconds)
+    let totalDurationMs = 0;
     cloned_sequences.forEach((s) => {
-      totalDuration += s.durationMs;
+      totalDurationMs += s.durationMs;
     });
 
-    if (!totalDuration) {
+    let totalDurationS = totalDurationMs / 1000; // Convert to seconds
+
+    if (!totalDurationMs) {
       console.warn("No duration");
       return;
     }
@@ -342,54 +395,63 @@ export class FullExporter {
     let now = Date.now();
 
     this.editor.videoStartPlayingTime = now;
-
     this.editor.videoCurrentSequenceTimeline = savedState.timeline_state;
     this.editor.videoCurrentSequencesData = savedState.sequences;
-
     this.editor.videoIsPlaying = true;
 
-    // also set motion path playing
     this.editor.startPlayingTime = now;
     this.editor.isPlaying = true;
 
-    console.info("Begin encoding frames...");
+    console.info("Begin encoding frames...", totalDurationS);
 
     // Frame loop
-    const frameTime = 1 / targetFrameRate; // Time per frame in seconds
-    let currentTime = 0;
-    let lastProgressUpdate = 0;
+    const frameTimeS = 1 / targetFrameRate; // Time per frame in seconds
+    const frameTimeMs = frameTimeS * 1000; // Convert to milliseconds
+    let currentTimeMs = 0;
+    let lastProgressUpdateMs = 0;
 
-    while (currentTime <= totalDuration) {
+    // while (currentTimeMs <= totalDurationMs) {
+    while (currentTimeMs <= 200) {
       // Render the current frame
-      await this.pipeline.renderFrame(this.editor, frameEncoder, currentTime);
+      await this.pipeline.renderFrame(this.editor, frameEncoder, currentTimeMs);
 
       // Advance time to next frame
-      currentTime += frameTime;
+      currentTimeMs += frameTimeMs;
 
       // Update progress every ~1% or at least every second
-      const progress = currentTime / totalDuration;
-      const timeSinceLastUpdate = currentTime - lastProgressUpdate;
+      const progress = currentTimeMs / totalDurationMs;
+      const timeSinceLastUpdateMs = currentTimeMs - lastProgressUpdateMs;
       if (
-        timeSinceLastUpdate >= 1.0 ||
-        progress - lastProgressUpdate / totalDuration >= 0.01
+        timeSinceLastUpdateMs >= 1000 || // Check if 1 second has passed (1000ms)
+        progress - lastProgressUpdateMs / totalDurationMs >= 0.01
       ) {
-        onProgress?.(progress, currentTime, totalDuration);
-        lastProgressUpdate = currentTime;
+        onProgress?.(progress, currentTimeMs / 1000, totalDurationS); // Convert currentTime to seconds for progress callback
+        lastProgressUpdateMs = currentTimeMs;
       }
 
-      // Advance time to next frame
-      currentTime += frameTime;
+      await sleep(1000); // delay
     }
 
     // Final progress update
-    onProgress?.(1.0, totalDuration, totalDuration);
+    onProgress?.(1.0, totalDurationS, totalDurationS);
+    // onProgress?.(progress, currentTimeMs / 1000, totalDurationS);
 
     // Finalize the export
     if (this.webExport) {
-      console.info("Finalizing export...");
-      await this.webExport.finalize();
+      setTimeout(async () => {
+        if (!this.webExport) {
+          return;
+        }
+
+        console.info("Finalizing export...");
+        await this.webExport.finalize();
+      }, 1000);
     }
   }
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // const exporter = new FullExporter();
