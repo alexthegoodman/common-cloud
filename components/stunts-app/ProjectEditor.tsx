@@ -37,6 +37,7 @@ import {
   CANVAS_VERT_OFFSET,
   Editor,
   getRandomNumber,
+  InputValue,
   Point,
   rgbToWgpu,
   Viewport,
@@ -58,6 +59,7 @@ import {
 import { callMotionInference } from "@/fetchers/inference";
 import KeyframeTimeline from "./KeyframeTimeline";
 import { TimelineTrack } from "./SequenceTimeline";
+import { hexParse } from "@kurkle/color";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -720,7 +722,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
       );
     }
 
-    console.info("Objects restored!");
+    console.info("Objects restored!", saved_sequence.id);
 
     editor?.updateMotionPaths(saved_sequence);
 
@@ -1256,6 +1258,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
   return (
     <div className="flex flex-row p-4">
       <div className="flex flex-col gap-4 mr-4">
+        <p style={{ fontFamily: "Maitree" }}>Maitree</p>
         <NavButton
           label="Motion"
           icon="brush"
@@ -1354,7 +1357,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
           <></>
         )}
         {section === "SequenceView" && current_sequence_id ? (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 w-full max-w-[315px]">
             {selected_polygon_id && (
               <PolygonProperties
                 editorRef={editorRef}
@@ -1581,21 +1584,192 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                           const textColor =
                             colors[textColorRow][textColorColumn];
 
+                          const backgroundRgb = hexParse(backgroundColor);
+                          const textRgb = hexParse(textColor);
+
+                          const fontIndex = theme[2];
+
                           return (
                             <OptionButton
-                              key={`${backgroundColor}-${textColor}-${i}`} // Add a key!
+                              key={`${backgroundColor}-${textColor}-${i}`}
                               style={`color: ${textColor}; background-color: ${backgroundColor};`}
                               label="Apply Theme"
                               icon="brush"
-                              callback={() => {
+                              callback={async () => {
+                                let editor = editorRef.current;
+                                let editorState = editorStateRef.current;
+
+                                if (!editor || !editorState) {
+                                  return;
+                                }
+
                                 console.log("Apply Theme...");
+
+                                // apply theme to background canvas and text objects
+
+                                let text_color_wgpu = rgbToWgpu(
+                                  textRgb.r,
+                                  textRgb.g,
+                                  textRgb.b,
+                                  255.0
+                                );
+
+                                let text_color = [
+                                  textRgb.r,
+                                  textRgb.g,
+                                  textRgb.b,
+                                  255,
+                                ] as [number, number, number, number];
+
+                                let background_color_wgpu = rgbToWgpu(
+                                  backgroundRgb.r,
+                                  backgroundRgb.g,
+                                  backgroundRgb.b,
+                                  255.0
+                                );
+
+                                // using for text and canvas, so text_color can provide contrast
+                                let background_color = [
+                                  backgroundRgb.r,
+                                  backgroundRgb.g,
+                                  backgroundRgb.b,
+                                  255,
+                                ] as [number, number, number, number];
+
+                                let ids_to_update = editor.textItems
+                                  .filter((text) => {
+                                    return (
+                                      text.currentSequenceId ===
+                                      current_sequence_id
+                                    );
+                                  })
+                                  .map((text) => text.id);
+
+                                console.info("texts to update", ids_to_update);
+
+                                let fontId =
+                                  editor.fontManager.fontData[fontIndex].name;
+                                for (let id of ids_to_update) {
+                                  editor.update_text_color(
+                                    id,
+                                    background_color
+                                  );
+                                  await editor.update_text_fontFamily(
+                                    fontId,
+                                    id
+                                  );
+                                }
+
+                                editorState.savedState.sequences.forEach(
+                                  (s) => {
+                                    if (s.id == current_sequence_id) {
+                                      s.activeTextItems.forEach((t) => {
+                                        // if t.id == selected_text_id.get().to_string() {
+                                        t.color = background_color;
+                                        t.fontFamily = fontId;
+                                        // }
+                                      });
+                                    }
+                                  }
+                                );
+
+                                for (let id of ids_to_update) {
+                                  editor.update_text(
+                                    id,
+                                    "red_fill",
+                                    InputValue.Number,
+                                    text_color_wgpu[0]
+                                  );
+                                  editor.update_text(
+                                    id,
+                                    "green_fill",
+                                    InputValue.Number,
+                                    text_color_wgpu[1]
+                                  );
+                                  editor.update_text(
+                                    id,
+                                    "blue_fill",
+                                    InputValue.Number,
+                                    text_color_wgpu[2]
+                                  );
+                                }
+
+                                editorState.savedState.sequences.forEach(
+                                  (s) => {
+                                    s.activeTextItems.forEach((p) => {
+                                      p.backgroundFill = text_color;
+                                    });
+                                  }
+                                );
+
+                                console.info("Updating canvas background...");
+
+                                let background_uuid = current_sequence_id;
+
+                                editor.update_background(
+                                  background_uuid,
+                                  "red",
+                                  InputValue.Number,
+                                  background_color[0]
+                                );
+                                editor.update_background(
+                                  background_uuid,
+                                  "green",
+                                  InputValue.Number,
+                                  background_color[1]
+                                );
+                                editor.update_background(
+                                  background_uuid,
+                                  "blue",
+                                  InputValue.Number,
+                                  background_color[2]
+                                );
+
+                                editorState.savedState.sequences.forEach(
+                                  (s) => {
+                                    if (s.id == current_sequence_id) {
+                                      if (!s.backgroundFill) {
+                                        s.backgroundFill = {
+                                          type: "Color",
+                                          value: [
+                                            wgpuToHuman(0.8),
+                                            wgpuToHuman(0.8),
+                                            wgpuToHuman(0.8),
+                                            255,
+                                          ],
+                                        } as BackgroundFill;
+                                      }
+
+                                      switch (s.backgroundFill.type) {
+                                        case "Color": {
+                                          s.backgroundFill = {
+                                            type: "Color",
+                                            value: background_color,
+                                          };
+
+                                          break;
+                                        }
+                                        case "Gradient": {
+                                          console.info(
+                                            "Gradient support coming"
+                                          );
+                                          break;
+                                        }
+                                      }
+                                    }
+                                  }
+                                );
+
+                                saveSequencesData(
+                                  editorState.savedState.sequences
+                                );
                               }}
                             />
                           );
                         })}
                       </div>
                       <label className="text-sm">Background Color</label>
-                      <div className="flex flex-row gap-2">
+                      <div className="flex flex-row gap-2 mb-4">
                         <DebouncedInput
                           id="background_red"
                           label="Red"
@@ -1661,7 +1835,8 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
               editorStateRef={editorStateRef}
             />
           )}
-          {!selected_polygon_id &&
+          {!current_sequence_id &&
+            !selected_polygon_id &&
             !selected_text_id &&
             !selected_image_id &&
             !selected_video_id && (

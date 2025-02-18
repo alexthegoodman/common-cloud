@@ -5,8 +5,8 @@ export interface FontInfo {
 }
 
 export class FontManager {
-  private fontData: FontInfo[];
-  private loadedFonts: Map<string, Buffer> = new Map();
+  fontData: FontInfo[];
+  loadedFonts: Map<string, Buffer> = new Map();
 
   constructor() {
     // List of available fonts with their paths
@@ -330,7 +330,9 @@ export class FontManager {
       // Cache the loaded font
       this.loadedFonts.set(normalizedName, fontData);
 
-      await f.load(); // explicity load font before usage
+      const fontFace = await f.load(); // explicity load font before usage
+      console.info("loaded font face", fontFace.family);
+      document.fonts.add(fontFace);
 
       return fontData;
     } catch (error) {

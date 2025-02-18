@@ -196,16 +196,16 @@ export class TextRenderer {
       0.0,
       0.0,
       // [0.5, 0.8, 1.0, 1.0], // light blue with some transparency
-      // textConfig.backgroundFill,
-      [0.2, 0.3, 0.4, 0.1],
+      textConfig.backgroundFill,
+      // [0.2, 0.3, 0.4, 0.1],
       {
         thickness: 0.0,
         fill: rgbToWgpu(0, 0, 0, 255.0),
       },
       // -1.0,
       // 1, // positive to use INTERNAL_LAYER_SPACE
-      -2.0,
-      textConfig.layer - 1.0,
+      1.0,
+      textConfig.layer - 1.0 - INTERNAL_LAYER_SPACE,
       textConfig.name,
       this.id,
       currentSequenceId
@@ -282,10 +282,13 @@ export class TextRenderer {
 
     // Render the glyph onto the canvas using native Canvas API
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "black"; // Use white for the glyph color, or black for testing
+    ctx.fillStyle = "white"; // Use white for the glyph color, or black for testing
 
     // Set up the font and text rendering
     ctx.font = `${rasterConfig.fontSize}px ${this.font.familyName}`;
+
+    console.info("this.font.familyName", this.font.familyName);
+
     ctx.textBaseline = "alphabetic"; // Align text to the baseline
     ctx.textAlign = "left"; // Align text to the left
 
@@ -446,12 +449,12 @@ export class TextRenderer {
       const z = getZLayer(1.0);
 
       const activeColor = rgbToWgpu(
-        // this.color[0],
-        // this.color[1],
-        // this.color[2],
-        20,
-        20,
-        200,
+        this.color[0],
+        this.color[1],
+        this.color[2],
+        // 20,
+        // 20,
+        // 200,
         255.0
       );
 

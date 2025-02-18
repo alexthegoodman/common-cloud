@@ -2252,8 +2252,8 @@ export class Editor {
       },
       0.0,
       0.0,
-      // fill,
-      [0.2, 0.5, 0.2, 0.5],
+      fill,
+      // [0.2, 0.5, 0.2, 0.5],
       {
         thickness: 0.0,
         fill: rgbToWgpu(0, 0, 0, 255.0),
@@ -2288,7 +2288,7 @@ export class Editor {
       (p) => p.id == selected_id && p.name == "canvas_background"
     );
 
-    if (polygon_index) {
+    if (polygon_index !== null) {
       console.info("Found selected static_polygon with ID: {}", selected_id);
 
       // Get the necessary data from editor
@@ -3145,6 +3145,8 @@ export class Editor {
       return;
     }
 
+    console.info("Updating font family... ", font_id);
+
     text_item.fontFamily = font_id;
     text_item.updateFontFamily(new_fontFamily);
     text_item.renderText(gpuResources.device, gpuResources.queue);
@@ -3160,6 +3162,8 @@ export class Editor {
     if (!text_item || !gpuResources) {
       return;
     }
+
+    console.info("Updating text color...");
 
     text_item.color = color;
     text_item.renderText(gpuResources.device, gpuResources.queue);

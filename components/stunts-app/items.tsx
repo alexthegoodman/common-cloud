@@ -169,7 +169,7 @@ export const DebouncedInput: React.FC<DebouncedInputProps> = ({
   }, [debouncedValue]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <label htmlFor={id} className="text-xs">
         {label}
       </label>

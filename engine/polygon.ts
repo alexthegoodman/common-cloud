@@ -661,12 +661,7 @@ export function getPolygonData(
   ) {
     tessellationResult.points.forEach((point) => {
       vertices.push(
-        createVertex(
-          point[0],
-          point[1],
-          getZLayer(polygon.layer + 2.0),
-          polygon.fill
-        )
+        createVertex(point[0], point[1], getZLayer(1.0), polygon.fill)
       );
     });
     tessellationResult.faces.forEach((face) => {
