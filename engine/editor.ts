@@ -1399,27 +1399,27 @@ export class Editor {
     // Iterate through timeline sequences of order
     for (const ts of sequenceTimeline.timeline_sequences) {
       // Skip audio tracks as we're only handling video
-      if (ts.track_type !== TrackType.Video) {
+      if (ts.trackType !== TrackType.Video) {
         continue;
       }
 
       // Find the duration of the sequence
       const durationMs =
-        videoCurrentSequencesData.find((s) => s.id === ts.sequence_id)
+        videoCurrentSequencesData.find((s) => s.id === ts.sequenceId)
           ?.durationMs || 0;
 
       // Check if this sequence should be playing at the current time
       if (
-        currentTimeMs >= ts.start_time_ms &&
-        currentTimeMs < ts.start_time_ms + durationMs
+        currentTimeMs >= ts.startTimeMs &&
+        currentTimeMs < ts.startTimeMs + durationMs
       ) {
         // Find the corresponding sequence data
         const sequence = videoCurrentSequencesData.find(
-          (s) => s.id === ts.sequence_id
+          (s) => s.id === ts.sequenceId
         );
         if (sequence) {
           // Calculate local time within this sequence
-          const sequenceLocalTime = (currentTimeMs - ts.start_time_ms) / 1000;
+          const sequenceLocalTime = (currentTimeMs - ts.startTimeMs) / 1000;
 
           if (this.currentSequenceData) {
             // Check id to avoid unnecessary cloning
