@@ -14,7 +14,9 @@ class WebGPUVideoEncoder {
   private readonly frameRate: number;
   private fileOffset = 0; // Track file offset
   trackId: any;
-  timescale: number = 1000;
+  // timescale: number = 1000;
+  timescale: number = 90000; // Standard timescale for H.264
+  microPerS: number = 1000000; // micro
   totalDurationMs: number = 2000; // ms
 
   constructor(
@@ -40,16 +42,23 @@ class WebGPUVideoEncoder {
         metadata: EncodedVideoChunkMetadata | undefined
       ) => {
         if (!this.trackId) {
+          let trackDuration = Math.floor(
+            this.totalDurationMs * (this.timescale / 1_000)
+            // this.totalDurationMs * (this.timescale / 1_000_000)
+            // this.totalDurationMs * 1_000 // convert to micro?
+          );
+
+          console.info("trackDuration", trackDuration);
+
           // Add video track
           this.trackId = this.mp4File.addTrack({
-            // type: "video",
             timescale: this.timescale,
             width: this.width,
             height: this.height,
-            // codec: "avc1.42001f",
             brands: ["isom", "iso2", "avc1", "MP42", "MP41"],
             avcDecoderConfigRecord: metadata?.decoderConfig?.description,
-            duration: this.totalDurationMs,
+            // duration: this.totalDurationMs,
+            duration: trackDuration,
           });
 
           console.info(
@@ -74,15 +83,16 @@ class WebGPUVideoEncoder {
 
         chunk.copyTo(buffer);
 
+        const frameDuration = Math.floor(this.timescale / this.frameRate);
+
         this.mp4File.addSample(this.trackId, buffer, {
-          duration: this.timescale / this.frameRate,
+          // duration: this.microPerS / this.frameRate,
+          // duration: chunk.duration,
+          duration: frameDuration,
           is_sync: chunk.type === "key",
           dts,
           cts: dts,
         });
-
-        // Update offset for next buffer
-        // this.fileOffset += buffer.byteLength; // uneeeded for addSample
 
         // TODO: now continue with next captureFrame()
       },
@@ -128,7 +138,11 @@ class WebGPUVideoEncoder {
     this.mp4File.init({
       timescale: this.timescale,
       fragmented: true,
-      duration: this.totalDurationMs,
+      duration: Math.floor(
+        this.totalDurationMs * (this.timescale / 1_000)
+        // this.totalDurationMs * (this.timescale / 1_000_000)
+        // this.totalDurationMs * 1_000
+      ),
     });
   }
 
@@ -211,20 +225,44 @@ class WebGPUVideoEncoder {
       ctx.fillRect(0, 0, this.width, this.height);
       ctx.putImageData(imageData, 0, 0);
 
-      let timestamp = (this.frameCounter * 1000000) / this.frameRate;
-      let test_duration = timestamp + 1000000 / this.frameRate;
+      // let timestamp = (this.frameCounter * this.microPerS) / this.frameRate;
+      // // let test_duration = timestamp + this.microPerS / this.frameRate;
+      // let test_duration = this.microPerS / this.frameRate;
 
-      console.info("pre timestamp", timestamp, test_duration);
+      // console.info("pre timestamp", timestamp, test_duration);
+
+      // const videoFrame = new VideoFrame(canvas, {
+      //   timestamp: timestamp,
+      //   // duration: 1000000 / this.frameRate,
+      //   duration: test_duration,
+      //   // duration: 1,
+      //   // duration: test_duration,
+      //   // displayHeight: this.height,
+      //   // displayWidth: this.width,
+      // });
+
+      // Calculate timestamp in microseconds (VideoFrame API expects microseconds)
+      const timestamp = Math.floor(
+        (this.frameCounter * 1_000_000) / this.frameRate / 10
+      );
+      const frameDuration = Math.floor(1_000_000 / this.frameRate / 10);
+
+      console.info("pre timestamp", timestamp, frameDuration);
 
       const videoFrame = new VideoFrame(canvas, {
         timestamp: timestamp,
-        // duration: 1000000 / this.frameRate,
-        duration: 1 / this.frameRate,
-        // duration: 1,
-        // duration: test_duration,
-        // displayHeight: this.height,
-        // displayWidth: this.width,
+        duration: frameDuration,
       });
+
+      // test to see if animating in image data
+      // looks good!
+      // let testData = ctx.getImageData(0, 0, this.width, this.height);
+      // let testCanvas = document.createElement("canvas");
+      // testCanvas.width = this.width;
+      // testCanvas.height = this.height;
+      // document.body.appendChild(testCanvas); // Append the canvas to the body
+      // let testCtx = testCanvas.getContext("2d");
+      // testCtx?.putImageData(testData, 0, 0); // Place the image data at the top-left corner
 
       this.frameCounter++;
 
@@ -408,8 +446,8 @@ export class FullExporter {
     let currentTimeMs = 0;
     let lastProgressUpdateMs = 0;
 
-    // while (currentTimeMs <= totalDurationMs) {
-    while (currentTimeMs <= this.webExport.encoder.totalDurationMs) {
+    while (currentTimeMs <= totalDurationMs) {
+      // while (currentTimeMs <= this.webExport.encoder.totalDurationMs) {
       // Render the current frame
       await this.pipeline.renderFrame(
         this.editor,
@@ -431,7 +469,7 @@ export class FullExporter {
         lastProgressUpdateMs = currentTimeMs;
       }
 
-      await sleep(500); // delay
+      await sleep(frameTimeMs); // delay
     }
 
     // Final progress update
