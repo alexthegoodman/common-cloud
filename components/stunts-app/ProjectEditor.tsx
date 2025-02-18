@@ -6,6 +6,7 @@ import {
   NavButton,
   OptionButton,
   PlaySequenceButton,
+  PlayVideoButton,
 } from "./items";
 import { CreateIcon } from "./icon";
 import {
@@ -13,6 +14,8 @@ import {
   ObjectType,
   SavedState,
   Sequence,
+  TimelineSequence,
+  TrackType,
   UIKeyframe,
 } from "@/engine/animations";
 import { v4 as uuidv4 } from "uuid";
@@ -23,6 +26,7 @@ import {
   getSingleProject,
   saveImage,
   saveSequencesData,
+  saveTimelineData,
   saveVideo,
   updateSequences,
 } from "@/fetchers/projects";
@@ -52,6 +56,7 @@ import {
 } from "./Properties";
 import { callMotionInference } from "@/fetchers/inference";
 import KeyframeTimeline from "./KeyframeTimeline";
+import { TimelineTrack } from "./SequenceTimeline";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -197,31 +202,27 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     null
   );
 
-  // polygon_selected
   let [selected_polygon_id, set_selected_polygon_id] = useState<string | null>(
     null
   );
-  // selected_polygon_data
-  // image_selected
   let [selected_image_id, set_selected_image_id] = useState<string | null>(
     null
   );
-  // selected_image_data
-  // text_selected
   let [selected_text_id, set_selected_text_id] = useState<string | null>(null);
-  // selected_text_data
-  // video_selected
   let [selected_video_id, set_selected_video_id] = useState<string | null>(
     null
   );
-  // selected_video_data
-  // animation_data
-  // let [animation_data_id, set_animation_data_id] = useState<string | null>(
-  //   null
-  // );
   let [selected_keyframes, set_selected_keyframes] = useState<string[] | null>(
     null
   );
+
+  let [tSequences, setTSequences] = useState<TimelineSequence[]>([]);
+  let [sequenceDurations, setSequenceDurations] = useState<
+    Record<string, number>
+  >({});
+  let [sequenceQuickAccess, setSequenceQuickAccess] = useState<
+    Record<string, string>
+  >({});
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
@@ -271,24 +272,6 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     set_selected_text_id(null);
     set_selected_image_id(null);
     set_selected_video_id(null);
-
-    // let editor_state = editorStateRef.current;
-
-    // if (!editor_state) {
-    //   return;
-    // }
-
-    // editor_state.selected_polygon_id = polygon_id;
-    // editor_state.polygon_selected = true;
-
-    // editor_state.selected_text_id = Uuid::nil();
-    // editor_state.text_selected = false;
-    // editor_state.selected_image_id = Uuid::nil();
-    // editor_state.image_selected = false;
-    // editor_state.selected_video_id = Uuid::nil();
-    // editor_state.video_selected = false;
-
-    // drop(editor_state);
   };
 
   let select_text = (text_id: string) => {
@@ -511,6 +494,8 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     const canvas = document.getElementById("scene-canvas") as HTMLCanvasElement;
     setupCanvasMouseTracking(canvas);
 
+    set_quick_access();
+
     set_loading(false);
   };
 
@@ -540,6 +525,13 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
   }, [editorIsSet, current_sequence_id]);
 
   let on_create_sequence = async () => {
+    let editor = editorRef.current;
+    let editorState = editorStateRef.current;
+
+    if (!editor || !editorState) {
+      return;
+    }
+
     if (!authToken) {
       return;
     }
@@ -562,13 +554,40 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
 
     set_sequences(new_sequences);
 
+    editorState.savedState.sequences = new_sequences;
+
     let response = await updateSequences(
       authToken.token,
       projectId,
       new_sequences
     );
 
+    set_quick_access();
+
     set_loading(false);
+  };
+
+  let set_quick_access = () => {
+    let editor = editorRef.current;
+    let editorState = editorStateRef.current;
+
+    if (!editor || !editorState) {
+      return;
+    }
+
+    let durations = {} as Record<string, number>;
+    editorState.savedState.sequences.forEach((s) => {
+      durations[s.id] = s.durationMs;
+    });
+
+    setSequenceDurations(durations);
+
+    let quickAccess = {} as Record<string, string>;
+    editorState.savedState.sequences.forEach((s) => {
+      quickAccess[s.id] = s.name;
+    });
+
+    setSequenceQuickAccess(quickAccess);
   };
 
   let on_open_sequence = (sequence_id: string) => {
@@ -744,6 +763,8 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     set_layers(new_layers);
     console.info("set current", sequence_id);
     set_current_sequence_id(sequence_id);
+
+    // set_quick_access();
 
     // drop(editor);
   };
@@ -1149,6 +1170,17 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
 
   let on_item_deleted = () => {};
 
+  const handleSequenceDragEnd = (
+    sequence: TimelineSequence,
+    newStartTimeMs: number
+  ) => {
+    setTSequences((prev) =>
+      prev.map((seq) =>
+        seq.id === sequence.id ? { ...seq, startTimeMs: newStartTimeMs } : seq
+      )
+    );
+  };
+
   let [background_red, set_background_red] = useState(0);
   let [background_green, set_background_green] = useState(0);
   let [background_blue, set_background_blue] = useState(0);
@@ -1241,35 +1273,66 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                 </button>
               </div>
               <div className="flex flex-col w-full mt-2">
-                {sequences.map(
-                  (
-                    sequence: any // Type the sequence data
-                  ) => (
-                    <div className="flex flex-row" key={sequence.id}>
-                      <button
+                {sequences.map((sequence: Sequence) => (
+                  <div className="flex flex-row" key={sequence.id}>
+                    <button
+                      className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
+                      disabled={loading}
+                      onClick={() => on_open_sequence(sequence.id)}
+                    >
+                      Open {sequence.name}
+                    </button>
+                    {/* <button
                         className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
                         disabled={loading}
-                        onClick={() => on_open_sequence(sequence.id)}
-                      >
-                        Open {sequence.name}
-                      </button>
-                      <button
-                        className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
-                        disabled={loading}
-                        onClick={() => {}} // Duplicate functionality - Add your logic here
+                        onClick={() => {}}
                       >
                         Duplicate
-                      </button>
-                      <button
-                        className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
-                        disabled={loading}
-                        onClick={() => {}} // Add to Timeline functionality - Add your logic here
-                      >
-                        Add to Timeline
-                      </button>
-                    </div>
-                  )
-                )}
+                      </button> */}
+                    <button
+                      className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
+                      disabled={loading}
+                      onClick={async () => {
+                        let editor_state = editorStateRef.current;
+
+                        if (!editor_state) {
+                          return;
+                        }
+
+                        let existing_timeline =
+                          editor_state.savedState.timeline_state
+                            .timeline_sequences;
+
+                        // Find the sequence that ends at the latest point in time
+                        let startTime = 0;
+                        if (existing_timeline.length > 0) {
+                          let test = existing_timeline.map((seq) => {
+                            let duration_ms = sequenceDurations[seq.sequenceId];
+                            return seq.startTimeMs + duration_ms;
+                          });
+
+                          startTime = Math.max(...test);
+                        }
+
+                        existing_timeline.push({
+                          id: uuidv4(),
+                          sequenceId: sequence.id,
+                          trackType: TrackType.Video,
+                          startTimeMs: startTime,
+                          // duration_ms: 20000,
+                        });
+
+                        await saveTimelineData(
+                          editor_state.savedState.timeline_state
+                        );
+
+                        console.info("Sequence added!");
+                      }}
+                    >
+                      Add to Timeline
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -1578,6 +1641,25 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
               selected_sequence_id={current_sequence_id}
             />
           )}
+          {!current_sequence_id && (
+            <PlayVideoButton
+              editorRef={editorRef}
+              editorStateRef={editorStateRef}
+            />
+          )}
+          {!selected_polygon_id &&
+            !selected_text_id &&
+            !selected_image_id &&
+            !selected_video_id && (
+              <TimelineTrack
+                type={TrackType.Video}
+                pixelsPerSecond={25}
+                tSequences={tSequences}
+                sequenceDurations={sequenceDurations}
+                sequenceQuickAccess={sequenceQuickAccess}
+                onSequenceDragEnd={handleSequenceDragEnd}
+              />
+            )}
           {selected_polygon_id && current_sequence_id && (
             <KeyframeTimeline
               editorRef={editorRef}

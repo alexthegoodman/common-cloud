@@ -235,6 +235,38 @@ export const updateTimeline = async (
   return response.json();
 };
 
+export async function saveTimelineData(
+  timelineState: SavedTimelineStateConfig
+): Promise<UpdateSequencesResponse> {
+  try {
+    // Get stored-project and auth-token from local storage
+    const storedProjectString = localStorage.getItem("stored-project");
+    const authTokenString = localStorage.getItem("auth-token");
+
+    if (!storedProjectString || !authTokenString) {
+      throw new Error(
+        "Couldn't get stored project or auth token from local storage"
+      );
+    }
+
+    const storedProject = JSON.parse(storedProjectString);
+    const authToken: AuthToken = JSON.parse(authTokenString);
+
+    // Call the updateSequences function
+    return await updateTimeline(
+      authToken.token,
+      storedProject.project_id,
+      timelineState
+    );
+  } catch (error) {
+    console.error("Error saving timeline data:", error);
+    // Handle the error appropriately, e.g., return a default response or throw the error
+    throw error; // Re-throw if you want the calling function to handle it
+    // Or return a default/error response:
+    // return { success: false, message: error.message }; // Example
+  }
+}
+
 export const saveImage = async (
   token: string,
   fileName: string,

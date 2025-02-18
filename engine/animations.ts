@@ -19,10 +19,10 @@ export interface ProjectsDataFile {
 }
 
 export interface TimelineSequence {
-  id: String;
-  sequence_id: String;
-  track_type: TrackType;
-  start_time_ms: number; // in milliseconds
+  id: string;
+  sequenceId: string;
+  trackType: TrackType;
+  startTimeMs: number; // in milliseconds
   // pub duration_ms: i32,   // in milliseconds
 }
 

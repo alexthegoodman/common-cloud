@@ -242,3 +242,136 @@ export const PlaySequenceButton: React.FC<{
     </button>
   );
 };
+
+export const PlayVideoButton: React.FC<{
+  editorRef: React.RefObject<Editor | null>;
+  editorStateRef: React.RefObject<EditorState | null>;
+}> = ({ editorRef, editorStateRef }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  return (
+    <button
+      className="text-xs rounded-md text-black px-2 py-1"
+      onClick={() => {
+        let editor = editorRef.current;
+        let editorState = editorStateRef.current;
+
+        if (!editor || !editorState) {
+          return;
+        }
+
+        if (editor.isPlaying) {
+          console.info("Pause Sequence...");
+
+          editor.videoIsPlaying = false;
+          editor.videoStartPlayingTime = null;
+          editor.videoCurrentSequenceTimeline = null;
+          editor.videoCurrentSequencesData = null;
+          editor.isPlaying = false;
+          editor.startPlayingTime = null;
+
+          // TODO: reset_sequence_objects?
+          editor.videoItems.forEach((v) => {
+            v.resetPlayback();
+          });
+
+          setIsPlaying(false);
+        } else {
+          console.info("Play Sequence...");
+
+          let first_sequence_data = editorState.savedState.sequences[0];
+
+          if (!first_sequence_data) {
+            return;
+          }
+
+          editorState.savedState.sequences.forEach((sequence, index) => {
+            if (index === 0) {
+              sequence.activePolygons.forEach((ap) => {
+                const polygon = editor.polygons.find(
+                  (p) => p.id.toString() === ap.id
+                );
+                if (!polygon) throw new Error("Couldn't find polygon");
+                polygon.hidden = false;
+              });
+
+              sequence.activeImageItems.forEach((si) => {
+                const image = editor.imageItems.find(
+                  (i) => i.id.toString() === si.id
+                );
+                if (!image) throw new Error("Couldn't find image");
+                image.hidden = false;
+              });
+
+              sequence.activeTextItems.forEach((tr) => {
+                const text = editor.textItems.find(
+                  (t) => t.id.toString() === tr.id
+                );
+                if (!text) throw new Error("Couldn't find text item");
+                text.hidden = false;
+              });
+
+              sequence.activeVideoItems.forEach((tr) => {
+                const video = editor.videoItems.find(
+                  (t) => t.id.toString() === tr.id
+                );
+                if (!video) throw new Error("Couldn't find video item");
+                video.hidden = false;
+              });
+            } else {
+              sequence.activePolygons.forEach((ap) => {
+                const polygon = editor.polygons.find(
+                  (p) => p.id.toString() === ap.id
+                );
+                if (!polygon) throw new Error("Couldn't find polygon");
+                polygon.hidden = true;
+              });
+
+              sequence.activeImageItems.forEach((si) => {
+                const image = editor.imageItems.find(
+                  (i) => i.id.toString() === si.id
+                );
+                if (!image) throw new Error("Couldn't find image");
+                image.hidden = true;
+              });
+
+              sequence.activeTextItems.forEach((tr) => {
+                const text = editor.textItems.find(
+                  (t) => t.id.toString() === tr.id
+                );
+                if (!text) throw new Error("Couldn't find text item");
+                text.hidden = true;
+              });
+
+              sequence.activeVideoItems.forEach((tr) => {
+                const video = editor.videoItems.find(
+                  (t) => t.id.toString() === tr.id
+                );
+                if (!video) throw new Error("Couldn't find video item");
+                video.hidden = true;
+              });
+            }
+          });
+
+          let now = Date.now();
+          editor.startPlayingTime = now;
+
+          editor.videoStartPlayingTime = now;
+
+          editor.videoCurrentSequenceTimeline =
+            editorState.savedState.timeline_state;
+          editor.videoCurrentSequencesData = editorState.savedState.sequences;
+
+          editor.videoIsPlaying = true;
+
+          editor.currentSequenceData = first_sequence_data;
+          editor.isPlaying = true;
+
+          setIsPlaying(true);
+        }
+      }}
+    >
+      {isPlaying ? "Pause Sequence" : "Play Sequence"}
+    </button>
+  );
+};
