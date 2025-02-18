@@ -1,4 +1,4 @@
-import MP4Box, { DataStream, MP4ArrayBuffer } from "mp4box";
+import MP4Box, { DataStream, MP4ArrayBuffer, MP4File } from "mp4box";
 import { Editor, Viewport } from "./editor";
 import EditorState from "./editor_state";
 import { CanvasPipeline } from "./pipeline";
@@ -14,6 +14,8 @@ class WebGPUVideoEncoder {
   private readonly frameRate: number;
   private fileOffset = 0; // Track file offset
   trackId: any;
+  timescale: number = 1000;
+  totalDurationMs: number = 2000; // ms
 
   constructor(
     device: GPUDevice,
@@ -41,12 +43,13 @@ class WebGPUVideoEncoder {
           // Add video track
           this.trackId = this.mp4File.addTrack({
             // type: "video",
-            timescale: 1000,
+            timescale: this.timescale,
             width: this.width,
             height: this.height,
             // codec: "avc1.42001f",
             brands: ["isom", "iso2", "avc1", "MP42", "MP41"],
             avcDecoderConfigRecord: metadata?.decoderConfig?.description,
+            duration: this.totalDurationMs,
           });
 
           console.info(
@@ -69,21 +72,17 @@ class WebGPUVideoEncoder {
         );
         const buffer = new ArrayBuffer(chunk.byteLength) as MP4ArrayBuffer;
 
-        // buffer.fileStart = this.fileOffset; // Use current offset
         chunk.copyTo(buffer);
 
         this.mp4File.addSample(this.trackId, buffer, {
-          // duration: 1000 / this.frameRate,
-          // duration: chunk.duration,
-          // duration: 1000000 / this.frameRate,
-          duration: 1 / this.frameRate,
+          duration: this.timescale / this.frameRate,
           is_sync: chunk.type === "key",
-          // dts,
-          // cts: dts,
+          dts,
+          cts: dts,
         });
 
         // Update offset for next buffer
-        this.fileOffset += buffer.byteLength;
+        // this.fileOffset += buffer.byteLength; // uneeeded for addSample
 
         // TODO: now continue with next captureFrame()
       },
@@ -127,8 +126,9 @@ class WebGPUVideoEncoder {
 
     // Initialize MP4 file
     this.mp4File.init({
-      timescale: 1000,
+      timescale: this.timescale,
       fragmented: true,
+      duration: this.totalDurationMs,
     });
   }
 
@@ -136,10 +136,6 @@ class WebGPUVideoEncoder {
     if (!this.videoEncoder) {
       return;
     }
-
-    // Create buffer to copy texture data
-    // const bytesPerRow = this.width * 4; // RGBA8Unorm format
-    // const bufferSize = bytesPerRow * this.height;
 
     const minimumBytesPerRow = this.width * 4; // RGBA8Unorm format
     const bytesPerRow = Math.ceil(minimumBytesPerRow / 256) * 256;
@@ -235,7 +231,6 @@ class WebGPUVideoEncoder {
       await this.videoEncoder.encode(videoFrame);
 
       videoFrame.close();
-      // imageBitmap.close();
 
       outputBuffer.destroy();
     } catch (error) {
@@ -367,8 +362,11 @@ export class FullExporter {
 
     let cloned_sequences = savedState.sequences;
 
-    for (let sequence of cloned_sequences) {
-      await this.editor.restore_sequence_objects(sequence, true);
+    for (let [i, sequence] of cloned_sequences.entries()) {
+      await this.editor.restore_sequence_objects(
+        sequence,
+        i === 0 ? false : true
+      );
     }
 
     const frameEncoder = async (renderTexture: GPUTexture) => {
@@ -411,9 +409,13 @@ export class FullExporter {
     let lastProgressUpdateMs = 0;
 
     // while (currentTimeMs <= totalDurationMs) {
-    while (currentTimeMs <= 200) {
+    while (currentTimeMs <= this.webExport.encoder.totalDurationMs) {
       // Render the current frame
-      await this.pipeline.renderFrame(this.editor, frameEncoder, currentTimeMs);
+      await this.pipeline.renderFrame(
+        this.editor,
+        frameEncoder,
+        currentTimeMs / 1000
+      );
 
       // Advance time to next frame
       currentTimeMs += frameTimeMs;
@@ -429,7 +431,7 @@ export class FullExporter {
         lastProgressUpdateMs = currentTimeMs;
       }
 
-      await sleep(1000); // delay
+      await sleep(500); // delay
     }
 
     // Final progress update

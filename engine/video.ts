@@ -140,7 +140,8 @@ export class StVideo {
     bindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
     zIndex: number,
-    currentSequenceId: string
+    currentSequenceId: string,
+    loadedHidden: boolean
   ) {
     this.id = videoConfig.id;
     this.currentSequenceId = currentSequenceId;
@@ -323,6 +324,8 @@ export class StVideo {
           // draw initial preview frame
           this.drawVideoFrame(device, queue).catch(console.error); // Handle potential errors
         });
+
+        this.hidden = loadedHidden;
       }
     });
   }

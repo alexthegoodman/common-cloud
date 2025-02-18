@@ -54,7 +54,8 @@ export class StImage {
     bindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
     zIndex: number,
-    currentSequenceId: string
+    currentSequenceId: string,
+    loadedHidden: boolean
   ) {
     this.id = imageConfig.id;
     this.currentSequenceId = currentSequenceId;
@@ -238,6 +239,7 @@ export class StImage {
 
       this.groupBindGroup = group_bind_group;
       // this.hidden = false;
+      this.hidden = loadedHidden;
     });
     // return imgBitmap;
   }
@@ -350,7 +352,8 @@ export class StImage {
       bindGroupLayout,
       groupBindGroupLayout,
       -2.0,
-      selectedSequenceId
+      selectedSequenceId,
+      false
     );
     return stImage;
   }

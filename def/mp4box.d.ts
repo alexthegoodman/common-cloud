@@ -111,6 +111,56 @@ declare module "mp4box" {
     // TODO: Complete interface
   }
 
+  export interface TrackOptions {
+    id?: number;
+    type?: string;
+    width?: number;
+    height?: number;
+    duration?: number;
+    layer?: number;
+    timescale?: number;
+    media_duration?: number;
+    language?: string;
+    hdlr?: string;
+
+    // video
+    avcDecoderConfigRecord?: any;
+    hevcDecoderConfigRecord?: any;
+
+    // audio
+    balance?: number;
+    channel_count?: number;
+    samplesize?: number;
+    samplerate?: number;
+
+    // captions
+    namespace?: string;
+    schema_location?: string;
+    auxiliary_mime_types?: string;
+
+    description?: BoxParser.Box;
+    description_boxes?: BoxParser.Box[];
+
+    default_sample_description_index_id?: number;
+    default_sample_duration?: number;
+    default_sample_size?: number;
+    default_sample_flags?: number;
+  }
+
+  export interface SampleOptions {
+    sample_description_index?: number;
+    duration?: number;
+    cts?: number;
+    dts?: number;
+    is_sync?: boolean;
+    is_leading?: number;
+    depends_on?: number;
+    is_depended_on?: number;
+    has_redundancy?: number;
+    degradation_priority?: number;
+    subsamples?: any;
+  }
+
   export interface MP4File {
     onMoovStart?: () => void;
     onReady?: (info: MP4Info) => void;
@@ -128,6 +178,13 @@ declare module "mp4box" {
       options?: { nbSamples?: number; rapAlignment?: number }
     ): void;
     getTrackById(trackId: number): Trak;
+
+    addTrack(options?: TrackOptions): number;
+    addSample(
+      track: number,
+      data: ArrayBuffer,
+      options?: SampleOptions
+    ): MP4Sample;
   }
 
   export function createFile(): MP4File;

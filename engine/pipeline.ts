@@ -479,6 +479,10 @@ export class CanvasPipeline {
 
         // Draw the text itself
         if (editor.draggingText === textItem.id || editor.isPlaying) {
+          // console.info(
+          //   "text log",
+          //   textItem.vertices ? textItem.vertices[0] : null
+          // );
           textItem.transform.updateUniformBuffer(
             queue,
             editor.camera.windowSize
@@ -512,6 +516,7 @@ export class CanvasPipeline {
     for (const video of editor.videoItems || []) {
       if (!video.hidden) {
         if (editor.draggingVideo === video.id || editor.isPlaying) {
+          // console.info("temp log", video.vertices[0]);
           video.transform.updateUniformBuffer(queue, editor.camera.windowSize);
         }
 

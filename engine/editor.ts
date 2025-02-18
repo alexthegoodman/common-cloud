@@ -724,10 +724,11 @@ export class Editor {
         this.modelBindGroupLayout!,
         this.groupBindGroupLayout!,
         -2.0,
-        saved_sequence.id
+        saved_sequence.id,
+        hidden
       );
 
-      restored_image.hidden = hidden;
+      // restored_image.hidden = hidden;
       this.imageItems.push(restored_image);
       console.log("Image restored...");
     }
@@ -780,10 +781,11 @@ export class Editor {
         this.groupBindGroupLayout!,
         -2.0,
         // i.id,
-        saved_sequence.id
+        saved_sequence.id,
+        hidden
       );
 
-      restored_video.hidden = hidden;
+      // restored_video.hidden = hidden;
       // restored_video.source_data = stored_source_data;
       // restored_video.mouse_positions = stored_mouse_positions;
 
@@ -1370,6 +1372,7 @@ export class Editor {
 
   stepVideoAnimations(camera: Camera, providedCurrentTimeS?: number): void {
     if (!this.videoIsPlaying || !this.videoCurrentSequenceTimeline) {
+      // console.warn("no data");
       return;
     }
 
@@ -1388,6 +1391,7 @@ export class Editor {
     // Get the sequences data
     const videoCurrentSequencesData = this.videoCurrentSequencesData;
     if (!videoCurrentSequencesData) {
+      // console.warn("no data");
       return;
     }
 
@@ -1419,6 +1423,9 @@ export class Editor {
         const sequence = videoCurrentSequencesData.find(
           (s) => s.id === ts.sequenceId
         );
+
+        // console.info("checking mark", sequence);
+
         if (sequence) {
           // Calculate local time within this sequence
           const sequenceLocalTime = (currentTimeMs - ts.startTimeMs) / 1000;
@@ -1430,6 +1437,8 @@ export class Editor {
 
               // Set hidden attribute on relevant objects
               const currentSequenceId = sequence.id;
+
+              // console.info("mark unhidden");
 
               for (const polygon of this.polygons) {
                 polygon.hidden =
@@ -1450,6 +1459,8 @@ export class Editor {
           } else {
             this.currentSequenceData = sequence;
           }
+        } else {
+          // console.warn("no data");
         }
       }
     }
@@ -1458,10 +1469,10 @@ export class Editor {
       const backgroundFill = this.currentSequenceData.backgroundFill;
       if (backgroundFill && backgroundFill.type === "Color") {
         const [r, g, b, a] = backgroundFill.value;
-        // this.replaceBackground(
-        //   this.currentSequenceData.id,
-        //   rgbToWgpu(r, g, b, a)
-        // );
+        this.replace_background(
+          this.currentSequenceData.id,
+          rgbToWgpu(r, g, b, a)
+        );
       } else {
         console.log("Not supported yet...");
       }
@@ -2131,7 +2142,8 @@ export class Editor {
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
       0.0,
-      selected_sequence_id
+      selected_sequence_id,
+      false
     );
 
     this.imageItems.push(image_item);
@@ -2176,7 +2188,8 @@ export class Editor {
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
       0.0,
-      selected_sequence_id
+      selected_sequence_id,
+      false
     );
     // .expect("Couldn't create video item");
 
