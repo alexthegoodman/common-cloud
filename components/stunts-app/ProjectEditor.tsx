@@ -1328,6 +1328,11 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                           editor_state.savedState.timeline_state
                         );
 
+                        setTSequences(
+                          editor_state.savedState.timeline_state
+                            .timeline_sequences
+                        );
+
                         console.info("Sequence added!");
                       }}
                     >
