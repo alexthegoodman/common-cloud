@@ -32,6 +32,8 @@ export const TimelineTrack: React.FC<TrackProps> = ({
   sequenceDurations,
   onSequenceDragEnd,
 }) => {
+  console.info("tSequences", tSequences);
+
   const pixelsPerMs = pixelsPerSecond / 1000;
   const trackColor = type === TrackType.Audio ? "bg-blue-300" : "bg-orange-200";
   const sequenceColor =

@@ -588,6 +588,8 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     });
 
     setSequenceQuickAccess(quickAccess);
+
+    setTSequences(editorState.savedState.timeline_state.timeline_sequences);
   };
 
   let on_open_sequence = (sequence_id: string) => {
