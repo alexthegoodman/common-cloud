@@ -1892,6 +1892,8 @@ export class Editor {
 
             if (animation.objectType === ObjectType.VideoItem) {
               const videoItem = this.videoItems[objectIdx];
+              let halfVideoWidth = videoItem.dimensions[0] / 2.0;
+              let halfVideoHeight = videoItem.dimensions[1] / 2.0;
               const elapsedMs = currentTimeMs;
 
               const autoFollowDelay = 150;
@@ -1925,11 +1927,14 @@ export class Editor {
                       endPosition.value.type === "Zoom"
                     ) {
                       videoItem.lastStartPoint = [
-                        ...startPosition.value.value.position,
+                        startPosition.value.value.position[0] + halfVideoWidth,
+                        startPosition.value.value.position[1] + halfVideoHeight,
                         startPosition.time,
                       ];
                       videoItem.lastEndPoint = [
-                        ...endPosition.value.value.position,
+                        // ...endPosition.value.value.position,
+                        endPosition.value.value.position[0] + halfVideoWidth,
+                        endPosition.value.value.position[1] + halfVideoHeight,
                         endPosition.time,
                       ];
                     }
@@ -1937,18 +1942,22 @@ export class Editor {
                     return false;
                   })();
 
-              const delayOffset = 500;
-              const minDistance = 30.0;
-              const baseAlpha = 0.05;
-              const maxAlpha = 0.2;
-              const scalingFactor = 0.05;
+              const delayOffset = 500; // time shift
+              const minDistance = 30.0; // Min distance to incur change
+              let baseAlpha = 0.01; // Your current default value
+              let maxAlpha = 0.1; // Maximum blending speed
+              let scalingFactor = 0.01; // Controls how quickly alpha increases with distance
 
               let mousePositions: MousePosition[] = [];
               property.keyframes.forEach((kf) => {
                 if (kf.value.type === "Zoom") {
                   mousePositions.push({
                     timestamp: kf.time,
-                    point: [...kf.value.value.position, kf.time],
+                    point: [
+                      kf.value.value.position[0] + halfVideoWidth,
+                      kf.value.value.position[1] + halfVideoHeight,
+                      kf.time,
+                    ],
                   });
                 }
               });
@@ -2246,7 +2255,7 @@ export class Editor {
     const animationId = animationData.id; // Directly using string ID
     const initialZoomPosition: [number, number] = animationData.position;
 
-    console.info("creating new zoom path");
+    console.info("creating new zoom path", initialZoomPosition);
 
     const zoomPath = new MotionPath(
       this.gpuResources.device,
