@@ -265,69 +265,6 @@ export class WebGpuResources {
     // Return the resources
     return new WebGpuResources(context, adapter, device, device.queue);
   }
-
-  // surface: GPUCanvasContext | null;
-  // adapter: GPUAdapter;
-  // device: GPUDevice;
-  // queue: GPUQueue;
-  // format: GPUTextureFormat | null; // Store the format
-
-  // private constructor(
-  //   surface: GPUCanvasContext | null,
-  //   adapter: GPUAdapter,
-  //   device: GPUDevice,
-  //   queue: GPUQueue,
-  //   format: GPUTextureFormat | null // Add format to constructor
-  // ) {
-  //   this.surface = surface;
-  //   this.adapter = adapter;
-  //   this.device = device;
-  //   this.queue = queue;
-  //   this.format = format; // Initialize format
-  // }
-
-  // static async request(
-  //   canvas: HTMLCanvasElement | null, // Canvas can be null
-  //   windowSize: WindowSize | null // WindowSize can be null
-  // ): Promise<WebGpuResources> {
-  //   if (!navigator.gpu) {
-  //     throw new Error("WebGPU not supported on this browser");
-  //   }
-
-  //   const adapter = await navigator.gpu.requestAdapter({
-  //     powerPreference: "high-performance",
-  //   });
-
-  //   if (!adapter) {
-  //     throw new GpuResourceError("AdapterNotFoundError");
-  //   }
-
-  //   const device = await adapter.requestDevice({
-  //     label: "Main device",
-  //     requiredFeatures: [],
-  //     requiredLimits: {},
-  //   });
-
-  //   let context: GPUCanvasContext | null = null;
-  //   let format: GPUTextureFormat | null = null;
-
-  //   if (canvas) {
-  //     // Only configure if canvas exists
-  //     context = canvas.getContext("webgpu");
-  //     if (!context) {
-  //       throw new Error("Couldn't get WebGPU context from canvas");
-  //     }
-
-  //     format = navigator.gpu.getPreferredCanvasFormat(); // Get the format
-  //     context.configure({
-  //       device,
-  //       format,
-  //       alphaMode: "premultiplied",
-  //     });
-  //   }
-
-  //   return new WebGpuResources(context, adapter, device, device.queue, format);
-  // }
 }
 
 // GPU Resource Error class
@@ -373,6 +310,7 @@ import {
   getUploadedImageData,
   getUploadedVideoData,
 } from "@/fetchers/projects";
+import { RepeatManager } from "./repeater";
 
 export class Editor {
   // visual
@@ -395,6 +333,7 @@ export class Editor {
   videoItems: StVideo[];
   draggingVideo: string | null;
   motionPaths: MotionPath[];
+  repeatManager: RepeatManager;
 
   // viewport
   viewport: Viewport;
@@ -457,6 +396,7 @@ export class Editor {
     };
 
     this.fontManager = new FontManager();
+    this.repeatManager = new RepeatManager();
 
     this.selectedPolygonId = null; // nil UUID
     this.polygons = [];

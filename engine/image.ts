@@ -5,6 +5,7 @@ import { createEmptyGroupTransform, Transform } from "./transform";
 import { INTERNAL_LAYER_SPACE, SavedPoint } from "./polygon";
 import { Point } from "./editor";
 import { WindowSize } from "./camera";
+import { ObjectType } from "./animations";
 
 export interface SavedStImageConfig {
   id: string;
@@ -39,10 +40,12 @@ export class StImage {
   dimensions: [number, number];
   bindGroup!: GPUBindGroup;
   vertices: Vertex[];
-  indices: Uint32Array;
+  // indices: Uint32Array;
+  indices: number[];
   hidden: boolean;
   layer: number;
   groupBindGroup!: GPUBindGroup;
+  objectType: ObjectType;
 
   constructor(
     device: GPUDevice,
@@ -65,7 +68,9 @@ export class StImage {
     this.layer = imageConfig.layer;
     this.dimensions = imageConfig.dimensions;
     this.vertices = [];
-    this.indices = new Uint32Array();
+    // this.indices = new Uint32Array();
+    this.indices = [];
+    this.objectType = ObjectType.ImageItem;
 
     const identityMatrix = mat4.create();
     let uniformBuffer = device.createBuffer({
@@ -219,15 +224,23 @@ export class StImage {
         )
       ); // Correct writeBuffer call
 
-      const indices = new Uint32Array([0, 1, 2, 0, 2, 3]);
+      // const indices = new Uint32Array([0, 1, 2, 0, 2, 3]);
+      const indices = [0, 1, 2, 0, 2, 3];
       this.indices = indices;
+      // this.indexBuffer = device.createBuffer({
+      //   // Initialize indexBuffer
+      //   label: "Index Buffer",
+      //   size: indices.byteLength,
+      //   usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+      // });
+      // queue.writeBuffer(this.indexBuffer, 0, indices); // Correct writeBuffer call
+
       this.indexBuffer = device.createBuffer({
-        // Initialize indexBuffer
         label: "Index Buffer",
-        size: indices.byteLength,
+        size: indices.length * Uint32Array.BYTES_PER_ELEMENT, // Correct size calculation
         usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
       });
-      queue.writeBuffer(this.indexBuffer, 0, indices); // Correct writeBuffer call
+      queue.writeBuffer(this.indexBuffer, 0, new Uint32Array(indices));
 
       this.dimensions = dimensions;
 

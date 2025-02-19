@@ -5,6 +5,9 @@ import { ControlMode, Editor, WebGpuResources } from "./editor";
 
 import FragShader from "./shaders/frag_primary.wgsl?raw";
 import VertShader from "./shaders/vert_primary.wgsl?raw";
+import { ObjectType } from "./animations";
+import { TextRenderer } from "./text";
+import { RepeatableObject } from "./repeater";
 
 interface WindowSize {
   width: number;
@@ -558,6 +561,80 @@ export class CanvasPipeline {
       }
     }
 
+    let repeatObjects = editor.repeatManager.getAllRepeatObjects();
+    if (repeatObjects.length > 0) {
+      // Draw repeat objects
+      for (const repeatObject of repeatObjects || []) {
+        if (
+          !repeatObject.hidden &&
+          repeatObject.indices &&
+          repeatObject.indexBuffer
+        ) {
+          let sourceObject = repeatObject.sourceObject;
+          let instances = repeatObject.instances;
+
+          for (let instance of instances) {
+            if (isTextRenderer(sourceObject)) {
+              if (
+                sourceObject.objectType === ObjectType.TextItem &&
+                sourceObject?.backgroundPolygon // TODO: backgroundPolygon is not available on other object types, getting type error
+              ) {
+                // Draw background polygon if not hidden
+                if (
+                  sourceObject?.backgroundPolygon &&
+                  !sourceObject.backgroundPolygon.hidden
+                ) {
+                  if (
+                    // editor.draggingText === sourceObject.backgroundPolygon.id ||
+                    editor.isPlaying
+                  ) {
+                    sourceObject.backgroundPolygon.transform.updateUniformBuffer(
+                      queue,
+                      editor.camera.windowSize
+                    );
+                  }
+
+                  renderPass.setBindGroup(
+                    1,
+                    sourceObject.backgroundPolygon.bindGroup
+                  );
+                  renderPass.setBindGroup(
+                    3,
+                    sourceObject.backgroundPolygon.groupBindGroup
+                  );
+                  renderPass.setVertexBuffer(
+                    0,
+                    sourceObject.backgroundPolygon.vertexBuffer
+                  );
+                  renderPass.setIndexBuffer(
+                    sourceObject.backgroundPolygon.indexBuffer,
+                    "uint32"
+                  );
+                  renderPass.drawIndexed(
+                    sourceObject.backgroundPolygon.indices.length
+                  );
+                }
+              }
+            }
+
+            // Allow for animations
+            if (instance.transform && editor.isPlaying) {
+              instance.transform.updateUniformBuffer(
+                queue,
+                editor.camera.windowSize
+              );
+            }
+
+            renderPass.setBindGroup(1, instance.bindGroup);
+            renderPass.setBindGroup(3, sourceObject.groupBindGroup);
+            renderPass.setVertexBuffer(0, repeatObject.vertexBuffer);
+            renderPass.setIndexBuffer(repeatObject.indexBuffer, "uint32");
+            renderPass.drawIndexed(repeatObject.indices.length);
+          }
+        }
+      }
+    }
+
     // Update camera binding if panning
     if (editor.controlMode === ControlMode.Pan && editor.isPanning) {
       editor.updateCameraBinding();
@@ -573,4 +650,8 @@ export class CanvasPipeline {
       await frameEncoder(currentTexture);
     }
   }
+}
+
+function isTextRenderer(obj: RepeatableObject): obj is TextRenderer {
+  return (obj as TextRenderer).backgroundPolygon !== undefined;
 }

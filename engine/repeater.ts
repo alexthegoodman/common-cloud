@@ -4,6 +4,7 @@ import { Polygon } from "./polygon";
 import { TextRenderer } from "./text";
 import { Transform } from "./transform";
 import { Vertex } from "./vertex";
+import { v4 as uuidv4 } from "uuid";
 
 // Types for repeat patterns
 type RepeatPattern = {
@@ -15,26 +16,33 @@ type RepeatPattern = {
   fadeOut?: boolean;
 };
 
-type RepeatableObject = Polygon | TextRenderer | StImage;
+export type RepeatableObject = Polygon | TextRenderer | StImage;
+
+export class RepeatInstance {
+  transform: Transform | null = null;
+  bindGroup: GPUBindGroup | null = null;
+}
 
 export class RepeatObject {
   id: string;
   sourceObject: RepeatableObject;
   pattern: RepeatPattern;
-  instances: Transform[];
+  instances: RepeatInstance[];
   vertexBuffer: GPUBuffer | null = null;
   indexBuffer: GPUBuffer | null = null;
-  bindGroup: GPUBindGroup | null = null;
   hidden: boolean;
   layer: number;
+  vertices: Vertex[] = [];
+  indices: number[] = [];
 
   constructor(
     device: GPUDevice,
     queue: GPUQueue,
+    bindGroupLayout: GPUBindGroupLayout,
     sourceObject: RepeatableObject,
     pattern: RepeatPattern
   ) {
-    this.id = crypto.randomUUID();
+    this.id = uuidv4();
     this.sourceObject = sourceObject;
     this.pattern = pattern;
     this.instances = [];
@@ -72,46 +80,90 @@ export class RepeatObject {
       new Uint32Array(sourceObject.indices)
     );
 
+    this.vertices = sourceObject.vertices;
+    this.indices = sourceObject.indices;
+
     // Create transforms for each instance
-    this.generateInstances(device);
+    this.generateInstances(device, bindGroupLayout);
 
     // Copy the bind group from the source object
-    this.bindGroup = sourceObject.bindGroup;
+    // this.bindGroup = sourceObject.bindGroup; // not workable, need our own uniform per instance
   }
 
-  private generateInstances(device: GPUDevice) {
+  private generateInstances(
+    device: GPUDevice,
+    bindGroupLayout: GPUBindGroupLayout
+  ) {
     this.instances = [];
     const baseTransform = this.sourceObject.transform;
 
     switch (this.pattern.direction) {
       case "horizontal":
-        this.generateHorizontalInstances(device, baseTransform);
+        this.generateHorizontalInstances(
+          device,
+          bindGroupLayout,
+          baseTransform
+        );
         break;
       case "vertical":
-        this.generateVerticalInstances(device, baseTransform);
+        this.generateVerticalInstances(device, bindGroupLayout, baseTransform);
         break;
       case "circular":
-        this.generateCircularInstances(device, baseTransform);
+        this.generateCircularInstances(device, bindGroupLayout, baseTransform);
         break;
       case "grid":
-        this.generateGridInstances(device, baseTransform);
+        this.generateGridInstances(device, bindGroupLayout, baseTransform);
         break;
     }
   }
 
+  private createBindGroup(
+    device: GPUDevice,
+    bindGroupLayout: GPUBindGroupLayout,
+    instance: RepeatInstance
+  ): GPUBuffer {
+    const identityMatrix = mat4.create();
+    let uniformBuffer = device.createBuffer({
+      size: 64,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      mappedAtCreation: true,
+    });
+    new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
+    uniformBuffer.unmap();
+
+    let sampler = device.createSampler({
+      addressModeU: "clamp-to-edge",
+      addressModeV: "clamp-to-edge",
+      magFilter: "linear",
+      minFilter: "linear",
+      mipmapFilter: "linear",
+    });
+
+    instance.bindGroup = device.createBindGroup({
+      layout: bindGroupLayout,
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: this.sourceObject.textureView },
+        { binding: 2, resource: sampler },
+      ],
+    });
+
+    return uniformBuffer;
+  }
+
   private generateHorizontalInstances(
     device: GPUDevice,
+    bindGroupLayout: GPUBindGroupLayout,
     baseTransform: Transform
   ) {
     for (let i = 0; i < this.pattern.count; i++) {
-      const identityMatrix = mat4.create();
-      let uniformBuffer = device.createBuffer({
-        size: 64,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-        mappedAtCreation: true,
-      });
-      new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
-      uniformBuffer.unmap();
+      let instance = new RepeatInstance();
+
+      let uniformBuffer = this.createBindGroup(
+        device,
+        bindGroupLayout,
+        instance
+      );
 
       let position = vec2.fromValues(
         baseTransform.position[0] + i * this.pattern.spacing,
@@ -128,23 +180,26 @@ export class RepeatObject {
 
       transform.layer = this.layer;
 
-      this.instances.push(transform);
+      instance.transform = transform;
+
+      this.instances.push(instance);
     }
   }
 
   private generateVerticalInstances(
     device: GPUDevice,
+    bindGroupLayout: GPUBindGroupLayout,
+
     baseTransform: Transform
   ) {
     for (let i = 0; i < this.pattern.count; i++) {
-      const identityMatrix = mat4.create();
-      let uniformBuffer = device.createBuffer({
-        size: 64,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-        mappedAtCreation: true,
-      });
-      new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
-      uniformBuffer.unmap();
+      let instance = new RepeatInstance();
+
+      let uniformBuffer = this.createBindGroup(
+        device,
+        bindGroupLayout,
+        instance
+      );
 
       let position = vec2.fromValues(
         baseTransform.position[0],
@@ -161,26 +216,28 @@ export class RepeatObject {
 
       transform.layer = this.layer;
 
-      this.instances.push(transform);
+      instance.transform = transform;
+
+      this.instances.push(instance);
     }
   }
 
   private generateCircularInstances(
     device: GPUDevice,
+    bindGroupLayout: GPUBindGroupLayout,
     baseTransform: Transform
   ) {
     const radius = this.pattern.spacing;
     const angleStep = (2 * Math.PI) / this.pattern.count;
 
     for (let i = 0; i < this.pattern.count; i++) {
-      const identityMatrix = mat4.create();
-      let uniformBuffer = device.createBuffer({
-        size: 64,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-        mappedAtCreation: true,
-      });
-      new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
-      uniformBuffer.unmap();
+      let instance = new RepeatInstance();
+
+      let uniformBuffer = this.createBindGroup(
+        device,
+        bindGroupLayout,
+        instance
+      );
 
       const angle = i * angleStep;
 
@@ -200,24 +257,29 @@ export class RepeatObject {
 
       transform.layer = this.layer;
 
-      this.instances.push(transform);
+      instance.transform = transform;
+
+      this.instances.push(instance);
     }
   }
 
-  private generateGridInstances(device: GPUDevice, baseTransform: Transform) {
+  private generateGridInstances(
+    device: GPUDevice,
+    bindGroupLayout: GPUBindGroupLayout,
+    baseTransform: Transform
+  ) {
     const gridSize = Math.ceil(Math.sqrt(this.pattern.count));
     let instanceCount = 0;
 
     for (let y = 0; y < gridSize && instanceCount < this.pattern.count; y++) {
       for (let x = 0; x < gridSize && instanceCount < this.pattern.count; x++) {
-        const identityMatrix = mat4.create();
-        let uniformBuffer = device.createBuffer({
-          size: 64,
-          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-          mappedAtCreation: true,
-        });
-        new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
-        uniformBuffer.unmap();
+        let instance = new RepeatInstance();
+
+        let uniformBuffer = this.createBindGroup(
+          device,
+          bindGroupLayout,
+          instance
+        );
 
         let position = vec2.fromValues(
           baseTransform.position[0] + x * this.pattern.spacing,
@@ -240,16 +302,22 @@ export class RepeatObject {
 
         transform.layer = this.layer;
 
-        this.instances.push(transform);
+        instance.transform = transform;
+
+        this.instances.push(instance);
 
         instanceCount++;
       }
     }
   }
 
-  updatePattern(device: GPUDevice, newPattern: Partial<RepeatPattern>) {
+  updatePattern(
+    device: GPUDevice,
+    bindGroupLayout: GPUBindGroupLayout,
+    newPattern: Partial<RepeatPattern>
+  ) {
     this.pattern = { ...this.pattern, ...newPattern };
-    this.generateInstances(device);
+    this.generateInstances(device, bindGroupLayout);
   }
 }
 
@@ -263,23 +331,31 @@ export class RepeatManager {
   createRepeatObject(
     device: GPUDevice,
     queue: GPUQueue,
+    bindGroupLayout: GPUBindGroupLayout,
     sourceObject: RepeatableObject,
     pattern: RepeatPattern
   ): RepeatObject {
-    const repeatObject = new RepeatObject(device, queue, sourceObject, pattern);
+    const repeatObject = new RepeatObject(
+      device,
+      queue,
+      bindGroupLayout,
+      sourceObject,
+      pattern
+    );
     this.repeatedObjects.set(repeatObject.id, repeatObject);
     return repeatObject;
   }
 
   updateRepeatObject(
     device: GPUDevice,
+    bindGroupLayout: GPUBindGroupLayout,
     id: string,
     newPattern: Partial<RepeatPattern>
   ): RepeatObject | null {
     const repeatObject = this.repeatedObjects.get(id);
 
     if (repeatObject) {
-      repeatObject.updatePattern(device, newPattern);
+      repeatObject.updatePattern(device, bindGroupLayout, newPattern);
 
       return repeatObject;
     }

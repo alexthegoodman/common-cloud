@@ -7,6 +7,7 @@ import { INTERNAL_LAYER_SPACE, SavedPoint } from "./polygon";
 import MP4Box, { DataStream, MP4ArrayBuffer, MP4VideoTrack } from "mp4box";
 import { WindowSize } from "./camera";
 import { MotionPath } from "./motionpath";
+import { ObjectType } from "./animations";
 
 export interface RectInfo {
   left: number;
@@ -108,6 +109,7 @@ export class StVideo {
   layer: number;
   groupBindGroup!: GPUBindGroup;
   groupTransform: Transform;
+  objectType: ObjectType;
   currentZoom: number;
   mousePath: MotionPath | undefined;
   // mousePositions: MousePosition[] | undefined;
@@ -158,6 +160,7 @@ export class StVideo {
     this.gridResolution = [20, 20]; // Default grid resolution
     this.dynamicAlpha = 0.01;
     this.numFramesDrawn = 0;
+    this.objectType = ObjectType.VideoItem;
 
     // defaults
     this.sourceDuration = 0;

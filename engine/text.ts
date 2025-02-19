@@ -10,6 +10,7 @@ import {
   wgpuToHuman,
 } from "./editor";
 import { INTERNAL_LAYER_SPACE, Polygon } from "./polygon";
+import { ObjectType } from "./animations";
 
 export interface TextRendererConfig {
   id: string;
@@ -83,6 +84,8 @@ export class TextRenderer {
   initialized: boolean;
   fontFamily: string;
   currentSequenceId: string;
+  objectType: ObjectType;
+  textureView: GPUTextureView;
 
   constructor(
     device: GPUDevice,
@@ -106,6 +109,7 @@ export class TextRenderer {
     this.fontFamily = textConfig.fontFamily;
     this.initialized = false;
     this.currentSequenceId = currentSequenceId;
+    this.objectType = ObjectType.TextItem;
 
     this.glyphCache = new Map();
     this.atlasSize = [4096, 4096];
@@ -153,12 +157,13 @@ export class TextRenderer {
     new Float32Array(this.uniformBuffer.getMappedRange()).set(identityMatrix);
     this.uniformBuffer.unmap();
 
-    const textureView = this.atlasTexture.createView();
+    this.textureView = this.atlasTexture.createView();
+
     this.bindGroup = this.device.createBindGroup({
       layout: bindGroupLayout,
       entries: [
         { binding: 0, resource: { buffer: this.uniformBuffer } },
-        { binding: 1, resource: textureView },
+        { binding: 1, resource: this.textureView },
         { binding: 2, resource: this.sampler },
       ],
     });

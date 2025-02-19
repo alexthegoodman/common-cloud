@@ -15,6 +15,7 @@ import {
 import { createVertex, getZLayer, Vertex, vertexByteSize } from "./vertex";
 
 import * as gt from "@thi.ng/geom-tessellate";
+import { ObjectType } from "./animations";
 
 export const INTERNAL_LAYER_SPACE = 10;
 
@@ -96,6 +97,8 @@ export class Polygon implements PolygonShape {
   bindGroup: GPUBindGroup;
   transform: Transform;
   layer: number;
+  objectType: ObjectType;
+  textureView: GPUTextureView;
 
   constructor(
     window_size: WindowSize,
@@ -129,6 +132,7 @@ export class Polygon implements PolygonShape {
     this.id = id;
     this.name = name;
     this.hidden = false;
+    this.objectType = ObjectType.Polygon;
 
     this.currentSequenceId = currentSequenceId;
     // this.sourcePolygonId = null;
@@ -163,6 +167,8 @@ export class Polygon implements PolygonShape {
       index_buffer,
       bind_group,
       transform,
+      textureView,
+      sampler,
     ] = getPolygonData(
       window_size,
       device,
@@ -171,6 +177,8 @@ export class Polygon implements PolygonShape {
       camera,
       config
     );
+
+    this.textureView = textureView;
 
     // -10.0 to provide 10 spots for internal items on top of objects
     this.transformLayer = transformLayer - INTERNAL_LAYER_SPACE;
@@ -634,7 +642,16 @@ export function getPolygonData(
   bindGroupLayout: GPUBindGroupLayout,
   camera: Camera,
   polygon: PolygonConfig
-): [Vertex[], number[], GPUBuffer, GPUBuffer, GPUBindGroup, Transform] {
+): [
+  Vertex[],
+  number[],
+  GPUBuffer,
+  GPUBuffer,
+  GPUBindGroup,
+  Transform,
+  GPUTextureView,
+  GPUSampler
+] {
   // 1. Tessellate using @thi.ng/geom-tessellate
   let rounded_points = createRoundedPolygonPath(
     polygon.points,
@@ -680,6 +697,8 @@ export function getPolygonData(
       null as unknown as GPUBuffer,
       null as unknown as GPUBindGroup,
       null as unknown as Transform,
+      null as unknown as GPUTextureView,
+      null as unknown as GPUSampler,
     ];
   }
 
@@ -830,7 +849,16 @@ export function getPolygonData(
   transform.layer = polygon.layer - INTERNAL_LAYER_SPACE;
   transform.updateUniformBuffer(queue, camera.windowSize);
 
-  return [vertices, indices, vertexBuffer, indexBuffer, bindGroup, transform];
+  return [
+    vertices,
+    indices,
+    vertexBuffer,
+    indexBuffer,
+    bindGroup,
+    transform,
+    textureView,
+    sampler,
+  ];
 }
 
 // Helper function to create a LyonPoint (if needed, adjust import if LyonPoint is defined differently)
