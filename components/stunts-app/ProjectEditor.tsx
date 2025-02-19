@@ -1425,6 +1425,9 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                     editorStateRef={editorStateRef}
                     currentSequenceId={current_sequence_id}
                     currentTextId={selected_text_id}
+                    handleGoBack={() => {
+                      set_selected_text_id(null);
+                    }}
                   />
                 </div>
               </>

@@ -5,6 +5,7 @@ import { DebouncedInput } from "./items";
 import { Editor } from "@/engine/editor";
 import EditorState from "@/engine/editor_state";
 import { ObjectType } from "@/engine/animations";
+import { CreateIcon } from "./icon";
 
 export const PolygonProperties = ({
   editorRef,
@@ -68,11 +69,13 @@ export const TextProperties = ({
   editorStateRef,
   currentSequenceId,
   currentTextId,
+  handleGoBack,
 }: {
   editorRef: React.RefObject<Editor | null>;
   editorStateRef: React.RefObject<EditorState | null>;
   currentSequenceId: string;
   currentTextId: string;
+  handleGoBack: () => void;
 }) => {
   const [defaultsSet, setDefaultsSet] = useState(false);
   const [defaultWidth, setDefaultWidth] = useState(0);
@@ -118,6 +121,16 @@ export const TextProperties = ({
   return (
     <>
       <div>
+        <div className="flex flex-row items-center">
+          <button
+            className="flex flex-col justify-center items-center text-xs w-[35px] h-[35px] text-center rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors mr-2"
+            // disabled={loading}
+            onClick={() => handleGoBack()}
+          >
+            <CreateIcon icon="arrow-left" size="24px" />
+          </button>
+          <h5>Update Text</h5>
+        </div>
         <DebouncedInput
           id="text_content"
           label="Content"
