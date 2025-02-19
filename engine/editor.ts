@@ -766,7 +766,7 @@ export class Editor {
         path: i.path,
         position,
         layer: i.layer,
-        mousePath: i.mousePath,
+        // mousePath: i.mousePath,
       };
 
       let blob = await getUploadedVideoData(i.path);
@@ -1309,22 +1309,30 @@ export class Editor {
         ];
 
         if (objectType === ObjectType.VideoItem) {
-          properties.push({
-            name: "Zoom / Popout",
-            propertyPath: "zoom",
-            children: [],
-            keyframes: timestamps.map((t) => ({
+          let keyframes = [] as UIKeyframe[];
+          timestamps.entries().forEach(([i, t]) =>
+            keyframes.push({
               id: uuidv4(),
               time: t,
               value: {
                 type: "Zoom",
-                value: 100,
+                value: {
+                  position: [i * 20, i * 20],
+                  zoomLevel: i === 0 ? 100 : 135,
+                },
               },
               easing: EasingType.EaseInOut,
               pathType: PathType.Linear,
               keyType: { type: "Frame" },
               curveData: null,
-            })),
+            })
+          );
+
+          properties.push({
+            name: "Zoom / Popout",
+            propertyPath: "zoom",
+            children: [],
+            keyframes,
             depth: 0,
           });
         }
@@ -1855,6 +1863,183 @@ export class Editor {
             break;
           }
 
+          case startFrame.value.type === "Zoom" &&
+            endFrame.value.type === "Zoom": {
+            const zoom =
+              this.lerp(
+                startFrame.value.value.zoomLevel,
+                endFrame.value.value.zoomLevel,
+                progress
+              ) / 100.0;
+
+            if (!this.gpuResources) {
+              throw new Error("Couldn't get gpu resources");
+            }
+
+            if (animation.objectType === ObjectType.VideoItem) {
+              const videoItem = this.videoItems[objectIdx];
+              const elapsedMs = currentTime;
+
+              const autoFollowDelay = 150;
+
+              // if (videoItem.mousePositions && videoItem.sourceData) {
+              // Check if we need to update the shift points
+              const shouldUpdateShift = videoItem.lastShiftTime
+                ? elapsedMs - videoItem.lastShiftTime > autoFollowDelay
+                : (() => {
+                    videoItem.lastShiftTime = elapsedMs;
+
+                    const relevantPositions = property.keyframes.filter(
+                      (p) => p.time >= elapsedMs
+                    );
+                    const startEnd = relevantPositions
+                      .filter((p) => p.time >= elapsedMs + autoFollowDelay)
+                      .map((p, i) => ({
+                        start: relevantPositions[i],
+                        end: p,
+                      }))[0];
+
+                    if (
+                      startEnd &&
+                      startEnd.start.value.type === "Zoom" &&
+                      startEnd.end.value.type === "Zoom"
+                    ) {
+                      videoItem.lastStartPoint = [
+                        ...startEnd.start.value.value.position,
+                        startEnd.start.time,
+                      ];
+                      videoItem.lastEndPoint = [
+                        ...startEnd.end.value.value.position,
+                        startEnd.end.time,
+                      ];
+                    }
+
+                    return false;
+                  })();
+
+              const delayOffset = 500;
+              const minDistance = 100.0;
+              const baseAlpha = 0.01;
+              const maxAlpha = 0.1;
+              const scalingFactor = 0.01;
+
+              // Update shift points if needed
+              if (shouldUpdateShift) {
+                // const relevantPositions = videoItem.mousePositions.filter(
+                //   (p) =>
+                //     p.timestamp >=
+                //       elapsedMs - autoFollowDelay + delayOffset &&
+                //     p.timestamp < videoItem.sourceDurationMs
+                // );
+
+                // const futurePositions = videoItem.mousePositions.filter(
+                //   (p) =>
+                //     p.timestamp >= elapsedMs + delayOffset &&
+                //     p.timestamp < videoItem.sourceDurationMs
+                // );
+
+                // const relevantPositions = startFrame.value.value.position;
+                // const futurePositions = endFrame.value.value.position;
+
+                // if (relevantPositions.length && futurePositions.length) {
+                const startPoint = [
+                  ...startFrame.value.value.position,
+                  startFrame.time,
+                ] as [number, number, number];
+                const endPoint = [
+                  ...endFrame.value.value.position,
+                  endFrame.time,
+                ] as [number, number, number];
+
+                if (videoItem.lastStartPoint && videoItem.lastEndPoint) {
+                  const dx = startPoint[0] - videoItem.lastStartPoint[0];
+                  const dy = startPoint[1] - videoItem.lastStartPoint[1];
+                  const distance = Math.sqrt(dx * dx + dy * dy);
+
+                  const dx2 = endPoint[0] - videoItem.lastEndPoint[0];
+                  const dy2 = endPoint[1] - videoItem.lastEndPoint[1];
+                  const distance2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+
+                  if (distance >= minDistance || distance2 >= minDistance) {
+                    videoItem.lastShiftTime = elapsedMs;
+                    videoItem.lastStartPoint = startPoint;
+                    videoItem.lastEndPoint = endPoint;
+
+                    const maxDistance = Math.max(distance, distance2);
+                    const dynamicAlpha =
+                      baseAlpha +
+                      (maxAlpha - baseAlpha) *
+                        (1.0 - Math.exp(-scalingFactor * maxDistance));
+
+                    videoItem.dynamicAlpha = dynamicAlpha;
+                  }
+                }
+                // }
+              }
+
+              // Always interpolate between the current shift points
+              if (videoItem.lastStartPoint && videoItem.lastEndPoint) {
+                const clampedElapsedMs = Math.min(
+                  Math.max(elapsedMs, videoItem.lastStartPoint[2]!),
+                  videoItem.lastEndPoint[2]!
+                );
+
+                const timeProgress =
+                  (clampedElapsedMs - videoItem.lastStartPoint[2]!) /
+                  (videoItem.lastEndPoint[2]! - videoItem.lastStartPoint[2]!);
+
+                const interpolatedX =
+                  videoItem.lastStartPoint[0] +
+                  (videoItem.lastEndPoint[0] - videoItem.lastStartPoint[0]) *
+                    timeProgress;
+                const interpolatedY =
+                  videoItem.lastStartPoint[1] +
+                  (videoItem.lastEndPoint[1] - videoItem.lastStartPoint[1]) *
+                    timeProgress;
+
+                const newCenterPoint: Point = {
+                  x:
+                    (interpolatedX / videoItem.sourceDimensions[0]) *
+                    videoItem.dimensions[0],
+                  y:
+                    (interpolatedY / videoItem.sourceDimensions[1]) *
+                    videoItem.dimensions[1],
+                };
+
+                // Smooth transition with existing center point
+                const blendedCenterPoint = videoItem.lastCenterPoint
+                  ? {
+                      x:
+                        videoItem.lastCenterPoint.x *
+                          (1.0 - videoItem.dynamicAlpha) +
+                        newCenterPoint.x * videoItem.dynamicAlpha,
+                      y:
+                        videoItem.lastCenterPoint.y *
+                          (1.0 - videoItem.dynamicAlpha) +
+                        newCenterPoint.y * videoItem.dynamicAlpha,
+                    }
+                  : newCenterPoint;
+
+                videoItem.updateZoom(
+                  gpuResources.queue,
+                  zoom,
+                  blendedCenterPoint
+                );
+                videoItem.lastCenterPoint = blendedCenterPoint;
+
+                // this.updateVideoItemPopout(
+                //   videoItem,
+                //   blendedCenterPoint,
+                //   1.5,
+                //   { width: 200, height: 200 }
+                // );
+              }
+              // }
+            }
+
+            break;
+          }
+
           default:
             break; // Or handle the default case as needed
         }
@@ -1935,22 +2120,24 @@ export class Editor {
 
   createMotionPathVisualization(
     sequence: Sequence,
-    polygonId: string,
+    objectId: string,
     colorIndex: number
   ): void {
     const animationData = sequence.polygonMotionPaths.find(
-      (anim) => anim.polygonId === polygonId
+      (anim) => anim.polygonId === objectId
     );
     if (!animationData) {
-      console.error(`Couldn't find animation data for polygon ${polygonId}`);
+      console.error(`Couldn't find animation data for object ${objectId}`);
       return;
     }
 
-    const positionProperty = animationData.properties.find((prop) =>
-      prop.name.startsWith("Position")
+    const positionProperty = animationData.properties.find(
+      (prop) =>
+        // prop.name.startsWith("Position")
+        prop.propertyPath === "position"
     );
     if (!positionProperty) {
-      console.error(`Couldn't find position property for polygon ${polygonId}`);
+      console.warn(`Couldn't find position property for object ${objectId}`);
       return;
     }
 
@@ -1985,11 +2172,51 @@ export class Editor {
       this.camera,
       sequence,
       colorIndex,
-      polygonId,
+      objectId,
       initialPosition
     );
 
     this.motionPaths.push(motionPath);
+
+    // add mouse zoom path if available
+    const zoomProperty = animationData.properties.find(
+      (prop) =>
+        // prop.name.startsWith("Position")
+        prop.propertyPath === "zoom"
+    );
+    if (!zoomProperty) {
+      console.warn(`Couldn't find zoom property for object ${objectId}`);
+      return;
+    }
+
+    // Sort keyframes by time
+    const zoomKeyframes = [...zoomProperty.keyframes].sort(
+      (a, b) => a.time - b.time
+    );
+
+    const animationId = animationData.id; // Directly using string ID
+    const initialZoomPosition: [number, number] = animationData.position;
+
+    const zoomPath = new MotionPath(
+      this.gpuResources.device,
+      this.gpuResources.queue,
+      this.modelBindGroupLayout,
+      this.groupBindGroupLayout,
+      animationId,
+      this.camera.windowSize,
+      zoomKeyframes,
+      this.camera,
+      sequence,
+      colorIndex,
+      objectId,
+      initialZoomPosition
+    );
+
+    this.videoItems.forEach((video) => {
+      if (video.id === objectId) {
+        video.mousePath = zoomPath;
+      }
+    });
   }
 
   updateMotionPaths(sequence: Sequence): void {
@@ -2216,10 +2443,10 @@ export class Editor {
     // .expect("Couldn't create video item");
 
     // set mouse capture source data if it exists
-    video_item.sourceData = stored_source_data;
+    // video_item.sourceData = stored_source_data;
 
     // set mouse positions for later use
-    video_item.mousePositions = mouse_positions;
+    // video_item.mousePositions = mouse_positions;
 
     // render 1 frame to provide preview image
     // video_item.drawVideoFrame(device, queue);

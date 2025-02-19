@@ -487,7 +487,13 @@ export default class EditorState {
       zoom_keyframes.push({
         id: uuidv4().toString(),
         time: 0,
-        value: { type: "Zoom", value: 100 },
+        value: {
+          type: "Zoom",
+          value: {
+            position: [20, 20],
+            zoomLevel: 100,
+          },
+        },
         easing: EasingType.EaseInOut,
         pathType: PathType.Linear,
         keyType: { type: "Frame" },
@@ -504,7 +510,13 @@ export default class EditorState {
       zoom_keyframes.push({
         id: uuidv4().toString(),
         time: 5000,
-        value: { type: "Zoom", value: 135 },
+        value: {
+          type: "Zoom",
+          value: {
+            position: [40, 40],
+            zoomLevel: 135,
+          },
+        },
         easing: EasingType.EaseInOut,
         pathType: PathType.Linear,
         keyType: { type: "Frame" },
@@ -513,7 +525,13 @@ export default class EditorState {
       zoom_keyframes.push({
         id: uuidv4().toString(),
         time: 15000,
-        value: { type: "Zoom", value: 135 },
+        value: {
+          type: "Zoom",
+          value: {
+            position: [60, 60],
+            zoomLevel: 135,
+          },
+        },
         easing: EasingType.EaseInOut,
         pathType: PathType.Linear,
         keyType: { type: "Frame" },
@@ -530,7 +548,13 @@ export default class EditorState {
       zoom_keyframes.push({
         id: uuidv4().toString(),
         time: 20000,
-        value: { type: "Zoom", value: 100 },
+        value: {
+          type: "Zoom",
+          value: {
+            position: [80, 80],
+            zoomLevel: 100,
+          },
+        },
         easing: EasingType.EaseInOut,
         pathType: PathType.Linear,
         keyType: { type: "Frame" },

@@ -6,6 +6,7 @@ import { Vertex } from "./vertex";
 import { INTERNAL_LAYER_SPACE, SavedPoint } from "./polygon";
 import MP4Box, { DataStream, MP4ArrayBuffer, MP4VideoTrack } from "mp4box";
 import { WindowSize } from "./camera";
+import { MotionPath } from "./motionpath";
 
 export interface RectInfo {
   left: number;
@@ -50,7 +51,7 @@ export interface SavedStVideoConfig {
   path: string;
   position: SavedPoint;
   layer: number;
-  mousePath: string;
+  // mousePath: string;
 }
 
 export interface StVideoConfig {
@@ -60,7 +61,7 @@ export interface StVideoConfig {
   position: Point;
   path: string;
   layer: number;
-  mousePath: string;
+  // mousePath: string;
 }
 
 interface VideoMetadata {
@@ -106,13 +107,13 @@ export class StVideo {
   layer: number;
   groupBindGroup!: GPUBindGroup;
   currentZoom: number;
-  mousePath: string | undefined;
-  mousePositions: MousePosition[] | undefined;
+  mousePath: MotionPath | undefined;
+  // mousePositions: MousePosition[] | undefined;
   lastCenterPoint: Point | undefined;
-  lastStartPoint: MousePosition | undefined;
-  lastEndPoint: MousePosition | undefined;
+  lastStartPoint: [number, number, number] | undefined; // x, y, time
+  lastEndPoint: [number, number, number] | undefined;
   lastShiftTime: number | undefined;
-  sourceData: SourceData | null = null;
+  // sourceData: SourceData | null = null;
   gridResolution: [number, number];
   //   frameTimer: FrameTimer | undefined;
   dynamicAlpha: number;
@@ -151,7 +152,7 @@ export class StVideo {
     this.hidden = true;
     this.layer = videoConfig.layer;
     this.currentZoom = 1.0;
-    this.mousePath = videoConfig.mousePath;
+    // this.mousePath = videoConfig.mousePath;
     this.gridResolution = [20, 20]; // Default grid resolution
     this.dynamicAlpha = 0.01;
     this.numFramesDrawn = 0;
@@ -750,6 +751,129 @@ export class StVideo {
     this.transform.layer = layer;
   }
 
+  updateZoom(queue: GPUQueue, newZoom: number, centerPoint: Point): void {
+    this.currentZoom = newZoom;
+    const [videoWidth, videoHeight] = [this.dimensions[0], this.dimensions[1]];
+
+    const uvCenterX = centerPoint.x / videoWidth;
+    const uvCenterY = centerPoint.y / videoHeight;
+
+    const halfWidth = 0.5 / newZoom;
+    const halfHeight = 0.5 / newZoom;
+
+    let uvMinX = uvCenterX - halfWidth;
+    let uvMaxX = uvCenterX + halfWidth;
+    let uvMinY = uvCenterY - halfHeight;
+    let uvMaxY = uvCenterY + halfHeight;
+
+    // Check for clamping and adjust other UVs accordingly to prevent warping
+    if (uvMinX < 0.0) {
+      const diff = -uvMinX;
+      uvMinX = 0.0;
+      uvMaxX = Math.min(uvMaxX + diff, 1.0); // Clamp maxX as well
+    } else if (uvMaxX > 1.0) {
+      const diff = uvMaxX - 1.0;
+      uvMaxX = 1.0;
+      uvMinX = Math.max(uvMinX - diff, 0.0); // Clamp minX
+    }
+
+    if (uvMinY < 0.0) {
+      const diff = -uvMinY;
+      uvMinY = 0.0;
+      uvMaxY = Math.min(uvMaxY + diff, 1.0); // Clamp maxY
+    } else if (uvMaxY > 1.0) {
+      const diff = uvMaxY - 1.0;
+      uvMaxY = 1.0;
+      uvMinY = Math.max(uvMinY - diff, 0.0); // Clamp minY
+    }
+
+    const [rows, cols] = this.gridResolution;
+
+    // Update UV coordinates for each vertex in place
+    for (let y = 0; y <= rows; y++) {
+      const vRatio = y / rows;
+      const uvY = uvMinY + (uvMaxY - uvMinY) * vRatio;
+
+      for (let x = 0; x <= cols; x++) {
+        const uRatio = x / cols;
+        const uvX = uvMinX + (uvMaxX - uvMinX) * uRatio;
+
+        const vertexIndex = y * (cols + 1) + x;
+        this.vertices[vertexIndex].tex_coords = [uvX, uvY];
+      }
+    }
+
+    queue.writeBuffer(
+      this.vertexBuffer,
+      0,
+      new Float32Array(
+        this.vertices.flatMap((v) => [
+          ...v.position,
+          ...v.tex_coords,
+          ...v.color,
+        ])
+      )
+    );
+  }
+
+  updatePopout(
+    queue: GPUQueue,
+    mousePoint: Point,
+    popoutIntensity: number,
+    popoutDimensions: [number, number]
+  ): void {
+    const [videoWidth, videoHeight] = [this.dimensions[0], this.dimensions[1]];
+
+    const uvMouseX = mousePoint.x / videoWidth;
+    const uvMouseY = mousePoint.y / videoHeight;
+
+    const radiusX = popoutDimensions[0] / (2.0 * videoWidth);
+    const radiusY = popoutDimensions[1] / (2.0 * videoHeight);
+
+    // Create new array of vertices to modify
+    const newVertices = this.vertices.map((vertex) => {
+      const dx = vertex.tex_coords[0] - uvMouseX;
+      const dy = vertex.tex_coords[1] - uvMouseY;
+
+      // Check if the vertex is within the popout area
+      if (Math.abs(dx) <= radiusX && Math.abs(dy) <= radiusY) {
+        // Normalize the coordinates to the popout area
+        const normalizedX = dx / radiusX;
+        const normalizedY = dy / radiusY;
+
+        // Apply the zoom effect by scaling the texture coordinates
+        const newX = uvMouseX + (normalizedX * radiusX) / popoutIntensity;
+        const newY = uvMouseY + (normalizedY * radiusY) / popoutIntensity;
+
+        // Clamp the texture coordinates to avoid going out of bounds
+        return {
+          ...vertex,
+          texCoords: [
+            Math.max(0.0, Math.min(1.0, newX)),
+            Math.max(0.0, Math.min(1.0, newY)),
+          ] as [number, number],
+        };
+      }
+      return vertex;
+    });
+
+    // Update the vertices in the video item
+    this.vertices = newVertices;
+
+    // Write to GPU buffer
+    queue.writeBuffer(
+      this.vertexBuffer,
+      0,
+      new Float32Array(
+        this.vertices.flatMap((v) => [
+          ...v.position,
+          ...v.tex_coords,
+          ...v.color,
+        ])
+      )
+    );
+  }
+
   containsPoint(point: Point): boolean {
     const untranslated: Point = {
       x: point.x - this.transform.position[0], // Access translation from matrix
@@ -773,7 +897,7 @@ export class StVideo {
       id: this.id,
       name: this.name,
       path: this.path,
-      mousePath: this.mousePath || "",
+      // mousePath: this.mousePath || "",
       dimensions: this.dimensions,
       position: {
         x: this.transform.position[0],

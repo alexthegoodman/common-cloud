@@ -515,13 +515,39 @@ export class CanvasPipeline {
     // Draw video items
     for (const video of editor.videoItems || []) {
       if (!video.hidden) {
+        renderPass.setBindGroup(3, video.groupBindGroup);
+
+        if (video.mousePath) {
+          // Update path transform if being dragged
+          if (editor.draggingPath === video.mousePath.id) {
+            video.mousePath.transform.updateUniformBuffer(
+              queue,
+              editor.camera.windowSize
+            );
+          }
+
+          // Draw static polygons in this path
+          for (const polygon of video.mousePath.staticPolygons || []) {
+            if (editor.draggingPathHandle === polygon.id) {
+              polygon.transform.updateUniformBuffer(
+                queue,
+                editor.camera.windowSize
+              );
+            }
+
+            renderPass.setBindGroup(1, polygon.bindGroup);
+            renderPass.setVertexBuffer(0, polygon.vertexBuffer);
+            renderPass.setIndexBuffer(polygon.indexBuffer, "uint32");
+            renderPass.drawIndexed(polygon.indices.length);
+          }
+        }
+
         if (editor.draggingVideo === video.id || editor.isPlaying) {
           // console.info("temp log", video.vertices[0]);
           video.transform.updateUniformBuffer(queue, editor.camera.windowSize);
         }
 
         renderPass.setBindGroup(1, video.bindGroup);
-        renderPass.setBindGroup(3, video.groupBindGroup);
         renderPass.setVertexBuffer(0, video.vertexBuffer);
         renderPass.setIndexBuffer(video.indexBuffer, "uint32");
         renderPass.drawIndexed(video.indices.length);

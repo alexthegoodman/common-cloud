@@ -135,7 +135,13 @@ export type KeyframeValue =
   | { type: "PerspectiveX"; value: number }
   | { type: "PerspectiveY"; value: number }
   | { type: "Opacity"; value: number }
-  | { type: "Zoom"; value: number }
+  | {
+      type: "Zoom";
+      value: {
+        position: [number, number];
+        zoomLevel: number;
+      };
+    }
   | { type: "Custom"; value: number[] };
 
 export type BackgroundFill =

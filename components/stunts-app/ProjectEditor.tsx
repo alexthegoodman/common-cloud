@@ -1171,7 +1171,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
           y: position.y,
         },
         layer: video_config.layer,
-        mousePath: video_config.mousePath,
+        // mousePath: video_config.mousePath,
       });
 
       console.info("Saved video!");
