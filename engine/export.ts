@@ -423,6 +423,8 @@ export class FullExporter {
 
     let totalDurationS = totalDurationMs / 1000; // Convert to seconds
 
+    this.webExport.encoder.totalDurationMs = totalDurationMs;
+
     if (!totalDurationMs) {
       console.warn("No duration");
       return;

@@ -414,16 +414,27 @@ export class StVideo {
 
             // console.info("original duration", videoTrack.duration);
 
-            const durationInSeconds =
-              videoTrack.duration / videoTrack.timescale;
-            const frameRate = samples.length / durationInSeconds;
-            let actualDurationInSeconds = durationInSeconds / frameRate;
+            // const durationInSeconds =
+            //   videoTrack.duration / videoTrack.timescale;
+            // const frameRate = samples.length / durationInSeconds;
+            // let actualDurationInSeconds = durationInSeconds / frameRate;
 
-            // console.info("frameRate", frameRate, durationInSeconds);
+            const durationInSeconds = videoTrack.duration / 1000;
+            const durationMs = videoTrack.duration;
+            const frameRate = samples.length / durationInSeconds;
+
+            console.info(
+              "timings ",
+              samples.length,
+              videoTrack.duration,
+              videoTrack.timescale,
+              frameRate,
+              durationInSeconds
+            );
 
             this.videoMetadata = {
               duration: durationInSeconds,
-              durationMs: durationInSeconds * 1000,
+              durationMs: durationMs,
               width: videoTrack.video.width,
               height: videoTrack.video.height,
               frameRate: frameRate,

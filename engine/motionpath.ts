@@ -57,6 +57,8 @@ export class MotionPath {
       const startKfId = startKf.id;
       const endKfId = endKf.id;
 
+      console.info("keyframes", startKf, endKf);
+
       if (
         startKf.value.type === "Position" &&
         endKf.value.type === "Position"

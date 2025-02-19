@@ -983,6 +983,15 @@ export class Editor {
     const num_objects =
       total_predictions / (values_per_prediction * keyframes_per_object);
 
+    console.info(
+      "createMotionPathsFromPredictions",
+      total_predictions,
+      num_objects,
+      this.generationChoreographed,
+      this.generationFade,
+      this.generationCurved
+    );
+
     const current_positions: [number, number, number, number][] = [];
     let total = 0;
 
@@ -1034,7 +1043,7 @@ export class Editor {
       }
     }
 
-    let longest_path: number | null = null;
+    let longest_path: number | null = 0;
     if (this.generationChoreographed) {
       let max_distance = 0.0;
       for (let object_idx = 0; object_idx < num_objects; object_idx++) {
@@ -1085,6 +1094,8 @@ export class Editor {
 
       if (!itemId || !objectType) continue; // Skip if ID or type is not found
 
+      console.info("processing item", itemId, objectType);
+
       const totalDuration =
         objectType === ObjectType.VideoItem
           ? this.videoItems.find((v) => v.id === itemId)?.sourceDurationMs ||
@@ -1101,7 +1112,7 @@ export class Editor {
       ];
 
       const pathSourceIdx = this.generationChoreographed
-        ? longest_path ?? object_idx
+        ? longest_path
         : object_idx; // Use nullish coalescing
 
       const positionKeyframes: UIKeyframe[] = [];
@@ -1111,6 +1122,9 @@ export class Editor {
       const rangeCenterIdx =
         pathSourceIdx * (values_per_prediction * keyframes_per_object) +
         2 * values_per_prediction;
+
+      console.info("rangeCenterIdx", rangeCenterIdx);
+
       const centerX = Math.round(
         predictions[rangeCenterIdx + 4] * 0.01 * 800.0
       );
@@ -1137,6 +1151,8 @@ export class Editor {
           pathSourceIdx * (values_per_prediction * keyframes_per_object) +
           keyframeTimeIdx * values_per_prediction;
 
+        console.info("baseIdx", baseIdx);
+
         if (baseIdx + 5 >= predictions.length) {
           continue;
         }
@@ -1151,6 +1167,8 @@ export class Editor {
             ? timestamp_diffs[keyframeTimeIdx]
             : totalDuration + timestamp_diffs[keyframeTimeIdx];
 
+        console.info("key time", keyframeTimeIdx, timestamp);
+
         const keyframe: UIKeyframe = {
           id: uuidv4(),
           time: timestamp,
@@ -1163,6 +1181,8 @@ export class Editor {
 
         positionKeyframes.push(keyframe);
       }
+
+      console.info("pre split", positionKeyframes);
 
       // ... (rest of the code for range keyframes and final keyframes)
 
@@ -1209,6 +1229,8 @@ export class Editor {
       } else {
         final_position_keyframes = [...positionKeyframes]; // Create a copy
       }
+
+      console.info("final positions", final_position_keyframes);
 
       if (final_position_keyframes.length > 0 && itemId) {
         // Check if itemId is defined

@@ -251,7 +251,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
 
     const blob = await webCapture.startRecording();
 
-    await import_video(current_sequence_id, uuidv4(), blob);
+    await import_video(current_sequence_id, uuidv4() + ".mp4", blob);
   };
 
   const handleStopCapture = () => {
