@@ -702,7 +702,13 @@ export class StVideo {
     queue.writeBuffer(
       this.vertexBuffer,
       0,
-      new Float32Array(this.vertices.flat() as unknown as ArrayBuffer)
+      new Float32Array(
+        this.vertices.flatMap((v) => [
+          ...v.position,
+          ...v.tex_coords,
+          ...v.color,
+        ])
+      )
     );
   }
 
