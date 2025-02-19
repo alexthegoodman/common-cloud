@@ -181,13 +181,11 @@ export type OnMouseUp = (
   id: string,
   point: Point
 ) => [Sequence, string[]] | null;
-export type OnHandleMouseUp = () =>
-  | ((
-      objectId: string,
-      handleId: string,
-      point: Point
-    ) => [Sequence, UIKeyframe[]])
-  | null;
+export type OnHandleMouseUp = (
+  objectId: string,
+  handleId: string,
+  point: Point
+) => [Sequence | null, string[] | null];
 export type OnPathMouseUp = () =>
   | ((id: string, point: Point) => [Sequence, UIKeyframe[]])
   | null;
@@ -4109,22 +4107,21 @@ export class Editor {
     if (handle_keyframe_id && handle_point) {
       // need to update saved state and motion paths, handle polygon position already updated
       if (this.onHandleMouseUp) {
-        let on_up = this.onHandleMouseUp();
+        // let on_up = this.onHandleMouseUp();
 
-        if (on_up && handle_object_id) {
+        if (handle_object_id) {
           // let handle_point = handle_point.expect("Couldn't get handle point");
-          let [selected_sequence_data, selected_keyframes] = on_up(
-            handle_keyframe_id,
-            handle_object_id,
-            {
+          let [selected_sequence_data, selected_keyframes] =
+            this.onHandleMouseUp(handle_keyframe_id, handle_object_id, {
               x: handle_point.x - CANVAS_HORIZ_OFFSET,
               y: handle_point.y - CANVAS_VERT_OFFSET,
-            }
-          );
+            });
 
           // always updated when handle is moved
-          this.updateMotionPaths(selected_sequence_data);
-          console.info("Motion Paths updated!");
+          if (selected_sequence_data) {
+            this.updateMotionPaths(selected_sequence_data);
+            console.info("Motion Paths updated!");
+          }
         }
       }
     }

@@ -68,24 +68,24 @@ export function update_keyframe(
   // mut current_keyframe: &mut UIKeyframe,
   current_keyframe: UIKeyframe,
   current_sequence: Sequence,
-  selected_keyframes: UIKeyframe[],
-  set_selected_keyframes: React.Dispatch<React.SetStateAction<UIKeyframe[]>>,
+  selected_keyframes: string[] | null,
+  set_selected_keyframes: React.Dispatch<React.SetStateAction<string[] | null>>,
   // animation_data: RwSignal<Option<AnimationData>>,
   // selected_sequence_data: RwSignal<Sequence>,
   selected_sequence_id: string
   // sequence_selected: RwSignal<bool>,
 ) {
-  if (selected_keyframes[0]) {
+  if (selected_keyframes) {
     let selected_keyframe = selected_keyframes[0];
-    if (current_keyframe.id != selected_keyframe.id) {
+    if (current_keyframe.id != selected_keyframe) {
       let new_keyframes = [];
-      new_keyframes.push(current_keyframe);
+      new_keyframes.push(current_keyframe.id);
 
       set_selected_keyframes(new_keyframes);
     }
   } else {
     let new_keyframes = [];
-    new_keyframes.push(current_keyframe);
+    new_keyframes.push(current_keyframe.id);
 
     set_selected_keyframes(new_keyframes);
   }
@@ -447,6 +447,85 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     return [current_sequence_data, selected_keyframes];
   };
 
+  let on_handle_mouse_up = (
+    keyframeId: string,
+    objectId: string,
+    point: Point
+  ) => {
+    let editor = editorRef.current;
+    let editorState = editorStateRef.current;
+
+    if (!editor || !editorState) {
+      return [null, null] as [Sequence | null, string[] | null];
+    }
+
+    let selected_sequence = editorState.savedState.sequences.find(
+      (s) => s.id === current_sequence_id
+    );
+
+    // if (!selected_keyframes) {
+    //   console.warn("Keyframe not found");
+    //   return [null, null] as [Sequence | null, string[] | null];
+    // }
+
+    if (!selected_sequence || !current_sequence_id) {
+      console.warn("Sequence not found");
+      return [null, null] as [Sequence | null, string[] | null];
+    }
+
+    let is_polygon = selected_sequence?.activePolygons.find(
+      (p) => p.id === objectId
+    );
+    let is_text = selected_sequence?.activeTextItems.find(
+      (p) => p.id === objectId
+    );
+    let is_image = selected_sequence?.activeImageItems.find(
+      (p) => p.id === objectId
+    );
+    let is_video = selected_sequence?.activeVideoItems.find(
+      (p) => p.id === objectId
+    );
+
+    if (is_polygon) {
+      select_polygon(objectId);
+    }
+    if (is_text) {
+      select_text(objectId);
+    }
+    if (is_image) {
+      select_image(objectId);
+    }
+    if (is_video) {
+      select_video(objectId);
+    }
+
+    let currentKf = selected_sequence?.polygonMotionPaths
+      .find((p) => p.polygonId === objectId)
+      ?.properties.find((p) => p.name !== "")
+      ?.keyframes.find((k) => k.id === keyframeId);
+
+    if (!currentKf) {
+      console.warn("Keyframe not found");
+      return [null, null] as [Sequence | null, string[] | null];
+    }
+
+    if (currentKf.value.type === "Position") {
+      currentKf.value.value[0] = point.x;
+      currentKf.value.value[1] = point.y;
+    }
+
+    update_keyframe(
+      editorState,
+      currentKf,
+      selected_sequence,
+      selected_keyframes,
+      set_selected_keyframes,
+      current_sequence_id
+    );
+
+    return [selected_sequence, selected_keyframes] as [Sequence, string[]];
+  };
+
   useDevEffectOnce(() => {
     if (editorIsSet) {
       return;
@@ -559,6 +638,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
       editorRef.current.handleImageClick = handle_image_click;
       editorRef.current.handleVideoClick = handle_video_click;
       editorRef.current.onMouseUp = handle_mouse_up;
+      editorRef.current.onHandleMouseUp = on_handle_mouse_up;
     }
   }, [editorIsSet, current_sequence_id]);
 
