@@ -2053,7 +2053,7 @@ export class Editor {
                 //     videoItem.dimensions[1],
                 // };
 
-                console.info("newCenterPoint", interpolatedX, interpolatedY);
+                // console.info("newCenterPoint", interpolatedX, interpolatedY);
 
                 // Smooth transition with existing center point
                 const blendedCenterPoint = videoItem.lastCenterPoint
@@ -2072,7 +2072,7 @@ export class Editor {
                       y: interpolatedY,
                     };
 
-                console.info("blendedCenterPoint", blendedCenterPoint);
+                // console.info("blendedCenterPoint", blendedCenterPoint);
 
                 videoItem.updateZoom(
                   gpuResources.queue,
@@ -2260,7 +2260,7 @@ export class Editor {
       this.gpuResources.queue,
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
-      animationId,
+      objectId, // good association? no need to drag full zoom path?
       this.camera.windowSize,
       zoomKeyframes,
       this.camera,
@@ -3627,6 +3627,40 @@ export class Editor {
           i,
         ]);
       }
+
+      if (video_item.mousePath) {
+        for (let polygon of video_item.mousePath.staticPolygons) {
+          // check if we're clicking on a motion path handle to drag
+
+          let adjustedPoint: Point = {
+            x: this.lastTopLeft.x - video_item.groupTransform.position[0],
+            y: this.lastTopLeft.y - video_item.groupTransform.position[1],
+          };
+
+          if (polygon.name == "motion_path_handle") {
+            if (polygon.containsPoint(adjustedPoint, camera)) {
+              // console.info("triggering handle!", polygon.id);
+
+              this.draggingPathHandle = polygon.id;
+              this.draggingPathAssocPath = polygon.sourcePathId; // video_item.mousePath.id
+              this.draggingPathObject = polygon.sourcePolygonId;
+              this.draggingPathKeyframe = polygon.sourceKeyframeId;
+              this.dragStart = this.lastTopLeft;
+
+              return; // nothing to add to undo stack
+            }
+          }
+          if (polygon.name == "motion_path_segment") {
+            if (polygon.containsPoint(adjustedPoint, camera)) {
+              this.draggingPath = video_item.mousePath.id;
+              this.draggingPathObject = polygon.sourcePolygonId;
+              this.dragStart = this.lastTopLeft;
+
+              return; // nothing to add to undo stack
+            }
+          }
+        }
+      }
     }
 
     // Sort intersecting objects by layer of descending order (highest layer first)
@@ -4093,6 +4127,22 @@ export class Editor {
           x: active_handle.transform.position[0],
           y: active_handle.transform.position[1],
         };
+      } else {
+        console.info("checking video handle");
+        let active_handle = this.videoItems
+          .filter((v) => !v.hidden && v.id === this.draggingPathObject)
+          .map((m) => m.mousePath?.staticPolygons)
+          .flat()
+          .find((p) => p?.id == handle_id);
+
+        if (active_handle) {
+          console.info("found video handle!");
+
+          handle_point = {
+            x: active_handle.transform.position[0],
+            y: active_handle.transform.position[1],
+          };
+        }
       }
     }
 
@@ -4104,6 +4154,13 @@ export class Editor {
     let handle_keyframe_id = this.draggingPathKeyframe
       ? this.draggingPathKeyframe
       : null;
+
+    console.info(
+      "checing video handle data",
+      handle_object_id,
+      handle_keyframe_id
+    );
+
     if (handle_keyframe_id && handle_point) {
       // need to update saved state and motion paths, handle polygon position already updated
       if (this.onHandleMouseUp) {
@@ -4111,6 +4168,7 @@ export class Editor {
 
         if (handle_object_id) {
           // let handle_point = handle_point.expect("Couldn't get handle point");
+          console.info("calling video handle mouse up!");
           let [selected_sequence_data, selected_keyframes] =
             this.onHandleMouseUp(handle_keyframe_id, handle_object_id, {
               x: handle_point.x - CANVAS_HORIZ_OFFSET,
@@ -4310,6 +4368,14 @@ export class Editor {
     let path = this.motionPaths.find((p) => p.id == path_id);
 
     if (!path) {
+      path = this.videoItems.find(
+        (v) => !v.hidden && v.mousePath?.id === path_id
+      )?.mousePath;
+
+      // console.info("move static", path, poly_id);
+    }
+
+    if (!path) {
       return;
     }
 
@@ -4318,6 +4384,8 @@ export class Editor {
     if (!polygon || !this.modelBindGroupLayout) {
       return;
     }
+
+    // console.info("moving static", polygon);
 
     let new_position = {
       x: polygon.transform.position[0] + dx, // not sure relation with aspect_ratio?

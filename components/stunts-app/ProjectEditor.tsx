@@ -499,10 +499,11 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
       select_video(objectId);
     }
 
-    let currentKf = selected_sequence?.polygonMotionPaths
-      .find((p) => p.polygonId === objectId)
-      ?.properties.find((p) => p.name !== "")
-      ?.keyframes.find((k) => k.id === keyframeId);
+    const currentKf =
+      selected_sequence?.polygonMotionPaths
+        .find((p) => p.polygonId === objectId)
+        ?.properties.flatMap((p) => p.keyframes)
+        .find((k) => k.id === keyframeId) ?? null;
 
     if (!currentKf) {
       console.warn("Keyframe not found");
@@ -512,6 +513,9 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     if (currentKf.value.type === "Position") {
       currentKf.value.value[0] = point.x;
       currentKf.value.value[1] = point.y;
+    } else if (currentKf.value.type === "Zoom") {
+      currentKf.value.value.position[0] = point.x;
+      currentKf.value.value.position[1] = point.y;
     }
 
     update_keyframe(
