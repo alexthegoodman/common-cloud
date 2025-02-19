@@ -871,14 +871,24 @@ export class Editor {
           throw new Error("Couldn't find video");
         }
 
-        video.transform.position[0] = i.position.x + CANVAS_HORIZ_OFFSET;
-        video.transform.position[1] = i.position.y + CANVAS_VERT_OFFSET;
-        video.transform.rotation = 0.0;
+        // video.transform.position[0] = i.position.x + CANVAS_HORIZ_OFFSET;
+        // video.transform.position[1] = i.position.y + CANVAS_VERT_OFFSET;
+        // video.transform.rotation = 0.0;
 
-        video.transform.updateUniformBuffer(
+        // video.transform.updateUniformBuffer(
+        //   gpu_resources.queue,
+        //   camera.windowSize
+        // );
+
+        video.groupTransform.position[0] = i.position.x + CANVAS_HORIZ_OFFSET;
+        video.groupTransform.position[1] = i.position.y + CANVAS_VERT_OFFSET;
+        video.groupTransform.rotation = 0.0;
+
+        video.groupTransform.updateUniformBuffer(
           gpu_resources.queue,
           camera.windowSize
         );
+
         video.updateOpacity(gpu_resources.queue, 1.0);
 
         video.resetPlayback();
@@ -1735,7 +1745,11 @@ export class Editor {
                 break;
               case ObjectType.VideoItem:
                 // console.info("update video transform", positionVec);
-                this.videoItems[objectIdx].transform.updatePosition(
+                // this.videoItems[objectIdx].transform.updatePosition(
+                //   positionVec,
+                //   camera.windowSize
+                // );
+                this.videoItems[objectIdx].groupTransform.updatePosition(
                   positionVec,
                   camera.windowSize
                 );
@@ -1878,7 +1892,7 @@ export class Editor {
 
             if (animation.objectType === ObjectType.VideoItem) {
               const videoItem = this.videoItems[objectIdx];
-              const elapsedMs = currentTime;
+              const elapsedMs = currentTimeMs;
 
               const autoFollowDelay = 150;
 
@@ -1889,28 +1903,34 @@ export class Editor {
                 : (() => {
                     videoItem.lastShiftTime = elapsedMs;
 
-                    const relevantPositions = property.keyframes.filter(
-                      (p) => p.time >= elapsedMs
+                    // Get all positions after current time
+                    // const relevantPositions = property.keyframes.filter(
+                    //   (p) => p.time >= elapsedMs
+                    // );
+
+                    // Find first position after delay
+                    const endPosition = property.keyframes.find(
+                      (p) => p.time > elapsedMs + autoFollowDelay
                     );
-                    const startEnd = relevantPositions
-                      .filter((p) => p.time >= elapsedMs + autoFollowDelay)
-                      .map((p, i) => ({
-                        start: relevantPositions[i],
-                        end: p,
-                      }))[0];
+
+                    // Find the position that comes before it
+                    const startPosition = property.keyframes.find(
+                      (p) => p.time < (endPosition?.time ?? 0)
+                    );
 
                     if (
-                      startEnd &&
-                      startEnd.start.value.type === "Zoom" &&
-                      startEnd.end.value.type === "Zoom"
+                      startPosition &&
+                      endPosition &&
+                      startPosition.value.type === "Zoom" &&
+                      endPosition.value.type === "Zoom"
                     ) {
                       videoItem.lastStartPoint = [
-                        ...startEnd.start.value.value.position,
-                        startEnd.start.time,
+                        ...startPosition.value.value.position,
+                        startPosition.time,
                       ];
                       videoItem.lastEndPoint = [
-                        ...startEnd.end.value.value.position,
-                        startEnd.end.time,
+                        ...endPosition.value.value.position,
+                        endPosition.time,
                       ];
                     }
 
@@ -1918,52 +1938,56 @@ export class Editor {
                   })();
 
               const delayOffset = 500;
-              const minDistance = 100.0;
-              const baseAlpha = 0.01;
-              const maxAlpha = 0.1;
-              const scalingFactor = 0.01;
+              const minDistance = 30.0;
+              const baseAlpha = 0.05;
+              const maxAlpha = 0.2;
+              const scalingFactor = 0.05;
+
+              let mousePositions: MousePosition[] = [];
+              property.keyframes.forEach((kf) => {
+                if (kf.value.type === "Zoom") {
+                  mousePositions.push({
+                    timestamp: kf.time,
+                    point: [...kf.value.value.position, kf.time],
+                  });
+                }
+              });
 
               // Update shift points if needed
               if (shouldUpdateShift) {
-                // const relevantPositions = videoItem.mousePositions.filter(
-                //   (p) =>
-                //     p.timestamp >=
-                //       elapsedMs - autoFollowDelay + delayOffset &&
-                //     p.timestamp < videoItem.sourceDurationMs
-                // );
+                // Find current position (after elapsed - delay + offset)
+                const startPoint = mousePositions.find(
+                  (p) =>
+                    p.timestamp > elapsedMs - autoFollowDelay + delayOffset &&
+                    p.timestamp < videoItem.sourceDurationMs
+                );
 
-                // const futurePositions = videoItem.mousePositions.filter(
-                //   (p) =>
-                //     p.timestamp >= elapsedMs + delayOffset &&
-                //     p.timestamp < videoItem.sourceDurationMs
-                // );
+                // Find future position (after the first position's timestamp + minimum gap)
+                const endPoint = mousePositions.find(
+                  (p) =>
+                    p.timestamp >
+                      (startPoint?.timestamp ?? 0) + autoFollowDelay &&
+                    p.timestamp < videoItem.sourceDurationMs
+                );
 
-                // const relevantPositions = startFrame.value.value.position;
-                // const futurePositions = endFrame.value.value.position;
-
-                // if (relevantPositions.length && futurePositions.length) {
-                const startPoint = [
-                  ...startFrame.value.value.position,
-                  startFrame.time,
-                ] as [number, number, number];
-                const endPoint = [
-                  ...endFrame.value.value.position,
-                  endFrame.time,
-                ] as [number, number, number];
-
-                if (videoItem.lastStartPoint && videoItem.lastEndPoint) {
-                  const dx = startPoint[0] - videoItem.lastStartPoint[0];
-                  const dy = startPoint[1] - videoItem.lastStartPoint[1];
+                if (
+                  startPoint &&
+                  endPoint &&
+                  videoItem.lastStartPoint &&
+                  videoItem.lastEndPoint
+                ) {
+                  const dx = startPoint.point[0] - videoItem.lastStartPoint[0];
+                  const dy = startPoint.point[1] - videoItem.lastStartPoint[1];
                   const distance = Math.sqrt(dx * dx + dy * dy);
 
-                  const dx2 = endPoint[0] - videoItem.lastEndPoint[0];
-                  const dy2 = endPoint[1] - videoItem.lastEndPoint[1];
+                  const dx2 = endPoint.point[0] - videoItem.lastEndPoint[0];
+                  const dy2 = endPoint.point[1] - videoItem.lastEndPoint[1];
                   const distance2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
 
                   if (distance >= minDistance || distance2 >= minDistance) {
                     videoItem.lastShiftTime = elapsedMs;
-                    videoItem.lastStartPoint = startPoint;
-                    videoItem.lastEndPoint = endPoint;
+                    videoItem.lastStartPoint = startPoint.point;
+                    videoItem.lastEndPoint = endPoint.point;
 
                     const maxDistance = Math.max(distance, distance2);
                     const dynamicAlpha =
@@ -1972,13 +1996,20 @@ export class Editor {
                         (1.0 - Math.exp(-scalingFactor * maxDistance));
 
                     videoItem.dynamicAlpha = dynamicAlpha;
+
+                    console.info("update shift points", dynamicAlpha);
                   }
                 }
-                // }
               }
 
               // Always interpolate between the current shift points
               if (videoItem.lastStartPoint && videoItem.lastEndPoint) {
+                // console.info(
+                //   "points",
+                //   videoItem.lastStartPoint,
+                //   videoItem.lastEndPoint
+                // );
+
                 const clampedElapsedMs = Math.min(
                   Math.max(elapsedMs, videoItem.lastStartPoint[2]!),
                   videoItem.lastEndPoint[2]!
@@ -1987,6 +2018,13 @@ export class Editor {
                 const timeProgress =
                   (clampedElapsedMs - videoItem.lastStartPoint[2]!) /
                   (videoItem.lastEndPoint[2]! - videoItem.lastStartPoint[2]!);
+
+                // console.info(
+                //   "timeProgerss",
+                //   elapsedMs,
+                //   clampedElapsedMs,
+                //   timeProgress
+                // );
 
                 const interpolatedX =
                   videoItem.lastStartPoint[0] +
@@ -1997,14 +2035,18 @@ export class Editor {
                   (videoItem.lastEndPoint[1] - videoItem.lastStartPoint[1]) *
                     timeProgress;
 
-                const newCenterPoint: Point = {
-                  x:
-                    (interpolatedX / videoItem.sourceDimensions[0]) *
-                    videoItem.dimensions[0],
-                  y:
-                    (interpolatedY / videoItem.sourceDimensions[1]) *
-                    videoItem.dimensions[1],
-                };
+                // console.info("interpolated", interpolatedX, interpolatedY);
+
+                // const newCenterPoint: Point = {
+                //   x:
+                //     (interpolatedX / videoItem.sourceDimensions[0]) *
+                //     videoItem.dimensions[0],
+                //   y:
+                //     (interpolatedY / videoItem.sourceDimensions[1]) *
+                //     videoItem.dimensions[1],
+                // };
+
+                console.info("newCenterPoint", interpolatedX, interpolatedY);
 
                 // Smooth transition with existing center point
                 const blendedCenterPoint = videoItem.lastCenterPoint
@@ -2012,13 +2054,18 @@ export class Editor {
                       x:
                         videoItem.lastCenterPoint.x *
                           (1.0 - videoItem.dynamicAlpha) +
-                        newCenterPoint.x * videoItem.dynamicAlpha,
+                        interpolatedX * videoItem.dynamicAlpha,
                       y:
                         videoItem.lastCenterPoint.y *
                           (1.0 - videoItem.dynamicAlpha) +
-                        newCenterPoint.y * videoItem.dynamicAlpha,
+                        interpolatedY * videoItem.dynamicAlpha,
                     }
-                  : newCenterPoint;
+                  : {
+                      x: interpolatedX,
+                      y: interpolatedY,
+                    };
+
+                console.info("blendedCenterPoint", blendedCenterPoint);
 
                 videoItem.updateZoom(
                   gpuResources.queue,
@@ -2185,8 +2232,10 @@ export class Editor {
         prop.propertyPath === "zoom"
     );
     if (!zoomProperty) {
-      console.warn(`Couldn't find zoom property for object ${objectId}`);
+      // console.warn(`Couldn't find zoom property for object ${objectId}`);
       return;
+    } else {
+      console.info("Found zoom property for ", objectId);
     }
 
     // Sort keyframes by time
@@ -2196,6 +2245,8 @@ export class Editor {
 
     const animationId = animationData.id; // Directly using string ID
     const initialZoomPosition: [number, number] = animationData.position;
+
+    console.info("creating new zoom path");
 
     const zoomPath = new MotionPath(
       this.gpuResources.device,
@@ -4483,8 +4534,13 @@ export function interpolatePosition(
   end: UIKeyframe,
   time: number
 ): [number, number] {
-  const startPos = start.value.value as [number, number];
-  const endPos = end.value.value as [number, number];
+  let startPos = start.value.value as [number, number];
+  let endPos = end.value.value as [number, number];
+
+  if (start.value.type === "Zoom" && end.value.type === "Zoom") {
+    startPos = start.value.value.position as [number, number];
+    endPos = end.value.value.position as [number, number];
+  }
 
   const progress = (() => {
     const total_time = end.time - start.time;
@@ -4504,6 +4560,8 @@ export function interpolatePosition(
         return t; // Default case, or throw an error if you want to be stricter
     }
   })();
+
+  // console.info("Segment progress", progress);
 
   switch (start.pathType) {
     case PathType.Linear:

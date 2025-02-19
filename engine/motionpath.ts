@@ -59,151 +59,178 @@ export class MotionPath {
 
       console.info("keyframes", startKf, endKf);
 
+      let startPos = [0, 0];
+      let endPos = [0, 0];
+      let startPoint: Point = { x: 0, y: 0 };
+      let endPoint: Point = { x: 0, y: 0 };
+
       if (
         startKf.value.type === "Position" &&
         endKf.value.type === "Position"
       ) {
-        const startPos = startKf.value.value as [number, number];
-        const endPos = endKf.value.value as [number, number];
-        const startPoint: Point = { x: startPos[0], y: startPos[1] };
-        const endPoint: Point = { x: endPos[0], y: endPos[1] };
+        startPos = startKf.value.value as [number, number];
+        endPos = endKf.value.value as [number, number];
+        startPoint = { x: startPos[0], y: startPos[1] };
+        endPoint = { x: endPos[0], y: endPos[1] };
+      } else if (startKf.value.type === "Zoom" && endKf.value.type === "Zoom") {
+        startPos = startKf.value.value.position as [number, number];
+        endPos = endKf.value.value.position as [number, number];
+        startPoint = { x: startPos[0], y: startPos[1] };
+        endPoint = { x: endPos[0], y: endPos[1] };
+      } else {
+        continue;
+      }
 
-        // Create intermediate points for curved paths if using non-linear easing
-        const numSegments = startKf.easing === EasingType.Linear ? 1 : 9; // More segments for smooth curves
+      // Create intermediate points for curved paths if using non-linear easing
+      const numSegments = startKf.easing === EasingType.Linear ? 1 : 9; // More segments for smooth curves
 
-        if (pairsDone === 0) {
-          // handle for first keyframe in path
-          let handle = createPathHandle(
-            windowSize,
-            device,
-            queue,
-            modelBindGroupLayout,
-            groupBindGroupLayout,
-            camera,
-            startPoint,
-            12.0, // width and height
-            sequence.id,
-            pathFill,
-            0.0
-          );
+      // console.info("MotionPath ", startPos, endPos);
 
-          handle.sourcePolygonId = polygonId;
-          handle.sourceKeyframeId = startKfId;
-          handle.sourcePathId = newId;
-
-          handle.updateGroupPosition(initialPosition);
-
-          this.staticPolygons.push(handle);
-        }
-
-        // handles for remaining keyframes
-
-        let handle =
-          endKf.keyType.type === "Frame"
-            ? createPathHandle(
-                windowSize,
-                device,
-                queue,
-                modelBindGroupLayout,
-                groupBindGroupLayout,
-                camera,
-                endPoint,
-                12.0, // width and height
-                sequence.id,
-                pathFill,
-                0.0
-              )
-            : createPathHandle(
-                windowSize,
-                device,
-                queue,
-                modelBindGroupLayout,
-                groupBindGroupLayout,
-                camera,
-                endPoint,
-                12.0, // width and height
-                sequence.id,
-                pathFill,
-                45.0
-              );
+      if (pairsDone === 0) {
+        // handle for first keyframe in path
+        let handle = createPathHandle(
+          windowSize,
+          device,
+          queue,
+          modelBindGroupLayout,
+          groupBindGroupLayout,
+          camera,
+          startPoint,
+          12.0, // width and height
+          sequence.id,
+          pathFill,
+          0.0
+        );
 
         handle.sourcePolygonId = polygonId;
-        handle.sourceKeyframeId = endKfId;
+        handle.sourceKeyframeId = startKfId;
         handle.sourcePathId = newId;
 
         handle.updateGroupPosition(initialPosition);
 
         this.staticPolygons.push(handle);
+      }
 
-        const segmentDuration = (endKf.time - startKf.time) / numSegments;
+      // handles for remaining keyframes
 
-        let odd = false;
-        for (let j = 0; j < numSegments; j++) {
-          const t1 = startKf.time + segmentDuration * j;
-          const t2 = startKf.time + segmentDuration * (j + 1);
-
-          const pos1 = interpolatePosition(startKf, endKf, t1);
-          const pos2 = interpolatePosition(startKf, endKf, t2);
-
-          const pathStart: Point = { x: pos1[0], y: pos1[1] };
-          const pathEnd: Point = { x: pos2[0], y: pos2[1] };
-
-          // Calculate rotation angle from start to end point
-          const dx = pathEnd.x - pathStart.x;
-          const dy = pathEnd.y - pathStart.y;
-          const rotation = Math.atan2(dy, dx);
-
-          // Calculate length of the segment
-          const length = Math.sqrt(dx * dx + dy * dy);
-
-          let segment = createPathSegment(
-            windowSize,
-            device,
-            queue,
-            modelBindGroupLayout,
-            groupBindGroupLayout,
-            camera,
-            pathStart,
-            pathEnd,
-            2.0, // thickness of the path
-            sequence.id,
-            pathFill,
-            rotation,
-            length
-          );
-
-          segment.sourcePathId = newId;
-          segment.updateGroupPosition(initialPosition);
-
-          this.staticPolygons.push(segment);
-
-          // arrow for indicating direction of motion
-          if (odd) {
-            const arrowOrientationOffset = -Math.PI / 2; // for upward-facing arrow
-            let arrow = createPathArrow(
+      let handle =
+        endKf.keyType.type === "Frame"
+          ? createPathHandle(
               windowSize,
               device,
               queue,
               modelBindGroupLayout,
               groupBindGroupLayout,
               camera,
-              pathEnd,
-              15.0, // width and height
+              endPoint,
+              12.0, // width and height
               sequence.id,
               pathFill,
-              rotation + arrowOrientationOffset
+              0.0
+            )
+          : createPathHandle(
+              windowSize,
+              device,
+              queue,
+              modelBindGroupLayout,
+              groupBindGroupLayout,
+              camera,
+              endPoint,
+              12.0, // width and height
+              sequence.id,
+              pathFill,
+              45.0
             );
 
-            arrow.updateGroupPosition(initialPosition);
+      handle.sourcePolygonId = polygonId;
+      handle.sourceKeyframeId = endKfId;
+      handle.sourcePathId = newId;
 
-            this.staticPolygons.push(arrow);
-          }
+      handle.updateGroupPosition(initialPosition);
 
-          odd = !odd;
+      this.staticPolygons.push(handle);
+
+      const segmentDuration = (endKf.time - startKf.time) / numSegments;
+
+      // console.info("Segment duration", segmentDuration);
+
+      let odd = false;
+      for (let j = 0; j < numSegments; j++) {
+        const t1 = startKf.time + segmentDuration * j;
+        const t2 = startKf.time + segmentDuration * (j + 1);
+
+        // console.info("Segment t", t1, t2);
+
+        const pos1 = interpolatePosition(startKf, endKf, t1);
+        const pos2 = interpolatePosition(startKf, endKf, t2);
+
+        const pathStart: Point = { x: pos1[0], y: pos1[1] };
+        const pathEnd: Point = { x: pos2[0], y: pos2[1] };
+
+        // Calculate rotation angle from start to end point
+        const dx = pathEnd.x - pathStart.x;
+        const dy = pathEnd.y - pathStart.y;
+        const rotation = Math.atan2(dy, dx);
+
+        // Calculate length of the segment
+        const length = Math.sqrt(dx * dx + dy * dy);
+
+        // console.info(
+        //   "Segment",
+        //   startKf.value.type,
+        //   pathStart,
+        //   pathEnd,
+        //   rotation,
+        //   length
+        // );
+
+        let segment = createPathSegment(
+          windowSize,
+          device,
+          queue,
+          modelBindGroupLayout,
+          groupBindGroupLayout,
+          camera,
+          pathStart,
+          pathEnd,
+          2.0, // thickness of the path
+          sequence.id,
+          pathFill,
+          rotation,
+          length
+        );
+
+        segment.sourcePathId = newId;
+        segment.updateGroupPosition(initialPosition);
+
+        this.staticPolygons.push(segment);
+
+        // arrow for indicating direction of motion
+        if (odd) {
+          const arrowOrientationOffset = -Math.PI / 2; // for upward-facing arrow
+          let arrow = createPathArrow(
+            windowSize,
+            device,
+            queue,
+            modelBindGroupLayout,
+            groupBindGroupLayout,
+            camera,
+            pathEnd,
+            15.0, // width and height
+            sequence.id,
+            pathFill,
+            rotation + arrowOrientationOffset
+          );
+
+          arrow.updateGroupPosition(initialPosition);
+
+          this.staticPolygons.push(arrow);
         }
 
-        pairsDone++;
+        odd = !odd;
       }
+
+      pairsDone++;
     }
 
     const emptyBuffer = mat4.create();

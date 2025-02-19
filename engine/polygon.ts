@@ -842,6 +842,9 @@ export function createRoundedPolygonPath(
   borderRadius: number
 ): number[][] {
   const n = normalizedPoints.length;
+
+  // console.info("create rounded path", n);
+
   const scaledRadius = borderRadius / Math.min(dimensions[0], dimensions[1]);
   const halfWidth = dimensions[0] / 2.0;
   const halfHeight = dimensions[1] / 2.0;
@@ -915,7 +918,7 @@ export function createRoundedPolygonPath(
       const clampedAngleInput = Math.max(-1, Math.min(1, angleInput));
 
       if (isNaN(clampedAngleInput)) {
-        console.error(
+        console.warn(
           "Invalid input to Math.acos at index",
           i,
           ":",

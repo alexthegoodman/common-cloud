@@ -1295,7 +1295,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
   return (
     <div className="flex flex-row p-4">
       <div className="flex flex-col gap-4 mr-4">
-        <p style={{ fontFamily: "Maitree" }}>Maitree</p>
+        {/* <p style={{ fontFamily: "Maitree" }}>Maitree</p> */}
         <NavButton
           label="Motion"
           icon="brush"

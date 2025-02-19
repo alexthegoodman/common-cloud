@@ -30,8 +30,9 @@ export interface MouseTrackingState {
 }
 
 export interface MousePosition {
-  x: number;
-  y: number;
+  // x: number;
+  // y: number;
+  point: [number, number, number]; // x, y, time
   timestamp: number;
 }
 
@@ -106,6 +107,7 @@ export class StVideo {
   hidden: boolean;
   layer: number;
   groupBindGroup!: GPUBindGroup;
+  groupTransform: Transform;
   currentZoom: number;
   mousePath: MotionPath | undefined;
   // mousePositions: MousePosition[] | undefined;
@@ -176,7 +178,8 @@ export class StVideo {
     uniformBuffer.unmap();
 
     this.transform = new Transform(
-      vec2.fromValues(videoConfig.position.x, videoConfig.position.y),
+      // vec2.fromValues(videoConfig.position.x, videoConfig.position.y),
+      vec2.fromValues(0, 0),
       0.0,
       vec2.fromValues(videoConfig.dimensions[0], videoConfig.dimensions[1]), // Apply scaling here instead of resizing image
       uniformBuffer
@@ -185,6 +188,22 @@ export class StVideo {
 
     this.transform.layer = videoConfig.layer - INTERNAL_LAYER_SPACE;
     this.transform.updateUniformBuffer(queue, windowSize);
+
+    let [group_bind_group, group_transform] = createEmptyGroupTransform(
+      device,
+      groupBindGroupLayout,
+      windowSize
+    );
+
+    group_transform.updatePosition(
+      [videoConfig.position.x, videoConfig.position.y],
+      windowSize
+    );
+
+    group_transform.updateUniformBuffer(queue, windowSize);
+
+    this.groupBindGroup = group_bind_group;
+    this.groupTransform = group_transform;
 
     // Placeholder for media initialization
     this.initializeMediaSource(blob).then((mediaInfo) => {
@@ -312,14 +331,6 @@ export class StVideo {
         queue.writeBuffer(this.indexBuffer, 0, this.indices);
 
         this.dimensions = videoConfig.dimensions;
-
-        let [group_bind_group, group_transform] = createEmptyGroupTransform(
-          device,
-          groupBindGroupLayout,
-          windowSize
-        );
-
-        this.groupBindGroup = group_bind_group;
 
         this.initializeDecoder().then(() => {
           // draw initial preview frame
@@ -752,6 +763,8 @@ export class StVideo {
   }
 
   updateZoom(queue: GPUQueue, newZoom: number, centerPoint: Point): void {
+    // console.info("updateZoom", newZoom, centerPoint);
+
     this.currentZoom = newZoom;
     const [videoWidth, videoHeight] = [this.dimensions[0], this.dimensions[1]];
 
@@ -765,6 +778,16 @@ export class StVideo {
     let uvMaxX = uvCenterX + halfWidth;
     let uvMinY = uvCenterY - halfHeight;
     let uvMaxY = uvCenterY + halfHeight;
+
+    console.info(
+      "pre clamp uv",
+      uvCenterX,
+      uvCenterY,
+      uvMinX,
+      uvMinY,
+      uvMaxX,
+      uvMaxY
+    );
 
     // Check for clamping and adjust other UVs accordingly to prevent warping
     if (uvMinX < 0.0) {
