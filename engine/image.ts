@@ -31,7 +31,7 @@ export class StImage {
   currentSequenceId: string;
   name: string;
   url: string;
-  texture!: GPUTexture; // Use definite assignment assertion (!)
+  texture!: GPUTexture;
   textureView!: GPUTextureView;
   transform: Transform;
   vertexBuffer!: GPUBuffer;
