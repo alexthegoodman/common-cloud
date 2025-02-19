@@ -544,7 +544,11 @@ export class CanvasPipeline {
 
         if (editor.draggingVideo === video.id || editor.isPlaying) {
           // console.info("temp log", video.vertices[0]);
-          video.transform.updateUniformBuffer(queue, editor.camera.windowSize);
+          // video.transform.updateUniformBuffer(queue, editor.camera.windowSize);
+          video.groupTransform.updateUniformBuffer(
+            queue,
+            editor.camera.windowSize
+          );
         }
 
         renderPass.setBindGroup(1, video.bindGroup);

@@ -1942,9 +1942,9 @@ export class Editor {
 
               const delayOffset = 500; // time shift
               const minDistance = 30.0; // Min distance to incur change
-              let baseAlpha = 0.01; // Your current default value
-              let maxAlpha = 0.1; // Maximum blending speed
-              let scalingFactor = 0.01; // Controls how quickly alpha increases with distance
+              let baseAlpha = 0.005; // Your current default value
+              let maxAlpha = 0.05; // Maximum blending speed
+              let scalingFactor = 0.005; // Controls how quickly alpha increases with distance
 
               let mousePositions: MousePosition[] = [];
               property.keyframes.forEach((kf) => {
