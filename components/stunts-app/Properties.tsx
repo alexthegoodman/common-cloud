@@ -76,6 +76,8 @@ export const TextProperties = ({
 }) => {
   const [defaultsSet, setDefaultsSet] = useState(false);
   const [defaultWidth, setDefaultWidth] = useState(0);
+  const [defaultHeight, setDefaultHeight] = useState(0);
+  const [defaultContent, setDefaultContent] = useState("");
 
   useEffect(() => {
     let editor = editorRef.current;
@@ -93,9 +95,17 @@ export const TextProperties = ({
     );
 
     let width = currentObject?.dimensions[0];
+    let height = currentObject?.dimensions[1];
+    let content = currentObject?.text;
 
     if (width) {
       setDefaultWidth(width);
+    }
+    if (height) {
+      setDefaultHeight(height);
+    }
+    if (content) {
+      setDefaultContent(content);
     }
 
     setDefaultsSet(true);
@@ -109,11 +119,62 @@ export const TextProperties = ({
     <>
       <div>
         <DebouncedInput
+          id="text_content"
+          label="Content"
+          placeholder="Content"
+          initialValue={defaultContent.toString()}
+          onDebounce={(value) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            editorState.updateTextContent(editor, currentTextId, value);
+          }}
+        />
+        <DebouncedInput
           id="text_width"
           label="Width"
           placeholder="Width"
           initialValue={defaultWidth.toString()}
-          onDebounce={(value) => {}}
+          onDebounce={(value) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            editorState.updateWidth(
+              editor,
+              currentTextId,
+              ObjectType.TextItem,
+              parseInt(value)
+            );
+          }}
+        />
+        <DebouncedInput
+          id="text_height"
+          label="Height"
+          placeholder="height"
+          initialValue={defaultHeight.toString()}
+          onDebounce={(value) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            editorState.updateHeight(
+              editor,
+              currentTextId,
+              ObjectType.TextItem,
+              parseInt(value)
+            );
+          }}
         />
       </div>
     </>

@@ -171,6 +171,22 @@ export default class EditorState {
     }
   }
 
+  updateTextContent(editor: Editor, objectId: string, value: string) {
+    editor.update_text_content(objectId, value);
+
+    this.savedState.sequences.forEach((s) => {
+      // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+      s.activeTextItems.forEach((p) => {
+        if (p.id == objectId) {
+          p.text = value;
+        }
+      });
+      // }
+    });
+
+    saveSequencesData(this.savedState.sequences);
+  }
+
   save_default_keyframes(
     savable_item_id: string,
     object_type: ObjectType,

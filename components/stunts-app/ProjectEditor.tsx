@@ -60,6 +60,7 @@ import { callMotionInference } from "@/fetchers/inference";
 import KeyframeTimeline from "./KeyframeTimeline";
 import { TimelineTrack } from "./SequenceTimeline";
 import { hexParse } from "@kurkle/color";
+import { WebCapture } from "@/engine/capture";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -233,7 +234,37 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
   const editorRef = useRef<Editor | null>(null);
   const editorStateRef = useRef<EditorState | null>(null);
   const canvasPipelineRef = useRef<CanvasPipeline | null>(null);
+  const webCaptureRef = useRef<WebCapture | null>(null);
   const [editorIsSet, setEditorIsSet] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
+
+  const handleStartCapture = async () => {
+    let webCapture = webCaptureRef.current;
+
+    if (!webCapture || !current_sequence_id) {
+      return;
+    }
+
+    setIsCapturing(true);
+
+    await webCapture.startScreenCapture();
+
+    const blob = await webCapture.startRecording();
+
+    await import_video(current_sequence_id, uuidv4(), blob);
+  };
+
+  const handleStopCapture = () => {
+    let webCapture = webCaptureRef.current;
+
+    if (!webCapture) {
+      return;
+    }
+
+    webCapture.stopRecording();
+
+    setIsCapturing(false);
+  };
 
   let setupCanvasMouseTracking = (canvas: HTMLCanvasElement) => {
     let editor = editorRef.current;
@@ -426,6 +457,8 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     let viewport = new Viewport(900, 550);
 
     editorRef.current = new Editor(viewport);
+
+    webCaptureRef.current = new WebCapture();
 
     setEditorIsSet(true);
   });
@@ -1079,7 +1112,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     // drop(editor);
   };
 
-  let on_add_video = async (sequence_id: string, file: File) => {
+  let import_video = async (sequence_id: string, name: string, blob: Blob) => {
     let editor = editorRef.current;
     let editor_state = editorStateRef.current;
 
@@ -1091,13 +1124,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
       return;
     }
 
-    let blob = await fileToBlob(file);
-
-    if (!blob) {
-      return;
-    }
-
-    let response = await saveVideo(authToken.token, file.name, blob);
+    let response = await saveVideo(authToken.token, name, blob);
 
     if (response) {
       let url = response.url;
@@ -1167,6 +1194,16 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
 
       console.info("video added!");
     }
+  };
+
+  let on_add_video = async (sequence_id: string, file: File) => {
+    let blob = await fileToBlob(file);
+
+    if (!blob) {
+      return;
+    }
+
+    await import_video(sequence_id, file.name, blob);
   };
 
   let on_open_capture = () => {};
@@ -1565,7 +1602,13 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                           style=""
                           label="Screen Capture"
                           icon="video"
-                          callback={() => {}}
+                          callback={() => {
+                            if (isCapturing) {
+                              handleStopCapture();
+                            } else {
+                              handleStartCapture();
+                            }
+                          }}
                         />
                       </div>
 
