@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useState, useRef, useEffect, JSX } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  JSX,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import {
   AnimationData,
   AnimationProperty,
@@ -22,7 +29,542 @@ interface TimelineProps {
   headerHeight: number;
   propertyWidth: number;
   rowHeight: number;
+  selectedKeyframes: string[] | null;
+  setSelectedKeyframes: Dispatch<SetStateAction<string[] | null>>;
+  onKeyframeChanged: (
+    propertyPath: string,
+    keyframeId: string,
+    newTime: number
+  ) => void;
 }
+
+interface DragState {
+  isDragging: boolean;
+  startX: number;
+  originalTime: number;
+}
+
+// // const renderPropertyKeyframes = (
+// //   property: AnimationProperty,
+// //   y: number,
+// //   xToTime: any,
+// //   timeToX: any,
+// //   drawKeyframe: any,
+// //   drawConnectingLine: any,
+// //   handleKeyframeClick: any,
+// //   propertyWidth: any,
+// //   selectedKeyframes: any,
+// //   scrollOffset: any,
+// //   rowHeight: any,
+// //   onKeyframeChanged: (
+// //     propertyPath: string,
+// //     keyframeId: string,
+// //     newTime: number
+// //   ) => void
+// // ) => {
+// //   const [dragState, setDragState] = useState<DragState>({
+// //     isDragging: false,
+// //     startX: 0,
+// //     originalTime: 0,
+// //   });
+
+// //   // Snapping threshold in pixels
+// //   const SNAP_THRESHOLD = 5;
+
+// //   const findNearestSnapPoint = (x: number): number => {
+// //     // Convert x position to time
+// //     const currentTime = xToTime(x);
+
+// //     // Find nearest snap points (e.g., every second or half second)
+// //     const snapInterval = 0.5; // Half second intervals
+// //     const nearestSnap = Math.round(currentTime / snapInterval) * snapInterval;
+
+// //     // Convert back to x position
+// //     const snapX = timeToX(nearestSnap);
+
+// //     // If within threshold, return snap point, otherwise return original position
+// //     return Math.abs(snapX - x) < SNAP_THRESHOLD ? snapX : x;
+// //   };
+
+// //   const handleDragStart = (e: React.MouseEvent, keyframe: any) => {
+// //     console.info("handleDragStart");
+
+// //     setDragState({
+// //       isDragging: true,
+// //       startX: e.clientX,
+// //       originalTime: keyframe.time,
+// //     });
+
+// //     // Prevent text selection while dragging
+// //     e.preventDefault();
+// //   };
+
+// //   const handleDrag = (e: React.MouseEvent, keyframe: any) => {
+// //     if (!dragState.isDragging) return;
+
+// //     const deltaX = e.clientX - dragState.startX;
+// //     const newX = timeToX(msToSec(dragState.originalTime)) + deltaX;
+// //     const snappedX = findNearestSnapPoint(newX);
+
+// //     // Convert position back to time
+// //     const newTime = secToMs(xToTime(snappedX));
+
+// //     // Call the onChange callback with the new time
+// //     onKeyframeChanged(property.propertyPath, keyframe.id, newTime);
+// //   };
+
+// //   const handleDragEnd = () => {
+// //     setDragState({
+// //       isDragging: false,
+// //       startX: 0,
+// //       originalTime: 0,
+// //     });
+// //   };
+
+// //   return property.keyframes.map((keyframe, i) => {
+// //     const x = timeToX(msToSec(keyframe.time)) - propertyWidth;
+// //     const isSelected =
+// //       selectedKeyframes?.some((k: string) => k === keyframe.id) || false;
+
+// //     return (
+// //       <div
+// //         key={`${property.propertyPath}-${keyframe.time}`}
+// //         onClick={() => handleKeyframeClick(property.propertyPath, keyframe)}
+// //       >
+// //         {drawKeyframe(
+// //           x,
+// //           y + rowHeight / 2,
+// //           keyframe.keyType.type,
+// //           isSelected,
+// //           (e: any) => handleDragStart(e, keyframe),
+// //           (e: any) => handleDrag(e, keyframe),
+// //           handleDragEnd
+// //         )}
+// //         {i > 0 &&
+// //           msToSec(property.keyframes[i - 1].time) >= xToTime(-scrollOffset) &&
+// //           drawConnectingLine(
+// //             timeToX(msToSec(property.keyframes[i - 1].time)),
+// //             y + rowHeight / 2,
+// //             x,
+// //             y + rowHeight / 2
+// //           )}
+// //       </div>
+// //     );
+// //   });
+// // };
+
+// // PropertyKeyframe component to handle individual keyframe state
+// interface PropertyKeyframeProps {
+//   property: AnimationProperty;
+//   keyframe: any; // Replace with your keyframe type
+//   index: number;
+//   y: number;
+//   xToTime: (x: number) => number;
+//   timeToX: (time: number) => number;
+//   drawKeyframe: any; // Replace with proper type
+//   drawConnectingLine: any; // Replace with proper type
+//   handleKeyframeClick: (propertyPath: string, keyframe: any) => void;
+//   propertyWidth: number;
+//   selectedKeyframes: string[] | null;
+//   scrollOffset: number;
+//   rowHeight: number;
+//   onKeyframeChanged: (
+//     propertyPath: string,
+//     keyframeId: string,
+//     newTime: number
+//   ) => void;
+// }
+
+// const PropertyKeyframe: React.FC<PropertyKeyframeProps> = ({
+//   property,
+//   keyframe,
+//   index,
+//   y,
+//   xToTime,
+//   timeToX,
+//   drawKeyframe,
+//   drawConnectingLine,
+//   handleKeyframeClick,
+//   propertyWidth,
+//   selectedKeyframes,
+//   scrollOffset,
+//   rowHeight,
+//   onKeyframeChanged,
+// }) => {
+//   const [dragState, setDragState] = useState<{
+//     isDragging: boolean;
+//     startX: number;
+//     originalTime: number;
+//   }>({
+//     isDragging: false,
+//     startX: 0,
+//     originalTime: 0,
+//   });
+
+//   // Snapping threshold in pixels
+//   const SNAP_THRESHOLD = 5;
+
+//   const findNearestSnapPoint = (x: number): number => {
+//     const currentTime = xToTime(x);
+//     const snapInterval = 0.5; // Half second intervals
+//     const nearestSnap = Math.round(currentTime / snapInterval) * snapInterval;
+//     const snapX = timeToX(nearestSnap);
+//     return Math.abs(snapX - x) < SNAP_THRESHOLD ? snapX : x;
+//   };
+
+//   const handleDragStart = (e: React.MouseEvent) => {
+//     console.info("handleDragStart");
+//     setDragState({
+//       isDragging: true,
+//       startX: e.clientX,
+//       originalTime: keyframe.time,
+//     });
+//     e.preventDefault();
+//   };
+
+//   const handleDrag = (e: React.MouseEvent) => {
+//     // console.info("handle drag", dragState);
+//     if (!dragState.isDragging) return;
+
+//     const deltaX = e.clientX - dragState.startX;
+//     const newX = timeToX(msToSec(dragState.originalTime)) + deltaX;
+//     const snappedX = findNearestSnapPoint(newX);
+//     const newTime = secToMs(xToTime(snappedX));
+
+//     onKeyframeChanged(property.propertyPath, keyframe.id, newTime);
+//   };
+
+//   const handleDragEnd = () => {
+//     setDragState({
+//       isDragging: false,
+//       startX: 0,
+//       originalTime: 0,
+//     });
+//   };
+
+//   const x = timeToX(msToSec(keyframe.time)) - propertyWidth;
+//   const isSelected = selectedKeyframes?.some((k) => k === keyframe.id) || false;
+
+//   return (
+//     <div
+//       key={`${property.propertyPath}-${keyframe.time}`}
+//       onClick={() => handleKeyframeClick(property.propertyPath, keyframe)}
+//     >
+//       {drawKeyframe(
+//         x,
+//         y + rowHeight / 2,
+//         keyframe.keyType.type,
+//         isSelected,
+//         handleDragStart,
+//         handleDrag,
+//         handleDragEnd
+//       )}
+//       {index > 0 &&
+//         msToSec(property.keyframes[index - 1].time) >= xToTime(-scrollOffset) &&
+//         drawConnectingLine(
+//           timeToX(msToSec(property.keyframes[index - 1].time)),
+//           y + rowHeight / 2,
+//           x,
+//           y + rowHeight / 2
+//         )}
+//     </div>
+//   );
+// };
+
+// PropertyKeyframes component to handle the collection of keyframes
+
+interface PropertyKeyframeProps {
+  property: AnimationProperty;
+  keyframe: any;
+  index: number;
+  y: number;
+  xToTime: (x: number) => number;
+  timeToX: (time: number) => number;
+  drawKeyframe: any;
+  drawConnectingLine: any;
+  handleKeyframeClick: (propertyPath: string, keyframe: any) => void;
+  propertyWidth: number;
+  selectedKeyframes: string[] | null;
+  scrollOffset: number;
+  rowHeight: number;
+  onKeyframeChanged: (
+    propertyPath: string,
+    keyframeId: string,
+    newTime: number
+  ) => void;
+}
+
+interface PropertyKeyframesProps {
+  property: AnimationProperty;
+  y: number;
+  xToTime: (x: number) => number;
+  timeToX: (time: number) => number;
+  drawKeyframe: any; // Replace with proper type
+  drawConnectingLine: any; // Replace with proper type
+  handleKeyframeClick: (propertyPath: string, keyframe: any) => void;
+  propertyWidth: number;
+  selectedKeyframes: string[] | null;
+  scrollOffset: number;
+  rowHeight: number;
+  onKeyframeChanged: (
+    propertyPath: string,
+    keyframeId: string,
+    newTime: number
+  ) => void;
+}
+
+const PropertyKeyframe: React.FC<PropertyKeyframeProps> = ({
+  property,
+  keyframe,
+  index,
+  y,
+  xToTime,
+  timeToX,
+  drawKeyframe,
+  drawConnectingLine,
+  handleKeyframeClick,
+  propertyWidth,
+  selectedKeyframes,
+  scrollOffset,
+  rowHeight,
+  onKeyframeChanged,
+}) => {
+  const [dragState, setDragState] = useState<{
+    isDragging: boolean;
+    startX: number;
+    originalTime: number;
+    currentX: number;
+  }>({
+    isDragging: false,
+    startX: 0,
+    originalTime: 0,
+    currentX: timeToX(msToSec(keyframe.time)) - propertyWidth,
+  });
+
+  const SNAP_THRESHOLD = 5;
+
+  const findNearestSnapPoint = (x: number): number => {
+    const currentTime = xToTime(x);
+    const snapInterval = 0.5;
+    const nearestSnap = Math.round(currentTime / snapInterval) * snapInterval;
+    const snapX = timeToX(nearestSnap);
+    return Math.abs(snapX - x) < SNAP_THRESHOLD ? snapX : x;
+  };
+
+  const handleDragStart = (e: React.MouseEvent) => {
+    setDragState({
+      isDragging: true,
+      startX: e.clientX,
+      originalTime: keyframe.time,
+      currentX: timeToX(msToSec(keyframe.time)) - propertyWidth,
+    });
+    e.preventDefault();
+  };
+
+  const handleDrag = (e: React.MouseEvent) => {
+    if (!dragState.isDragging) return;
+
+    const deltaX = e.clientX - dragState.startX;
+    const newX = timeToX(msToSec(dragState.originalTime)) + deltaX;
+    const snappedX = findNearestSnapPoint(newX);
+
+    // Only update the visual position during drag
+    setDragState((prev) => ({
+      ...prev,
+      currentX: snappedX - propertyWidth,
+    }));
+  };
+
+  const handleDragEnd = () => {
+    if (dragState.isDragging) {
+      // Calculate final time and call onKeyframeChanged
+      const newTime = secToMs(xToTime(dragState.currentX + propertyWidth));
+      onKeyframeChanged(property.propertyPath, keyframe.id, newTime);
+    }
+
+    setDragState({
+      isDragging: false,
+      startX: 0,
+      originalTime: 0,
+      currentX: timeToX(msToSec(keyframe.time)) - propertyWidth,
+    });
+  };
+
+  const isSelected = selectedKeyframes?.some((k) => k === keyframe.id) || false;
+
+  // Use dragState.currentX for position during drag, otherwise use calculated position
+  const x = dragState.isDragging
+    ? dragState.currentX
+    : timeToX(msToSec(keyframe.time)) - propertyWidth;
+
+  useEffect(() => {
+    // Update currentX when keyframe.time changes from external updates
+    if (!dragState.isDragging) {
+      setDragState((prev) => ({
+        ...prev,
+        currentX: timeToX(msToSec(keyframe.time)) - propertyWidth,
+      }));
+    }
+  }, [keyframe.time, timeToX, propertyWidth]);
+
+  // Add event listeners for when mouse leaves the window
+  useEffect(() => {
+    const handleMouseUp = () => {
+      if (dragState.isDragging) {
+        handleDragEnd();
+      }
+    };
+
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [dragState.isDragging]);
+
+  return (
+    <div
+      key={`${property.propertyPath}-${keyframe.time}`}
+      onClick={() => handleKeyframeClick(property.propertyPath, keyframe)}
+    >
+      {drawKeyframe(
+        x,
+        y + rowHeight / 2,
+        keyframe.keyType.type,
+        isSelected,
+        handleDragStart,
+        handleDrag,
+        handleDragEnd
+      )}
+      {index > 0 &&
+        msToSec(property.keyframes[index - 1].time) >= xToTime(-scrollOffset) &&
+        drawConnectingLine(
+          timeToX(msToSec(property.keyframes[index - 1].time)),
+          y + rowHeight / 2,
+          x,
+          y + rowHeight / 2
+        )}
+    </div>
+  );
+};
+
+// PropertyKeyframes component remains the same
+const PropertyKeyframes: React.FC<PropertyKeyframesProps> = ({
+  property,
+  y,
+  xToTime,
+  timeToX,
+  drawKeyframe,
+  drawConnectingLine,
+  handleKeyframeClick,
+  propertyWidth,
+  selectedKeyframes,
+  scrollOffset,
+  rowHeight,
+  onKeyframeChanged,
+}) => {
+  return property.keyframes.map((keyframe, index) => (
+    <PropertyKeyframe
+      key={`${property.propertyPath}-${keyframe.time}`}
+      property={property}
+      keyframe={keyframe}
+      index={index}
+      y={y}
+      xToTime={xToTime}
+      timeToX={timeToX}
+      drawKeyframe={drawKeyframe}
+      drawConnectingLine={drawConnectingLine}
+      handleKeyframeClick={handleKeyframeClick}
+      propertyWidth={propertyWidth}
+      selectedKeyframes={selectedKeyframes}
+      scrollOffset={scrollOffset}
+      rowHeight={rowHeight}
+      onKeyframeChanged={onKeyframeChanged}
+    />
+  ));
+};
+
+// const PropertyKeyframes: React.FC<PropertyKeyframesProps> = ({
+//   property,
+//   y,
+//   xToTime,
+//   timeToX,
+//   drawKeyframe,
+//   drawConnectingLine,
+//   handleKeyframeClick,
+//   propertyWidth,
+//   selectedKeyframes,
+//   scrollOffset,
+//   rowHeight,
+//   onKeyframeChanged,
+// }) => {
+//   return property.keyframes.map((keyframe, index) => (
+//     <PropertyKeyframe
+//       key={`${property.propertyPath}-${keyframe.time}`}
+//       property={property}
+//       keyframe={keyframe}
+//       index={index}
+//       y={y}
+//       xToTime={xToTime}
+//       timeToX={timeToX}
+//       drawKeyframe={drawKeyframe}
+//       drawConnectingLine={drawConnectingLine}
+//       handleKeyframeClick={handleKeyframeClick}
+//       propertyWidth={propertyWidth}
+//       selectedKeyframes={selectedKeyframes}
+//       scrollOffset={scrollOffset}
+//       rowHeight={rowHeight}
+//       onKeyframeChanged={onKeyframeChanged}
+//     />
+//   ));
+// };
+
+const renderProperties = (
+  properties: AnimationProperty[],
+  startY: number,
+  xToTime: (x: number) => number,
+  timeToX: (time: number) => number,
+  drawKeyframe: any,
+  drawConnectingLine: any,
+  handleKeyframeClick: (propertyPath: string, keyframe: any) => void,
+  propertyWidth: number,
+  selectedKeyframes: string[] | null,
+  scrollOffset: number,
+  rowHeight: number,
+  drawPropertyLabel: any,
+  onKeyframeChanged: (
+    propertyPath: string,
+    keyframeId: string,
+    newTime: number
+  ) => void
+): { elements: JSX.Element[]; nextY: number } => {
+  let currentY = startY;
+  const elements: JSX.Element[] = [];
+
+  properties.forEach((property) => {
+    elements.push(
+      drawPropertyLabel(property, currentY),
+      <PropertyKeyframes
+        key={`${property.propertyPath}-keyframes`}
+        property={property}
+        y={currentY}
+        xToTime={xToTime}
+        timeToX={timeToX}
+        drawKeyframe={drawKeyframe}
+        drawConnectingLine={drawConnectingLine}
+        handleKeyframeClick={handleKeyframeClick}
+        propertyWidth={propertyWidth}
+        selectedKeyframes={selectedKeyframes}
+        scrollOffset={scrollOffset}
+        rowHeight={rowHeight}
+        onKeyframeChanged={onKeyframeChanged}
+      />
+    );
+
+    currentY += rowHeight;
+  });
+
+  return { elements, nextY: currentY };
+};
 
 const KeyframeTimeline: React.FC<TimelineProps> = ({
   editorRef,
@@ -35,6 +577,9 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
   headerHeight,
   propertyWidth,
   rowHeight,
+  selectedKeyframes,
+  setSelectedKeyframes,
+  onKeyframeChanged,
 }) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -42,7 +587,7 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
   const [hoveredKeyframe, setHoveredKeyframe] = useState<UIKeyframe | null>(
     null
   );
-  const [selectedKeyframes, setSelectedKeyframes] = useState<UIKeyframe[]>([]);
+  // const [selectedKeyframes, setSelectedKeyframes] = useState<UIKeyframe[]>([]);
   const [propertyExpansions, setPropertyExpansions] = useState<
     Record<string, boolean>
   >({});
@@ -86,7 +631,8 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
 
   const getAdjustedPropertyWidth = (baseWidth: number, currentZoom: number) => {
     // If zooming out (zoom < 1), increase property width proportionally
-    return baseWidth * (currentZoom < 1 ? 1 / currentZoom : 1);
+    // return baseWidth * (currentZoom < 1 ? 1 / currentZoom : 1);
+    return baseWidth;
   };
 
   const timeToX = (time: number) => {
@@ -99,15 +645,15 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
     return Math.max(0, (x + scrollOffset) / (adjustedWidth * zoomLevel));
   };
 
-  const handleTimeSliderChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setCurrentTime(parseFloat(event.target.value));
-  };
+  // const handleTimeSliderChange = (
+  //   event: React.ChangeEvent<HTMLInputElement>
+  // ) => {
+  //   setCurrentTime(parseFloat(event.target.value));
+  // };
 
-  const handleZoomChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setZoomLevel(parseFloat(event.target.value));
-  };
+  // const handleZoomChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   setZoomLevel(parseFloat(event.target.value));
+  // };
 
   //   const handleScroll = (event: React.WheelEvent) => {
   //     event.preventDefault();
@@ -134,38 +680,39 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
   //     }
   //   };
 
-  const handleScroll = (event: React.WheelEvent) => {
-    // Prevent default scroll behavior
-    event.preventDefault();
+  // const handleScroll = (event: React.WheelEvent) => {
+  //   // Prevent default scroll behavior
+  //   event.preventDefault();
 
-    setZoomLevel((prevZoom) => {
-      const newZoom = prevZoom * (event.deltaY < 0 ? 1.1 : 0.9);
-      return Math.min(Math.max(0.1, newZoom), 5); // Clamp between 0.1 and 5
-    });
-  };
+  //   setZoomLevel((prevZoom) => {
+  //     const newZoom = prevZoom * (event.deltaY < 0 ? 1.1 : 0.9);
+  //     return Math.min(Math.max(0.1, newZoom), 5); // Clamp between 0.1 and 5
+  //   });
+  // };
 
-  // Prevent page scroll when mouse is over timeline
-  useEffect(() => {
-    const timeline = timelineRef.current;
-    if (!timeline) return;
+  // // Prevent page scroll when mouse is over timeline
+  // useEffect(() => {
+  //   const timeline = timelineRef.current;
+  //   if (!timeline) return;
 
-    const preventScroll = (e: WheelEvent) => {
-      e.preventDefault();
-    };
+  //   const preventScroll = (e: WheelEvent) => {
+  //     e.preventDefault();
+  //   };
 
-    timeline.addEventListener("wheel", preventScroll, { passive: false });
+  //   timeline.addEventListener("wheel", preventScroll, { passive: false });
 
-    return () => {
-      timeline.removeEventListener("wheel", preventScroll);
-    };
-  }, [animationData]);
+  //   return () => {
+  //     timeline.removeEventListener("wheel", preventScroll);
+  //   };
+  // }, [animationData]);
 
   const handleKeyframeClick = (propertyPath: string, keyframe: UIKeyframe) => {
-    setSelectedKeyframes((prev) =>
-      prev.some((k) => k === keyframe)
-        ? prev.filter((k) => k !== keyframe)
-        : [...prev, keyframe]
-    );
+    // setSelectedKeyframes((prev) =>
+    //   prev.some((k) => k === keyframe)
+    //     ? prev.filter((k) => k !== keyframe)
+    //     : [...prev, keyframe]
+    // );
+    setSelectedKeyframes([keyframe.id]);
   };
 
   const togglePropertyExpansion = (propertyPath: string) => {
@@ -190,6 +737,7 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
           left: `${indent}px`,
           top: `${y}px`,
           width: `${adjustedWidth}px`,
+          fontSize: "12px",
         }}
       >
         <span onClick={() => togglePropertyExpansion(property.propertyPath)}>
@@ -200,13 +748,52 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
     );
   };
 
+  // const drawKeyframe = (
+  //   x: number,
+  //   y: number,
+  //   keyType: string,
+  //   isSelected: boolean
+  // ) => {
+  //   const size = 6;
+  //   const color = isSelected
+  //     ? keyType === "Frame"
+  //       ? "blue"
+  //       : "red"
+  //     : keyType === "Frame"
+  //     ? "orange"
+  //     : "orangered";
+
+  //   const adjustedWidth = getAdjustedPropertyWidth(propertyWidth, zoomLevel);
+  //   const adjustedX = adjustedWidth + x; // Add property width to position keyframes after the label
+
+  //   return (
+  //     <div
+  //       style={{
+  //         position: "absolute",
+  //         left: `${adjustedX - size}px`,
+  //         top: `${y - size}px`,
+  //         width: `${size * 2}px`,
+  //         height: `${size * 2}px`,
+  //         transform: "rotate(45deg)",
+  //         backgroundColor: color,
+  //         cursor: "pointer",
+  //         zIndex: 2,
+  //       }}
+  //       className="keyframe"
+  //     />
+  //   );
+  // };
+
   const drawKeyframe = (
     x: number,
     y: number,
     keyType: string,
-    isSelected: boolean
+    isSelected: boolean,
+    onDragStart: (e: React.MouseEvent) => void,
+    onDrag: (e: React.MouseEvent) => void,
+    onDragEnd: (e: React.MouseEvent) => void
   ) => {
-    const size = 8;
+    const size = 6;
     const color = isSelected
       ? keyType === "Frame"
         ? "blue"
@@ -216,7 +803,7 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
       : "orangered";
 
     const adjustedWidth = getAdjustedPropertyWidth(propertyWidth, zoomLevel);
-    const adjustedX = adjustedWidth + x; // Add property width to position keyframes after the label
+    const adjustedX = adjustedWidth + x;
 
     return (
       <div
@@ -228,9 +815,14 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
           height: `${size * 2}px`,
           transform: "rotate(45deg)",
           backgroundColor: color,
-          cursor: "pointer",
+          cursor: "grab",
+          zIndex: 2,
         }}
         className="keyframe"
+        onMouseDown={onDragStart}
+        onMouseMove={onDrag}
+        onMouseUp={onDragEnd}
+        onMouseLeave={onDragEnd}
       />
     );
   };
@@ -241,7 +833,8 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
     x2: number,
     y2: number
   ) => {
-    const adjustedWidth = getAdjustedPropertyWidth(propertyWidth, zoomLevel);
+    const adjustedWidth =
+      getAdjustedPropertyWidth(propertyWidth, zoomLevel) - propertyWidth;
     const adjustedX1 = adjustedWidth + x1;
     const adjustedX2 = adjustedWidth + x2;
 
@@ -251,7 +844,7 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
           position: "absolute",
           top: `${Math.min(y1, y2)}px`,
           left: `${Math.min(adjustedX1, adjustedX2)}px`,
-          width: `${Math.abs(adjustedX2 - adjustedX1)}px`,
+          width: `${Math.abs(adjustedX2 - adjustedX1 + propertyWidth)}px`,
           height: "1px",
           backgroundColor: "darkgray",
         }}
@@ -259,63 +852,77 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
     );
   };
 
-  const renderPropertyKeyframes = (property: AnimationProperty, y: number) => {
-    return property.keyframes.map((keyframe, i) => {
-      const x = timeToX(msToSec(keyframe.time));
-      const isSelected = selectedKeyframes.some((k) => k === keyframe);
+  // const renderPropertyKeyframes = (property: AnimationProperty, y: number) => {
+  //   return property.keyframes.map((keyframe, i) => {
+  //     const x = timeToX(msToSec(keyframe.time)) - propertyWidth;
+  //     let isSelected = selectedKeyframes?.some((k) => k === keyframe.id);
 
-      return (
-        <div
-          key={`${property.propertyPath}-${keyframe.time}`}
-          onClick={() => handleKeyframeClick(property.propertyPath, keyframe)}
-        >
-          {drawKeyframe(
-            x,
-            y + rowHeight / 2,
-            keyframe.keyType.type,
-            isSelected
-          )}
-          {i > 0 &&
-            msToSec(property.keyframes[i - 1].time) >= xToTime(-scrollOffset) &&
-            drawConnectingLine(
-              timeToX(msToSec(property.keyframes[i - 1].time)),
-              y + rowHeight / 2,
-              x,
-              y + rowHeight / 2
-            )}
-        </div>
-      );
-    });
-  };
+  //     if (typeof isSelected === "undefined") {
+  //       isSelected = false;
+  //     }
 
-  const renderProperties = (
-    properties: AnimationProperty[],
-    startY: number
-  ): { elements: JSX.Element[]; nextY: number } => {
-    let currentY = startY;
-    const elements: JSX.Element[] = [];
+  //     return (
+  //       <div
+  //         key={`${property.propertyPath}-${keyframe.time}`}
+  //         onClick={() => handleKeyframeClick(property.propertyPath, keyframe)}
+  //       >
+  //         {drawKeyframe(
+  //           x,
+  //           y + rowHeight / 2,
+  //           keyframe.keyType.type,
+  //           isSelected
+  //         )}
+  //         {i > 0 &&
+  //           msToSec(property.keyframes[i - 1].time) >= xToTime(-scrollOffset) &&
+  //           drawConnectingLine(
+  //             timeToX(msToSec(property.keyframes[i - 1].time)),
+  //             y + rowHeight / 2,
+  //             x,
+  //             y + rowHeight / 2
+  //           )}
+  //       </div>
+  //     );
+  //   });
+  // };
 
-    properties.forEach((property) => {
-      // Add property label and keyframes at current Y position
-      elements.push(
-        drawPropertyLabel(property, currentY),
-        ...renderPropertyKeyframes(property, currentY)
-      );
+  // const renderProperties = (
+  //   properties: AnimationProperty[],
+  //   startY: number,
+  //   onKeyframeChanged: (
+  //     propertyPath: string,
+  //     keyframeId: string,
+  //     newTime: number
+  //   ) => void
+  // ): { elements: JSX.Element[]; nextY: number } => {
+  //   let currentY = startY;
+  //   const elements: JSX.Element[] = [];
 
-      // Move to next row
-      currentY += rowHeight;
+  //   properties.forEach((property) => {
+  //     // Add property label and keyframes at current Y position
+  //     elements.push(
+  //       drawPropertyLabel(property, currentY),
+  //       ...renderPropertyKeyframes(
+  //         property,
+  //         currentY,
+  //         xToTime,
+  //         timeToX,
+  //         drawKeyframe,
+  //         drawConnectingLine,
+  //         handleKeyframeClick,
+  //         propertyWidth,
+  //         selectedKeyframes,
+  //         scrollOffset,
+  //         rowHeight,
+  //         onKeyframeChanged
+  //       )
+  //     );
 
-      // If property is expanded and has children, render them
-      //   const isExpanded = propertyExpansions[property.propertyPath] || false;
-      //   if (isExpanded && property.children.length > 0) {
-      //     const childResult = renderProperties(property.children, currentY);
-      //     elements.push(...childResult.elements);
-      //     currentY = childResult.nextY;
-      //   }
-    });
+  //     // Move to next row
+  //     currentY += rowHeight;
+  //   });
 
-    return { elements, nextY: currentY };
-  };
+  //   return { elements, nextY: currentY };
+  // };
 
   if (!animationData) {
     return <div>No animation data available.</div>;
@@ -357,17 +964,34 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
   // Calculate total height needed for all properties
   const { elements: propertyElements, nextY: totalHeight } = renderProperties(
     animationData.properties,
-    headerHeight
+    headerHeight,
+    xToTime,
+    timeToX,
+    drawKeyframe,
+    drawConnectingLine,
+    handleKeyframeClick,
+    propertyWidth,
+    selectedKeyframes,
+    scrollOffset,
+    rowHeight,
+    drawPropertyLabel,
+    onKeyframeChanged
   );
 
   return (
     <div
       className="timeline"
-      style={{ width, height, overflowX: "auto", overflowY: "auto" }}
+      style={{
+        width,
+        height: "auto",
+        overflowX: "auto",
+        overflowY: "auto",
+        paddingBottom: "25px",
+      }}
       ref={timelineRef}
-      onWheel={handleScroll}
+      // onWheel={handleScroll}
     >
-      <div
+      {/* <div
         className="time-slider"
         style={{
           height: headerHeight,
@@ -396,7 +1020,7 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
           onChange={handleZoomChange}
           style={{ width: "100%" }}
         />
-      </div>
+      </div> */}
 
       <div
         className="timeline-grid"
@@ -415,6 +1039,10 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
 
 function msToSec(time: number) {
   return time / 1000;
+}
+
+function secToMs(time: number) {
+  return time * 1000;
 }
 
 export default KeyframeTimeline;

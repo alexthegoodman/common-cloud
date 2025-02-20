@@ -2031,8 +2031,11 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
               width={900}
               height={400}
               headerHeight={40}
-              propertyWidth={40}
+              propertyWidth={50}
               rowHeight={50}
+              selectedKeyframes={selected_keyframes}
+              setSelectedKeyframes={set_selected_keyframes}
+              onKeyframeChanged={() => {}}
             />
           )}
           {selected_text_id && current_sequence_id && (
@@ -2045,8 +2048,11 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
               width={900}
               height={400}
               headerHeight={40}
-              propertyWidth={40}
+              propertyWidth={50}
               rowHeight={50}
+              selectedKeyframes={selected_keyframes}
+              setSelectedKeyframes={set_selected_keyframes}
+              onKeyframeChanged={() => {}}
             />
           )}
           {selected_image_id && current_sequence_id && (
@@ -2059,8 +2065,11 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
               width={900}
               height={400}
               headerHeight={40}
-              propertyWidth={40}
+              propertyWidth={50}
               rowHeight={50}
+              selectedKeyframes={selected_keyframes}
+              setSelectedKeyframes={set_selected_keyframes}
+              onKeyframeChanged={() => {}}
             />
           )}
           {selected_video_id && current_sequence_id && (
@@ -2073,8 +2082,11 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
               width={900}
               height={400}
               headerHeight={40}
-              propertyWidth={40}
+              propertyWidth={50}
               rowHeight={50}
+              selectedKeyframes={selected_keyframes}
+              setSelectedKeyframes={set_selected_keyframes}
+              onKeyframeChanged={() => {}}
             />
           )}
         </div>
