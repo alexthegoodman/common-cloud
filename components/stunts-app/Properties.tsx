@@ -39,6 +39,7 @@ const RepeatProperties = ({
     let currentObject = editor.repeatManager.getRepeatObject(currentObjectId);
 
     if (!currentObject) {
+      set_is_repeat(false);
       setDefaultsSet(true);
       return;
     }
@@ -57,6 +58,7 @@ const RepeatProperties = ({
       setDefaultRotation(currentPattern.rotation);
     }
 
+    set_is_repeat(true);
     setDefaultsSet(true);
   }, []);
 
