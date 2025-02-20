@@ -73,6 +73,8 @@ export class RepeatObject {
           ...v.position,
           ...v.tex_coords,
           ...v.color,
+          ...v.gradient_coords,
+          v.object_type,
         ])
       )
     );

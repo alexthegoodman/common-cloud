@@ -123,7 +123,8 @@ export class TextRenderer {
     this.font = fontkit.create(fontData) as fontkit.Font;
 
     let gradientBuffer = setupGradientBuffers(
-      device
+      device,
+      queue
       // gradientBindGroupLayout
     );
 
@@ -530,7 +531,13 @@ export class TextRenderer {
       this.vertexBuffer,
       0,
       new Float32Array(
-        vertices.flatMap((v) => [...v.position, ...v.tex_coords, ...v.color])
+        vertices.flatMap((v) => [
+          ...v.position,
+          ...v.tex_coords,
+          ...v.color,
+          ...v.gradient_coords,
+          v.object_type,
+        ])
       )
     );
     queue.writeBuffer(this.indexBuffer, 0, new Uint32Array(indices));
@@ -599,6 +606,8 @@ export class TextRenderer {
           ...v.position,
           ...v.tex_coords,
           ...v.color,
+          ...v.gradient_coords,
+          v.object_type,
         ])
       )
     );

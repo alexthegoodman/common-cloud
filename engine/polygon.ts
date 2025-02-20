@@ -266,6 +266,8 @@ export class Polygon implements PolygonShape {
           ...v.position,
           ...v.tex_coords,
           ...v.color,
+          ...v.gradient_coords,
+          v.object_type,
         ])
       )
     );
@@ -682,10 +684,10 @@ export function getPolygonData(
     tessellationResult.faces
   ) {
     tessellationResult.points.forEach((point) => {
-      const normalizedX =
-        (point[0] - polygon.position.x) / polygon.dimensions[0];
-      const normalizedY =
-        (point[1] - polygon.position.y) / polygon.dimensions[1];
+      const normalizedX = point[0] / polygon.dimensions[0] + 0.5;
+      const normalizedY = point[1] / polygon.dimensions[1] + 0.5;
+
+      console.info("normalized poly", normalizedX, normalizedY);
 
       vertices.push(
         // createVertex(point[0], point[1], getZLayer(1.0), polygon.fill, ObjectType.Polygon)
@@ -756,19 +758,23 @@ export function getPolygonData(
     usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
   });
 
-  const vertexData = new Float32Array(vertices.length * (3 + 2 + 4));
+  const vertexData = new Float32Array(vertices.length * (3 + 2 + 4 + 2 + 1));
 
   for (let i = 0; i < vertices.length; i++) {
     const v = vertices[i];
-    vertexData[i * (3 + 2 + 4) + 0] = v.position[0];
-    vertexData[i * (3 + 2 + 4) + 1] = v.position[1];
-    vertexData[i * (3 + 2 + 4) + 2] = v.position[2];
-    vertexData[i * (3 + 2 + 4) + 3] = v.tex_coords[0];
-    vertexData[i * (3 + 2 + 4) + 4] = v.tex_coords[1];
-    vertexData[i * (3 + 2 + 4) + 5] = v.color[0];
-    vertexData[i * (3 + 2 + 4) + 6] = v.color[1];
-    vertexData[i * (3 + 2 + 4) + 7] = v.color[2];
-    vertexData[i * (3 + 2 + 4) + 8] = v.color[3];
+    vertexData[i * (3 + 2 + 4 + 2 + 1) + 0] = v.position[0];
+    vertexData[i * (3 + 2 + 4 + 2 + 1) + 1] = v.position[1];
+    vertexData[i * (3 + 2 + 4 + 2 + 1) + 2] = v.position[2];
+    vertexData[i * (3 + 2 + 4 + 2 + 1) + 3] = v.tex_coords[0];
+    vertexData[i * (3 + 2 + 4 + 2 + 1) + 4] = v.tex_coords[1];
+    vertexData[i * (3 + 2 + 4 + 2 + 1) + 5] = v.color[0];
+    vertexData[i * (3 + 2 + 4 + 2 + 1) + 6] = v.color[1];
+    vertexData[i * (3 + 2 + 4 + 2 + 1) + 7] = v.color[2];
+    vertexData[i * (3 + 2 + 4 + 2 + 1) + 8] = v.color[3];
+
+    vertexData[i * (3 + 2 + 4 + 2 + 1) + 9] = v.gradient_coords[0];
+    vertexData[i * (3 + 2 + 4 + 2 + 1) + 10] = v.gradient_coords[1];
+    vertexData[i * (3 + 2 + 4 + 2 + 1) + 11] = v.object_type;
   }
 
   queue.writeBuffer(vertexBuffer, 0, vertexData.buffer);
@@ -840,7 +846,7 @@ export function getPolygonData(
     mipmapFilter: "nearest",
   });
 
-  let gradientBuffer = setupGradientBuffers(device);
+  let gradientBuffer = setupGradientBuffers(device, queue);
 
   const bindGroup = device.createBindGroup({
     layout: bindGroupLayout,
@@ -1005,6 +1011,7 @@ export function createRoundedPolygonPath(
 
 export function setupGradientBuffers(
   device: GPUDevice,
+  queue: GPUQueue,
   // gradientBindGroupLayout: GPUBindGroupLayout,
   gradient?: GradientDefinition
 ): GPUBuffer {
@@ -1017,12 +1024,12 @@ export function setupGradientBuffers(
     // Stops data
     ...defaultStops.flatMap((stop) => [stop.offset, ...stop.color]),
     // Fill remaining stops with zeros if less than 8
-    ...new Array(8 - defaultStops.length).flatMap(() => [0, 0, 0, 0, 0]),
+    ...new Array((8 - defaultStops.length) * 5).fill(0),
 
     defaultStops.length, // numStops
-    1, // gradientType
+    0, // gradientType (0 is linear, 1 is radial)
     ...[0, 0], // startPoint
-    ...[1, 1], // endPoint
+    ...[1, 0], // endPoint
     ...[0.5, 0.5], // center
     1.0, // radius
     0, // timeOffset
@@ -1035,7 +1042,7 @@ export function setupGradientBuffers(
       // Stops data
       ...gradient.stops.flatMap((stop) => [stop.offset, ...stop.color]),
       // Fill remaining stops with zeros if less than 8
-      ...new Array(8 - gradient.stops.length).flatMap(() => [0, 0, 0, 0, 0]),
+      ...new Array((8 - defaultStops.length) * 5).fill(0),
 
       gradient.stops.length, // numStops
       gradient.type === "linear" ? 0 : 1, // gradientType
@@ -1049,13 +1056,25 @@ export function setupGradientBuffers(
     ]);
   }
 
+  console.info(
+    "gradient data",
+    gradientData
+    // "also see",
+    // defaultStops.length,
+    // " and ",
+    // new Array((8 - defaultStops.length) * 5).fill(0)
+  );
+
   let gradientBuffer = device.createBuffer({
+    label: "Gradient Buffer",
     size: gradientData.byteLength * 4,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     mappedAtCreation: true,
   });
   new Float32Array(gradientBuffer.getMappedRange()).set(gradientData);
   gradientBuffer.unmap();
+
+  // queue.writeBuffer(gradientBuffer, 0, gradientData);
 
   // Create bind group for gradient data
   // let gradientBindGroup = device.createBindGroup({

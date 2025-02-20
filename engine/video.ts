@@ -199,7 +199,8 @@ export class StVideo {
     this.transform.updateUniformBuffer(queue, windowSize);
 
     let gradientBuffer = setupGradientBuffers(
-      device
+      device,
+      queue
       // gradientBindGroupLayout
     );
 
@@ -324,6 +325,8 @@ export class StVideo {
               ...v.position,
               ...v.tex_coords,
               ...v.color,
+              ...v.gradient_coords,
+              v.object_type,
             ])
           )
         );
@@ -760,6 +763,8 @@ export class StVideo {
           ...v.position,
           ...v.tex_coords,
           ...v.color,
+          ...v.gradient_coords,
+          v.object_type,
         ])
       )
     );
@@ -864,6 +869,8 @@ export class StVideo {
           ...v.position,
           ...v.tex_coords,
           ...v.color,
+          ...v.gradient_coords,
+          v.object_type,
         ])
       )
     );
@@ -922,6 +929,8 @@ export class StVideo {
           ...v.position,
           ...v.tex_coords,
           ...v.color,
+          ...v.gradient_coords,
+          v.object_type,
         ])
       )
     );

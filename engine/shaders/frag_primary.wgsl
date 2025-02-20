@@ -27,15 +27,15 @@ struct GradientStop {
 
 struct GradientUniforms {
     stops: array<GradientStop, 8>,
-    numStops: i32,
-    gradientType: i32,
+    numStops: f32,
+    gradientType: f32,
     startPoint: vec2<f32>,
     endPoint: vec2<f32>,
     center: vec2<f32>,
     radius: f32,
     time: f32,
     animationSpeed: f32,
-    enabled: i32
+    enabled: f32
 };
 
 // @group(1) @binding(0) var<uniform> gradient: GradientUniforms;
@@ -102,10 +102,10 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     var final_color: vec4<f32>;
     
     if (in.object_type == OBJECT_TYPE_POLYGON) {
-        if (gradient.enabled != 0 && gradient.numStops > 0) {
+        if (gradient.enabled == 1 && gradient.numStops > 0) {
             final_color = calculateGradientColor(in.gradient_coords);
         } else {
-            final_color = in.color;
+            final_color = vec4<f32>(in.gradient_coords, 0.0, 1.0);
         }
     } else {
         final_color = tex_color * in.color;
@@ -113,3 +113,9 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     
     return final_color;
 }
+
+// @fragment
+// fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+//     // Debug: Visualize gradient coordinates
+//     return vec4<f32>(in.gradient_coords, 0.0, 1.0);
+// }

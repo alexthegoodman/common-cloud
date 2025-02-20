@@ -79,7 +79,8 @@ export class StImage {
     this.objectType = ObjectType.ImageItem;
 
     let gradientBuffer = setupGradientBuffers(
-      device
+      device,
+      queue
       // gradientBindGroupLayout
     );
 
@@ -244,7 +245,7 @@ export class StImage {
       this.vertexBuffer = device.createBuffer({
         // Initialize vertexBuffer
         label: "Vertex Buffer",
-        size: this.vertices.length * 4 * 10,
+        size: this.vertices.length * 4 * 14,
         usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       });
 
@@ -256,6 +257,8 @@ export class StImage {
             ...v.position,
             ...v.tex_coords,
             ...v.color,
+            ...v.gradient_coords,
+            v.object_type,
           ])
         )
       ); // Correct writeBuffer call
