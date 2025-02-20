@@ -12,6 +12,7 @@ import {
 import { CreateIcon } from "./icon";
 import {
   BackgroundFill,
+  GradientStop,
   ObjectType,
   SavedState,
   Sequence,
@@ -830,12 +831,13 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
     if (background_fill.type === "Color") {
       editor.replace_background(
         saved_sequence.id,
-        rgbToWgpu(
-          background_fill.value[0],
-          background_fill.value[1],
-          background_fill.value[2],
-          background_fill.value[3]
-        )
+        // rgbToWgpu(
+        //   background_fill.value[0],
+        //   background_fill.value[1],
+        //   background_fill.value[2],
+        //   background_fill.value[3]
+        // )
+        background_fill
       );
     }
 
@@ -969,7 +971,11 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
       },
       rotation: 0,
       borderRadius: 0.0,
-      fill: [1.0, 1.0, 1.0, 1.0],
+      // fill: [1.0, 1.0, 1.0, 1.0],
+      backgroundFill: {
+        type: "Color",
+        value: [1.0, 1.0, 1.0, 1.0],
+      },
       stroke: {
         fill: [1.0, 1.0, 1.0, 1.0],
         thickness: 2.0,
@@ -983,12 +989,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
       id: polygon_config.id,
       name: polygon_config.name,
       dimensions: [polygon_config.dimensions[0], polygon_config.dimensions[1]],
-      fill: [
-        polygon_config.fill[0],
-        polygon_config.fill[1],
-        polygon_config.fill[2],
-        polygon_config.fill[3],
-      ],
+      backgroundFill: polygon_config.backgroundFill,
       borderRadius: polygon_config.borderRadius,
       position: {
         x: polygon_config.position.x,
@@ -1138,7 +1139,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
       y: random_number_450 + CANVAS_VERT_OFFSET,
     };
 
-    let text_config = {
+    let text_config: TextRendererConfig = {
       id: new_id,
       name: "New Text Item",
       text: new_text,
@@ -1149,12 +1150,13 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
       // color: rgbToWgpu(20, 20, 200, 255) as [number, number, number, number],
       color: [20, 20, 200, 255] as [number, number, number, number],
       fontSize: 28,
-      backgroundFill: rgbToWgpu(200, 200, 200, 255) as [
-        number,
-        number,
-        number,
-        number
-      ],
+      // backgroundFill: rgbToWgpu(200, 200, 200, 255) as [
+      //   number,
+      //   number,
+      //   number,
+      //   number
+      // ],
+      backgroundFill: { type: "Color", value: rgbToWgpu(200, 200, 200, 255) },
     };
 
     await editor.add_text_item(text_config, new_text, new_id, sequence_id);
@@ -1836,7 +1838,10 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                                 editorState.savedState.sequences.forEach(
                                   (s) => {
                                     s.activeTextItems.forEach((p) => {
-                                      p.backgroundFill = text_color;
+                                      p.backgroundFill = {
+                                        type: "Color",
+                                        value: text_color_wgpu,
+                                      };
                                     });
                                   }
                                 );
@@ -1845,23 +1850,55 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
 
                                 let background_uuid = current_sequence_id;
 
+                                let stops: GradientStop[] = [
+                                  {
+                                    offset: 0,
+                                    color: text_color_wgpu,
+                                  },
+                                  {
+                                    offset: 1,
+                                    color: background_color_wgpu,
+                                  },
+                                ];
+
+                                let gradientBackground: BackgroundFill = {
+                                  type: "Gradient",
+                                  value: {
+                                    stops: stops,
+                                    numStops: stops.length, // numStops
+                                    type: "linear", // gradientType (0 is linear, 1 is radial)
+                                    startPoint: [0, 0], // startPoint
+                                    endPoint: [1, 0], // endPoint
+                                    center: [0.5, 0.5], // center
+                                    radius: 1.0, // radius
+                                    timeOffset: 0, // timeOffset
+                                    animationSpeed: 1, // animationSpeed
+                                    enabled: 1, // enabled
+                                  },
+                                };
+
+                                // editor.update_background(
+                                //   background_uuid,
+                                //   "red",
+                                //   InputValue.Number,
+                                //   background_color[0]
+                                // );
+                                // editor.update_background(
+                                //   background_uuid,
+                                //   "green",
+                                //   InputValue.Number,
+                                //   background_color[1]
+                                // );
+                                // editor.update_background(
+                                //   background_uuid,
+                                //   "blue",
+                                //   InputValue.Number,
+                                //   background_color[2]
+                                // );
+
                                 editor.update_background(
                                   background_uuid,
-                                  "red",
-                                  InputValue.Number,
-                                  background_color[0]
-                                );
-                                editor.update_background(
-                                  background_uuid,
-                                  "green",
-                                  InputValue.Number,
-                                  background_color[1]
-                                );
-                                editor.update_background(
-                                  background_uuid,
-                                  "blue",
-                                  InputValue.Number,
-                                  background_color[2]
+                                  gradientBackground
                                 );
 
                                 editorState.savedState.sequences.forEach(
@@ -1889,9 +1926,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                                           break;
                                         }
                                         case "Gradient": {
-                                          console.info(
-                                            "Gradient support coming"
-                                          );
+                                          s.backgroundFill = gradientBackground;
                                           break;
                                         }
                                       }

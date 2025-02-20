@@ -146,7 +146,7 @@ export type KeyframeValue =
 
 export type BackgroundFill =
   | { type: "Color"; value: [number, number, number, number] }
-  | { type: "Gradient" }; // For later
+  | { type: "Gradient"; value: GradientDefinition }; // For later
 
 export interface GradientStop {
   offset: number; // Position from 0 to 1

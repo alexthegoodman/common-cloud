@@ -10,7 +10,7 @@ import {
   wgpuToHuman,
 } from "./editor";
 import { INTERNAL_LAYER_SPACE, Polygon, setupGradientBuffers } from "./polygon";
-import { ObjectType } from "./animations";
+import { BackgroundFill, ObjectType } from "./animations";
 
 export interface TextRendererConfig {
   id: string;
@@ -22,7 +22,8 @@ export interface TextRendererConfig {
   position: { x: number; y: number };
   layer: number;
   color: [number, number, number, number];
-  backgroundFill: [number, number, number, number];
+  // backgroundFill: [number, number, number, number];
+  backgroundFill: BackgroundFill;
 }
 
 export interface SavedTextRendererConfig {
@@ -35,7 +36,8 @@ export interface SavedTextRendererConfig {
   position: { x: number; y: number };
   layer: number;
   color: [number, number, number, number];
-  backgroundFill?: [number, number, number, number];
+  // backgroundFill?: [number, number, number, number];
+  backgroundFill: BackgroundFill;
 }
 
 export interface GlyphRasterConfig {
@@ -680,12 +682,7 @@ export class TextRenderer {
       layer: this.layer,
       color: this.color,
       fontSize: this.fontSize,
-      backgroundFill: [
-        wgpuToHuman(this.backgroundPolygon.fill[0]),
-        wgpuToHuman(this.backgroundPolygon.fill[1]),
-        wgpuToHuman(this.backgroundPolygon.fill[2]),
-        wgpuToHuman(this.backgroundPolygon.fill[3]),
-      ],
+      backgroundFill: this.backgroundPolygon.backgroundFill,
     };
   }
 

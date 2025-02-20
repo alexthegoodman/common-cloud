@@ -338,7 +338,8 @@ function createPathSegment(
     rotation,
     0.0,
     // [0.5, 0.8, 1.0, 1.0], // light blue with some transparency
-    fill,
+    // fill,
+    { type: "Color", value: fill },
     {
       thickness: 0.0,
       fill: rgbToWgpu(0, 0, 0, 255.0),
@@ -384,7 +385,8 @@ function createPathHandle(
     end,
     rotation,
     0.0,
-    fill,
+    // fill,
+    { type: "Color", value: fill },
     {
       thickness: 0.0,
       fill: rgbToWgpu(0, 0, 0, 255.0),
@@ -436,7 +438,8 @@ function createPathArrow(
     end,
     rotation,
     0.0,
-    fill,
+    // fill,
+    { type: "Color", value: fill },
     {
       thickness: 0.0,
       fill: rgbToWgpu(0, 0, 0, 255.0),

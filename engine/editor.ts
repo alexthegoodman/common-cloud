@@ -132,6 +132,7 @@ import { TextRenderer, TextRendererConfig } from "./text";
 import {
   AnimationData,
   AnimationProperty,
+  BackgroundFill,
   calculateDefaultCurve,
   EasingType,
   ObjectType,
@@ -557,7 +558,8 @@ export class Editor {
         { x: p.position.x, y: p.position.y },
         0.0,
         p.borderRadius,
-        [p.fill[0], p.fill[1], p.fill[2], p.fill[3]],
+        // [p.fill[0], p.fill[1], p.fill[2], p.fill[3]],
+        p.backgroundFill,
         {
           thickness: p.stroke.thickness,
           fill: [
@@ -604,14 +606,15 @@ export class Editor {
         // color: rgbToWgpu(t.color[0], t.color[1], t.color[2], t.color[3]),
         color: t.color,
         fontSize: t.fontSize,
-        backgroundFill: t.backgroundFill
-          ? rgbToWgpu(
-              t.backgroundFill[0],
-              t.backgroundFill[1],
-              t.backgroundFill[2],
-              t.backgroundFill[3]
-            )
-          : rgbToWgpu(100, 100, 100, 255),
+        // backgroundFill: t.backgroundFill
+        //   ? rgbToWgpu(
+        //       t.backgroundFill[0],
+        //       t.backgroundFill[1],
+        //       t.backgroundFill[2],
+        //       t.backgroundFill[3]
+        //     )
+        //   : rgbToWgpu(100, 100, 100, 255),
+        backgroundFill: t.backgroundFill,
       };
 
       const restored_text = new TextRenderer(
@@ -1451,15 +1454,12 @@ export class Editor {
 
     if (updateBackground && this.currentSequenceData) {
       const backgroundFill = this.currentSequenceData.backgroundFill;
-      if (backgroundFill && backgroundFill.type === "Color") {
-        const [r, g, b, a] = backgroundFill.value;
-        this.replace_background(
-          this.currentSequenceData.id,
-          rgbToWgpu(r, g, b, a)
-        );
-      } else {
-        console.log("Not supported yet...");
+
+      if (!backgroundFill) {
+        return;
       }
+
+      this.replace_background(this.currentSequenceData.id, backgroundFill);
     }
   }
 
@@ -2301,7 +2301,8 @@ export class Editor {
       polygon_config.position,
       0.0,
       polygon_config.borderRadius,
-      polygon_config.fill,
+      // polygon_config.fill,
+      polygon_config.backgroundFill,
       {
         thickness: 2.0,
         fill: rgbToWgpu(0, 0, 0, 255.0),
@@ -2477,7 +2478,8 @@ export class Editor {
 
   replace_background(
     sequence_id: string,
-    fill: [number, number, number, number]
+    // fill: [number, number, number, number]
+    backgroundFill: BackgroundFill
   ) {
     let gpuResources = this.gpuResources;
     let camera = this.camera;
@@ -2495,7 +2497,7 @@ export class Editor {
       return;
     }
 
-    console.info("replace background {:?} {:?}", sequence_id, fill);
+    console.info("replace background {:?} {:?}", sequence_id, backgroundFill);
 
     let windowSize = camera.windowSize;
 
@@ -2525,7 +2527,7 @@ export class Editor {
       },
       0.0,
       0.0,
-      fill,
+      backgroundFill,
       // [0.2, 0.5, 0.2, 0.5],
       {
         thickness: 0.0,
@@ -2545,9 +2547,10 @@ export class Editor {
 
   update_background(
     selected_id: string,
-    key: string,
-    new_value_type: InputValue,
-    new_value: number
+    // key: string,
+    // new_value_type: InputValue,
+    // new_value: number
+    newFill: BackgroundFill
   ) {
     let gpuResources = this.gpuResources;
     let camera = this.camera;
@@ -2581,56 +2584,65 @@ export class Editor {
       if (this.staticPolygons[polygon_index]) {
         let selected_polygon = this.staticPolygons[polygon_index];
 
-        switch (new_value_type) {
-          case InputValue.Number:
-            switch (key) {
-              case "red": {
-                selected_polygon.updateDataFromFill(
-                  windowSize,
-                  device,
-                  queue,
-                  this.modelBindGroupLayout,
-                  [
-                    colorToWgpu(new_value),
-                    selected_polygon.fill[1],
-                    selected_polygon.fill[2],
-                    selected_polygon.fill[3],
-                  ],
-                  camera
-                );
-              }
-              case "green": {
-                selected_polygon.updateDataFromFill(
-                  windowSize,
-                  device,
-                  queue,
-                  this.modelBindGroupLayout,
-                  [
-                    selected_polygon.fill[0],
-                    colorToWgpu(new_value),
-                    selected_polygon.fill[2],
-                    selected_polygon.fill[3],
-                  ],
-                  camera
-                );
-              }
-              case "blue": {
-                selected_polygon.updateDataFromFill(
-                  windowSize,
-                  device,
-                  queue,
-                  this.modelBindGroupLayout,
-                  [
-                    selected_polygon.fill[0],
-                    selected_polygon.fill[1],
-                    colorToWgpu(new_value),
-                    selected_polygon.fill[3],
-                  ],
-                  camera
-                );
-              }
-            }
-        }
+        selected_polygon.updateDataFromFill(
+          windowSize,
+          device,
+          queue,
+          this.modelBindGroupLayout,
+          newFill,
+          camera
+        );
+
+        // switch (new_value_type) {
+        //   case InputValue.Number:
+        //     switch (key) {
+        //       case "red": {
+        //         selected_polygon.updateDataFromFill(
+        //           windowSize,
+        //           device,
+        //           queue,
+        //           this.modelBindGroupLayout,
+        //           [
+        //             colorToWgpu(new_value),
+        //             selected_polygon.fill[1],
+        //             selected_polygon.fill[2],
+        //             selected_polygon.fill[3],
+        //           ],
+        //           camera
+        //         );
+        //       }
+        //       case "green": {
+        //         selected_polygon.updateDataFromFill(
+        //           windowSize,
+        //           device,
+        //           queue,
+        //           this.modelBindGroupLayout,
+        //           [
+        //             selected_polygon.fill[0],
+        //             colorToWgpu(new_value),
+        //             selected_polygon.fill[2],
+        //             selected_polygon.fill[3],
+        //           ],
+        //           camera
+        //         );
+        //       }
+        //       case "blue": {
+        //         selected_polygon.updateDataFromFill(
+        //           windowSize,
+        //           device,
+        //           queue,
+        //           this.modelBindGroupLayout,
+        //           [
+        //             selected_polygon.fill[0],
+        //             selected_polygon.fill[1],
+        //             colorToWgpu(new_value),
+        //             selected_polygon.fill[3],
+        //           ],
+        //           camera
+        //         );
+        //       }
+        //     }
+        // }
       }
     } else {
       console.info(
@@ -2704,49 +2716,64 @@ export class Editor {
                 );
               }
               case "red": {
-                selected_polygon.updateDataFromFill(
-                  windowSize,
-                  device,
-                  queue,
-                  this.modelBindGroupLayout,
-                  [
-                    colorToWgpu(new_value),
-                    selected_polygon.fill[1],
-                    selected_polygon.fill[2],
-                    selected_polygon.fill[3],
-                  ],
-                  camera
-                );
+                if (selected_polygon.backgroundFill.type === "Color") {
+                  selected_polygon.updateDataFromFill(
+                    windowSize,
+                    device,
+                    queue,
+                    this.modelBindGroupLayout,
+                    {
+                      type: "Color",
+                      value: [
+                        colorToWgpu(new_value),
+                        selected_polygon.backgroundFill.value[1],
+                        selected_polygon.backgroundFill.value[2],
+                        selected_polygon.backgroundFill.value[3],
+                      ],
+                    },
+                    camera
+                  );
+                }
               }
               case "green": {
-                selected_polygon.updateDataFromFill(
-                  windowSize,
-                  device,
-                  queue,
-                  this.modelBindGroupLayout,
-                  [
-                    selected_polygon.fill[0],
-                    colorToWgpu(new_value),
-                    selected_polygon.fill[2],
-                    selected_polygon.fill[3],
-                  ],
-                  camera
-                );
+                if (selected_polygon.backgroundFill.type === "Color") {
+                  selected_polygon.updateDataFromFill(
+                    windowSize,
+                    device,
+                    queue,
+                    this.modelBindGroupLayout,
+                    {
+                      type: "Color",
+                      value: [
+                        selected_polygon.backgroundFill.value[0],
+                        colorToWgpu(new_value),
+                        selected_polygon.backgroundFill.value[2],
+                        selected_polygon.backgroundFill.value[3],
+                      ],
+                    },
+                    camera
+                  );
+                }
               }
               case "blue": {
-                selected_polygon.updateDataFromFill(
-                  windowSize,
-                  device,
-                  queue,
-                  this.modelBindGroupLayout,
-                  [
-                    selected_polygon.fill[0],
-                    selected_polygon.fill[1],
-                    colorToWgpu(new_value),
-                    selected_polygon.fill[3],
-                  ],
-                  camera
-                );
+                if (selected_polygon.backgroundFill.type === "Color") {
+                  selected_polygon.updateDataFromFill(
+                    windowSize,
+                    device,
+                    queue,
+                    this.modelBindGroupLayout,
+                    {
+                      type: "Color",
+                      value: [
+                        selected_polygon.backgroundFill.value[0],
+                        selected_polygon.backgroundFill.value[1],
+                        colorToWgpu(new_value),
+                        selected_polygon.backgroundFill.value[3],
+                      ],
+                    },
+                    camera
+                  );
+                }
               }
               case "stroke_thickness": {
                 selected_polygon.updateDataFromStroke(
@@ -2878,49 +2905,73 @@ export class Editor {
                 );
               }
               case "red_fill": {
-                selected_text.backgroundPolygon.updateDataFromFill(
-                  windowSize,
-                  device,
-                  queue,
-                  this.modelBindGroupLayout,
-                  [
-                    new_value,
-                    selected_text.backgroundPolygon.fill[1],
-                    selected_text.backgroundPolygon.fill[2],
-                    selected_text.backgroundPolygon.fill[3],
-                  ],
-                  camera
-                );
+                if (
+                  selected_text.backgroundPolygon.backgroundFill.type ===
+                  "Color"
+                ) {
+                  selected_text.backgroundPolygon.updateDataFromFill(
+                    windowSize,
+                    device,
+                    queue,
+                    this.modelBindGroupLayout,
+                    {
+                      type: "Color",
+                      value: [
+                        colorToWgpu(new_value),
+                        selected_text.backgroundPolygon.backgroundFill.value[1],
+                        selected_text.backgroundPolygon.backgroundFill.value[2],
+                        selected_text.backgroundPolygon.backgroundFill.value[3],
+                      ],
+                    },
+                    camera
+                  );
+                }
               }
               case "green_fill": {
-                selected_text.backgroundPolygon.updateDataFromFill(
-                  windowSize,
-                  device,
-                  queue,
-                  this.modelBindGroupLayout,
-                  [
-                    selected_text.backgroundPolygon.fill[0],
-                    new_value,
-                    selected_text.backgroundPolygon.fill[2],
-                    selected_text.backgroundPolygon.fill[3],
-                  ],
-                  camera
-                );
+                if (
+                  selected_text.backgroundPolygon.backgroundFill.type ===
+                  "Color"
+                ) {
+                  selected_text.backgroundPolygon.updateDataFromFill(
+                    windowSize,
+                    device,
+                    queue,
+                    this.modelBindGroupLayout,
+                    {
+                      type: "Color",
+                      value: [
+                        selected_text.backgroundPolygon.backgroundFill.value[0],
+                        colorToWgpu(new_value),
+                        selected_text.backgroundPolygon.backgroundFill.value[2],
+                        selected_text.backgroundPolygon.backgroundFill.value[3],
+                      ],
+                    },
+                    camera
+                  );
+                }
               }
               case "blue_fill": {
-                selected_text.backgroundPolygon.updateDataFromFill(
-                  windowSize,
-                  device,
-                  queue,
-                  this.modelBindGroupLayout,
-                  [
-                    selected_text.backgroundPolygon.fill[0],
-                    selected_text.backgroundPolygon.fill[1],
-                    new_value,
-                    selected_text.backgroundPolygon.fill[3],
-                  ],
-                  camera
-                );
+                if (
+                  selected_text.backgroundPolygon.backgroundFill.type ===
+                  "Color"
+                ) {
+                  selected_text.backgroundPolygon.updateDataFromFill(
+                    windowSize,
+                    device,
+                    queue,
+                    this.modelBindGroupLayout,
+                    {
+                      type: "Color",
+                      value: [
+                        selected_text.backgroundPolygon.backgroundFill.value[0],
+                        selected_text.backgroundPolygon.backgroundFill.value[1],
+                        colorToWgpu(new_value),
+                        selected_text.backgroundPolygon.backgroundFill.value[3],
+                      ],
+                    },
+                    camera
+                  );
+                }
               }
             }
           }
@@ -3177,152 +3228,152 @@ export class Editor {
     return 0.0;
   }
 
-  get_fill_red(selected_id: string): number {
-    let polygon_index = this.textItems.findIndex((p) => p.id == selected_id);
+  // get_fill_red(selected_id: string): number {
+  //   let polygon_index = this.textItems.findIndex((p) => p.id == selected_id);
 
-    if (polygon_index) {
-      if (this.textItems[polygon_index]) {
-        let selected_polygon = this.textItems[polygon_index];
-        return selected_polygon.backgroundPolygon.fill[0];
-      } else {
-        return 0.0;
-      }
-    }
+  //   if (polygon_index) {
+  //     if (this.textItems[polygon_index]) {
+  //       let selected_polygon = this.textItems[polygon_index];
+  //       return selected_polygon.backgroundPolygon.fill[0];
+  //     } else {
+  //       return 0.0;
+  //     }
+  //   }
 
-    return 0.0;
-  }
+  //   return 0.0;
+  // }
 
-  get_fill_green(selected_id: string): number {
-    let polygon_index = this.textItems.findIndex((p) => p.id == selected_id);
+  // get_fill_green(selected_id: string): number {
+  //   let polygon_index = this.textItems.findIndex((p) => p.id == selected_id);
 
-    if (polygon_index) {
-      if (this.textItems[polygon_index]) {
-        let selected_polygon = this.textItems[polygon_index];
-        return selected_polygon.backgroundPolygon.fill[1];
-      } else {
-        return 0.0;
-      }
-    }
+  //   if (polygon_index) {
+  //     if (this.textItems[polygon_index]) {
+  //       let selected_polygon = this.textItems[polygon_index];
+  //       return selected_polygon.backgroundPolygon.fill[1];
+  //     } else {
+  //       return 0.0;
+  //     }
+  //   }
 
-    return 0.0;
-  }
+  //   return 0.0;
+  // }
 
-  get_fill_blue(selected_id: string): number {
-    let polygon_index = this.textItems.findIndex((p) => p.id == selected_id);
+  // get_fill_blue(selected_id: string): number {
+  //   let polygon_index = this.textItems.findIndex((p) => p.id == selected_id);
 
-    if (polygon_index) {
-      if (this.textItems[polygon_index]) {
-        let selected_polygon = this.textItems[polygon_index];
-        return selected_polygon.backgroundPolygon.fill[2];
-      } else {
-        return 0.0;
-      }
-    }
+  //   if (polygon_index) {
+  //     if (this.textItems[polygon_index]) {
+  //       let selected_polygon = this.textItems[polygon_index];
+  //       return selected_polygon.backgroundPolygon.fill[2];
+  //     } else {
+  //       return 0.0;
+  //     }
+  //   }
 
-    return 0.0;
-  }
+  //   return 0.0;
+  // }
 
-  get_background_red(selected_id: string): number {
-    let polygon_index = this.staticPolygons.findIndex(
-      (p) => p.id == selected_id
-    );
+  // get_background_red(selected_id: string): number {
+  //   let polygon_index = this.staticPolygons.findIndex(
+  //     (p) => p.id == selected_id
+  //   );
 
-    if (polygon_index) {
-      if (this.staticPolygons[polygon_index]) {
-        let selected_polygon = this.staticPolygons[polygon_index];
+  //   if (polygon_index) {
+  //     if (this.staticPolygons[polygon_index]) {
+  //       let selected_polygon = this.staticPolygons[polygon_index];
 
-        return selected_polygon.fill[0];
-      } else {
-        return 0.0;
-      }
-    }
+  //       return selected_polygon.fill[0];
+  //     } else {
+  //       return 0.0;
+  //     }
+  //   }
 
-    return 0.0;
-  }
+  //   return 0.0;
+  // }
 
-  get_background_green(selected_id: string): number {
-    let polygon_index = this.staticPolygons.findIndex(
-      (p) => p.id == selected_id
-    );
+  // get_background_green(selected_id: string): number {
+  //   let polygon_index = this.staticPolygons.findIndex(
+  //     (p) => p.id == selected_id
+  //   );
 
-    if (polygon_index) {
-      if (this.staticPolygons[polygon_index]) {
-        let selected_polygon = this.staticPolygons[polygon_index];
+  //   if (polygon_index) {
+  //     if (this.staticPolygons[polygon_index]) {
+  //       let selected_polygon = this.staticPolygons[polygon_index];
 
-        return selected_polygon.fill[1];
-      } else {
-        return 0.0;
-      }
-    }
+  //       return selected_polygon.fill[1];
+  //     } else {
+  //       return 0.0;
+  //     }
+  //   }
 
-    return 0.0;
-  }
+  //   return 0.0;
+  // }
 
-  get_background_blue(selected_id: string): number {
-    let polygon_index = this.staticPolygons.findIndex(
-      (p) => p.id == selected_id
-    );
+  // get_background_blue(selected_id: string): number {
+  //   let polygon_index = this.staticPolygons.findIndex(
+  //     (p) => p.id == selected_id
+  //   );
 
-    if (polygon_index) {
-      if (this.staticPolygons[polygon_index]) {
-        let selected_polygon = this.staticPolygons[polygon_index];
+  //   if (polygon_index) {
+  //     if (this.staticPolygons[polygon_index]) {
+  //       let selected_polygon = this.staticPolygons[polygon_index];
 
-        return selected_polygon.fill[2];
-      } else {
-        return 0.0;
-      }
-    }
+  //       return selected_polygon.fill[2];
+  //     } else {
+  //       return 0.0;
+  //     }
+  //   }
 
-    return 0.0;
-  }
+  //   return 0.0;
+  // }
 
-  get_polygon_red(selected_id: string): number {
-    let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
+  // get_polygon_red(selected_id: string): number {
+  //   let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
 
-    if (polygon_index) {
-      if (this.polygons[polygon_index]) {
-        let selected_polygon = this.polygons[polygon_index];
+  //   if (polygon_index) {
+  //     if (this.polygons[polygon_index]) {
+  //       let selected_polygon = this.polygons[polygon_index];
 
-        return selected_polygon.fill[0];
-      } else {
-        return 0.0;
-      }
-    }
+  //       return selected_polygon.fill[0];
+  //     } else {
+  //       return 0.0;
+  //     }
+  //   }
 
-    return 0.0;
-  }
+  //   return 0.0;
+  // }
 
-  get_polygon_green(selected_id: string): number {
-    let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
+  // get_polygon_green(selected_id: string): number {
+  //   let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
 
-    if (polygon_index) {
-      if (this.polygons[polygon_index]) {
-        let selected_polygon = this.polygons[polygon_index];
+  //   if (polygon_index) {
+  //     if (this.polygons[polygon_index]) {
+  //       let selected_polygon = this.polygons[polygon_index];
 
-        return selected_polygon.fill[1];
-      } else {
-        return 0.0;
-      }
-    }
+  //       return selected_polygon.fill[1];
+  //     } else {
+  //       return 0.0;
+  //     }
+  //   }
 
-    return 0.0;
-  }
+  //   return 0.0;
+  // }
 
-  get_polygon_blue(selected_id: string): number {
-    let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
+  // get_polygon_blue(selected_id: string): number {
+  //   let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
 
-    if (polygon_index) {
-      if (this.polygons[polygon_index]) {
-        let selected_polygon = this.polygons[polygon_index];
+  //   if (polygon_index) {
+  //     if (this.polygons[polygon_index]) {
+  //       let selected_polygon = this.polygons[polygon_index];
 
-        return selected_polygon.fill[2];
-      } else {
-        return 0.0;
-      }
-    }
+  //       return selected_polygon.fill[2];
+  //     } else {
+  //       return 0.0;
+  //     }
+  //   }
 
-    return 0.0;
-  }
+  //   return 0.0;
+  // }
 
   get_polygon_borderRadius(selected_id: string): number {
     let polygon_index = this.polygons.findIndex((p) => p.id == selected_id);
@@ -3673,7 +3724,7 @@ export class Editor {
               y: polygon.transform.position[1],
             },
             borderRadius: polygon.borderRadius,
-            fill: polygon.fill,
+            backgroundFill: polygon.backgroundFill,
             stroke: polygon.stroke,
             layer: polygon.layer,
           });

@@ -15,7 +15,12 @@ import {
 import { createVertex, getZLayer, Vertex, vertexByteSize } from "./vertex";
 
 import * as gt from "@thi.ng/geom-tessellate";
-import { GradientDefinition, GradientStop, ObjectType } from "./animations";
+import {
+  BackgroundFill,
+  GradientDefinition,
+  GradientStop,
+  ObjectType,
+} from "./animations";
 import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
 
 export const INTERNAL_LAYER_SPACE = 10;
@@ -29,7 +34,8 @@ export interface PolygonConfig {
   id: string; // Use string for string
   name: string;
   points: Point[];
-  fill: [number, number, number, number];
+  // fill: [number, number, number, number];
+  backgroundFill: BackgroundFill;
   dimensions: [number, number]; // [width, height]
   rotation: number;
   position: Point;
@@ -51,7 +57,8 @@ export interface SavedStroke {
 export interface SavedPolygonConfig {
   id: string;
   name: string;
-  fill: [number, number, number, number];
+  // fill: [number, number, number, number];
+  backgroundFill: BackgroundFill;
   dimensions: [number, number];
   position: SavedPoint;
   borderRadius: number;
@@ -65,7 +72,8 @@ export interface PolygonShape {
   position: Point;
   rotation: number;
   borderRadius: number;
-  fill: [number, number, number, number];
+  // fill: [number, number, number, number];
+  backgroundFill: BackgroundFill;
   stroke: Stroke;
   baseLayer: number;
   transformLayer: number;
@@ -78,7 +86,8 @@ export class Polygon implements PolygonShape {
   position: Point;
   rotation: number;
   borderRadius: number;
-  fill: [number, number, number, number];
+  // fill: [number, number, number, number];
+  backgroundFill: BackgroundFill;
   stroke: Stroke;
   baseLayer: number;
   transformLayer: number;
@@ -118,7 +127,8 @@ export class Polygon implements PolygonShape {
     position: Point,
     rotation: number,
     borderRadius: number,
-    fill: [number, number, number, number],
+    // fill: [number, number, number, number],
+    backgroundFill: BackgroundFill,
     stroke: Stroke,
     baseLayer: number,
     transformLayer: number,
@@ -131,7 +141,8 @@ export class Polygon implements PolygonShape {
     this.position = position;
     this.rotation = rotation;
     this.borderRadius = borderRadius;
-    this.fill = fill;
+    // this.fill = fill;
+    this.backgroundFill = backgroundFill;
     this.stroke = stroke;
     this.baseLayer = baseLayer;
     this.transformLayer = transformLayer;
@@ -159,7 +170,8 @@ export class Polygon implements PolygonShape {
       position,
       rotation,
       borderRadius,
-      fill,
+      // fill,
+      backgroundFill,
       stroke,
       // baseLayer,
       // transformLayer,
@@ -267,12 +279,30 @@ export class Polygon implements PolygonShape {
   }
 
   updateOpacity(queue: GPUQueue, opacity: number) {
-    let new_color = [this.fill[0], this.fill[1], this.fill[2], opacity] as [
-      number,
-      number,
-      number,
-      number
-    ];
+    // let new_color = [this.fill[0], this.fill[1], this.fill[2], opacity] as [
+    //   number,
+    //   number,
+    //   number,
+    //   number
+    // ];
+    // let new_color = [1, 1, 1, opacity] as [number, number, number, number];
+    let new_color = [1, 1, 1, opacity] as [number, number, number, number];
+    if (this.backgroundFill.type === "Gradient") {
+      let firstStop = this.backgroundFill.value.stops[0];
+      new_color = [
+        firstStop.color[0],
+        firstStop.color[1],
+        firstStop.color[2],
+        opacity,
+      ] as [number, number, number, number];
+    } else if (this.backgroundFill.type === "Color") {
+      new_color = [
+        this.backgroundFill.value[0],
+        this.backgroundFill.value[1],
+        this.backgroundFill.value[2],
+        opacity,
+      ] as [number, number, number, number];
+    }
 
     this.vertices.forEach((v) => {
       v.color = new_color;
@@ -354,7 +384,8 @@ export class Polygon implements PolygonShape {
       },
       rotation: this.transform.rotation,
       borderRadius: this.borderRadius,
-      fill: this.fill,
+      // fill: this.fill,
+      backgroundFill: this.backgroundFill,
       stroke: this.stroke,
       // 0.0,
       layer: this.layer + INTERNAL_LAYER_SPACE,
@@ -415,7 +446,8 @@ export class Polygon implements PolygonShape {
       },
       rotation: this.transform.rotation,
       borderRadius: borderRadius,
-      fill: this.fill,
+      // fill: this.fill,
+      backgroundFill: this.backgroundFill,
       stroke: this.stroke,
       // 0.0,
       layer: this.layer + INTERNAL_LAYER_SPACE,
@@ -477,7 +509,8 @@ export class Polygon implements PolygonShape {
       },
       rotation: this.transform.rotation,
       borderRadius: this.borderRadius,
-      fill: this.fill,
+      // fill: this.fill,
+      backgroundFill: this.backgroundFill,
       stroke: stroke,
       // 0.0,
       layer: this.layer + INTERNAL_LAYER_SPACE,
@@ -525,7 +558,8 @@ export class Polygon implements PolygonShape {
     device: GPUDevice,
     queue: GPUQueue,
     bind_group_layout: GPUBindGroupLayout,
-    fill: [number, number, number, number],
+    // fill: [number, number, number, number],
+    backgroundFill: BackgroundFill,
     camera: Camera
   ) {
     let config: PolygonConfig = {
@@ -539,7 +573,8 @@ export class Polygon implements PolygonShape {
       },
       rotation: this.transform.rotation,
       borderRadius: this.borderRadius,
-      fill: fill,
+      // fill: fill,
+      backgroundFill: backgroundFill,
       stroke: this.stroke,
       // 0.0,
       layer: this.layer + INTERNAL_LAYER_SPACE,
@@ -573,7 +608,8 @@ export class Polygon implements PolygonShape {
       // this.layer + INTERNAL_LAYER_SPACE,
     );
 
-    this.fill = fill;
+    // this.fill = fill;
+    this.backgroundFill = backgroundFill;
     this.vertices = vertices;
     this.indices = indices;
     this.vertexBuffer = vertex_buffer;
@@ -608,7 +644,8 @@ export class Polygon implements PolygonShape {
       id: this.id,
       name: this.name,
       points: this.points,
-      fill: this.fill,
+      // fill: this.fill,
+      backgroundFill: this.backgroundFill,
       dimensions: this.dimensions,
       rotation: this.transform.rotation,
       position: {
@@ -709,14 +746,32 @@ export function getPolygonData(
       const normalizedX = point[0] / polygon.dimensions[0] + 0.5;
       const normalizedY = point[1] / polygon.dimensions[1] + 0.5;
 
-      console.info("normalized poly", normalizedX, normalizedY);
+      // console.info("normalized poly", normalizedX, normalizedY);
+
+      let fill = [1, 1, 1, 1] as [number, number, number, number];
+      if (polygon.backgroundFill.type === "Gradient") {
+        let firstStop = polygon.backgroundFill.value.stops[0];
+        fill = [
+          firstStop.color[0],
+          firstStop.color[1],
+          firstStop.color[2],
+          1,
+        ] as [number, number, number, number];
+      } else if (polygon.backgroundFill.type === "Color") {
+        fill = [
+          polygon.backgroundFill.value[0],
+          polygon.backgroundFill.value[1],
+          polygon.backgroundFill.value[2],
+          1,
+        ] as [number, number, number, number];
+      }
 
       vertices.push(
         // createVertex(point[0], point[1], getZLayer(1.0), polygon.fill, ObjectType.Polygon)
         {
           position: [point[0], point[1], 0],
           tex_coords: [0, 0],
-          color: polygon.fill,
+          color: fill,
           gradient_coords: [normalizedX, normalizedY],
           object_type: 0, // OBJECT_TYPE_POLYGON
         }
@@ -744,37 +799,6 @@ export function getPolygonData(
       null as unknown as GradientDefinition,
     ];
   }
-
-  //   // 3. Create buffers (similar to before)
-  //   const vertexBuffer = device.createBuffer({
-  //     label: "Vertex Buffer",
-  //     size: vertices.byteLength, // Use the size of the new vertices array
-  //     usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-  //   });
-  //   queue.writeBuffer(
-  //     vertexBuffer,
-  //     0,
-  //     new Float32Array(
-  //       vertices
-  //         .map((v) => [v.position[0], v.position[1], v.position[2], ...v.color])
-  //         .flat().buffer
-  //     )
-  //   );
-
-  //   const indexBuffer = device.createBuffer({
-  //     label: "Index Buffer",
-  //     size: indices.length * Uint16Array.BYTES_PER_ELEMENT, // Correct size calculation
-  //     usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-  //   });
-  //   queue.writeBuffer(indexBuffer, 0, new Uint16Array(indices).buffer);
-
-  // ... (In getPolygonData)
-
-  // console.info(
-  //   "polygon vertices",
-  //   vertices.length,
-  //   vertices.length * vertexByteSize
-  // );
 
   const vertexBuffer = device.createBuffer({
     label: "Vertex Buffer",
@@ -870,7 +894,16 @@ export function getPolygonData(
     mipmapFilter: "nearest",
   });
 
-  let [gradient, gradientBuffer] = setupGradientBuffers(device, queue);
+  let gradientDef = null;
+  if (polygon.backgroundFill.type === "Gradient") {
+    gradientDef = polygon.backgroundFill.value;
+  }
+
+  let [gradient, gradientBuffer] = setupGradientBuffers(
+    device,
+    queue,
+    gradientDef
+  );
 
   const bindGroup = device.createBindGroup({
     layout: bindGroupLayout,
@@ -1046,63 +1079,29 @@ export function setupGradientBuffers(
   device: GPUDevice,
   queue: GPUQueue,
   // gradientBindGroupLayout: GPUBindGroupLayout,
-  gradient?: GradientDefinition
+  gradient?: GradientDefinition | null
 ): [GradientDefinition, GPUBuffer] {
   let defaultStops: GradientStop[] = [
     { offset: 0, color: [1, 0, 0, 1] }, // Red
     { offset: 1, color: [0, 0, 1, 1] }, // Blue
   ];
-  // // Create buffer for gradient stops
-  // let gradientData = new Float32Array([
-  //   // Stops data
-  //   ...defaultStops.flatMap((stop) => [stop.offset, ...stop.color]),
-  //   // Fill remaining stops with zeros if less than 8
-  //   ...new Array((8 - defaultStops.length) * 5).fill(0.5),
 
-  //   defaultStops.length, // numStops
-  //   1, // gradientType (0 is linear, 1 is radial)
-  //   ...[0, 0], // startPoint
-  //   ...[1, 0], // endPoint
-  //   ...[0.5, 0.5], // center
-  //   1.0, // radius
-  //   0, // timeOffset
-  //   1, // animationSpeed
-  //   1, // enabled
-  // ]);
+  let selectedGradient = gradient;
 
-  // if (gradient) {
-  //   gradientData = new Float32Array([
-  //     // Stops data
-  //     ...gradient.stops.flatMap((stop) => [stop.offset, ...stop.color]),
-  //     // Fill remaining stops with zeros if less than 8
-  //     ...new Array((8 - gradient.stops.length) * 5).fill(0),
-
-  //     gradient.stops.length, // numStops
-  //     gradient.type === "linear" ? 0 : 1, // gradientType
-  //     ...(gradient.startPoint || [0, 0]), // startPoint
-  //     ...(gradient.endPoint || [1, 0]), // endPoint
-  //     ...(gradient.center || [0.5, 0.5]), // center
-  //     gradient.radius || 1.0, // radius
-  //     gradient.timeOffset || 0, // timeOffset
-  //     gradient.animationSpeed || 0, // animationSpeed
-  //     1, // enabled
-  //   ]);
-  // }
-
-  let gradient2: GradientDefinition = {
-    // Stops data
-    stops: defaultStops,
-
-    numStops: defaultStops.length, // numStops
-    type: "linear", // gradientType (0 is linear, 1 is radial)
-    startPoint: [0, 0], // startPoint
-    endPoint: [1, 0], // endPoint
-    center: [0.5, 0.5], // center
-    radius: 1.0, // radius
-    timeOffset: 0, // timeOffset
-    animationSpeed: 1, // animationSpeed
-    enabled: 1, // enabled
-  };
+  if (!selectedGradient) {
+    selectedGradient = {
+      stops: defaultStops,
+      numStops: defaultStops.length, // numStops
+      type: "linear", // gradientType (0 is linear, 1 is radial)
+      startPoint: [0, 0], // startPoint
+      endPoint: [1, 0], // endPoint
+      center: [0.5, 0.5], // center
+      radius: 1.0, // radius
+      timeOffset: 0, // timeOffset
+      animationSpeed: 1, // animationSpeed
+      enabled: 1, // enabled
+    };
+  }
 
   const gradientBuffer = device.createBuffer({
     label: "Gradient Buffer",
@@ -1116,14 +1115,14 @@ export function setupGradientBuffers(
   const mappedRange = new Float32Array(gradientBuffer.getMappedRange());
 
   // Set stop offsets (packed into vec4s)
-  gradient2.stops.forEach((stop, i) => {
+  selectedGradient.stops.forEach((stop, i) => {
     const vec4Index = Math.floor(i / 4);
     const componentIndex = i % 4;
     mappedRange[vec4Index * 4 + componentIndex] = stop.offset;
   });
 
   // Set stop colors (starting at index 8)
-  gradient2.stops.forEach((stop, i) => {
+  selectedGradient.stops.forEach((stop, i) => {
     const colorIndex = 8 + i * 4;
     mappedRange[colorIndex] = stop.color[0];
     mappedRange[colorIndex + 1] = stop.color[1];
@@ -1133,20 +1132,20 @@ export function setupGradientBuffers(
 
   // Set configuration (starting at index 40)
   const configOffset = 40;
-  mappedRange[configOffset] = gradient2.stops.length;
-  mappedRange[configOffset + 1] = gradient2.type === "linear" ? 0 : 1;
-  mappedRange[configOffset + 2] = gradient2.startPoint?.[0] ?? 0;
-  mappedRange[configOffset + 3] = gradient2.startPoint?.[1] ?? 0;
-  mappedRange[configOffset + 4] = gradient2.endPoint?.[0] ?? 1;
-  mappedRange[configOffset + 5] = gradient2.endPoint?.[1] ?? 0;
-  mappedRange[configOffset + 6] = gradient2.center?.[0] ?? 0.5;
-  mappedRange[configOffset + 7] = gradient2.center?.[1] ?? 0.5;
-  mappedRange[configOffset + 8] = gradient2.radius ?? 1.0;
-  mappedRange[configOffset + 9] = gradient2.timeOffset ?? 0;
-  mappedRange[configOffset + 10] = gradient2.animationSpeed ?? 0;
+  mappedRange[configOffset] = selectedGradient.stops.length;
+  mappedRange[configOffset + 1] = selectedGradient.type === "linear" ? 0 : 1;
+  mappedRange[configOffset + 2] = selectedGradient.startPoint?.[0] ?? 0;
+  mappedRange[configOffset + 3] = selectedGradient.startPoint?.[1] ?? 0;
+  mappedRange[configOffset + 4] = selectedGradient.endPoint?.[0] ?? 1;
+  mappedRange[configOffset + 5] = selectedGradient.endPoint?.[1] ?? 0;
+  mappedRange[configOffset + 6] = selectedGradient.center?.[0] ?? 0.5;
+  mappedRange[configOffset + 7] = selectedGradient.center?.[1] ?? 0.5;
+  mappedRange[configOffset + 8] = selectedGradient.radius ?? 1.0;
+  mappedRange[configOffset + 9] = selectedGradient.timeOffset ?? 0;
+  mappedRange[configOffset + 10] = selectedGradient.animationSpeed ?? 0;
   mappedRange[configOffset + 11] = 1;
 
   gradientBuffer.unmap();
 
-  return [gradient2, gradientBuffer];
+  return [selectedGradient, gradientBuffer];
 }
