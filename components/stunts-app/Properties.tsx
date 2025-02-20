@@ -70,13 +70,16 @@ const RepeatProperties = ({
     }
 
     let gpuResources = editor.gpuResources;
+    let camera = editor.camera;
 
-    if (!gpuResources || !editor.modelBindGroupLayout) {
+    if (!gpuResources || !editor.modelBindGroupLayout || !camera) {
       return;
     }
 
     editor.repeatManager.updateRepeatObject(
       gpuResources.device,
+      gpuResources.queue,
+      camera.windowSize,
       editor.modelBindGroupLayout,
       currentObjectId,
       partialPattern
@@ -102,6 +105,7 @@ const RepeatProperties = ({
           }
 
           let gpuResources = editor.gpuResources;
+          let camera = editor.camera;
 
           let sourceObject = null;
           switch (objectType) {
@@ -124,7 +128,12 @@ const RepeatProperties = ({
               break;
           }
 
-          if (!sourceObject || !gpuResources || !editor.modelBindGroupLayout) {
+          if (
+            !sourceObject ||
+            !gpuResources ||
+            !editor.modelBindGroupLayout ||
+            !camera
+          ) {
             return;
           }
 
@@ -142,6 +151,7 @@ const RepeatProperties = ({
           editor.repeatManager.createRepeatObject(
             gpuResources?.device,
             gpuResources?.queue,
+            camera.windowSize,
             editor.modelBindGroupLayout,
             sourceObject,
             defaultRepeatPattern

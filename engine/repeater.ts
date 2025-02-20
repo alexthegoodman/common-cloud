@@ -5,6 +5,7 @@ import { TextRenderer } from "./text";
 import { Transform } from "./transform";
 import { Vertex } from "./vertex";
 import { v4 as uuidv4 } from "uuid";
+import { WindowSize } from "./camera";
 
 // Types for repeat patterns
 export type RepeatPattern = {
@@ -38,6 +39,7 @@ export class RepeatObject {
   constructor(
     device: GPUDevice,
     queue: GPUQueue,
+    windowSize: WindowSize,
     bindGroupLayout: GPUBindGroupLayout,
     sourceObject: RepeatableObject,
     pattern: RepeatPattern
@@ -84,7 +86,7 @@ export class RepeatObject {
     this.indices = sourceObject.indices;
 
     // Create transforms for each instance
-    this.generateInstances(device, bindGroupLayout);
+    this.generateInstances(device, queue, windowSize, bindGroupLayout);
 
     // Copy the bind group from the source object
     // this.bindGroup = sourceObject.bindGroup; // not workable, need our own uniform per instance
@@ -92,6 +94,8 @@ export class RepeatObject {
 
   private generateInstances(
     device: GPUDevice,
+    queue: GPUQueue,
+    windowSize: WindowSize,
     bindGroupLayout: GPUBindGroupLayout
   ) {
     this.instances = [];
@@ -101,18 +105,38 @@ export class RepeatObject {
       case "horizontal":
         this.generateHorizontalInstances(
           device,
+          queue,
+          windowSize,
           bindGroupLayout,
           baseTransform
         );
         break;
       case "vertical":
-        this.generateVerticalInstances(device, bindGroupLayout, baseTransform);
+        this.generateVerticalInstances(
+          device,
+          queue,
+          windowSize,
+          bindGroupLayout,
+          baseTransform
+        );
         break;
       case "circular":
-        this.generateCircularInstances(device, bindGroupLayout, baseTransform);
+        this.generateCircularInstances(
+          device,
+          queue,
+          windowSize,
+          bindGroupLayout,
+          baseTransform
+        );
         break;
       case "grid":
-        this.generateGridInstances(device, bindGroupLayout, baseTransform);
+        this.generateGridInstances(
+          device,
+          queue,
+          windowSize,
+          bindGroupLayout,
+          baseTransform
+        );
         break;
     }
   }
@@ -153,6 +177,8 @@ export class RepeatObject {
 
   private generateHorizontalInstances(
     device: GPUDevice,
+    queue: GPUQueue,
+    windowSize: WindowSize,
     bindGroupLayout: GPUBindGroupLayout,
     baseTransform: Transform
   ) {
@@ -182,14 +208,17 @@ export class RepeatObject {
 
       instance.transform = transform;
 
+      instance.transform.updateUniformBuffer(queue, windowSize);
+
       this.instances.push(instance);
     }
   }
 
   private generateVerticalInstances(
     device: GPUDevice,
+    queue: GPUQueue,
+    windowSize: WindowSize,
     bindGroupLayout: GPUBindGroupLayout,
-
     baseTransform: Transform
   ) {
     for (let i = 0; i < this.pattern.count; i++) {
@@ -218,12 +247,16 @@ export class RepeatObject {
 
       instance.transform = transform;
 
+      instance.transform.updateUniformBuffer(queue, windowSize);
+
       this.instances.push(instance);
     }
   }
 
   private generateCircularInstances(
     device: GPUDevice,
+    queue: GPUQueue,
+    windowSize: WindowSize,
     bindGroupLayout: GPUBindGroupLayout,
     baseTransform: Transform
   ) {
@@ -259,12 +292,16 @@ export class RepeatObject {
 
       instance.transform = transform;
 
+      instance.transform.updateUniformBuffer(queue, windowSize);
+
       this.instances.push(instance);
     }
   }
 
   private generateGridInstances(
     device: GPUDevice,
+    queue: GPUQueue,
+    windowSize: WindowSize,
     bindGroupLayout: GPUBindGroupLayout,
     baseTransform: Transform
   ) {
@@ -304,6 +341,8 @@ export class RepeatObject {
 
         instance.transform = transform;
 
+        instance.transform.updateUniformBuffer(queue, windowSize);
+
         this.instances.push(instance);
 
         instanceCount++;
@@ -313,11 +352,13 @@ export class RepeatObject {
 
   updatePattern(
     device: GPUDevice,
+    queue: GPUQueue,
+    windowSize: WindowSize,
     bindGroupLayout: GPUBindGroupLayout,
     newPattern: Partial<RepeatPattern>
   ) {
     this.pattern = { ...this.pattern, ...newPattern };
-    this.generateInstances(device, bindGroupLayout);
+    this.generateInstances(device, queue, windowSize, bindGroupLayout);
   }
 }
 
@@ -331,6 +372,7 @@ export class RepeatManager {
   createRepeatObject(
     device: GPUDevice,
     queue: GPUQueue,
+    windowSize: WindowSize,
     bindGroupLayout: GPUBindGroupLayout,
     sourceObject: RepeatableObject,
     pattern: RepeatPattern
@@ -338,16 +380,19 @@ export class RepeatManager {
     const repeatObject = new RepeatObject(
       device,
       queue,
+      windowSize,
       bindGroupLayout,
       sourceObject,
       pattern
     );
-    this.repeatedObjects.set(repeatObject.id, repeatObject);
+    this.repeatedObjects.set(sourceObject.id, repeatObject);
     return repeatObject;
   }
 
   updateRepeatObject(
     device: GPUDevice,
+    queue: GPUQueue,
+    windowSize: WindowSize,
     bindGroupLayout: GPUBindGroupLayout,
     id: string,
     newPattern: Partial<RepeatPattern>
@@ -355,9 +400,17 @@ export class RepeatManager {
     const repeatObject = this.repeatedObjects.get(id);
 
     if (repeatObject) {
-      repeatObject.updatePattern(device, bindGroupLayout, newPattern);
+      repeatObject.updatePattern(
+        device,
+        queue,
+        windowSize,
+        bindGroupLayout,
+        newPattern
+      );
 
       return repeatObject;
+    } else {
+      console.warn("Repeat object does not exist");
     }
 
     return null;
