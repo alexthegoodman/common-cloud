@@ -313,7 +313,7 @@ export class StVideo {
 
         this.vertexBuffer = device.createBuffer({
           label: "Vertex Buffer",
-          size: this.vertices.length * 4 * 10,
+          size: this.vertices.length * 4 * 16,
           usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
         });
 

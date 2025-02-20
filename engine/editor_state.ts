@@ -585,6 +585,281 @@ export default class EditorState {
     return new_motion_path;
   }
 
+  save_pulse_keyframes(
+    savable_item_id: string,
+    object_type: ObjectType,
+    current_keyframes: AnimationData
+  ): AnimationData {
+    let properties: AnimationProperty[] = [];
+
+    let position_keyframes: UIKeyframe[] = [];
+
+    let position_prop = {
+      name: "Position",
+      propertyPath: "position",
+      children: [],
+      keyframes: position_keyframes,
+      depth: 0,
+    };
+
+    let rotation_keyframes: UIKeyframe[] = [];
+
+    let rotation_prop = {
+      name: "Rotation",
+      propertyPath: "rotation",
+      children: [],
+      keyframes: rotation_keyframes,
+      depth: 0,
+    };
+
+    let scale_keyframes: UIKeyframe[] = [];
+
+    scale_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "Scale", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_keyframes.push({
+      id: uuidv4().toString(),
+      time: 2500,
+      value: { type: "Scale", value: 120 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_keyframes.push({
+      id: uuidv4().toString(),
+      time: 5000,
+      value: { type: "Scale", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_keyframes.push({
+      id: uuidv4().toString(),
+      time: 15000,
+      value: { type: "Scale", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_keyframes.push({
+      id: uuidv4().toString(),
+      time: 17500,
+      value: { type: "Scale", value: 120 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_keyframes.push({
+      id: uuidv4().toString(),
+      time: 20000,
+      value: { type: "Scale", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let scale_prop = {
+      name: "Scale",
+      propertyPath: "scale",
+      children: [],
+      keyframes: scale_keyframes,
+      depth: 0,
+    };
+
+    let opacity_keyframes: UIKeyframe[] = [];
+
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "Opacity", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: 2500,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: 5000,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: 15000,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: 17500,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: 20000,
+      value: { type: "Opacity", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let opacity_prop = {
+      name: "Opacity",
+      propertyPath: "opacity",
+      children: [],
+      keyframes: opacity_keyframes,
+      depth: 0,
+    };
+
+    properties.push(position_prop);
+    properties.push(rotation_prop);
+    properties.push(scale_prop);
+    // properties.push(perspective_x_prop);
+    // properties.push(perspective_y_prop);
+    properties.push(opacity_prop);
+
+    if (object_type == ObjectType.VideoItem) {
+      let props = current_keyframes.properties.find(
+        (p) => p.propertyPath === "zoom"
+      );
+
+      let zoom_keyframes: UIKeyframe[] = [];
+
+      if (props) {
+        zoom_keyframes = props.keyframes;
+      } else {
+        zoom_keyframes.push({
+          id: uuidv4().toString(),
+          time: 0,
+          value: {
+            type: "Zoom",
+            value: {
+              position: [20, 20],
+              zoomLevel: 100,
+            },
+          },
+          easing: EasingType.EaseInOut,
+          pathType: PathType.Linear,
+          keyType: { type: "Frame" },
+          curveData: null,
+        });
+        // zoom_keyframes.push({
+        //     id: uuidv4().toString(),
+        //     time: 2500,
+        //     value: { type: "Position", value: [object_position.x, object_position.y - 50]),
+        //     easing: EasingType.EaseInOut,
+        //     pathType: PathType.Linear,
+        //     keyType: { type: "Frame" }, curveData: null
+        // });
+        zoom_keyframes.push({
+          id: uuidv4().toString(),
+          time: 5000,
+          value: {
+            type: "Zoom",
+            value: {
+              position: [40, 40],
+              zoomLevel: 135,
+            },
+          },
+          easing: EasingType.EaseInOut,
+          pathType: PathType.Linear,
+          keyType: { type: "Frame" },
+          curveData: null,
+        });
+        zoom_keyframes.push({
+          id: uuidv4().toString(),
+          time: 15000,
+          value: {
+            type: "Zoom",
+            value: {
+              position: [60, 60],
+              zoomLevel: 135,
+            },
+          },
+          easing: EasingType.EaseInOut,
+          pathType: PathType.Linear,
+          keyType: { type: "Frame" },
+          curveData: null,
+        });
+        // zoom_keyframes.push({
+        //     id: uuidv4().toString(),
+        //     time: 17500,
+        //     value: { type: "Position", value: [object_position.x, object_position.y + 100]),
+        //     easing: EasingType.EaseInOut,
+        //     pathType: PathType.Linear,
+        //     keyType: { type: "Frame" }, curveData: null
+        // });
+        zoom_keyframes.push({
+          id: uuidv4().toString(),
+          time: 20000,
+          value: {
+            type: "Zoom",
+            value: {
+              position: [80, 80],
+              zoomLevel: 100,
+            },
+          },
+          easing: EasingType.EaseInOut,
+          pathType: PathType.Linear,
+          keyType: { type: "Frame" },
+          curveData: null,
+        });
+      }
+      let zoom_prop = {
+        name: "Zoom / Popout",
+        propertyPath: "zoom",
+        children: [],
+        keyframes: zoom_keyframes,
+        depth: 0,
+      };
+
+      properties.push(zoom_prop);
+    }
+
+    let new_motion_path: AnimationData = {
+      id: uuidv4().toString(),
+      objectType: object_type,
+      polygonId: savable_item_id,
+      duration: 20000,
+      startTimeMs: 0,
+      position: [0, 0],
+      properties: properties,
+    };
+
+    return new_motion_path;
+  }
+
   async add_saved_polygon(
     selected_sequence_id: string,
     savable_polygon: SavedPolygonConfig
