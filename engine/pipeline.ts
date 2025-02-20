@@ -425,6 +425,10 @@ export class CanvasPipeline {
         polygon.transform.updateUniformBuffer(queue, editor.camera.windowSize);
       }
 
+      if (polygon.name === "canvas_background") {
+        polygon.updateGradientAnimation(device, 0.001);
+      }
+
       renderPass.setBindGroup(1, polygon.bindGroup);
       renderPass.setBindGroup(3, polygon.groupBindGroup);
       renderPass.setVertexBuffer(0, polygon.vertexBuffer);

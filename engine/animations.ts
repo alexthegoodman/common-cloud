@@ -156,6 +156,7 @@ export interface GradientStop {
 export interface GradientDefinition {
   type: "linear" | "radial";
   stops: GradientStop[];
+  numStops: number;
   // For linear gradient
   startPoint?: [number, number]; // Normalized coordinates (0-1)
   endPoint?: [number, number]; // Normalized coordinates (0-1)
@@ -165,6 +166,7 @@ export interface GradientDefinition {
   // Animation properties
   animationSpeed?: number; // Rotation speed in radians per second
   timeOffset?: number; // Current time offset for animation
+  enabled: number;
 }
 
 export interface RangeData {

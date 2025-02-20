@@ -198,7 +198,7 @@ export class StVideo {
     this.transform.layer = videoConfig.layer - INTERNAL_LAYER_SPACE;
     this.transform.updateUniformBuffer(queue, windowSize);
 
-    let gradientBuffer = setupGradientBuffers(
+    let [gradient, gradientBuffer] = setupGradientBuffers(
       device,
       queue
       // gradientBindGroupLayout

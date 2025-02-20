@@ -122,7 +122,7 @@ export class TextRenderer {
 
     this.font = fontkit.create(fontData) as fontkit.Font;
 
-    let gradientBuffer = setupGradientBuffers(
+    let [gradient, gradientBuffer] = setupGradientBuffers(
       device,
       queue
       // gradientBindGroupLayout

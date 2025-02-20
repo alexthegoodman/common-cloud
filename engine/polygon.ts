@@ -15,7 +15,7 @@ import {
 import { createVertex, getZLayer, Vertex, vertexByteSize } from "./vertex";
 
 import * as gt from "@thi.ng/geom-tessellate";
-import { GradientDefinition, ObjectType } from "./animations";
+import { GradientDefinition, GradientStop, ObjectType } from "./animations";
 import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
 
 export const INTERNAL_LAYER_SPACE = 10;
@@ -175,6 +175,8 @@ export class Polygon implements PolygonShape {
       transform,
       textureView,
       sampler,
+      gradientBuffer,
+      gradient,
     ] = getPolygonData(
       window_size,
       device,
@@ -185,6 +187,8 @@ export class Polygon implements PolygonShape {
     );
 
     this.textureView = textureView;
+    this.gradient = gradient;
+    this.gradientBuffer = gradientBuffer;
 
     // -10.0 to provide 10 spots for internal items on top of objects
     this.transformLayer = transformLayer - INTERNAL_LAYER_SPACE;
@@ -673,7 +677,9 @@ export function getPolygonData(
   GPUBindGroup,
   Transform,
   GPUTextureView,
-  GPUSampler
+  GPUSampler,
+  GPUBuffer,
+  GradientDefinition
 ] {
   // 1. Tessellate using @thi.ng/geom-tessellate
   let rounded_points = createRoundedPolygonPath(
@@ -734,6 +740,8 @@ export function getPolygonData(
       null as unknown as Transform,
       null as unknown as GPUTextureView,
       null as unknown as GPUSampler,
+      null as unknown as GPUBuffer,
+      null as unknown as GradientDefinition,
     ];
   }
 
@@ -862,7 +870,7 @@ export function getPolygonData(
     mipmapFilter: "nearest",
   });
 
-  let gradientBuffer = setupGradientBuffers(device, queue);
+  let [gradient, gradientBuffer] = setupGradientBuffers(device, queue);
 
   const bindGroup = device.createBindGroup({
     layout: bindGroupLayout,
@@ -905,6 +913,8 @@ export function getPolygonData(
     transform,
     textureView,
     sampler,
+    gradientBuffer,
+    gradient,
   ];
 }
 
@@ -1037,8 +1047,8 @@ export function setupGradientBuffers(
   queue: GPUQueue,
   // gradientBindGroupLayout: GPUBindGroupLayout,
   gradient?: GradientDefinition
-): GPUBuffer {
-  let defaultStops = [
+): [GradientDefinition, GPUBuffer] {
+  let defaultStops: GradientStop[] = [
     { offset: 0, color: [1, 0, 0, 1] }, // Red
     { offset: 1, color: [0, 0, 1, 1] }, // Blue
   ];
@@ -1079,7 +1089,7 @@ export function setupGradientBuffers(
   //   ]);
   // }
 
-  let gradient2 = {
+  let gradient2: GradientDefinition = {
     // Stops data
     stops: defaultStops,
 
@@ -1138,5 +1148,5 @@ export function setupGradientBuffers(
 
   gradientBuffer.unmap();
 
-  return gradientBuffer;
+  return [gradient2, gradientBuffer];
 }

@@ -78,7 +78,7 @@ export class StImage {
     this.indices = [];
     this.objectType = ObjectType.ImageItem;
 
-    let gradientBuffer = setupGradientBuffers(
+    let [gradient, gradientBuffer] = setupGradientBuffers(
       device,
       queue
       // gradientBindGroupLayout
