@@ -417,6 +417,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
             break;
           }
           case ObjectType.VideoItem: {
+            console.info("saving point", point);
             s.activeVideoItems.forEach((si) => {
               if (si.id == object_id) {
                 si.position = {

@@ -937,9 +937,14 @@ export class StVideo {
   }
 
   containsPoint(point: Point): boolean {
+    // const untranslated: Point = {
+    //   x: point.x - this.transform.position[0], // Access translation from matrix
+    //   y: point.y - this.transform.position[1],
+    // };
+
     const untranslated: Point = {
-      x: point.x - this.transform.position[0], // Access translation from matrix
-      y: point.y - this.transform.position[1],
+      x: point.x - this.groupTransform.position[0], // Access translation from matrix
+      y: point.y - this.groupTransform.position[1],
     };
 
     return (
@@ -962,8 +967,8 @@ export class StVideo {
       // mousePath: this.mousePath || "",
       dimensions: this.dimensions,
       position: {
-        x: this.transform.position[0],
-        y: this.transform.position[1],
+        x: this.groupTransform.position[0],
+        y: this.groupTransform.position[1],
       },
       layer: this.layer,
     };

@@ -993,8 +993,8 @@ export class Editor {
         current_positions.push([
           total,
           video.sourceDurationMs,
-          video.transform.position[0] - CANVAS_HORIZ_OFFSET,
-          video.transform.position[1] - CANVAS_VERT_OFFSET,
+          video.groupTransform.position[0] - CANVAS_HORIZ_OFFSET,
+          video.groupTransform.position[1] - CANVAS_VERT_OFFSET,
         ]);
         total++;
       }
@@ -1689,10 +1689,6 @@ export class Editor {
                 break;
               case ObjectType.VideoItem:
                 // console.info("update video transform", positionVec);
-                // this.videoItems[objectIdx].transform.updatePosition(
-                //   positionVec,
-                //   camera.windowSize
-                // );
                 this.videoItems[objectIdx].groupTransform.updatePosition(
                   positionVec,
                   camera.windowSize
@@ -1726,7 +1722,7 @@ export class Editor {
                 );
                 break;
               case ObjectType.VideoItem:
-                this.videoItems[objectIdx].transform.updateRotation(
+                this.videoItems[objectIdx].groupTransform.updateRotation(
                   new_rotation_rad
                 );
                 break;
@@ -1779,7 +1775,7 @@ export class Editor {
                   originalScaleVideo[0] * new_scale,
                   originalScaleVideo[1] * new_scale,
                 ] as [number, number];
-                this.videoItems[objectIdx].transform.updateScale(
+                this.videoItems[objectIdx].groupTransform.updateScale(
                   scaledVideoDimensions
                 );
                 break;
@@ -3694,6 +3690,12 @@ export class Editor {
     //     .into_iter()
     //     .next()
     //     .map(((_, target)) => target);
+
+    if (intersecting_objects.length <= 0) {
+      console.warn("No selection to be made");
+      return;
+    }
+
     let target: InteractionTarget =
       intersecting_objects[intersecting_objects.length - 1][1];
     let index = intersecting_objects[intersecting_objects.length - 1][2];
@@ -4099,8 +4101,8 @@ export class Editor {
 
       if (active_video) {
         active_point = {
-          x: active_video.transform.position[0],
-          y: active_video.transform.position[1],
+          x: active_video.groupTransform.position[0],
+          y: active_video.groupTransform.position[1],
         };
       }
     }
@@ -4576,13 +4578,13 @@ export class Editor {
     }
 
     let new_position = {
-      x: video_item.transform.position[0] + dx, // not sure relation with aspect_ratio?
-      y: video_item.transform.position[1] + dy,
+      x: video_item.groupTransform.position[0] + dx, // not sure relation with aspect_ratio?
+      y: video_item.groupTransform.position[1] + dy,
     };
 
     // console.info("move_video {:?}", new_position);
 
-    video_item.transform.updatePosition(
+    video_item.groupTransform.updatePosition(
       [new_position.x, new_position.y],
       windowSize
     );
