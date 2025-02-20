@@ -828,18 +828,18 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
       console.info("Video restored!");
     });
 
-    if (background_fill.type === "Color") {
-      editor.replace_background(
-        saved_sequence.id,
-        // rgbToWgpu(
-        //   background_fill.value[0],
-        //   background_fill.value[1],
-        //   background_fill.value[2],
-        //   background_fill.value[3]
-        // )
-        background_fill
-      );
-    }
+    // if (background_fill.type === "Color") {
+    editor.replace_background(
+      saved_sequence.id,
+      // rgbToWgpu(
+      //   background_fill.value[0],
+      //   background_fill.value[1],
+      //   background_fill.value[2],
+      //   background_fill.value[3]
+      // )
+      background_fill
+    );
+    // }
 
     console.info("Objects restored!", saved_sequence.id);
 
@@ -1907,29 +1907,27 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                                       if (!s.backgroundFill) {
                                         s.backgroundFill = {
                                           type: "Color",
-                                          value: [
-                                            wgpuToHuman(0.8),
-                                            wgpuToHuman(0.8),
-                                            wgpuToHuman(0.8),
-                                            255,
-                                          ],
+                                          value: [0.8, 0.8, 0.8, 1],
                                         } as BackgroundFill;
                                       }
 
-                                      switch (s.backgroundFill.type) {
-                                        case "Color": {
-                                          s.backgroundFill = {
-                                            type: "Color",
-                                            value: background_color,
-                                          };
+                                      // switch (s.backgroundFill.type) {
+                                      //   case "Color": {
+                                      //     s.backgroundFill = {
+                                      //       type: "Color",
+                                      //       value: background_color_wgpu,
+                                      //     };
 
-                                          break;
-                                        }
-                                        case "Gradient": {
-                                          s.backgroundFill = gradientBackground;
-                                          break;
-                                        }
-                                      }
+                                      //     break;
+                                      //   }
+                                      //   case "Gradient": {
+                                      //     s.backgroundFill = gradientBackground;
+                                      //     break;
+                                      //   }
+                                      // }
+
+                                      // gradient only on theme picker
+                                      s.backgroundFill = gradientBackground;
                                     }
                                   }
                                 );

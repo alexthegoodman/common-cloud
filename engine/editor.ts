@@ -2506,6 +2506,8 @@ export class Editor {
       (p) => p.name !== "canvas_background"
     );
 
+    console.info("replace background", backgroundFill);
+
     let canvas_polygon = new Polygon(
       windowSize,
       gpuResources.device,

@@ -1099,8 +1099,9 @@ export function setupGradientBuffers(
       radius: 1.0, // radius
       timeOffset: 0, // timeOffset
       animationSpeed: 1, // animationSpeed
-      enabled: 1, // enabled
+      enabled: 0, // enabled
     };
+    // console.warn("no gradient selected");
   }
 
   const gradientBuffer = device.createBuffer({
@@ -1143,7 +1144,7 @@ export function setupGradientBuffers(
   mappedRange[configOffset + 8] = selectedGradient.radius ?? 1.0;
   mappedRange[configOffset + 9] = selectedGradient.timeOffset ?? 0;
   mappedRange[configOffset + 10] = selectedGradient.animationSpeed ?? 0;
-  mappedRange[configOffset + 11] = 1;
+  mappedRange[configOffset + 11] = selectedGradient.enabled;
 
   gradientBuffer.unmap();
 
