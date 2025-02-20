@@ -24,12 +24,16 @@ struct VertexInput {
     @location(0) position: vec3<f32>,
     @location(1) tex_coords: vec2<f32>,
     @location(2) color: vec4<f32>,
+    @location(3) gradient_coords: vec2<f32>,
+    @location(4) object_type: u32,
 };
 
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
     @location(0) tex_coords: vec2<f32>,
     @location(1) color: vec4<f32>,
+    @location(2) gradient_coords: vec2<f32>,
+    @location(3) @interpolate(flat) object_type: u32,
 };
 
 @vertex
@@ -51,6 +55,8 @@ fn vs_main(
     out.clip_position = camera.view_proj * vec4<f32>(ndc_pos, 1.0);
     out.tex_coords = vertex.tex_coords;
     out.color = vertex.color;
+    out.gradient_coords = vertex.gradient_coords;
+    out.object_type = vertex.object_type;
     
     return out;
 }

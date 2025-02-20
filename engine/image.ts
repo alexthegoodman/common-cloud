@@ -50,7 +50,7 @@ export class StImage {
   layer: number;
   groupBindGroup!: GPUBindGroup;
   objectType: ObjectType;
-  gradientBindGroup: GPUBindGroup;
+  // gradientBindGroup: GPUBindGroup;
 
   constructor(
     device: GPUDevice,
@@ -61,7 +61,7 @@ export class StImage {
     windowSize: { width: number; height: number },
     bindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
-    gradientBindGroupLayout: GPUBindGroupLayout,
+    // gradientBindGroupLayout: GPUBindGroupLayout,
     zIndex: number,
     currentSequenceId: string,
     loadedHidden: boolean
@@ -78,12 +78,12 @@ export class StImage {
     this.indices = [];
     this.objectType = ObjectType.ImageItem;
 
-    let gradientBindGroup = setupGradientBuffers(
-      device,
-      gradientBindGroupLayout
+    let gradientBuffer = setupGradientBuffers(
+      device
+      // gradientBindGroupLayout
     );
 
-    this.gradientBindGroup = gradientBindGroup;
+    // this.gradientBindGroup = gradientBindGroup;
 
     const identityMatrix = mat4.create();
     let uniformBuffer = device.createBuffer({
@@ -191,6 +191,12 @@ export class StImage {
           },
           { binding: 1, resource: this.textureView },
           { binding: 2, resource: sampler },
+          {
+            binding: 3,
+            resource: {
+              buffer: gradientBuffer,
+            },
+          },
         ],
         label: "Image Bind Group",
       });
@@ -380,7 +386,7 @@ export class StImage {
     queue: GPUQueue,
     bindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
-    gradientBindGroupLayout: GPUBindGroupLayout,
+    // gradientBindGroupLayout: GPUBindGroupLayout,
     selectedSequenceId: string
   ): Promise<StImage> {
     const response = await fetch(config.url);
@@ -395,7 +401,7 @@ export class StImage {
       windowSize,
       bindGroupLayout,
       groupBindGroupLayout,
-      gradientBindGroupLayout,
+      // gradientBindGroupLayout,
       -2.0,
       selectedSequenceId,
       false

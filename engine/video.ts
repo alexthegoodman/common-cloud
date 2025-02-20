@@ -139,7 +139,7 @@ export class StVideo {
   private codecString?: string;
 
   bytesPerFrame: number | null = null;
-  gradientBindGroup: GPUBindGroup;
+  // gradientBindGroup: GPUBindGroup;
 
   constructor(
     device: GPUDevice,
@@ -149,7 +149,7 @@ export class StVideo {
     windowSize: { width: number; height: number },
     bindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
-    gradientBindGroupLayout: GPUBindGroupLayout,
+    // gradientBindGroupLayout: GPUBindGroupLayout,
     zIndex: number,
     currentSequenceId: string,
     loadedHidden: boolean
@@ -198,12 +198,12 @@ export class StVideo {
     this.transform.layer = videoConfig.layer - INTERNAL_LAYER_SPACE;
     this.transform.updateUniformBuffer(queue, windowSize);
 
-    let gradientBindGroup = setupGradientBuffers(
-      device,
-      gradientBindGroupLayout
+    let gradientBuffer = setupGradientBuffers(
+      device
+      // gradientBindGroupLayout
     );
 
-    this.gradientBindGroup = gradientBindGroup;
+    // this.gradientBindGroup = gradientBindGroup;
 
     let [group_bind_group, group_transform] = createEmptyGroupTransform(
       device,
@@ -272,6 +272,12 @@ export class StVideo {
             },
             { binding: 1, resource: this.textureView },
             { binding: 2, resource: sampler },
+            {
+              binding: 3,
+              resource: {
+                buffer: gradientBuffer,
+              },
+            },
           ],
           label: "Video Bind Group",
         });

@@ -110,7 +110,7 @@ export class Polygon implements PolygonShape {
     queue: GPUQueue,
     bindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
-    gradientBindGroupLayout: GPUBindGroupLayout,
+    // gradientBindGroupLayout: GPUBindGroupLayout,
     camera: Camera,
     points: Point[],
     dimensions: [number, number],
@@ -182,13 +182,6 @@ export class Polygon implements PolygonShape {
       camera,
       config
     );
-
-    let gradientBindGroup = setupGradientBuffers(
-      device,
-      gradientBindGroupLayout
-    );
-
-    this.gradientBindGroup = gradientBindGroup;
 
     this.textureView = textureView;
 
@@ -847,6 +840,8 @@ export function getPolygonData(
     mipmapFilter: "nearest",
   });
 
+  let gradientBuffer = setupGradientBuffers(device);
+
   const bindGroup = device.createBindGroup({
     layout: bindGroupLayout,
     entries: [
@@ -858,6 +853,12 @@ export function getPolygonData(
       },
       { binding: 1, resource: textureView },
       { binding: 2, resource: sampler },
+      {
+        binding: 3,
+        resource: {
+          buffer: gradientBuffer,
+        },
+      },
     ],
   });
 
@@ -1004,9 +1005,9 @@ export function createRoundedPolygonPath(
 
 export function setupGradientBuffers(
   device: GPUDevice,
-  gradientBindGroupLayout: GPUBindGroupLayout,
+  // gradientBindGroupLayout: GPUBindGroupLayout,
   gradient?: GradientDefinition
-): GPUBindGroup {
+): GPUBuffer {
   let defaultStops = [
     { offset: 0, color: [1, 0, 0, 1] }, // Red
     { offset: 1, color: [0, 0, 1, 1] }, // Blue
@@ -1025,7 +1026,7 @@ export function setupGradientBuffers(
     ...[0.5, 0.5], // center
     1.0, // radius
     0, // timeOffset
-    0, // animationSpeed
+    1, // animationSpeed
     1, // enabled
   ]);
 
@@ -1049,7 +1050,7 @@ export function setupGradientBuffers(
   }
 
   let gradientBuffer = device.createBuffer({
-    size: gradientData.byteLength,
+    size: gradientData.byteLength * 4,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     mappedAtCreation: true,
   });
@@ -1057,15 +1058,15 @@ export function setupGradientBuffers(
   gradientBuffer.unmap();
 
   // Create bind group for gradient data
-  let gradientBindGroup = device.createBindGroup({
-    layout: gradientBindGroupLayout,
-    entries: [
-      {
-        binding: 0,
-        resource: { buffer: gradientBuffer },
-      },
-    ],
-  });
+  // let gradientBindGroup = device.createBindGroup({
+  //   layout: gradientBindGroupLayout,
+  //   entries: [
+  //     {
+  //       binding: 0,
+  //       resource: { buffer: gradientBuffer },
+  //     },
+  //   ],
+  // });
 
-  return gradientBindGroup;
+  return gradientBuffer;
 }

@@ -34,13 +34,14 @@ struct GradientUniforms {
     center: vec2<f32>,
     radius: f32,
     time: f32,
-    animationSpeed: f32
+    animationSpeed: f32,
+    enabled: i32
 };
 
 // @group(1) @binding(0) var<uniform> gradient: GradientUniforms;
 @group(1) @binding(1) var texture: texture_2d<f32>;
 @group(1) @binding(2) var texture_sampler: sampler;
-@group(4) @binding(0) var<uniform> gradient: GradientUniforms;
+@group(1) @binding(3) var<uniform> gradient: GradientUniforms;
 
 const OBJECT_TYPE_POLYGON: u32 = 0u;
 const OBJECT_TYPE_TEXT: u32 = 1u;
@@ -88,27 +89,26 @@ fn calculateGradientColor(coords: vec2<f32>) -> vec4<f32> {
     return mix * color2 + (1.0 - mix) * color1;
 }
 
+fn getTextureColor(tex_coords: vec2<f32>) -> vec4<f32> {
+    return textureSample(texture, texture_sampler, tex_coords);
+}
+
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+    // First, sample texture unconditionally
+    let tex_color = getTextureColor(in.tex_coords);
+    
+    // Then use the result only if needed
     var final_color: vec4<f32>;
     
-    switch in.object_type {
-        case OBJECT_TYPE_POLYGON: {
-            if (gradient.numStops > 0) {
-                // Use gradient if defined
-                final_color = calculateGradientColor(in.gradient_coords);
-            } else {
-                // Fall back to solid color
-                final_color = in.color;
-            }
-        }
-        case OBJECT_TYPE_TEXT, case OBJECT_TYPE_IMAGE, case OBJECT_TYPE_VIDEO: {
-            let tex_color = textureSample(texture, texture_sampler, in.tex_coords);
-            final_color = tex_color * in.color;
-        }
-        default: {
+    if (in.object_type == OBJECT_TYPE_POLYGON) {
+        if (gradient.enabled != 0 && gradient.numStops > 0) {
+            final_color = calculateGradientColor(in.gradient_coords);
+        } else {
             final_color = in.color;
         }
+    } else {
+        final_color = tex_color * in.color;
     }
     
     return final_color;

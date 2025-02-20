@@ -68,9 +68,9 @@ export function createVertex(
 }
 
 export function createVertexBufferLayout(): GPUVertexBufferLayout {
-  const vertexSize = Float32Array.BYTES_PER_ELEMENT * (3 + 2 + 4); // Size of each vertex in bytes
+  // const vertexSize = Float32Array.BYTES_PER_ELEMENT * (3 + 2 + 4); // Size of each vertex in bytes
   return {
-    arrayStride: vertexSize,
+    arrayStride: vertexByteSize,
     stepMode: "vertex",
     attributes: [
       {

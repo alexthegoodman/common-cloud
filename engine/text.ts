@@ -86,14 +86,14 @@ export class TextRenderer {
   currentSequenceId: string;
   objectType: ObjectType;
   textureView: GPUTextureView;
-  gradientBindGroup: GPUBindGroup;
+  // gradientBindGroup: GPUBindGroup;
 
   constructor(
     device: GPUDevice,
     queue: GPUQueue,
     bindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
-    gradientBindGroupLayout: GPUBindGroupLayout,
+    // gradientBindGroupLayout: GPUBindGroupLayout,
     textConfig: TextRendererConfig,
     fontData: Buffer,
     windowSize: WindowSize,
@@ -122,12 +122,12 @@ export class TextRenderer {
 
     this.font = fontkit.create(fontData) as fontkit.Font;
 
-    let gradientBindGroup = setupGradientBuffers(
-      device,
-      gradientBindGroupLayout
+    let gradientBuffer = setupGradientBuffers(
+      device
+      // gradientBindGroupLayout
     );
 
-    this.gradientBindGroup = gradientBindGroup;
+    // this.gradientBindGroup = gradientBindGroup;
 
     this.vertexBuffer = this.device.createBuffer({
       size: 65536,
@@ -174,6 +174,7 @@ export class TextRenderer {
         { binding: 0, resource: { buffer: this.uniformBuffer } },
         { binding: 1, resource: this.textureView },
         { binding: 2, resource: this.sampler },
+        { binding: 3, resource: { buffer: gradientBuffer } },
       ],
     });
 
@@ -198,7 +199,7 @@ export class TextRenderer {
       queue,
       bindGroupLayout,
       groupBindGroupLayout,
-      gradientBindGroupLayout,
+      // gradientBindGroupLayout,
       camera,
       [
         { x: 0.0, y: 0.0 },
@@ -686,7 +687,7 @@ export class TextRenderer {
     queue: GPUQueue,
     modelBindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
-    gradientBindGroupLayout: GPUBindGroupLayout,
+    // gradientBindGroupLayout: GPUBindGroupLayout,
     camera: Camera,
     selectedSequenceId: string,
     fontData: Buffer
@@ -696,7 +697,7 @@ export class TextRenderer {
       queue,
       modelBindGroupLayout,
       groupBindGroupLayout,
-      gradientBindGroupLayout,
+      // gradientBindGroupLayout,
       config,
       fontData,
       windowSize,
