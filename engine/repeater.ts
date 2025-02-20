@@ -7,7 +7,7 @@ import { Vertex } from "./vertex";
 import { v4 as uuidv4 } from "uuid";
 
 // Types for repeat patterns
-type RepeatPattern = {
+export type RepeatPattern = {
   count: number;
   spacing: number;
   direction: "horizontal" | "vertical" | "circular" | "grid";

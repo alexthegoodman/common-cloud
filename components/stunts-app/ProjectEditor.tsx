@@ -1485,6 +1485,9 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                 editorStateRef={editorStateRef}
                 currentSequenceId={current_sequence_id}
                 currentPolygonId={selected_polygon_id}
+                handleGoBack={() => {
+                  set_selected_polygon_id(null);
+                }}
               />
             )}
 
@@ -1496,6 +1499,9 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                     editorStateRef={editorStateRef}
                     currentSequenceId={current_sequence_id}
                     currentImageId={selected_image_id}
+                    handleGoBack={() => {
+                      set_selected_image_id(null);
+                    }}
                   />
                 </div>
               </>
@@ -1525,6 +1531,9 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                     editorStateRef={editorStateRef}
                     currentSequenceId={current_sequence_id}
                     currentVideoId={selected_video_id}
+                    handleGoBack={() => {
+                      set_selected_video_id(null);
+                    }}
                   />
                 </div>
               </>
