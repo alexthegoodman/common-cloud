@@ -9,6 +9,8 @@ import { ObjectType } from "./animations";
 import { TextRenderer } from "./text";
 import { RepeatableObject } from "./repeater";
 
+import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
+
 interface WindowSize {
   width: number;
   height: number;

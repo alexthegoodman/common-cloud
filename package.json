@@ -38,7 +38,8 @@
     "stripe": "^17.5.0",
     "swr": "^2.3.2",
     "ts-node": "^10.9.2",
-    "uuid": "^11.0.5"
+    "uuid": "^11.0.5",
+    "webgpu-utils": "^1.9.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

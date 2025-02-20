@@ -16,6 +16,7 @@ import { createVertex, getZLayer, Vertex, vertexByteSize } from "./vertex";
 
 import * as gt from "@thi.ng/geom-tessellate";
 import { GradientDefinition, ObjectType } from "./animations";
+import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
 
 export const INTERNAL_LAYER_SPACE = 10;
 
@@ -203,6 +204,21 @@ export class Polygon implements PolygonShape {
     this.indexBuffer = index_buffer;
     this.bindGroup = bind_group;
     this.transform = transform;
+  }
+
+  updateGradientAnimation(device: GPUDevice, deltaTime: number) {
+    if (!this.gradient || !this.gradientBuffer) return;
+
+    // Update the timeOffset
+    this.gradient.timeOffset = (this.gradient.timeOffset || 0) + deltaTime;
+
+    // Update just the time value in the buffer (offset 49 = 40 + 9)
+    const timeOffset = 49;
+    device.queue.writeBuffer(
+      this.gradientBuffer,
+      timeOffset * 4, // Multiply by 4 because offset is in bytes
+      new Float32Array([this.gradient.timeOffset])
+    );
   }
 
   boundingBox(): BoundingBox {
@@ -1009,6 +1025,13 @@ export function createRoundedPolygonPath(
   return pathPoints;
 }
 
+// import FragShader from "./shaders/frag_primary.wgsl?raw";
+
+// let defs = makeShaderDataDefinitions(FragShader);
+// const gradientValues = makeStructuredView(defs.uniforms.gradient);
+
+// console.info("test utils", defs.uniforms);
+
 export function setupGradientBuffers(
   device: GPUDevice,
   queue: GPUQueue,
@@ -1019,73 +1042,101 @@ export function setupGradientBuffers(
     { offset: 0, color: [1, 0, 0, 1] }, // Red
     { offset: 1, color: [0, 0, 1, 1] }, // Blue
   ];
-  // Create buffer for gradient stops
-  let gradientData = new Float32Array([
+  // // Create buffer for gradient stops
+  // let gradientData = new Float32Array([
+  //   // Stops data
+  //   ...defaultStops.flatMap((stop) => [stop.offset, ...stop.color]),
+  //   // Fill remaining stops with zeros if less than 8
+  //   ...new Array((8 - defaultStops.length) * 5).fill(0.5),
+
+  //   defaultStops.length, // numStops
+  //   1, // gradientType (0 is linear, 1 is radial)
+  //   ...[0, 0], // startPoint
+  //   ...[1, 0], // endPoint
+  //   ...[0.5, 0.5], // center
+  //   1.0, // radius
+  //   0, // timeOffset
+  //   1, // animationSpeed
+  //   1, // enabled
+  // ]);
+
+  // if (gradient) {
+  //   gradientData = new Float32Array([
+  //     // Stops data
+  //     ...gradient.stops.flatMap((stop) => [stop.offset, ...stop.color]),
+  //     // Fill remaining stops with zeros if less than 8
+  //     ...new Array((8 - gradient.stops.length) * 5).fill(0),
+
+  //     gradient.stops.length, // numStops
+  //     gradient.type === "linear" ? 0 : 1, // gradientType
+  //     ...(gradient.startPoint || [0, 0]), // startPoint
+  //     ...(gradient.endPoint || [1, 0]), // endPoint
+  //     ...(gradient.center || [0.5, 0.5]), // center
+  //     gradient.radius || 1.0, // radius
+  //     gradient.timeOffset || 0, // timeOffset
+  //     gradient.animationSpeed || 0, // animationSpeed
+  //     1, // enabled
+  //   ]);
+  // }
+
+  let gradient2 = {
     // Stops data
-    ...defaultStops.flatMap((stop) => [stop.offset, ...stop.color]),
-    // Fill remaining stops with zeros if less than 8
-    ...new Array((8 - defaultStops.length) * 5).fill(0),
+    stops: defaultStops,
 
-    defaultStops.length, // numStops
-    0, // gradientType (0 is linear, 1 is radial)
-    ...[0, 0], // startPoint
-    ...[1, 0], // endPoint
-    ...[0.5, 0.5], // center
-    1.0, // radius
-    0, // timeOffset
-    1, // animationSpeed
-    1, // enabled
-  ]);
+    numStops: defaultStops.length, // numStops
+    type: "linear", // gradientType (0 is linear, 1 is radial)
+    startPoint: [0, 0], // startPoint
+    endPoint: [1, 0], // endPoint
+    center: [0.5, 0.5], // center
+    radius: 1.0, // radius
+    timeOffset: 0, // timeOffset
+    animationSpeed: 1, // animationSpeed
+    enabled: 1, // enabled
+  };
 
-  if (gradient) {
-    gradientData = new Float32Array([
-      // Stops data
-      ...gradient.stops.flatMap((stop) => [stop.offset, ...stop.color]),
-      // Fill remaining stops with zeros if less than 8
-      ...new Array((8 - defaultStops.length) * 5).fill(0),
-
-      gradient.stops.length, // numStops
-      gradient.type === "linear" ? 0 : 1, // gradientType
-      ...(gradient.startPoint || [0, 0]), // startPoint
-      ...(gradient.endPoint || [1, 0]), // endPoint
-      ...(gradient.center || [0.5, 0.5]), // center
-      gradient.radius || 1.0, // radius
-      gradient.timeOffset || 0, // timeOffset
-      gradient.animationSpeed || 0, // animationSpeed
-      1, // enabled
-    ]);
-  }
-
-  console.info(
-    "gradient data",
-    gradientData
-    // "also see",
-    // defaultStops.length,
-    // " and ",
-    // new Array((8 - defaultStops.length) * 5).fill(0)
-  );
-
-  let gradientBuffer = device.createBuffer({
+  const gradientBuffer = device.createBuffer({
     label: "Gradient Buffer",
-    size: gradientData.byteLength * 4,
+    // 2 vec4s for offsets + 8 vec4s for colors + 12 floats for config
+    // (2 + 8) * 16 + 12 * 4 = 208 bytes
+    size: 208,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     mappedAtCreation: true,
   });
-  new Float32Array(gradientBuffer.getMappedRange()).set(gradientData);
+
+  const mappedRange = new Float32Array(gradientBuffer.getMappedRange());
+
+  // Set stop offsets (packed into vec4s)
+  gradient2.stops.forEach((stop, i) => {
+    const vec4Index = Math.floor(i / 4);
+    const componentIndex = i % 4;
+    mappedRange[vec4Index * 4 + componentIndex] = stop.offset;
+  });
+
+  // Set stop colors (starting at index 8)
+  gradient2.stops.forEach((stop, i) => {
+    const colorIndex = 8 + i * 4;
+    mappedRange[colorIndex] = stop.color[0];
+    mappedRange[colorIndex + 1] = stop.color[1];
+    mappedRange[colorIndex + 2] = stop.color[2];
+    mappedRange[colorIndex + 3] = stop.color[3];
+  });
+
+  // Set configuration (starting at index 40)
+  const configOffset = 40;
+  mappedRange[configOffset] = gradient2.stops.length;
+  mappedRange[configOffset + 1] = gradient2.type === "linear" ? 0 : 1;
+  mappedRange[configOffset + 2] = gradient2.startPoint?.[0] ?? 0;
+  mappedRange[configOffset + 3] = gradient2.startPoint?.[1] ?? 0;
+  mappedRange[configOffset + 4] = gradient2.endPoint?.[0] ?? 1;
+  mappedRange[configOffset + 5] = gradient2.endPoint?.[1] ?? 0;
+  mappedRange[configOffset + 6] = gradient2.center?.[0] ?? 0.5;
+  mappedRange[configOffset + 7] = gradient2.center?.[1] ?? 0.5;
+  mappedRange[configOffset + 8] = gradient2.radius ?? 1.0;
+  mappedRange[configOffset + 9] = gradient2.timeOffset ?? 0;
+  mappedRange[configOffset + 10] = gradient2.animationSpeed ?? 0;
+  mappedRange[configOffset + 11] = 1;
+
   gradientBuffer.unmap();
-
-  // queue.writeBuffer(gradientBuffer, 0, gradientData);
-
-  // Create bind group for gradient data
-  // let gradientBindGroup = device.createBindGroup({
-  //   layout: gradientBindGroupLayout,
-  //   entries: [
-  //     {
-  //       binding: 0,
-  //       resource: { buffer: gradientBuffer },
-  //     },
-  //   ],
-  // });
 
   return gradientBuffer;
 }
