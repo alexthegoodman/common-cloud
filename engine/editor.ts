@@ -1771,12 +1771,13 @@ export class Editor {
                 //   originalScaleVideo[0] * new_scale,
                 //   originalScaleVideo[1] * new_scale
                 // );
-                const scaledVideoDimensions = [
-                  originalScaleVideo[0] * new_scale,
-                  originalScaleVideo[1] * new_scale,
-                ] as [number, number];
+                // const scaledVideoDimensions = [
+                //   originalScaleVideo[0] * new_scale,
+                //   originalScaleVideo[1] * new_scale,
+                // ] as [number, number];
+                console.info("scaling", originalScaleVideo, new_scale);
                 this.videoItems[objectIdx].groupTransform.updateScale(
-                  scaledVideoDimensions
+                  scaleVec // only scaleVec needed for group
                 );
                 break;
             }

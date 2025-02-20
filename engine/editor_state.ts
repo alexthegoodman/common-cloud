@@ -626,7 +626,7 @@ export default class EditorState {
     scale_keyframes.push({
       id: uuidv4().toString(),
       time: 2500,
-      value: { type: "Scale", value: 120 },
+      value: { type: "Scale", value: 110 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
@@ -653,7 +653,7 @@ export default class EditorState {
     scale_keyframes.push({
       id: uuidv4().toString(),
       time: 17500,
-      value: { type: "Scale", value: 120 },
+      value: { type: "Scale", value: 110 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
