@@ -2,7 +2,11 @@ import { mat4, vec2 } from "gl-matrix";
 import { v4 as uuidv4 } from "uuid"; // Make sure you have uuid installed
 import { Vertex } from "./vertex";
 import { createEmptyGroupTransform, Transform } from "./transform";
-import { INTERNAL_LAYER_SPACE, SavedPoint } from "./polygon";
+import {
+  INTERNAL_LAYER_SPACE,
+  SavedPoint,
+  setupGradientBuffers,
+} from "./polygon";
 import { Point } from "./editor";
 import { WindowSize } from "./camera";
 import { ObjectType } from "./animations";
@@ -46,6 +50,7 @@ export class StImage {
   layer: number;
   groupBindGroup!: GPUBindGroup;
   objectType: ObjectType;
+  gradientBindGroup: GPUBindGroup;
 
   constructor(
     device: GPUDevice,
@@ -56,6 +61,7 @@ export class StImage {
     windowSize: { width: number; height: number },
     bindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
+    gradientBindGroupLayout: GPUBindGroupLayout,
     zIndex: number,
     currentSequenceId: string,
     loadedHidden: boolean
@@ -71,6 +77,13 @@ export class StImage {
     // this.indices = new Uint32Array();
     this.indices = [];
     this.objectType = ObjectType.ImageItem;
+
+    let gradientBindGroup = setupGradientBuffers(
+      device,
+      gradientBindGroupLayout
+    );
+
+    this.gradientBindGroup = gradientBindGroup;
 
     const identityMatrix = mat4.create();
     let uniformBuffer = device.createBuffer({
@@ -182,26 +195,43 @@ export class StImage {
         label: "Image Bind Group",
       });
 
+      const normalizedX0 =
+        (-0.5 - this.transform.position[0]) / this.dimensions[0];
+      const normalizedY0 =
+        (-0.5 - this.transform.position[1]) / this.dimensions[1];
+      const normalizedX1 =
+        (0.5 - this.transform.position[0]) / this.dimensions[0];
+      const normalizedY1 =
+        (0.5 - this.transform.position[1]) / this.dimensions[1];
+
       this.vertices = [
         {
           position: [-0.5, -0.5, 0.0],
           tex_coords: [0.0, 0.0],
           color: [1.0, 1.0, 1.0, 1.0],
+          gradient_coords: [normalizedX0, normalizedY0],
+          object_type: 2, // OBJECT_TYPE_IMAGE
         },
         {
           position: [0.5, -0.5, 0.0],
           tex_coords: [1.0, 0.0],
           color: [1.0, 1.0, 1.0, 1.0],
+          gradient_coords: [normalizedX1, normalizedY0],
+          object_type: 2, // OBJECT_TYPE_IMAGE
         },
         {
           position: [0.5, 0.5, 0.0],
           tex_coords: [1.0, 1.0],
           color: [1.0, 1.0, 1.0, 1.0],
+          gradient_coords: [normalizedX1, normalizedY1],
+          object_type: 2, // OBJECT_TYPE_IMAGE
         },
         {
           position: [-0.5, 0.5, 0.0],
           tex_coords: [0.0, 1.0],
           color: [1.0, 1.0, 1.0, 1.0],
+          gradient_coords: [normalizedX0, normalizedY1],
+          object_type: 2, // OBJECT_TYPE_IMAGE
         },
       ];
 
@@ -350,6 +380,7 @@ export class StImage {
     queue: GPUQueue,
     bindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
+    gradientBindGroupLayout: GPUBindGroupLayout,
     selectedSequenceId: string
   ): Promise<StImage> {
     const response = await fetch(config.url);
@@ -364,6 +395,7 @@ export class StImage {
       windowSize,
       bindGroupLayout,
       groupBindGroupLayout,
+      gradientBindGroupLayout,
       -2.0,
       selectedSequenceId,
       false

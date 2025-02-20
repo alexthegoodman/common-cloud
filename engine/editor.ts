@@ -350,6 +350,7 @@ export class Editor {
   cameraBinding: CameraBinding | null;
   modelBindGroupLayout: GPUBindGroupLayout | null;
   groupBindGroupLayout: GPUBindGroupLayout | null;
+  gradientBindGroupLayout: GPUBindGroupLayout | null;
   windowSizeBindGroupLayout: GPUBindGroupLayout | null;
   windowSizeBindGroup: GPUBindGroup | null;
   windowSizeBuffer: GPUBuffer | null;
@@ -428,6 +429,7 @@ export class Editor {
     this.modelBindGroupLayout = null;
     this.groupBindGroupLayout = null;
     this.windowSizeBindGroupLayout = null;
+    this.gradientBindGroupLayout = null;
     this.windowSizeBindGroup = null;
     this.windowSizeBuffer = null;
     this.staticPolygons = [];
@@ -542,6 +544,7 @@ export class Editor {
         queue,
         this.modelBindGroupLayout!,
         this.groupBindGroupLayout!,
+        this.gradientBindGroupLayout!,
         camera,
         [
           { x: 0.0, y: 0.0 },
@@ -616,6 +619,7 @@ export class Editor {
         queue,
         this.modelBindGroupLayout!,
         this.groupBindGroupLayout!,
+        this.gradientBindGroupLayout!,
         config,
         fontData,
         windowSize,
@@ -661,6 +665,7 @@ export class Editor {
         windowSize,
         this.modelBindGroupLayout!,
         this.groupBindGroupLayout!,
+        this.gradientBindGroupLayout!,
         -2.0,
         saved_sequence.id,
         hidden
@@ -717,6 +722,7 @@ export class Editor {
         windowSize,
         this.modelBindGroupLayout!,
         this.groupBindGroupLayout!,
+        this.gradientBindGroupLayout!,
         -2.0,
         // i.id,
         saved_sequence.id,
@@ -2147,7 +2153,8 @@ export class Editor {
       !this.camera ||
       !this.gpuResources ||
       !this.modelBindGroupLayout ||
-      !this.groupBindGroupLayout
+      !this.groupBindGroupLayout ||
+      !this.gradientBindGroupLayout
     ) {
       console.error(
         "Missing required resources for motion path visualization."
@@ -2160,6 +2167,7 @@ export class Editor {
       this.gpuResources.queue,
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
+      this.gradientBindGroupLayout,
       newId,
       this.camera.windowSize,
       keyframes,
@@ -2200,6 +2208,7 @@ export class Editor {
       this.gpuResources.queue,
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
+      this.gradientBindGroupLayout,
       objectId, // good association? no need to drag full zoom path?
       this.camera.windowSize,
       zoomKeyframes,
@@ -2273,7 +2282,8 @@ export class Editor {
       !windowSize ||
       !gpuResources ||
       !this.modelBindGroupLayout ||
-      !this.groupBindGroupLayout
+      !this.groupBindGroupLayout ||
+      !this.gradientBindGroupLayout
     ) {
       return;
     }
@@ -2284,6 +2294,7 @@ export class Editor {
       gpuResources.queue,
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
+      this.gradientBindGroupLayout,
       camera,
       polygon_config.points,
       polygon_config.dimensions,
@@ -2318,7 +2329,11 @@ export class Editor {
       return;
     }
 
-    if (!this.modelBindGroupLayout || !this.groupBindGroupLayout) {
+    if (
+      !this.modelBindGroupLayout ||
+      !this.groupBindGroupLayout ||
+      !this.gradientBindGroupLayout
+    ) {
       return;
     }
 
@@ -2340,6 +2355,7 @@ export class Editor {
       queue,
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
+      this.gradientBindGroupLayout,
       text_config,
       default_fontFamily, // load font data ahead of time
       windowSize,
@@ -2374,7 +2390,11 @@ export class Editor {
 
     let windowSize = camera.windowSize;
 
-    if (!this.modelBindGroupLayout || !this.groupBindGroupLayout) {
+    if (
+      !this.modelBindGroupLayout ||
+      !this.groupBindGroupLayout ||
+      !this.gradientBindGroupLayout
+    ) {
       return;
     }
 
@@ -2388,6 +2408,7 @@ export class Editor {
       windowSize,
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
+      this.gradientBindGroupLayout,
       0.0,
       selected_sequence_id,
       false
@@ -2419,6 +2440,7 @@ export class Editor {
       !camera ||
       !this.modelBindGroupLayout ||
       !this.groupBindGroupLayout ||
+      !this.gradientBindGroupLayout ||
       !device ||
       !queue ||
       !windowSize
@@ -2434,6 +2456,7 @@ export class Editor {
       windowSize,
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
+      this.gradientBindGroupLayout,
       0.0,
       selected_sequence_id,
       false
@@ -2460,12 +2483,14 @@ export class Editor {
     let camera = this.camera;
     let modelBindGroupLayout = this.modelBindGroupLayout;
     let groupBindGroupLayout = this.groupBindGroupLayout;
+    let gradientBindGroupLayout = this.gradientBindGroupLayout;
 
     if (
       !gpuResources ||
       !camera ||
       !modelBindGroupLayout ||
-      !groupBindGroupLayout
+      !groupBindGroupLayout ||
+      !gradientBindGroupLayout
     ) {
       return;
     }
@@ -2485,6 +2510,7 @@ export class Editor {
       gpuResources.queue,
       modelBindGroupLayout,
       groupBindGroupLayout,
+      gradientBindGroupLayout,
       camera,
       [
         { x: 0.0, y: 0.0 },

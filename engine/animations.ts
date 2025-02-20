@@ -148,6 +148,25 @@ export type BackgroundFill =
   | { type: "Color"; value: [number, number, number, number] }
   | { type: "Gradient" }; // For later
 
+export interface GradientStop {
+  offset: number; // Position from 0 to 1
+  color: [number, number, number, number];
+}
+
+export interface GradientDefinition {
+  type: "linear" | "radial";
+  stops: GradientStop[];
+  // For linear gradient
+  startPoint?: [number, number]; // Normalized coordinates (0-1)
+  endPoint?: [number, number]; // Normalized coordinates (0-1)
+  // For radial gradient
+  center?: [number, number]; // Normalized coordinates (0-1)
+  radius?: number; // In normalized units
+  // Animation properties
+  animationSpeed?: number; // Rotation speed in radians per second
+  timeOffset?: number; // Current time offset for animation
+}
+
 export interface RangeData {
   endTime: number; // Duration in milliseconds
 }

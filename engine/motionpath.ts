@@ -32,6 +32,7 @@ export class MotionPath {
     queue: GPUQueue,
     modelBindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
+    gradientBindGroupLayout: GPUBindGroupLayout,
     newId: string,
     windowSize: WindowSize,
     keyframes: UIKeyframe[],
@@ -94,6 +95,7 @@ export class MotionPath {
           queue,
           modelBindGroupLayout,
           groupBindGroupLayout,
+          gradientBindGroupLayout,
           camera,
           startPoint,
           12.0, // width and height
@@ -121,6 +123,7 @@ export class MotionPath {
               queue,
               modelBindGroupLayout,
               groupBindGroupLayout,
+              gradientBindGroupLayout,
               camera,
               endPoint,
               12.0, // width and height
@@ -134,6 +137,7 @@ export class MotionPath {
               queue,
               modelBindGroupLayout,
               groupBindGroupLayout,
+              gradientBindGroupLayout,
               camera,
               endPoint,
               12.0, // width and height
@@ -190,6 +194,7 @@ export class MotionPath {
           queue,
           modelBindGroupLayout,
           groupBindGroupLayout,
+          gradientBindGroupLayout,
           camera,
           pathStart,
           pathEnd,
@@ -214,6 +219,7 @@ export class MotionPath {
             queue,
             modelBindGroupLayout,
             groupBindGroupLayout,
+            gradientBindGroupLayout,
             camera,
             pathEnd,
             15.0, // width and height
@@ -296,6 +302,7 @@ function createPathSegment(
   queue: GPUQueue,
   modelBindGroupLayout: GPUBindGroupLayout,
   groupBindGroupLayout: GPUBindGroupLayout,
+  gradientBindGroupLayout: GPUBindGroupLayout,
   camera: Camera,
   start: Point,
   end: Point,
@@ -318,6 +325,7 @@ function createPathSegment(
     queue,
     modelBindGroupLayout,
     groupBindGroupLayout,
+    gradientBindGroupLayout,
     camera,
     [
       { x: 0.0, y: 0.0 },
@@ -350,6 +358,7 @@ function createPathHandle(
   queue: GPUQueue,
   modelBindGroupLayout: GPUBindGroupLayout,
   groupBindGroupLayout: GPUBindGroupLayout,
+  gradientBindGroupLayout: GPUBindGroupLayout,
   camera: Camera,
   end: Point,
   size: number,
@@ -363,6 +372,7 @@ function createPathHandle(
     queue,
     modelBindGroupLayout,
     groupBindGroupLayout,
+    gradientBindGroupLayout,
     camera,
     [
       { x: 0.0, y: 0.0 },
@@ -394,6 +404,7 @@ function createPathArrow(
   queue: GPUQueue,
   modelBindGroupLayout: GPUBindGroupLayout,
   groupBindGroupLayout: GPUBindGroupLayout,
+  gradientBindGroupLayout: GPUBindGroupLayout,
   camera: Camera,
   end: Point,
   size: number,
@@ -407,6 +418,7 @@ function createPathArrow(
     queue,
     modelBindGroupLayout,
     groupBindGroupLayout,
+    gradientBindGroupLayout,
     camera,
     [
       // rightside up

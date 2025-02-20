@@ -9,7 +9,7 @@ import {
   rgbToWgpu,
   wgpuToHuman,
 } from "./editor";
-import { INTERNAL_LAYER_SPACE, Polygon } from "./polygon";
+import { INTERNAL_LAYER_SPACE, Polygon, setupGradientBuffers } from "./polygon";
 import { ObjectType } from "./animations";
 
 export interface TextRendererConfig {
@@ -86,12 +86,14 @@ export class TextRenderer {
   currentSequenceId: string;
   objectType: ObjectType;
   textureView: GPUTextureView;
+  gradientBindGroup: GPUBindGroup;
 
   constructor(
     device: GPUDevice,
     queue: GPUQueue,
     bindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
+    gradientBindGroupLayout: GPUBindGroupLayout,
     textConfig: TextRendererConfig,
     fontData: Buffer,
     windowSize: WindowSize,
@@ -119,6 +121,13 @@ export class TextRenderer {
     this.hidden = false;
 
     this.font = fontkit.create(fontData) as fontkit.Font;
+
+    let gradientBindGroup = setupGradientBuffers(
+      device,
+      gradientBindGroupLayout
+    );
+
+    this.gradientBindGroup = gradientBindGroup;
 
     this.vertexBuffer = this.device.createBuffer({
       size: 65536,
@@ -189,6 +198,7 @@ export class TextRenderer {
       queue,
       bindGroupLayout,
       groupBindGroupLayout,
+      gradientBindGroupLayout,
       camera,
       [
         { x: 0.0, y: 0.0 },
@@ -430,18 +440,13 @@ export class TextRenderer {
       const baseVertex = vertices.length;
 
       // Scale the glyph's position and metrics
-      // const xOffset = position.xOffset * scale; // offsets seem to be always 0
-      // const yOffset = position.yOffset * scale;
       let x0 = currentX;
       let x1 = x0 + atlasGlyph.metrics.width;
       currentX += position.xAdvance * scale; // Update for next character
 
-      // let xOffset = position.xAdvance * scale; // advance seems to provide correct value here
       let yOffset = position.yAdvance * scale;
 
       // Calculate vertex positions using the scaled glyph's position and metrics
-      // let x0 = startX + xOffset;
-      // let x1 = x0 + atlasGlyph.metrics.width; // metrics[0] is already scaled in addGlyphToAtlas
       let y0 = startY + yOffset;
       let y1 = y0 + atlasGlyph.metrics.height; // metrics[1] is already scaled in addGlyphToAtlas
 
@@ -457,9 +462,6 @@ export class TextRenderer {
         this.color[0],
         this.color[1],
         this.color[2],
-        // 20,
-        // 20,
-        // 200,
         255.0
       );
 
@@ -468,12 +470,45 @@ export class TextRenderer {
 
       // console.info("vertice pos", x0, x1, y0, y1);
 
+      const normalizedX0 =
+        (x0 - this.transform.position[0]) / this.dimensions[0];
+      const normalizedY0 =
+        (y0 - this.transform.position[1]) / this.dimensions[1];
+      const normalizedX1 =
+        (x1 - this.transform.position[0]) / this.dimensions[0];
+      const normalizedY1 =
+        (y1 - this.transform.position[1]) / this.dimensions[1];
+
       // Add vertices for the glyph quad
       vertices.push(
-        { position: [x0, y0, z], tex_coords: [u0, v0], color: activeColor },
-        { position: [x1, y0, z], tex_coords: [u1, v0], color: activeColor },
-        { position: [x1, y1, z], tex_coords: [u1, v1], color: activeColor },
-        { position: [x0, y1, z], tex_coords: [u0, v1], color: activeColor }
+        {
+          position: [x0, y0, z],
+          tex_coords: [u0, v0],
+          color: activeColor,
+          gradient_coords: [normalizedX0, normalizedY0],
+          object_type: 1, // OBJECT_TYPE_TEXT
+        },
+        {
+          position: [x1, y0, z],
+          tex_coords: [u1, v0],
+          color: activeColor,
+          gradient_coords: [normalizedX1, normalizedY0],
+          object_type: 1, // OBJECT_TYPE_TEXT
+        },
+        {
+          position: [x1, y1, z],
+          tex_coords: [u1, v1],
+          color: activeColor,
+          gradient_coords: [normalizedX1, normalizedY1],
+          object_type: 1, // OBJECT_TYPE_TEXT
+        },
+        {
+          position: [x0, y1, z],
+          tex_coords: [u0, v1],
+          color: activeColor,
+          gradient_coords: [normalizedX0, normalizedY1],
+          object_type: 1, // OBJECT_TYPE_TEXT
+        }
       );
 
       // Add indices for the glyph quad (two triangles)
@@ -651,6 +686,7 @@ export class TextRenderer {
     queue: GPUQueue,
     modelBindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
+    gradientBindGroupLayout: GPUBindGroupLayout,
     camera: Camera,
     selectedSequenceId: string,
     fontData: Buffer
@@ -660,6 +696,7 @@ export class TextRenderer {
       queue,
       modelBindGroupLayout,
       groupBindGroupLayout,
+      gradientBindGroupLayout,
       config,
       fontData,
       windowSize,

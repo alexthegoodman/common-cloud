@@ -95,6 +95,19 @@ export class CanvasPipeline {
       label: "model_bind_group_layout",
     });
 
+    const gradientBindGroupLayout = gpuResources.device.createBindGroupLayout({
+      entries: [
+        {
+          binding: 0,
+          visibility: GPUShaderStage.FRAGMENT,
+          buffer: {
+            type: "uniform",
+          },
+        },
+      ],
+      label: "gradient_bind_group_layout",
+    });
+
     const groupBindGroupLayout = gpuResources.device.createBindGroupLayout({
       entries: [
         {
@@ -156,6 +169,7 @@ export class CanvasPipeline {
         modelBindGroupLayout,
         windowSizeBindGroupLayout,
         groupBindGroupLayout,
+        gradientBindGroupLayout,
       ],
     });
 
@@ -221,6 +235,7 @@ export class CanvasPipeline {
     editor.gpuResources = gpuResources;
     editor.modelBindGroupLayout = modelBindGroupLayout;
     editor.groupBindGroupLayout = groupBindGroupLayout;
+    editor.gradientBindGroupLayout = gradientBindGroupLayout;
     editor.windowSizeBindGroup = windowSizeBindGroup;
     editor.windowSizeBindGroupLayout = windowSizeBindGroupLayout;
     editor.windowSizeBuffer = windowSizeBuffer;

@@ -3,7 +3,11 @@ import { v4 as uuidv4 } from "uuid";
 import { Point } from "./editor";
 import { createEmptyGroupTransform, Transform } from "./transform";
 import { Vertex } from "./vertex";
-import { INTERNAL_LAYER_SPACE, SavedPoint } from "./polygon";
+import {
+  INTERNAL_LAYER_SPACE,
+  SavedPoint,
+  setupGradientBuffers,
+} from "./polygon";
 import MP4Box, { DataStream, MP4ArrayBuffer, MP4VideoTrack } from "mp4box";
 import { WindowSize } from "./camera";
 import { MotionPath } from "./motionpath";
@@ -135,6 +139,7 @@ export class StVideo {
   private codecString?: string;
 
   bytesPerFrame: number | null = null;
+  gradientBindGroup: GPUBindGroup;
 
   constructor(
     device: GPUDevice,
@@ -144,6 +149,7 @@ export class StVideo {
     windowSize: { width: number; height: number },
     bindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
+    gradientBindGroupLayout: GPUBindGroupLayout,
     zIndex: number,
     currentSequenceId: string,
     loadedHidden: boolean
@@ -191,6 +197,13 @@ export class StVideo {
 
     this.transform.layer = videoConfig.layer - INTERNAL_LAYER_SPACE;
     this.transform.updateUniformBuffer(queue, windowSize);
+
+    let gradientBindGroup = setupGradientBuffers(
+      device,
+      gradientBindGroupLayout
+    );
+
+    this.gradientBindGroup = gradientBindGroup;
 
     let [group_bind_group, group_transform] = createEmptyGroupTransform(
       device,
@@ -273,10 +286,18 @@ export class StVideo {
             const posY = -0.5 + y / rows;
             const texX = x / cols;
             const texY = y / rows;
+
+            const normalizedX =
+              (posX - this.transform.position[0]) / this.dimensions[0];
+            const normalizedY =
+              (posY - this.transform.position[1]) / this.dimensions[1];
+
             this.vertices.push({
               position: [posX, posY, 0.0],
               tex_coords: [texX, texY],
               color: [1.0, 1.0, 1.0, 1.0],
+              gradient_coords: [normalizedX, normalizedY],
+              object_type: 3, // OBJECT_TYPE_VIDEO
             });
           }
         }

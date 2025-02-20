@@ -15,7 +15,7 @@ import {
 import { createVertex, getZLayer, Vertex, vertexByteSize } from "./vertex";
 
 import * as gt from "@thi.ng/geom-tessellate";
-import { ObjectType } from "./animations";
+import { GradientDefinition, ObjectType } from "./animations";
 
 export const INTERNAL_LAYER_SPACE = 10;
 
@@ -100,12 +100,17 @@ export class Polygon implements PolygonShape {
   objectType: ObjectType;
   textureView: GPUTextureView;
 
+  gradient?: GradientDefinition;
+  gradientBuffer?: GPUBuffer;
+  gradientBindGroup?: GPUBindGroup;
+
   constructor(
     window_size: WindowSize,
     device: GPUDevice,
     queue: GPUQueue,
     bindGroupLayout: GPUBindGroupLayout,
     groupBindGroupLayout: GPUBindGroupLayout,
+    gradientBindGroupLayout: GPUBindGroupLayout,
     camera: Camera,
     points: Point[],
     dimensions: [number, number],
@@ -177,6 +182,13 @@ export class Polygon implements PolygonShape {
       camera,
       config
     );
+
+    let gradientBindGroup = setupGradientBuffers(
+      device,
+      gradientBindGroupLayout
+    );
+
+    this.gradientBindGroup = gradientBindGroup;
 
     this.textureView = textureView;
 
@@ -677,8 +689,20 @@ export function getPolygonData(
     tessellationResult.faces
   ) {
     tessellationResult.points.forEach((point) => {
+      const normalizedX =
+        (point[0] - polygon.position.x) / polygon.dimensions[0];
+      const normalizedY =
+        (point[1] - polygon.position.y) / polygon.dimensions[1];
+
       vertices.push(
-        createVertex(point[0], point[1], getZLayer(1.0), polygon.fill)
+        // createVertex(point[0], point[1], getZLayer(1.0), polygon.fill, ObjectType.Polygon)
+        {
+          position: [point[0], point[1], 0],
+          tex_coords: [0, 0],
+          color: polygon.fill,
+          gradient_coords: [normalizedX, normalizedY],
+          object_type: 0, // OBJECT_TYPE_POLYGON
+        }
       );
     });
     tessellationResult.faces.forEach((face) => {
@@ -976,4 +1000,72 @@ export function createRoundedPolygonPath(
   }
 
   return pathPoints;
+}
+
+export function setupGradientBuffers(
+  device: GPUDevice,
+  gradientBindGroupLayout: GPUBindGroupLayout,
+  gradient?: GradientDefinition
+): GPUBindGroup {
+  let defaultStops = [
+    { offset: 0, color: [1, 0, 0, 1] }, // Red
+    { offset: 1, color: [0, 0, 1, 1] }, // Blue
+  ];
+  // Create buffer for gradient stops
+  let gradientData = new Float32Array([
+    // Stops data
+    ...defaultStops.flatMap((stop) => [stop.offset, ...stop.color]),
+    // Fill remaining stops with zeros if less than 8
+    ...new Array(8 - defaultStops.length).flatMap(() => [0, 0, 0, 0, 0]),
+
+    defaultStops.length, // numStops
+    1, // gradientType
+    ...[0, 0], // startPoint
+    ...[1, 1], // endPoint
+    ...[0.5, 0.5], // center
+    1.0, // radius
+    0, // timeOffset
+    0, // animationSpeed
+    1, // enabled
+  ]);
+
+  if (gradient) {
+    gradientData = new Float32Array([
+      // Stops data
+      ...gradient.stops.flatMap((stop) => [stop.offset, ...stop.color]),
+      // Fill remaining stops with zeros if less than 8
+      ...new Array(8 - gradient.stops.length).flatMap(() => [0, 0, 0, 0, 0]),
+
+      gradient.stops.length, // numStops
+      gradient.type === "linear" ? 0 : 1, // gradientType
+      ...(gradient.startPoint || [0, 0]), // startPoint
+      ...(gradient.endPoint || [1, 0]), // endPoint
+      ...(gradient.center || [0.5, 0.5]), // center
+      gradient.radius || 1.0, // radius
+      gradient.timeOffset || 0, // timeOffset
+      gradient.animationSpeed || 0, // animationSpeed
+      1, // enabled
+    ]);
+  }
+
+  let gradientBuffer = device.createBuffer({
+    size: gradientData.byteLength,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    mappedAtCreation: true,
+  });
+  new Float32Array(gradientBuffer.getMappedRange()).set(gradientData);
+  gradientBuffer.unmap();
+
+  // Create bind group for gradient data
+  let gradientBindGroup = device.createBindGroup({
+    layout: gradientBindGroupLayout,
+    entries: [
+      {
+        binding: 0,
+        resource: { buffer: gradientBuffer },
+      },
+    ],
+  });
+
+  return gradientBindGroup;
 }
