@@ -257,25 +257,18 @@ export class TextRenderer {
     queue: GPUQueue,
     charGlyph: CharRasterConfig
   ): AtlasGlyph {
-    // Get the glyph layout for the given character (using fontkit for metrics)
-    // const glyphRun = this.font.layout(rasterConfig.character);
-    // const glyph = glyphRun.glyphs[0];
-    // const position = glyphRun.positions[0];
-
-    // // Calculate metrics
-    // const scale = rasterConfig.fontSize / this.font.unitsPerEm;
-    // const boundingBox = glyph.bbox;
-
     const metrics = {
       width: charGlyph.charItem.width,
+      // height: charGlyph.charItem.capHeight,
       height: charGlyph.charItem.height,
       xmin: charGlyph.charItem.x,
       ymin: charGlyph.charItem.y,
     };
 
     // Create an offscreen canvas to render the glyph
-    let canvas_width = charGlyph.charItem.width;
-    let canvas_height = charGlyph.charItem.height;
+    let canvas_width = charGlyph.charItem.width + 1;
+    // let canvas_height = charGlyph.charItem.capHeight;
+    let canvas_height = charGlyph.charItem.height + 1;
 
     if (canvas_width <= 0 || canvas_height <= 0) {
       canvas_width = 1;
@@ -308,13 +301,7 @@ export class TextRenderer {
     ctx.textBaseline = "alphabetic"; // Align text to the baseline
     ctx.textAlign = "left"; // Align text to the left
 
-    // Translate to account for the glyph's bounding box
-    // ctx.translate(-boundingBox.minX * scale, -boundingBox.minY * scale);
-
-    // Draw the character using the native Canvas API
-    // ctx.fillText(rasterConfig.character, 0, 0);
-
-    const baselineY = Math.ceil(charGlyph.charItem.capHeight);
+    const baselineY = Math.ceil(charGlyph.charItem.height);
     ctx.fillText(charGlyph.charItem.char, 0, baselineY);
 
     // Get the image data from the canvas
@@ -322,8 +309,6 @@ export class TextRenderer {
 
     // Convert the image data to RGBA format
     const rgbaData = new Uint8Array(imageData.data.buffer);
-
-    // visualizeRGBA(rgbaData, canvas.width, canvas.height, "glyphCanvas"); // Pass the canvas width/height
 
     // Check if we need to move to the next row in the atlas
     if (this.nextAtlasPosition[0] + canvas.width > this.atlasSize[0]) {
@@ -342,8 +327,6 @@ export class TextRenderer {
       canvas.width / this.atlasSize[0],
       canvas.height / this.atlasSize[1],
     ];
-
-    // console.info("rgbData", rgbaData.length);
 
     // Write glyph bitmap to atlas
     queue.writeTexture(
@@ -372,8 +355,6 @@ export class TextRenderer {
     // Update atlas position for next glyph
     this.nextAtlasPosition[0] += canvas.width;
 
-    // console.info("atlas position", this.nextAtlasPosition);
-
     return {
       uv_rect,
       // metrics: [metrics.width, metrics.height, metrics.xmin, metrics.ymin],
@@ -394,6 +375,12 @@ export class TextRenderer {
     const startY = 0;
     // let currentX = startX;
     for (let [pageIndex, charItems] of Object.entries(docByPage)) {
+      // temp
+      console.info("pageindex", pageIndex);
+      if (parseInt(pageIndex) > 0) {
+        continue;
+      }
+
       for (let charItem of charItems) {
         const glyph = charItem.realChar;
 
@@ -413,10 +400,12 @@ export class TextRenderer {
 
         const baseVertex = vertices.length;
 
+        const baselineY = charItem.capHeight - charItem.height;
+
         let x0 = charItem.x;
         let x1 = charItem.x + charItem.width;
-        let y0 = charItem.y;
-        let y1 = charItem.y + charItem.height;
+        let y0 = charItem.y + baselineY;
+        let y1 = charItem.y + charItem.height + baselineY;
 
         // UV coordinates from atlas
         let u0 = atlasGlyph.uv_rect[0];
