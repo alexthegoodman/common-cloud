@@ -48,6 +48,11 @@ export interface GlyphRasterConfig {
   fontSize: number;
 }
 
+export interface CharRasterConfig {
+  charItem: RenderItem;
+  fontSize: number;
+}
+
 export interface AtlasGlyph {
   uv_rect: [number, number, number, number];
   metrics: {
@@ -246,13 +251,265 @@ export class TextRenderer {
     this.groupBindGroup = tmp_group_bind_group;
   }
 
-  addAreaGlyphToAtlas() {}
+  addAreaGlyphToAtlas(
+    device: GPUDevice,
+    queue: GPUQueue,
+    charGlyph: CharRasterConfig
+  ): AtlasGlyph {
+    // Get the glyph layout for the given character (using fontkit for metrics)
+    // const glyphRun = this.font.layout(rasterConfig.character);
+    // const glyph = glyphRun.glyphs[0];
+    // const position = glyphRun.positions[0];
+
+    // // Calculate metrics
+    // const scale = rasterConfig.fontSize / this.font.unitsPerEm;
+    // const boundingBox = glyph.bbox;
+
+    const metrics = {
+      width: charGlyph.charItem.width,
+      height: charGlyph.charItem.height,
+      xmin: charGlyph.charItem.x,
+      ymin: charGlyph.charItem.y,
+    };
+
+    // Create an offscreen canvas to render the glyph
+    let canvas_width = charGlyph.charItem.width;
+    let canvas_height = charGlyph.charItem.height;
+
+    if (canvas_width <= 0 || canvas_height <= 0) {
+      canvas_width = 1;
+      canvas_height = 1;
+    }
+
+    const canvas = new OffscreenCanvas(canvas_width, canvas_height);
+    // let canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("Could not create canvas context");
+    }
+
+    ctx.globalAlpha = 0.5;
+    ctx.globalCompositeOperation = "copy"; // Disable premultiplied alpha
+
+    // Set canvas size to match the glyph's bounding box
+    canvas.width = canvas_width;
+    canvas.height = canvas_height;
+
+    // Render the glyph onto the canvas using native Canvas API
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "white"; // Use white for the glyph color, or black for testing
+
+    // Set up the font and text rendering
+    ctx.font = `${charGlyph.fontSize}px ${this.font.familyName}`;
+
+    console.info("this.font.familyName", this.font.familyName);
+
+    ctx.textBaseline = "alphabetic"; // Align text to the baseline
+    ctx.textAlign = "left"; // Align text to the left
+
+    // Translate to account for the glyph's bounding box
+    // ctx.translate(-boundingBox.minX * scale, -boundingBox.minY * scale);
+
+    // Draw the character using the native Canvas API
+    // ctx.fillText(rasterConfig.character, 0, 0);
+
+    const baselineY = Math.ceil(charGlyph.charItem.capHeight);
+    ctx.fillText(charGlyph.charItem.char, 0, baselineY);
+
+    // Get the image data from the canvas
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // Convert the image data to RGBA format
+    const rgbaData = new Uint8Array(imageData.data.buffer);
+
+    // visualizeRGBA(rgbaData, canvas.width, canvas.height, "glyphCanvas"); // Pass the canvas width/height
+
+    // Check if we need to move to the next row in the atlas
+    if (this.nextAtlasPosition[0] + canvas.width > this.atlasSize[0]) {
+      this.nextAtlasPosition[0] = 0;
+      this.nextAtlasPosition[1] += this.currentRowHeight;
+      this.currentRowHeight = 0;
+    }
+
+    // Update current row height if this glyph is taller
+    this.currentRowHeight = Math.max(this.currentRowHeight, canvas.height);
+
+    // Calculate UV coordinates
+    const uv_rect: [number, number, number, number] = [
+      this.nextAtlasPosition[0] / this.atlasSize[0],
+      this.nextAtlasPosition[1] / this.atlasSize[1],
+      canvas.width / this.atlasSize[0],
+      canvas.height / this.atlasSize[1],
+    ];
+
+    // console.info("rgbData", rgbaData.length);
+
+    // Write glyph bitmap to atlas
+    queue.writeTexture(
+      {
+        texture: this.atlasTexture,
+        mipLevel: 0,
+        origin: {
+          x: this.nextAtlasPosition[0],
+          y: this.nextAtlasPosition[1],
+          z: 0,
+        },
+      },
+      rgbaData,
+      {
+        offset: 0,
+        bytesPerRow: canvas.width * 4, // *4 for RGBA
+        rowsPerImage: canvas.height,
+      },
+      {
+        width: canvas.width,
+        height: canvas.height,
+        depthOrArrayLayers: 1,
+      }
+    );
+
+    // Update atlas position for next glyph
+    this.nextAtlasPosition[0] += canvas.width;
+
+    // console.info("atlas position", this.nextAtlasPosition);
+
+    return {
+      uv_rect,
+      // metrics: [metrics.width, metrics.height, metrics.xmin, metrics.ymin],
+      metrics,
+    };
+  }
 
   renderAreaText(
     device: GPUDevice,
     queue: GPUQueue,
     docByPage: { [key: number]: RenderItem[] }
-  ) {}
+  ) {
+    const vertices: Vertex[] = [];
+    const indices: number[] = [];
+
+    // Calculate the total width and height of the text
+    const startX = 0;
+    const startY = 0;
+    // let currentX = startX;
+    for (let [pageIndex, charItems] of Object.entries(docByPage)) {
+      for (let charItem of charItems) {
+        const glyph = charItem.realChar;
+
+        // Create a unique key for the glyph (e.g., glyph ID + font size)
+        const key = `${glyph}-${this.fontSize}`;
+
+        // Ensure the glyph is in the atlas
+        if (!this.glyphCache.has(key)) {
+          const atlasGlyph = this.addAreaGlyphToAtlas(device, queue, {
+            charItem, // Convert code point to character
+            fontSize: this.fontSize,
+          });
+          this.glyphCache.set(key, atlasGlyph);
+        }
+
+        const atlasGlyph = this.glyphCache.get(key)!;
+
+        const baseVertex = vertices.length;
+
+        let x0 = charItem.x;
+        let x1 = charItem.x + charItem.width;
+        let y0 = charItem.y;
+        let y1 = charItem.y + charItem.height;
+
+        // UV coordinates from atlas
+        let u0 = atlasGlyph.uv_rect[0];
+        let u1 = u0 + atlasGlyph.uv_rect[2];
+        let v0 = atlasGlyph.uv_rect[1];
+        let v1 = v0 + atlasGlyph.uv_rect[3];
+
+        const z = getZLayer(1.0);
+
+        const activeColor = rgbToWgpu(
+          this.color[0],
+          this.color[1],
+          this.color[2],
+          255.0
+        );
+
+        y0 = y0 === -Infinity || y0 === Infinity ? 0 : y0;
+        y1 = y1 === -Infinity || y1 === Infinity ? 0 : y1;
+
+        // console.info("vertice pos", x0, x1, y0, y1);
+
+        const normalizedX0 =
+          (x0 - this.transform.position[0]) / this.dimensions[0];
+        const normalizedY0 =
+          (y0 - this.transform.position[1]) / this.dimensions[1];
+        const normalizedX1 =
+          (x1 - this.transform.position[0]) / this.dimensions[0];
+        const normalizedY1 =
+          (y1 - this.transform.position[1]) / this.dimensions[1];
+
+        // Add vertices for the glyph quad
+        vertices.push(
+          {
+            position: [x0, y0, z],
+            tex_coords: [u0, v0],
+            color: activeColor,
+            gradient_coords: [normalizedX0, normalizedY0],
+            object_type: 1, // OBJECT_TYPE_TEXT
+          },
+          {
+            position: [x1, y0, z],
+            tex_coords: [u1, v0],
+            color: activeColor,
+            gradient_coords: [normalizedX1, normalizedY0],
+            object_type: 1, // OBJECT_TYPE_TEXT
+          },
+          {
+            position: [x1, y1, z],
+            tex_coords: [u1, v1],
+            color: activeColor,
+            gradient_coords: [normalizedX1, normalizedY1],
+            object_type: 1, // OBJECT_TYPE_TEXT
+          },
+          {
+            position: [x0, y1, z],
+            tex_coords: [u0, v1],
+            color: activeColor,
+            gradient_coords: [normalizedX0, normalizedY1],
+            object_type: 1, // OBJECT_TYPE_TEXT
+          }
+        );
+
+        // Add indices for the glyph quad (two triangles)
+        indices.push(
+          baseVertex,
+          baseVertex + 1,
+          baseVertex + 2,
+          baseVertex,
+          baseVertex + 2,
+          baseVertex + 3
+        );
+      }
+    }
+
+    // Update buffers
+    queue.writeBuffer(
+      this.vertexBuffer,
+      0,
+      new Float32Array(
+        vertices.flatMap((v) => [
+          ...v.position,
+          ...v.tex_coords,
+          ...v.color,
+          ...v.gradient_coords,
+          v.object_type,
+        ])
+      )
+    );
+    queue.writeBuffer(this.indexBuffer, 0, new Uint32Array(indices));
+
+    // Store vertices and indices for later use
+    this.vertices = vertices;
+    this.indices = indices;
+  }
 
   addGlyphToAtlas(
     device: GPUDevice,
