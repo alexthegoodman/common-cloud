@@ -1383,750 +1383,727 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
   ];
 
   return (
-    <div className="flex flex-row p-4">
-      <div className="flex flex-col gap-4 mr-4">
-        {/* <p style={{ fontFamily: "Maitree" }}>Maitree</p> */}
-        <NavButton
-          label="Motion"
-          icon="brush"
-          destination={`/project/${projectId}`}
-        />
-        <NavButton label="Settings" icon="gear" destination="/settings" />
-      </div>
-      <div className="flex flex-row w-full">
-        {section === "SequenceList" ? (
-          <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-            <div className="flex flex-col w-full">
-              <ExportVideoButton
-                editorRef={editorRef}
-                editorStateRef={editorStateRef}
-              />
-              <div className="flex flex-row justify-between align-center w-full">
-                <h5>Sequences</h5>
-                <button
-                  className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-                  disabled={loading}
-                  onClick={on_create_sequence}
-                >
-                  New Sequence
-                </button>
-              </div>
-              <div className="flex flex-col w-full mt-2">
-                {sequences.map((sequence: Sequence) => (
-                  <div className="flex flex-row" key={sequence.id}>
-                    <button
-                      className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
-                      disabled={loading}
-                      onClick={() => on_open_sequence(sequence.id)}
-                    >
-                      Open {sequence.name}
-                    </button>
-                    {/* <button
+    <div className="flex flex-row w-full">
+      {section === "SequenceList" ? (
+        <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+          <div className="flex flex-col w-full">
+            <ExportVideoButton
+              editorRef={editorRef}
+              editorStateRef={editorStateRef}
+            />
+            <div className="flex flex-row justify-between align-center w-full">
+              <h5>Sequences</h5>
+              <button
+                className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+                disabled={loading}
+                onClick={on_create_sequence}
+              >
+                New Sequence
+              </button>
+            </div>
+            <div className="flex flex-col w-full mt-2">
+              {sequences.map((sequence: Sequence) => (
+                <div className="flex flex-row" key={sequence.id}>
+                  <button
+                    className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
+                    disabled={loading}
+                    onClick={() => on_open_sequence(sequence.id)}
+                  >
+                    Open {sequence.name}
+                  </button>
+                  {/* <button
                         className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
                         disabled={loading}
                         onClick={() => {}}
                       >
                         Duplicate
                       </button> */}
-                    <button
-                      className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
-                      disabled={loading}
-                      onClick={async () => {
-                        let editor_state = editorStateRef.current;
+                  <button
+                    className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
+                    disabled={loading}
+                    onClick={async () => {
+                      let editor_state = editorStateRef.current;
 
-                        if (!editor_state) {
-                          return;
-                        }
+                      if (!editor_state) {
+                        return;
+                      }
 
-                        let existing_timeline =
-                          editor_state.savedState.timeline_state
-                            .timeline_sequences;
+                      let existing_timeline =
+                        editor_state.savedState.timeline_state
+                          .timeline_sequences;
 
-                        // Find the sequence that ends at the latest point in time
-                        let startTime = 0;
-                        if (existing_timeline.length > 0) {
-                          let test = existing_timeline.map((seq) => {
-                            let duration_ms = sequenceDurations[seq.sequenceId];
-                            return seq.startTimeMs + duration_ms;
-                          });
-
-                          startTime = Math.max(...test);
-                        }
-
-                        existing_timeline.push({
-                          id: uuidv4(),
-                          sequenceId: sequence.id,
-                          trackType: TrackType.Video,
-                          startTimeMs: startTime,
-                          // duration_ms: 20000,
+                      // Find the sequence that ends at the latest point in time
+                      let startTime = 0;
+                      if (existing_timeline.length > 0) {
+                        let test = existing_timeline.map((seq) => {
+                          let duration_ms = sequenceDurations[seq.sequenceId];
+                          return seq.startTimeMs + duration_ms;
                         });
 
-                        await saveTimelineData(
-                          editor_state.savedState.timeline_state
-                        );
+                        startTime = Math.max(...test);
+                      }
 
-                        setTSequences(
-                          editor_state.savedState.timeline_state
-                            .timeline_sequences
-                        );
+                      existing_timeline.push({
+                        id: uuidv4(),
+                        sequenceId: sequence.id,
+                        trackType: TrackType.Video,
+                        startTimeMs: startTime,
+                        // duration_ms: 20000,
+                      });
 
-                        console.info("Sequence added!");
-                      }}
-                    >
-                      Add to Timeline
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      await saveTimelineData(
+                        editor_state.savedState.timeline_state
+                      );
+
+                      setTSequences(
+                        editor_state.savedState.timeline_state
+                          .timeline_sequences
+                      );
+
+                      console.info("Sequence added!");
+                    }}
+                  >
+                    Add to Timeline
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
-        ) : (
-          <></>
-        )}
-        {section === "SequenceView" && current_sequence_id ? (
-          <div className="flex flex-col gap-4 w-full max-w-[315px]">
-            {selected_keyframes && selected_keyframes?.length > 0 ? (
-              <>
-                <KeyframeProperties
+        </div>
+      ) : (
+        <></>
+      )}
+      {section === "SequenceView" && current_sequence_id ? (
+        <div className="flex flex-col gap-4 w-full max-w-[315px]">
+          {selected_keyframes && selected_keyframes?.length > 0 ? (
+            <>
+              <KeyframeProperties
+                editorRef={editorRef}
+                editorStateRef={editorStateRef}
+                currentSequenceId={current_sequence_id}
+                selectedKeyframe={selected_keyframes[0]}
+                setRefreshTimeline={setRefreshTimeline}
+              />
+            </>
+          ) : (
+            <>
+              {selected_polygon_id && (
+                <PolygonProperties
                   editorRef={editorRef}
                   editorStateRef={editorStateRef}
                   currentSequenceId={current_sequence_id}
-                  selectedKeyframe={selected_keyframes[0]}
-                  setRefreshTimeline={setRefreshTimeline}
+                  currentPolygonId={selected_polygon_id}
+                  handleGoBack={() => {
+                    set_selected_polygon_id(null);
+                  }}
                 />
-              </>
-            ) : (
-              <>
-                {selected_polygon_id && (
-                  <PolygonProperties
-                    editorRef={editorRef}
-                    editorStateRef={editorStateRef}
-                    currentSequenceId={current_sequence_id}
-                    currentPolygonId={selected_polygon_id}
-                    handleGoBack={() => {
-                      set_selected_polygon_id(null);
-                    }}
-                  />
-                )}
+              )}
 
-                {selected_image_id && (
+              {selected_image_id && (
+                <>
+                  <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                    <ImageProperties
+                      editorRef={editorRef}
+                      editorStateRef={editorStateRef}
+                      currentSequenceId={current_sequence_id}
+                      currentImageId={selected_image_id}
+                      handleGoBack={() => {
+                        set_selected_image_id(null);
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+
+              {selected_text_id && (
+                <>
+                  <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                    <TextProperties
+                      editorRef={editorRef}
+                      editorStateRef={editorStateRef}
+                      currentSequenceId={current_sequence_id}
+                      currentTextId={selected_text_id}
+                      handleGoBack={() => {
+                        set_selected_text_id(null);
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+
+              {selected_video_id && (
+                <>
+                  <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                    <VideoProperties
+                      editorRef={editorRef}
+                      editorStateRef={editorStateRef}
+                      currentSequenceId={current_sequence_id}
+                      currentVideoId={selected_video_id}
+                      handleGoBack={() => {
+                        set_selected_video_id(null);
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+
+              {!selected_polygon_id &&
+                !selected_image_id &&
+                !selected_text_id &&
+                !selected_video_id && (
                   <>
-                    <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                      <ImageProperties
-                        editorRef={editorRef}
-                        editorStateRef={editorStateRef}
-                        currentSequenceId={current_sequence_id}
-                        currentImageId={selected_image_id}
-                        handleGoBack={() => {
-                          set_selected_image_id(null);
-                        }}
-                      />
-                    </div>
-                  </>
-                )}
-
-                {selected_text_id && (
-                  <>
-                    <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                      <TextProperties
-                        editorRef={editorRef}
-                        editorStateRef={editorStateRef}
-                        currentSequenceId={current_sequence_id}
-                        currentTextId={selected_text_id}
-                        handleGoBack={() => {
-                          set_selected_text_id(null);
-                        }}
-                      />
-                    </div>
-                  </>
-                )}
-
-                {selected_video_id && (
-                  <>
-                    <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                      <VideoProperties
-                        editorRef={editorRef}
-                        editorStateRef={editorStateRef}
-                        currentSequenceId={current_sequence_id}
-                        currentVideoId={selected_video_id}
-                        handleGoBack={() => {
-                          set_selected_video_id(null);
-                        }}
-                      />
-                    </div>
-                  </>
-                )}
-
-                {!selected_polygon_id &&
-                  !selected_image_id &&
-                  !selected_text_id &&
-                  !selected_video_id && (
-                    <>
-                      <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                        <div className="flex flex-col w-full gap-4 mb-4">
-                          <div className="flex flex-row items-center">
-                            <button
-                              className="flex flex-col justify-center items-center text-xs w-[35px] h-[35px] text-center rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors mr-2"
-                              disabled={loading}
-                              onClick={() => set_section("SequenceList")}
-                            >
-                              <CreateIcon icon="arrow-left" size="24px" />
-                            </button>
-                            <h5>Update Sequence</h5>
-                          </div>
-                          <div className="flex flex-row gap-2">
-                            <label htmlFor="keyframe_count" className="text-xs">
-                              Choose keyframe count
-                            </label>
-                            <select
-                              id="keyframe_count"
-                              name="keyframe_count"
-                              className="text-xs"
-                              value={keyframe_count}
-                              onChange={(ev) =>
-                                set_keyframe_count(parseInt(ev.target.value))
-                              }
-                            >
-                              <option value="4">4</option>
-                              <option value="6">6</option>
-                            </select>
-                            <input
-                              type="checkbox"
-                              id="is_curved"
-                              name="is_curved"
-                              checked={is_curved}
-                              onChange={(ev) =>
-                                set_is_curved(ev.target.checked)
-                              }
-                            />
-                            <label htmlFor="is_curved" className="text-xs">
-                              Is Curved
-                            </label>
-                          </div>
-                          <div className="flex flex-row gap-2">
-                            <input
-                              type="checkbox"
-                              id="auto_choreograph"
-                              name="auto_choreograph"
-                              checked={auto_choreograph}
-                              onChange={(ev) =>
-                                set_auto_choreograph(ev.target.checked)
-                              }
-                            />
-                            <label
-                              htmlFor="auto_choreograph"
-                              className="text-xs"
-                            >
-                              Auto-Choreograph
-                            </label>
-                            <input
-                              type="checkbox"
-                              id="auto_fade"
-                              name="auto_fade"
-                              checked={auto_fade}
-                              onChange={(ev) =>
-                                set_auto_fade(ev.target.checked)
-                              }
-                            />
-                            <label htmlFor="auto_fade" className="text-xs">
-                              Auto-Fade
-                            </label>
-                          </div>
+                    <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                      <div className="flex flex-col w-full gap-4 mb-4">
+                        <div className="flex flex-row items-center">
                           <button
-                            type="submit"
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex flex-col justify-center items-center text-xs w-[35px] h-[35px] text-center rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors mr-2"
                             disabled={loading}
-                            onClick={() => {
-                              on_generate_animation();
-                            }}
+                            onClick={() => set_section("SequenceList")}
                           >
-                            {loading ? "Generating..." : "Generate Animation"}
+                            <CreateIcon icon="arrow-left" size="24px" />
                           </button>
-                          <div className="flex flex-row flex-wrap gap-2">
-                            <OptionButton
-                              style=""
-                              label="Add Square"
-                              icon="square"
-                              callback={() => {
-                                if (!current_sequence_id) {
-                                  return;
-                                }
+                          <h5>Update Sequence</h5>
+                        </div>
+                        <div className="flex flex-row gap-2">
+                          <label htmlFor="keyframe_count" className="text-xs">
+                            Choose keyframe count
+                          </label>
+                          <select
+                            id="keyframe_count"
+                            name="keyframe_count"
+                            className="text-xs"
+                            value={keyframe_count}
+                            onChange={(ev) =>
+                              set_keyframe_count(parseInt(ev.target.value))
+                            }
+                          >
+                            <option value="4">4</option>
+                            <option value="6">6</option>
+                          </select>
+                          <input
+                            type="checkbox"
+                            id="is_curved"
+                            name="is_curved"
+                            checked={is_curved}
+                            onChange={(ev) => set_is_curved(ev.target.checked)}
+                          />
+                          <label htmlFor="is_curved" className="text-xs">
+                            Is Curved
+                          </label>
+                        </div>
+                        <div className="flex flex-row gap-2">
+                          <input
+                            type="checkbox"
+                            id="auto_choreograph"
+                            name="auto_choreograph"
+                            checked={auto_choreograph}
+                            onChange={(ev) =>
+                              set_auto_choreograph(ev.target.checked)
+                            }
+                          />
+                          <label htmlFor="auto_choreograph" className="text-xs">
+                            Auto-Choreograph
+                          </label>
+                          <input
+                            type="checkbox"
+                            id="auto_fade"
+                            name="auto_fade"
+                            checked={auto_fade}
+                            onChange={(ev) => set_auto_fade(ev.target.checked)}
+                          />
+                          <label htmlFor="auto_fade" className="text-xs">
+                            Auto-Fade
+                          </label>
+                        </div>
+                        <button
+                          type="submit"
+                          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={loading}
+                          onClick={() => {
+                            on_generate_animation();
+                          }}
+                        >
+                          {loading ? "Generating..." : "Generate Animation"}
+                        </button>
+                        <div className="flex flex-row flex-wrap gap-2">
+                          <OptionButton
+                            style=""
+                            label="Add Square"
+                            icon="square"
+                            callback={() => {
+                              if (!current_sequence_id) {
+                                return;
+                              }
 
-                                on_add_square(current_sequence_id);
-                              }}
-                            />
-                            <OptionButton
-                              style=""
-                              label="Add Text"
-                              icon="text"
-                              callback={() => {
-                                if (!current_sequence_id) {
-                                  return;
-                                }
+                              on_add_square(current_sequence_id);
+                            }}
+                          />
+                          <OptionButton
+                            style=""
+                            label="Add Text"
+                            icon="text"
+                            callback={() => {
+                              if (!current_sequence_id) {
+                                return;
+                              }
 
-                                on_add_text(current_sequence_id);
-                              }}
-                            />
+                              on_add_text(current_sequence_id);
+                            }}
+                          />
 
-                            <input
-                              type="file"
-                              ref={fileInputRef}
-                              accept="image/*"
-                              style={{ display: "none" }}
-                              onChange={(e) => {
-                                // Handle the selected file here
-                                if (!e.target.files || !current_sequence_id) {
-                                  return;
-                                }
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            accept="image/*"
+                            style={{ display: "none" }}
+                            onChange={(e) => {
+                              // Handle the selected file here
+                              if (!e.target.files || !current_sequence_id) {
+                                return;
+                              }
 
-                                const file = e.target.files[0];
-                                if (file) {
-                                  // Do something with the file
-                                  console.log("Selected file:", file);
-                                  on_add_image(current_sequence_id, file);
-                                }
-                              }}
-                            />
-                            <OptionButton
-                              style=""
-                              label="Add Image"
-                              icon="image"
-                              callback={() => fileInputRef.current?.click()}
-                            />
+                              const file = e.target.files[0];
+                              if (file) {
+                                // Do something with the file
+                                console.log("Selected file:", file);
+                                on_add_image(current_sequence_id, file);
+                              }
+                            }}
+                          />
+                          <OptionButton
+                            style=""
+                            label="Add Image"
+                            icon="image"
+                            callback={() => fileInputRef.current?.click()}
+                          />
 
-                            <input
-                              type="file"
-                              ref={videoInputRef}
-                              accept="video/*"
-                              style={{ display: "none" }}
-                              onChange={(e) => {
-                                // Handle the selected file here
-                                if (!e.target.files || !current_sequence_id) {
-                                  return;
-                                }
+                          <input
+                            type="file"
+                            ref={videoInputRef}
+                            accept="video/*"
+                            style={{ display: "none" }}
+                            onChange={(e) => {
+                              // Handle the selected file here
+                              if (!e.target.files || !current_sequence_id) {
+                                return;
+                              }
 
-                                const file = e.target.files[0];
-                                if (file) {
-                                  // Do something with the file
-                                  console.log("Selected file:", file);
-                                  on_add_video(current_sequence_id, file);
-                                }
-                              }}
-                            />
-                            <OptionButton
-                              style=""
-                              label="Add Video"
-                              icon="video"
-                              callback={() => videoInputRef.current?.click()}
-                            />
-                            <OptionButton
-                              style=""
-                              label="Screen Capture"
-                              icon="video"
-                              callback={() => {
-                                if (isCapturing) {
-                                  handleStopCapture();
-                                } else {
-                                  handleStartCapture();
-                                }
-                              }}
-                            />
-                          </div>
+                              const file = e.target.files[0];
+                              if (file) {
+                                // Do something with the file
+                                console.log("Selected file:", file);
+                                on_add_video(current_sequence_id, file);
+                              }
+                            }}
+                          />
+                          <OptionButton
+                            style=""
+                            label="Add Video"
+                            icon="video"
+                            callback={() => videoInputRef.current?.click()}
+                          />
+                          <OptionButton
+                            style=""
+                            label="Screen Capture"
+                            icon="video"
+                            callback={() => {
+                              if (isCapturing) {
+                                handleStopCapture();
+                              } else {
+                                handleStartCapture();
+                              }
+                            }}
+                          />
+                        </div>
 
-                          <div className="flex flex-row flex-wrap gap-2">
-                            {themes.map((theme: number[], i) => {
-                              const backgroundColorRow = Math.floor(theme[0]);
-                              const backgroundColorColumn = Math.floor(
-                                (theme[0] % 1) * 10
-                              );
-                              const backgroundColor =
-                                colors[backgroundColorRow][
-                                  backgroundColorColumn
-                                ];
-                              const textColorRow = Math.floor(theme[4]);
-                              const textColorColumn = Math.floor(
-                                (theme[4] % 1) * 10
-                              );
-                              const textColor =
-                                colors[textColorRow][textColorColumn];
+                        <div className="flex flex-row flex-wrap gap-2">
+                          {themes.map((theme: number[], i) => {
+                            const backgroundColorRow = Math.floor(theme[0]);
+                            const backgroundColorColumn = Math.floor(
+                              (theme[0] % 1) * 10
+                            );
+                            const backgroundColor =
+                              colors[backgroundColorRow][backgroundColorColumn];
+                            const textColorRow = Math.floor(theme[4]);
+                            const textColorColumn = Math.floor(
+                              (theme[4] % 1) * 10
+                            );
+                            const textColor =
+                              colors[textColorRow][textColorColumn];
 
-                              const backgroundRgb = hexParse(backgroundColor);
-                              const textRgb = hexParse(textColor);
+                            const backgroundRgb = hexParse(backgroundColor);
+                            const textRgb = hexParse(textColor);
 
-                              const fontIndex = theme[2];
+                            const fontIndex = theme[2];
 
-                              return (
-                                <OptionButton
-                                  key={`${backgroundColor}-${textColor}-${i}`}
-                                  style={`color: ${textColor}; background-color: ${backgroundColor};`}
-                                  label="Apply Theme"
-                                  icon="brush"
-                                  callback={async () => {
-                                    let editor = editorRef.current;
-                                    let editorState = editorStateRef.current;
+                            return (
+                              <OptionButton
+                                key={`${backgroundColor}-${textColor}-${i}`}
+                                style={`color: ${textColor}; background-color: ${backgroundColor};`}
+                                label="Apply Theme"
+                                icon="brush"
+                                callback={async () => {
+                                  let editor = editorRef.current;
+                                  let editorState = editorStateRef.current;
 
-                                    if (!editor || !editorState) {
-                                      return;
-                                    }
+                                  if (!editor || !editorState) {
+                                    return;
+                                  }
 
-                                    console.log("Apply Theme...");
+                                  console.log("Apply Theme...");
 
-                                    // apply theme to background canvas and text objects
+                                  // apply theme to background canvas and text objects
 
-                                    let text_color_wgpu = rgbToWgpu(
-                                      textRgb.r,
-                                      textRgb.g,
-                                      textRgb.b,
-                                      255.0
+                                  let text_color_wgpu = rgbToWgpu(
+                                    textRgb.r,
+                                    textRgb.g,
+                                    textRgb.b,
+                                    255.0
+                                  );
+
+                                  let text_color = [
+                                    textRgb.r,
+                                    textRgb.g,
+                                    textRgb.b,
+                                    255,
+                                  ] as [number, number, number, number];
+
+                                  let background_color_wgpu = rgbToWgpu(
+                                    backgroundRgb.r,
+                                    backgroundRgb.g,
+                                    backgroundRgb.b,
+                                    255.0
+                                  );
+
+                                  // using for text and canvas, so text_color can provide contrast
+                                  let background_color = [
+                                    backgroundRgb.r,
+                                    backgroundRgb.g,
+                                    backgroundRgb.b,
+                                    255,
+                                  ] as [number, number, number, number];
+
+                                  let ids_to_update = editor.textItems
+                                    .filter((text) => {
+                                      return (
+                                        text.currentSequenceId ===
+                                        current_sequence_id
+                                      );
+                                    })
+                                    .map((text) => text.id);
+
+                                  console.info(
+                                    "texts to update",
+                                    ids_to_update
+                                  );
+
+                                  let fontId =
+                                    editor.fontManager.fontData[fontIndex].name;
+                                  for (let id of ids_to_update) {
+                                    editor.update_text_color(
+                                      id,
+                                      background_color
                                     );
-
-                                    let text_color = [
-                                      textRgb.r,
-                                      textRgb.g,
-                                      textRgb.b,
-                                      255,
-                                    ] as [number, number, number, number];
-
-                                    let background_color_wgpu = rgbToWgpu(
-                                      backgroundRgb.r,
-                                      backgroundRgb.g,
-                                      backgroundRgb.b,
-                                      255.0
+                                    await editor.update_text_fontFamily(
+                                      fontId,
+                                      id
                                     );
+                                  }
 
-                                    // using for text and canvas, so text_color can provide contrast
-                                    let background_color = [
-                                      backgroundRgb.r,
-                                      backgroundRgb.g,
-                                      backgroundRgb.b,
-                                      255,
-                                    ] as [number, number, number, number];
-
-                                    let ids_to_update = editor.textItems
-                                      .filter((text) => {
-                                        return (
-                                          text.currentSequenceId ===
-                                          current_sequence_id
-                                        );
-                                      })
-                                      .map((text) => text.id);
-
-                                    console.info(
-                                      "texts to update",
-                                      ids_to_update
-                                    );
-
-                                    let fontId =
-                                      editor.fontManager.fontData[fontIndex]
-                                        .name;
-                                    for (let id of ids_to_update) {
-                                      editor.update_text_color(
-                                        id,
-                                        background_color
-                                      );
-                                      await editor.update_text_fontFamily(
-                                        fontId,
-                                        id
-                                      );
-                                    }
-
-                                    editorState.savedState.sequences.forEach(
-                                      (s) => {
-                                        if (s.id == current_sequence_id) {
-                                          s.activeTextItems.forEach((t) => {
-                                            // if t.id == selected_text_id.get().to_string() {
-                                            t.color = background_color;
-                                            t.fontFamily = fontId;
-                                            // }
-                                          });
-                                        }
-                                      }
-                                    );
-
-                                    for (let id of ids_to_update) {
-                                      editor.update_text(
-                                        id,
-                                        "red_fill",
-                                        InputValue.Number,
-                                        text_color_wgpu[0]
-                                      );
-                                      editor.update_text(
-                                        id,
-                                        "green_fill",
-                                        InputValue.Number,
-                                        text_color_wgpu[1]
-                                      );
-                                      editor.update_text(
-                                        id,
-                                        "blue_fill",
-                                        InputValue.Number,
-                                        text_color_wgpu[2]
-                                      );
-                                    }
-
-                                    editorState.savedState.sequences.forEach(
-                                      (s) => {
-                                        s.activeTextItems.forEach((p) => {
-                                          p.backgroundFill = {
-                                            type: "Color",
-                                            value: text_color_wgpu,
-                                          };
+                                  editorState.savedState.sequences.forEach(
+                                    (s) => {
+                                      if (s.id == current_sequence_id) {
+                                        s.activeTextItems.forEach((t) => {
+                                          // if t.id == selected_text_id.get().to_string() {
+                                          t.color = background_color;
+                                          t.fontFamily = fontId;
+                                          // }
                                         });
                                       }
+                                    }
+                                  );
+
+                                  for (let id of ids_to_update) {
+                                    editor.update_text(
+                                      id,
+                                      "red_fill",
+                                      InputValue.Number,
+                                      text_color_wgpu[0]
                                     );
-
-                                    console.info(
-                                      "Updating canvas background..."
+                                    editor.update_text(
+                                      id,
+                                      "green_fill",
+                                      InputValue.Number,
+                                      text_color_wgpu[1]
                                     );
-
-                                    let background_uuid = current_sequence_id;
-
-                                    let stops: GradientStop[] = [
-                                      {
-                                        offset: 0,
-                                        color: text_color_wgpu,
-                                      },
-                                      {
-                                        offset: 1,
-                                        color: background_color_wgpu,
-                                      },
-                                    ];
-
-                                    let gradientBackground: BackgroundFill = {
-                                      type: "Gradient",
-                                      value: {
-                                        stops: stops,
-                                        numStops: stops.length, // numStops
-                                        type: "linear", // gradientType (0 is linear, 1 is radial)
-                                        startPoint: [0, 0], // startPoint
-                                        endPoint: [1, 0], // endPoint
-                                        center: [0.5, 0.5], // center
-                                        radius: 1.0, // radius
-                                        timeOffset: 0, // timeOffset
-                                        animationSpeed: 1, // animationSpeed
-                                        enabled: 1, // enabled
-                                      },
-                                    };
-
-                                    // editor.update_background(
-                                    //   background_uuid,
-                                    //   "red",
-                                    //   InputValue.Number,
-                                    //   background_color[0]
-                                    // );
-                                    // editor.update_background(
-                                    //   background_uuid,
-                                    //   "green",
-                                    //   InputValue.Number,
-                                    //   background_color[1]
-                                    // );
-                                    // editor.update_background(
-                                    //   background_uuid,
-                                    //   "blue",
-                                    //   InputValue.Number,
-                                    //   background_color[2]
-                                    // );
-
-                                    editor.update_background(
-                                      background_uuid,
-                                      gradientBackground
+                                    editor.update_text(
+                                      id,
+                                      "blue_fill",
+                                      InputValue.Number,
+                                      text_color_wgpu[2]
                                     );
+                                  }
 
-                                    editorState.savedState.sequences.forEach(
-                                      (s) => {
-                                        if (s.id == current_sequence_id) {
-                                          if (!s.backgroundFill) {
-                                            s.backgroundFill = {
-                                              type: "Color",
-                                              value: [0.8, 0.8, 0.8, 1],
-                                            } as BackgroundFill;
-                                          }
+                                  editorState.savedState.sequences.forEach(
+                                    (s) => {
+                                      s.activeTextItems.forEach((p) => {
+                                        p.backgroundFill = {
+                                          type: "Color",
+                                          value: text_color_wgpu,
+                                        };
+                                      });
+                                    }
+                                  );
 
-                                          // switch (s.backgroundFill.type) {
-                                          //   case "Color": {
-                                          //     s.backgroundFill = {
-                                          //       type: "Color",
-                                          //       value: background_color_wgpu,
-                                          //     };
+                                  console.info("Updating canvas background...");
 
-                                          //     break;
-                                          //   }
-                                          //   case "Gradient": {
-                                          //     s.backgroundFill = gradientBackground;
-                                          //     break;
-                                          //   }
-                                          // }
+                                  let background_uuid = current_sequence_id;
 
-                                          // gradient only on theme picker
-                                          s.backgroundFill = gradientBackground;
+                                  let stops: GradientStop[] = [
+                                    {
+                                      offset: 0,
+                                      color: text_color_wgpu,
+                                    },
+                                    {
+                                      offset: 1,
+                                      color: background_color_wgpu,
+                                    },
+                                  ];
+
+                                  let gradientBackground: BackgroundFill = {
+                                    type: "Gradient",
+                                    value: {
+                                      stops: stops,
+                                      numStops: stops.length, // numStops
+                                      type: "linear", // gradientType (0 is linear, 1 is radial)
+                                      startPoint: [0, 0], // startPoint
+                                      endPoint: [1, 0], // endPoint
+                                      center: [0.5, 0.5], // center
+                                      radius: 1.0, // radius
+                                      timeOffset: 0, // timeOffset
+                                      animationSpeed: 1, // animationSpeed
+                                      enabled: 1, // enabled
+                                    },
+                                  };
+
+                                  // editor.update_background(
+                                  //   background_uuid,
+                                  //   "red",
+                                  //   InputValue.Number,
+                                  //   background_color[0]
+                                  // );
+                                  // editor.update_background(
+                                  //   background_uuid,
+                                  //   "green",
+                                  //   InputValue.Number,
+                                  //   background_color[1]
+                                  // );
+                                  // editor.update_background(
+                                  //   background_uuid,
+                                  //   "blue",
+                                  //   InputValue.Number,
+                                  //   background_color[2]
+                                  // );
+
+                                  editor.update_background(
+                                    background_uuid,
+                                    gradientBackground
+                                  );
+
+                                  editorState.savedState.sequences.forEach(
+                                    (s) => {
+                                      if (s.id == current_sequence_id) {
+                                        if (!s.backgroundFill) {
+                                          s.backgroundFill = {
+                                            type: "Color",
+                                            value: [0.8, 0.8, 0.8, 1],
+                                          } as BackgroundFill;
                                         }
-                                      }
-                                    );
 
-                                    saveSequencesData(
-                                      editorState.savedState.sequences
-                                    );
-                                  }}
-                                />
-                              );
-                            })}
-                          </div>
-                          <label className="text-sm">Background Color</label>
-                          <div className="flex flex-row gap-2 mb-4">
-                            <DebouncedInput
-                              id="background_red"
-                              label="Red"
-                              placeholder="Red"
-                              initialValue={background_red.toString()}
-                              onDebounce={(value) => {
-                                set_background_red(parseInt(value));
-                              }}
-                            />
-                            <DebouncedInput
-                              id="background_green"
-                              label="Green"
-                              placeholder="Green"
-                              initialValue={background_green.toString()}
-                              onDebounce={(value) => {
-                                set_background_green(parseInt(value));
-                              }}
-                            />
-                            <DebouncedInput
-                              id="background_blue"
-                              label="Blue"
-                              placeholder="Blue"
-                              initialValue={background_blue.toString()}
-                              onDebounce={(value) => {
-                                set_background_blue(parseInt(value));
-                              }}
-                            />
-                          </div>
+                                        // switch (s.backgroundFill.type) {
+                                        //   case "Color": {
+                                        //     s.backgroundFill = {
+                                        //       type: "Color",
+                                        //       value: background_color_wgpu,
+                                        //     };
+
+                                        //     break;
+                                        //   }
+                                        //   case "Gradient": {
+                                        //     s.backgroundFill = gradientBackground;
+                                        //     break;
+                                        //   }
+                                        // }
+
+                                        // gradient only on theme picker
+                                        s.backgroundFill = gradientBackground;
+                                      }
+                                    }
+                                  );
+
+                                  saveSequencesData(
+                                    editorState.savedState.sequences
+                                  );
+                                }}
+                              />
+                            );
+                          })}
+                        </div>
+                        <label className="text-sm">Background Color</label>
+                        <div className="flex flex-row gap-2 mb-4">
+                          <DebouncedInput
+                            id="background_red"
+                            label="Red"
+                            placeholder="Red"
+                            initialValue={background_red.toString()}
+                            onDebounce={(value) => {
+                              set_background_red(parseInt(value));
+                            }}
+                          />
+                          <DebouncedInput
+                            id="background_green"
+                            label="Green"
+                            placeholder="Green"
+                            initialValue={background_green.toString()}
+                            onDebounce={(value) => {
+                              set_background_green(parseInt(value));
+                            }}
+                          />
+                          <DebouncedInput
+                            id="background_blue"
+                            label="Blue"
+                            placeholder="Blue"
+                            initialValue={background_blue.toString()}
+                            onDebounce={(value) => {
+                              set_background_blue(parseInt(value));
+                            }}
+                          />
                         </div>
                       </div>
-                      <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                        <LayerPanel
-                          layers={layers}
-                          setLayers={set_layers}
-                          onItemDeleted={on_item_deleted}
-                          onItemDuplicated={on_item_duplicated}
-                          onItemsUpdated={on_items_updated}
-                        />
-                      </div>
-                    </>
-                  )}
-              </>
-            )}
-          </div>
-        ) : (
-          <></>
-        )}
-        <div className="flex flex-col justify-center items-center w-[calc(100vw-420px)] gap-2">
-          <canvas
-            id="scene-canvas"
-            className="w-[900px] h-[550px] border border-black"
-            width="900"
-            height="550"
-          />
-          {current_sequence_id && (
-            <PlaySequenceButton
-              editorRef={editorRef}
-              editorStateRef={editorStateRef}
-              selected_sequence_id={current_sequence_id}
-            />
-          )}
-          {!current_sequence_id && (
-            <PlayVideoButton
-              editorRef={editorRef}
-              editorStateRef={editorStateRef}
-            />
-          )}
-          {!current_sequence_id &&
-            !selected_polygon_id &&
-            !selected_text_id &&
-            !selected_image_id &&
-            !selected_video_id && (
-              <TimelineTrack
-                type={TrackType.Video}
-                pixelsPerSecond={25}
-                tSequences={tSequences}
-                sequenceDurations={sequenceDurations}
-                sequenceQuickAccess={sequenceQuickAccess}
-                onSequenceDragEnd={handleSequenceDragEnd}
-              />
-            )}
-          {selected_polygon_id && current_sequence_id && (
-            <KeyframeTimeline
-              editorRef={editorRef}
-              editorStateRef={editorStateRef}
-              objectId={selected_polygon_id}
-              objectType={ObjectType.Polygon}
-              sequenceId={current_sequence_id}
-              width={900}
-              height={400}
-              headerHeight={40}
-              propertyWidth={50}
-              rowHeight={50}
-              selectedKeyframes={selected_keyframes}
-              setSelectedKeyframes={set_selected_keyframes}
-              onKeyframeChanged={() => {}}
-              refreshTimeline={refreshTimeline}
-            />
-          )}
-          {selected_text_id && current_sequence_id && (
-            <KeyframeTimeline
-              editorRef={editorRef}
-              editorStateRef={editorStateRef}
-              objectId={selected_text_id}
-              objectType={ObjectType.TextItem}
-              sequenceId={current_sequence_id}
-              width={900}
-              height={400}
-              headerHeight={40}
-              propertyWidth={50}
-              rowHeight={50}
-              selectedKeyframes={selected_keyframes}
-              setSelectedKeyframes={set_selected_keyframes}
-              onKeyframeChanged={() => {}}
-              refreshTimeline={refreshTimeline}
-            />
-          )}
-          {selected_image_id && current_sequence_id && (
-            <KeyframeTimeline
-              editorRef={editorRef}
-              editorStateRef={editorStateRef}
-              objectId={selected_image_id}
-              objectType={ObjectType.ImageItem}
-              sequenceId={current_sequence_id}
-              width={900}
-              height={400}
-              headerHeight={40}
-              propertyWidth={50}
-              rowHeight={50}
-              selectedKeyframes={selected_keyframes}
-              setSelectedKeyframes={set_selected_keyframes}
-              onKeyframeChanged={() => {}}
-              refreshTimeline={refreshTimeline}
-            />
-          )}
-          {selected_video_id && current_sequence_id && (
-            <KeyframeTimeline
-              editorRef={editorRef}
-              editorStateRef={editorStateRef}
-              objectId={selected_video_id}
-              objectType={ObjectType.VideoItem}
-              sequenceId={current_sequence_id}
-              width={900}
-              height={400}
-              headerHeight={40}
-              propertyWidth={50}
-              rowHeight={50}
-              selectedKeyframes={selected_keyframes}
-              setSelectedKeyframes={set_selected_keyframes}
-              onKeyframeChanged={() => {}}
-              refreshTimeline={refreshTimeline}
-            />
+                    </div>
+                    <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                      <LayerPanel
+                        layers={layers}
+                        setLayers={set_layers}
+                        onItemDeleted={on_item_deleted}
+                        onItemDuplicated={on_item_duplicated}
+                        onItemsUpdated={on_items_updated}
+                      />
+                    </div>
+                  </>
+                )}
+            </>
           )}
         </div>
+      ) : (
+        <></>
+      )}
+      <div className="flex flex-col justify-center items-center w-[calc(100vw-420px)] gap-2">
+        <canvas
+          id="scene-canvas"
+          className="w-[900px] h-[550px] border border-black"
+          width="900"
+          height="550"
+        />
+        {current_sequence_id && (
+          <PlaySequenceButton
+            editorRef={editorRef}
+            editorStateRef={editorStateRef}
+            selected_sequence_id={current_sequence_id}
+          />
+        )}
+        {!current_sequence_id && (
+          <PlayVideoButton
+            editorRef={editorRef}
+            editorStateRef={editorStateRef}
+          />
+        )}
+        {!current_sequence_id &&
+          !selected_polygon_id &&
+          !selected_text_id &&
+          !selected_image_id &&
+          !selected_video_id && (
+            <TimelineTrack
+              type={TrackType.Video}
+              pixelsPerSecond={25}
+              tSequences={tSequences}
+              sequenceDurations={sequenceDurations}
+              sequenceQuickAccess={sequenceQuickAccess}
+              onSequenceDragEnd={handleSequenceDragEnd}
+            />
+          )}
+        {selected_polygon_id && current_sequence_id && (
+          <KeyframeTimeline
+            editorRef={editorRef}
+            editorStateRef={editorStateRef}
+            objectId={selected_polygon_id}
+            objectType={ObjectType.Polygon}
+            sequenceId={current_sequence_id}
+            width={900}
+            height={400}
+            headerHeight={40}
+            propertyWidth={50}
+            rowHeight={50}
+            selectedKeyframes={selected_keyframes}
+            setSelectedKeyframes={set_selected_keyframes}
+            onKeyframeChanged={() => {}}
+            refreshTimeline={refreshTimeline}
+          />
+        )}
+        {selected_text_id && current_sequence_id && (
+          <KeyframeTimeline
+            editorRef={editorRef}
+            editorStateRef={editorStateRef}
+            objectId={selected_text_id}
+            objectType={ObjectType.TextItem}
+            sequenceId={current_sequence_id}
+            width={900}
+            height={400}
+            headerHeight={40}
+            propertyWidth={50}
+            rowHeight={50}
+            selectedKeyframes={selected_keyframes}
+            setSelectedKeyframes={set_selected_keyframes}
+            onKeyframeChanged={() => {}}
+            refreshTimeline={refreshTimeline}
+          />
+        )}
+        {selected_image_id && current_sequence_id && (
+          <KeyframeTimeline
+            editorRef={editorRef}
+            editorStateRef={editorStateRef}
+            objectId={selected_image_id}
+            objectType={ObjectType.ImageItem}
+            sequenceId={current_sequence_id}
+            width={900}
+            height={400}
+            headerHeight={40}
+            propertyWidth={50}
+            rowHeight={50}
+            selectedKeyframes={selected_keyframes}
+            setSelectedKeyframes={set_selected_keyframes}
+            onKeyframeChanged={() => {}}
+            refreshTimeline={refreshTimeline}
+          />
+        )}
+        {selected_video_id && current_sequence_id && (
+          <KeyframeTimeline
+            editorRef={editorRef}
+            editorStateRef={editorStateRef}
+            objectId={selected_video_id}
+            objectType={ObjectType.VideoItem}
+            sequenceId={current_sequence_id}
+            width={900}
+            height={400}
+            headerHeight={40}
+            propertyWidth={50}
+            rowHeight={50}
+            selectedKeyframes={selected_keyframes}
+            setSelectedKeyframes={set_selected_keyframes}
+            onKeyframeChanged={() => {}}
+            refreshTimeline={refreshTimeline}
+          />
+        )}
       </div>
     </div>
   );
