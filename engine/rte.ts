@@ -7,10 +7,11 @@ import IntervalTree, {
 } from "@flatten-js/interval-tree";
 import * as fontkit from "fontkit";
 import { v4 as uuidv4 } from "uuid";
-import { Buffer } from "buffer";
 
 // @ts-ignore
-window.Buffer = Buffer;
+// if (window) {
+//   window.Buffer = Buffer;
+// }
 
 interface MappedFormat {
   interval: {
@@ -149,8 +150,10 @@ declare global {
   }
 }
 
-window.__canvasRTEInsertCharacterIndex = 0;
-window.__canvasRTEInsertCharacterIndexNl = 0;
+// if (window) {
+//   window.__canvasRTEInsertCharacterIndex = 0;
+//   window.__canvasRTEInsertCharacterIndexNl = 0;
+// }
 
 class LayoutTree {
   public root: LayoutNode;

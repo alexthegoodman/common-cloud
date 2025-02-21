@@ -1,3 +1,5 @@
+import { Buffer } from "buffer";
+
 const NUM_INFERENCE_FEATURES: number = 7;
 export const CANVAS_HORIZ_OFFSET: number = 0.0;
 export const CANVAS_VERT_OFFSET: number = 0.0;
@@ -477,6 +479,10 @@ export class Editor {
   }
 
   async initializeRTE() {
+    window.Buffer = Buffer;
+    window.__canvasRTEInsertCharacterIndex = 0;
+    window.__canvasRTEInsertCharacterIndexNl = 0;
+
     // TODO: double check perf hit of preloading all these fonts
     const fontUrls = this.fontManager.fontData.map((f) => ({
       url: f.path,
