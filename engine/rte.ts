@@ -116,9 +116,9 @@ const blobToBuffer = async (blob: Blob) => {
 };
 
 export const loadFonts = async (
-  setFonts: (font: fontkit.Font) => void,
-  fontUrls: string[]
-) => {
+  // setFonts: (font: fontkit.Font) => void,
+  fontUrls: FontData[]
+): FontData[] => {
   try {
     let fontData = [];
     for await (const fontItem of fontUrls) {
@@ -133,7 +133,8 @@ export const loadFonts = async (
       fontData.push({ url, name, font });
     }
 
-    setFonts(fontData);
+    // setFonts(fontData);
+    return fontData;
   } catch (error) {
     console.error("Error loading font", fontUrls, error);
     // TODO: show snackbar / notification
@@ -964,7 +965,7 @@ export class MultiPageEditor {
   public pages: FormattedPage[];
   public visuals: Visual[] = []; // needn't be organized by page
   public size: DocumentSize;
-  public visibleLines: number;
+  // public visibleLines: number;
   public scrollPosition: number;
   public fontData: FontData[];
 
@@ -972,10 +973,10 @@ export class MultiPageEditor {
   public rebalanceDebounceStaggered: any;
   public avgPageLength = 3000; // TODO: better algorithm for determining exact overflow is needed
 
-  constructor(size: DocumentSize, visibleLines: number, fontData: FontData[]) {
+  constructor(size: DocumentSize, fontData: FontData[]) {
     this.pages = [new FormattedPage(size, fontData)];
     this.size = size; // Height of a page in characters or pixels
-    this.visibleLines = visibleLines;
+    // this.visibleLines = visibleLines;
     this.scrollPosition = 0;
     this.fontData = fontData;
     console.info("fontData", fontData);

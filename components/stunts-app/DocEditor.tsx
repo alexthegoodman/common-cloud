@@ -36,6 +36,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     let viewport = new Viewport(900, 1200);
 
     editorRef.current = new Editor(viewport);
+    editorRef.current.initializeRTE();
 
     setEditorIsSet(true);
   });

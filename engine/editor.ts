@@ -312,6 +312,8 @@ import {
   getUploadedVideoData,
 } from "@/fetchers/projects";
 import { RepeatManager } from "./repeater";
+import { DocumentSize, loadFonts, MultiPageEditor } from "./rte";
+// import * as fontkit from "fontkit";
 
 export class Editor {
   // visual
@@ -335,6 +337,7 @@ export class Editor {
   draggingVideo: string | null;
   motionPaths: MotionPath[];
   repeatManager: RepeatManager;
+  multiPageEditor: MultiPageEditor | null = null;
 
   // viewport
   viewport: Viewport;
@@ -471,6 +474,25 @@ export class Editor {
         y: 550.0, // allow for 50.0 padding below and above the canvas
       },
     };
+  }
+
+  async initializeRTE() {
+    // TODO: double check perf hit of preloading all these fonts
+    const fontUrls = this.fontManager.fontData.map((f) => ({
+      url: f.path,
+      name: f.name,
+    }));
+
+    const fontData = await loadFonts(fontUrls);
+
+    const initialDocumentSize: DocumentSize = {
+      width: 900,
+      height: 1200,
+    };
+
+    const multiPageEditor = new MultiPageEditor(initialDocumentSize, fontData);
+
+    this.multiPageEditor = multiPageEditor;
   }
 
   private processPrmoptItem(
