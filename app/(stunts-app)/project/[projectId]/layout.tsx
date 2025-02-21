@@ -14,9 +14,24 @@ export default function ProjectSettings({ children = null }) {
       <div className="flex flex-row p-4">
         <div className="flex flex-col gap-4 mr-4">
           <NavButton
-            label="Motion"
+            label="Hub"
+            icon="lightning"
+            destination={`/project/${projectId}/hub`}
+          />
+          <NavButton
+            label="Video"
             icon="motion-arrow"
             destination={`/project/${projectId}`}
+          />
+          <NavButton
+            label="Docs"
+            icon="text"
+            destination={`/project/${projectId}/documents`}
+          />
+          <NavButton
+            label="Slides"
+            icon="image"
+            destination={`/project/${projectId}/slides`}
           />
           <NavButton
             label="Settings"
