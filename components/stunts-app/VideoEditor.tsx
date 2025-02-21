@@ -191,7 +191,7 @@ function findObjectType(
   return null;
 }
 
-export const ProjectEditor: React.FC<any> = ({ projectId }) => {
+export const VideoEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
