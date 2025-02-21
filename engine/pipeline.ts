@@ -31,7 +31,12 @@ export class CanvasPipeline {
 
   constructor() {}
 
-  async new(editor: Editor, onScreenCanvas: boolean, canvasId: string) {
+  async new(
+    editor: Editor,
+    onScreenCanvas: boolean,
+    canvasId: string,
+    windowSize: WindowSize
+  ) {
     console.log("Initializing Canvas Renderer...");
 
     let canvas = null;
@@ -42,12 +47,12 @@ export class CanvasPipeline {
     }
 
     // Set canvas dimensions
-    const width = 900;
-    const height = 550;
+    // const width = 900;
+    // const height = 550;
 
-    console.info("Canvas dimensions", width, height);
+    console.info("Canvas dimensions", windowSize);
 
-    const windowSize: WindowSize = { width, height };
+    // const windowSize: WindowSize = { width, height };
 
     // Initialize WebGPU
     const gpuResources = await WebGpuResources.request(canvas, windowSize);
@@ -662,6 +667,23 @@ export class CanvasPipeline {
         }
       }
     }
+
+    // Draw text areas
+    // for (const image of editor.textArea || []) {
+    if (editor.textArea) {
+      if (!editor.textArea.hidden && editor.textArea.indices) {
+        // if (editor.draggingImage === image.id || editor.isPlaying) {
+        //   image.transform.updateUniformBuffer(queue, editor.camera.windowSize);
+        // }
+
+        renderPass.setBindGroup(1, editor.textArea.bindGroup);
+        renderPass.setBindGroup(3, editor.textArea.groupBindGroup);
+        renderPass.setVertexBuffer(0, editor.textArea.vertexBuffer);
+        renderPass.setIndexBuffer(editor.textArea.indexBuffer, "uint32");
+        renderPass.drawIndexed(editor.textArea.indices.length);
+      }
+    }
+    // }
 
     // Update camera binding if panning
     if (editor.controlMode === ControlMode.Pan && editor.isPanning) {

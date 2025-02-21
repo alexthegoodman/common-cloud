@@ -504,6 +504,7 @@ export class Editor {
 
   async initializeTextArea(text_config: TextRendererConfig) {
     if (this.textArea) {
+      console.warn("Text area already exists");
       return;
     }
 
@@ -511,6 +512,7 @@ export class Editor {
     let camera = this.camera;
 
     if (!gpuResources || !camera) {
+      console.warn("Couldn't find gpu resources");
       return;
     }
 
@@ -519,6 +521,7 @@ export class Editor {
       !this.groupBindGroupLayout
       // !this.gradientBindGroupLayout
     ) {
+      console.warn("Couldn't find gpu layouts");
       return;
     }
 
@@ -532,6 +535,7 @@ export class Editor {
     );
 
     if (!default_fontFamily) {
+      console.warn("Couldn't find default font family");
       return;
     }
 
@@ -545,16 +549,19 @@ export class Editor {
       default_fontFamily, // load font data ahead of time
       windowSize,
       "",
-      camera
+      camera,
+      true
     );
 
     // text_item.renderText(device, queue);
 
+    console.info("Set textarea");
     this.textArea = textArea;
   }
 
   setMasterDoc(doc: RenderItem[], optionalInsertIndex = 1, runCallback = true) {
     if (!this.multiPageEditor) {
+      console.info("No editor");
       return;
     }
 
@@ -745,7 +752,8 @@ export class Editor {
         // config,
         // t.id,
         saved_sequence.id,
-        camera
+        camera,
+        false
       );
 
       restored_text.hidden = hidden;
@@ -2480,7 +2488,8 @@ export class Editor {
       default_fontFamily, // load font data ahead of time
       windowSize,
       selected_sequence_id,
-      camera
+      camera,
+      false
     );
 
     text_item.renderText(device, queue);

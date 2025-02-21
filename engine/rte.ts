@@ -7,6 +7,7 @@ import IntervalTree, {
 } from "@flatten-js/interval-tree";
 import * as fontkit from "fontkit";
 import { v4 as uuidv4 } from "uuid";
+import { Editor } from "./editor";
 
 // @ts-ignore
 // if (window) {
@@ -102,7 +103,7 @@ export const defaultStyle: Style = {
   color: "black",
   fontSize: 16,
   fontWeight: "normal",
-  fontFamily: "PT Serif",
+  fontFamily: "Aleo",
   italic: false,
   underline: false,
   isLineBreak: false,
@@ -1212,7 +1213,8 @@ export class MultiPageEditor {
     globalNlIndex: number,
     text: string,
     format: Style,
-    setMasterJson: any,
+    // setMasterJson: any,
+    editor: Editor,
     initialize = false
   ) {
     performance.mark("insert-started");
@@ -1239,7 +1241,8 @@ export class MultiPageEditor {
 
     this.renderAndRebalance(
       pageIndex,
-      setMasterJson,
+      // setMasterJson,
+      editor,
       initialize,
       text.length,
       localIndex
@@ -1265,7 +1268,8 @@ export class MultiPageEditor {
 
   renderAndRebalance(
     pageIndex: number,
-    setMasterJson: any,
+    // setMasterJson: any,
+    editor: Editor,
     initialize = false,
     insertLength: number,
     insertIndex: number,
@@ -1299,7 +1303,8 @@ export class MultiPageEditor {
     }
 
     const renderableAll = this.renderAll();
-    setMasterJson(renderableAll);
+    // setMasterJson(renderableAll);
+    editor.setMasterDoc(renderableAll);
 
     // this.rebalanceDebounceStaggered = setTimeout(() => {
     //   // update other page layouts in staggered fashion, first is done in rebalancePages()

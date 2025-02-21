@@ -106,7 +106,8 @@ export class TextRenderer {
     fontData: Buffer,
     windowSize: WindowSize,
     currentSequenceId: string,
-    camera: Camera
+    camera: Camera,
+    isTextArea: boolean
   ) {
     this.id = textConfig.id;
     this.name = textConfig.name;
@@ -139,12 +140,12 @@ export class TextRenderer {
     // this.gradientBindGroup = gradientBindGroup;
 
     this.vertexBuffer = this.device.createBuffer({
-      size: 65536,
+      size: isTextArea ? 4000000 : 65536, // 4MB to 64kb
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
 
     this.indexBuffer = this.device.createBuffer({
-      size: 65536,
+      size: isTextArea ? 1000000 : 65536, // 1mb to 64kb
       usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
     });
 
@@ -962,7 +963,8 @@ export class TextRenderer {
     // gradientBindGroupLayout: GPUBindGroupLayout,
     camera: Camera,
     selectedSequenceId: string,
-    fontData: Buffer
+    fontData: Buffer,
+    isTextArea: boolean
   ): TextRenderer {
     return new TextRenderer(
       device,
@@ -974,7 +976,8 @@ export class TextRenderer {
       fontData,
       windowSize,
       selectedSequenceId,
-      camera
+      camera,
+      isTextArea
     );
   }
 }

@@ -30,7 +30,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
   const canvasPipelineRef = useRef<CanvasPipeline | null>(null);
   const [editorIsSet, setEditorIsSet] = useState(false);
 
-  useDevEffectOnce(() => {
+  useDevEffectOnce(async () => {
     if (editorIsSet) {
       return;
     }
@@ -40,48 +40,6 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     let viewport = new Viewport(900, 1200);
 
     editorRef.current = new Editor(viewport);
-    editorRef.current.initializeRTE();
-
-    if (!editorRef.current.multiPageEditor) {
-      return;
-    }
-
-    console.info("Inserting markdown...");
-
-    let new_id = uuidv4();
-    let new_text = "Add text here...";
-    let font_family = "Aleo";
-
-    let text_config: TextRendererConfig = {
-      id: new_id,
-      name: "New Text Area",
-      text: new_text,
-      fontFamily: font_family,
-      dimensions: [300.0, 300.0] as [number, number],
-      position: {
-        x: 0,
-        y: 0,
-      },
-      layer: -2,
-      color: [20, 20, 20, 255] as [number, number, number, number],
-      fontSize: 16,
-      backgroundFill: { type: "Color", value: rgbToWgpu(200, 200, 200, 255) },
-    };
-
-    editorRef.current.initializeTextArea(text_config).then(() => {
-      if (!editorRef.current || !editorRef.current.multiPageEditor) {
-        return;
-      }
-
-      editorRef.current.multiPageEditor.insert(
-        0,
-        0,
-        testMarkdown,
-        defaultStyle,
-        editorRef.current.setMasterDoc,
-        true
-      );
-    });
 
     setEditorIsSet(true);
   });
@@ -103,9 +61,9 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
 
     console.info("savedState", docData);
 
-    if (!docData) {
-      return;
-    }
+    // if (!docData) {
+    //   return;
+    // }
 
     //   editorStateRef.current = new EditorState(fileData);
 
@@ -127,7 +85,11 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     canvasPipelineRef.current = await pipeline.new(
       editorRef.current,
       true,
-      "doc-canvas"
+      "doc-canvas",
+      {
+        width: 900,
+        height: 1200,
+      }
     );
 
     let windowSize = editorRef.current.camera?.windowSize;
@@ -158,6 +120,60 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     // set handlers
     //   const canvas = document.getElementById("scene-canvas") as HTMLCanvasElement;
     //   setupCanvasMouseTracking(canvas);
+
+    await editorRef.current.initializeRTE();
+
+    if (!editorRef.current.multiPageEditor) {
+      return;
+    }
+
+    console.info("Inserting markdown...");
+
+    let new_id = uuidv4();
+    let new_text = "Add text here...";
+    let font_family = "Aleo";
+
+    let text_config: TextRendererConfig = {
+      id: new_id,
+      name: "New Text Area",
+      text: new_text,
+      fontFamily: font_family,
+      dimensions: [900.0, 1200.0] as [number, number],
+      position: {
+        x: 0,
+        y: 0,
+      },
+      layer: -2,
+      color: [20, 20, 20, 255] as [number, number, number, number],
+      fontSize: 16,
+      backgroundFill: { type: "Color", value: rgbToWgpu(200, 200, 200, 255) },
+    };
+
+    editorRef.current.initializeTextArea(text_config).then(() => {
+      if (!editorRef.current || !editorRef.current.multiPageEditor) {
+        return;
+      }
+
+      editorRef.current.multiPageEditor.insert(
+        0,
+        0,
+        testMarkdown,
+        defaultStyle,
+        editorRef.current,
+        true
+      );
+
+      // let gpuResources = editorRef.current.gpuResources;
+
+      if (!editorRef.current.textArea) {
+        console.warn("Text area not created");
+        return;
+      }
+
+      // editorRef.current.textArea.renderAreaText(gpuResources.device, gpuResources.queue, );
+
+      editorRef.current.textArea.hidden = false;
+    });
 
     set_loading(false);
   };

@@ -370,7 +370,10 @@ export class FullExporter {
 
     let pipeline = new CanvasPipeline();
 
-    this.pipeline = await pipeline.new(this.editor, false, "");
+    this.pipeline = await pipeline.new(this.editor, false, "", {
+      width: 900,
+      height: 550,
+    });
 
     let windowSize = this.editor.camera?.windowSize;
 
