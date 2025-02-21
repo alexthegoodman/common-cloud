@@ -31,12 +31,12 @@ export class CanvasPipeline {
 
   constructor() {}
 
-  async new(editor: Editor, onScreenCanvas: boolean) {
+  async new(editor: Editor, onScreenCanvas: boolean, canvasId: string) {
     console.log("Initializing Canvas Renderer...");
 
     let canvas = null;
     if (onScreenCanvas) {
-      canvas = document.getElementById("scene-canvas") as HTMLCanvasElement;
+      canvas = document.getElementById(canvasId) as HTMLCanvasElement;
 
       if (!canvas) throw new Error("Canvas not found");
     }

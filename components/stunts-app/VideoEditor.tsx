@@ -589,7 +589,11 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
     let pipeline = new CanvasPipeline();
 
-    canvasPipelineRef.current = await pipeline.new(editorRef.current, true);
+    canvasPipelineRef.current = await pipeline.new(
+      editorRef.current,
+      true,
+      "scene-canvas"
+    );
 
     let windowSize = editorRef.current.camera?.windowSize;
 

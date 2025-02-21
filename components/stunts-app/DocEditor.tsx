@@ -79,7 +79,11 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
 
     let pipeline = new CanvasPipeline();
 
-    canvasPipelineRef.current = await pipeline.new(editorRef.current, true);
+    canvasPipelineRef.current = await pipeline.new(
+      editorRef.current,
+      true,
+      "doc-canvas"
+    );
 
     let windowSize = editorRef.current.camera?.windowSize;
 
@@ -139,5 +143,16 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     }
   }, [editorIsSet]);
 
-  return <></>;
+  return (
+    <>
+      <div className="flex flex-col justify-center items-center w-[calc(100vw-420px)] gap-2">
+        <canvas
+          id="doc-canvas"
+          className="w-[900px] h-[1200px] border border-black"
+          width="900"
+          height="1200"
+        />
+      </div>
+    </>
+  );
 };
