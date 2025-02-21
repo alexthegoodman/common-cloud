@@ -6,6 +6,8 @@ import { Layer } from "./layers";
 import { CanvasPipeline } from "@/engine/pipeline";
 import { Editor, Viewport } from "@/engine/editor";
 import { useDevEffectOnce } from "@/hooks/useDevOnce";
+import { testMarkdown } from "@/engine/data";
+import { defaultStyle } from "@/engine/rte";
 
 export const DocEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
@@ -37,6 +39,21 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
 
     editorRef.current = new Editor(viewport);
     editorRef.current.initializeRTE();
+
+    if (!editorRef.current.multiPageEditor) {
+      return;
+    }
+
+    console.info("Inserting markdown...");
+
+    editorRef.current.multiPageEditor.insert(
+      0,
+      0,
+      testMarkdown,
+      defaultStyle,
+      editorRef.current.setMasterDoc,
+      true
+    );
 
     setEditorIsSet(true);
   });

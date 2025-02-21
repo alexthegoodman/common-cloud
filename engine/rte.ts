@@ -965,6 +965,7 @@ const getCapHeightPx = (fontDatas: FontData[], style: Style) => {
   );
 };
 export class MultiPageEditor {
+  public masterDoc: RenderItem[];
   public pages: FormattedPage[];
   public visuals: Visual[] = []; // needn't be organized by page
   public size: DocumentSize;
@@ -983,6 +984,19 @@ export class MultiPageEditor {
     this.scrollPosition = 0;
     this.fontData = fontData;
     console.info("fontData", fontData);
+  }
+
+  getJsonByPage(masterDoc: RenderItem[]) {
+    return masterDoc?.reduce((acc, char) => {
+      // if (!char.page) return acc;
+      if (!acc[char.page]) {
+        acc[char.page] = [];
+      }
+
+      acc[char.page].push(char);
+
+      return acc;
+    }, {} as { [key: number]: RenderItem[] });
   }
 
   // TODO: getRenderChunks creates RenderItems as chunks of text, split by formatting AND newlines

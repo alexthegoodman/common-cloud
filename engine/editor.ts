@@ -314,7 +314,7 @@ import {
   getUploadedVideoData,
 } from "@/fetchers/projects";
 import { RepeatManager } from "./repeater";
-import { DocumentSize, loadFonts, MultiPageEditor } from "./rte";
+import { DocumentSize, loadFonts, MultiPageEditor, RenderItem } from "./rte";
 // import * as fontkit from "fontkit";
 
 export class Editor {
@@ -500,6 +500,28 @@ export class Editor {
 
     this.multiPageEditor = multiPageEditor;
   }
+
+  setMasterDoc(doc: RenderItem[], optionalInsertIndex = 1, runCallback = true) {
+    if (!this.multiPageEditor) {
+      return;
+    }
+
+    let currentMasterDoc = this.multiPageEditor.masterDoc;
+    let masterDoc =
+      optionalInsertIndex && currentMasterDoc
+        ? [
+            ...currentMasterDoc.slice(0, optionalInsertIndex), // Keep the elements before the replacement
+            ...doc, // Insert the new elements
+            ...currentMasterDoc.slice(optionalInsertIndex + doc.length), // Keep the elements after the replaced portion
+          ]
+        : doc;
+
+    let docByPage = this.multiPageEditor.getJsonByPage(masterDoc);
+
+    this.renderTextNodes(docByPage);
+  }
+
+  renderTextNodes(docByPage: { [key: number]: RenderItem[] }) {}
 
   private processPrmoptItem(
     item: StImage | StVideo | Polygon | TextRenderer,
