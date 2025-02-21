@@ -1627,7 +1627,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                         </button>
                         <div className="flex flex-row flex-wrap gap-2">
                           <OptionButton
-                            style=""
+                            style={{}}
                             label="Add Square"
                             icon="square"
                             callback={() => {
@@ -1639,7 +1639,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                             }}
                           />
                           <OptionButton
-                            style=""
+                            style={{}}
                             label="Add Text"
                             icon="text"
                             callback={() => {
@@ -1671,7 +1671,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                             }}
                           />
                           <OptionButton
-                            style=""
+                            style={{}}
                             label="Add Image"
                             icon="image"
                             callback={() => fileInputRef.current?.click()}
@@ -1697,13 +1697,13 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                             }}
                           />
                           <OptionButton
-                            style=""
+                            style={{}}
                             label="Add Video"
                             icon="video"
                             callback={() => videoInputRef.current?.click()}
                           />
                           <OptionButton
-                            style=""
+                            style={{}}
                             label="Screen Capture"
                             icon="video"
                             callback={() => {
@@ -1739,7 +1739,11 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                             return (
                               <OptionButton
                                 key={`${backgroundColor}-${textColor}-${i}`}
-                                style={`color: ${textColor}; background-color: ${backgroundColor};`}
+                                // style={`color: ${textColor}; background-color: ${backgroundColor};`}
+                                style={{
+                                  color: textColor,
+                                  backgroundColor: backgroundColor,
+                                }}
                                 label="Apply Theme"
                                 icon="brush"
                                 callback={async () => {

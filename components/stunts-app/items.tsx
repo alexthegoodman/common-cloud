@@ -92,7 +92,7 @@ export const NavButton: React.FC<NavButtonProps> = ({
 };
 
 interface OptionButtonProps {
-  style: string;
+  style: any;
   label: string;
   icon: string;
   callback: () => void;
@@ -114,7 +114,7 @@ export const OptionButton: React.FC<OptionButtonProps> = ({
       className="w-[60px] h-[60px] flex flex-col justify-center items-center border border-gray-400 rounded-[15px]
         transition-colors duration-200 ease-in-out hover:bg-gray-200 hover:cursor-pointer 
         focus-visible:border-2 focus-visible:border-blue-500"
-      style={{ ...parseStyle(style) }} // Apply the style string
+      style={style} // Apply the style string
       onClick={handleClick}
     >
       <div className="text-black mb-1">
