@@ -8,6 +8,8 @@ import { Editor } from "@/engine/editor";
 import EditorState from "@/engine/editor_state";
 import { FullExporter } from "@/engine/export";
 
+import toast from "react-hot-toast";
+
 export const ProjectItem = ({
   project_id,
   project_label,
@@ -388,6 +390,13 @@ export const ExportVideoButton: React.FC<{
     let editorState = editorStateRef.current;
 
     if (!editorState) {
+      return;
+    }
+
+    let timelineState = editorState.savedState.timeline_state;
+
+    if (timelineState.timeline_sequences.length === 0) {
+      toast.error("Please add a sequence to the timeline before exporting.");
       return;
     }
 
