@@ -282,7 +282,27 @@ export const PlayVideoButton: React.FC<{
         } else {
           console.info("Play Video...");
 
-          let first_sequence_data = editorState.savedState.sequences[0];
+          let timelineSequences =
+            editorState.savedState.timeline_state.timeline_sequences;
+
+          if (timelineSequences.length === 0) {
+            toast.error(
+              "Please add a sequence to the timeline before playing."
+            );
+            return;
+          }
+
+          let firstTimelineSequence = timelineSequences.reduce(
+            (earliest, current) => {
+              return current.startTimeMs < earliest.startTimeMs
+                ? current
+                : earliest;
+            }
+          );
+
+          let first_sequence_data = editorState.savedState.sequences.find(
+            (s) => s.id === firstTimelineSequence.sequenceId
+          );
 
           if (!first_sequence_data) {
             return;

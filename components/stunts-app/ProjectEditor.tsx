@@ -1391,7 +1391,7 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
               editorRef={editorRef}
               editorStateRef={editorStateRef}
             />
-            <div className="flex flex-row justify-between align-center w-full">
+            <div className="flex flex-row justify-between align-center w-full mt-2">
               <h5>Sequences</h5>
               <button
                 className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
