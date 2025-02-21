@@ -395,6 +395,15 @@ export const ExportVideoButton: React.FC<{
 
     console.info("Initializing FullExporter");
 
+    setIsExporting(true);
+
+    let progressInterval = setInterval(() => {
+      let exportProgress = (window as any).exportProgress;
+      if (exportProgress) {
+        setProgress(exportProgress);
+      }
+    }, 1000);
+
     await exporter.initialize(
       editorState.savedState,
       (progress, currentTime, totalDuration) => {
@@ -403,9 +412,12 @@ export const ExportVideoButton: React.FC<{
         console.log(
           `Time: ${currentTime.toFixed(1)}s / ${totalDuration.toFixed(1)}s`
         );
-        setProgress(perc);
+        (window as any).exportProgress = perc;
       }
     );
+
+    setIsExporting(false);
+    clearInterval(progressInterval);
   };
 
   return (
@@ -419,7 +431,7 @@ export const ExportVideoButton: React.FC<{
       >
         {isExporting ? "Exporting..." : "Export Video"}
       </button>
-      {isExporting && <p>{progress}</p>}
+      {isExporting && <p>{progress}%</p>}
     </div>
   );
 };
