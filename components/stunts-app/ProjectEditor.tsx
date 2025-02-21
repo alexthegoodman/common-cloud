@@ -1558,7 +1558,18 @@ export const ProjectEditor: React.FC<any> = ({ projectId }) => {
                           <button
                             className="flex flex-col justify-center items-center text-xs w-[35px] h-[35px] text-center rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors mr-2"
                             disabled={loading}
-                            onClick={() => set_section("SequenceList")}
+                            onClick={() => {
+                              let editor = editorRef.current;
+
+                              if (!editor) {
+                                return;
+                              }
+
+                              editor.clearCanvas();
+
+                              set_current_sequence_id(null);
+                              set_section("SequenceList");
+                            }}
                           >
                             <CreateIcon icon="arrow-left" size="24px" />
                           </button>

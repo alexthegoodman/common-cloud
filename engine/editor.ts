@@ -843,6 +843,13 @@ export class Editor {
     }
   }
 
+  clearCanvas() {
+    this.reset_sequence_objects();
+    this.hide_all_objects();
+
+    this.currentSequenceData = null;
+  }
+
   // run_motion_inference(): AnimationData[] {
   //   let prompt = "";
   //   let total = 0;
@@ -4622,6 +4629,7 @@ export class Editor {
 
     // Remove existing motion paths
     this.motionPaths = [];
+    this.staticPolygons = [];
   }
 }
 
