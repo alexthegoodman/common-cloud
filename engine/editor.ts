@@ -340,6 +340,7 @@ export class Editor {
   motionPaths: MotionPath[];
   repeatManager: RepeatManager;
   multiPageEditor: MultiPageEditor | null = null;
+  textArea: TextRenderer | null = null;
 
   // viewport
   viewport: Viewport;
@@ -501,6 +502,57 @@ export class Editor {
     this.multiPageEditor = multiPageEditor;
   }
 
+  async initializeTextArea(text_config: TextRendererConfig) {
+    if (this.textArea) {
+      return;
+    }
+
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+
+    if (!gpuResources || !camera) {
+      return;
+    }
+
+    if (
+      !this.modelBindGroupLayout ||
+      !this.groupBindGroupLayout
+      // !this.gradientBindGroupLayout
+    ) {
+      return;
+    }
+
+    let device = gpuResources.device;
+    let queue = gpuResources.queue;
+
+    let windowSize = camera.windowSize;
+
+    let default_fontFamily = await this.fontManager.loadFontByName(
+      text_config.fontFamily
+    );
+
+    if (!default_fontFamily) {
+      return;
+    }
+
+    let textArea = new TextRenderer(
+      device,
+      queue,
+      this.modelBindGroupLayout,
+      this.groupBindGroupLayout,
+      // this.gradientBindGroupLayout,
+      text_config,
+      default_fontFamily, // load font data ahead of time
+      windowSize,
+      "",
+      camera
+    );
+
+    // text_item.renderText(device, queue);
+
+    this.textArea = textArea;
+  }
+
   setMasterDoc(doc: RenderItem[], optionalInsertIndex = 1, runCallback = true) {
     if (!this.multiPageEditor) {
       return;
@@ -521,7 +573,20 @@ export class Editor {
     this.renderTextNodes(docByPage);
   }
 
-  renderTextNodes(docByPage: { [key: number]: RenderItem[] }) {}
+  renderTextNodes(docByPage: { [key: number]: RenderItem[] }) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+
+    if (!gpuResources || !camera) {
+      return;
+    }
+
+    this.textArea?.renderAreaText(
+      gpuResources.device,
+      gpuResources.queue,
+      docByPage
+    );
+  }
 
   private processPrmoptItem(
     item: StImage | StVideo | Polygon | TextRenderer,

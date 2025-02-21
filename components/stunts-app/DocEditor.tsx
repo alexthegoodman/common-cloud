@@ -4,10 +4,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Layer } from "./layers";
 import { CanvasPipeline } from "@/engine/pipeline";
-import { Editor, Viewport } from "@/engine/editor";
+import { Editor, rgbToWgpu, Viewport } from "@/engine/editor";
 import { useDevEffectOnce } from "@/hooks/useDevOnce";
 import { testMarkdown } from "@/engine/data";
 import { defaultStyle } from "@/engine/rte";
+import { v4 as uuidv4 } from "uuid";
+import { TextRendererConfig } from "@/engine/text";
 
 export const DocEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
@@ -46,14 +48,40 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
 
     console.info("Inserting markdown...");
 
-    editorRef.current.multiPageEditor.insert(
-      0,
-      0,
-      testMarkdown,
-      defaultStyle,
-      editorRef.current.setMasterDoc,
-      true
-    );
+    let new_id = uuidv4();
+    let new_text = "Add text here...";
+    let font_family = "Aleo";
+
+    let text_config: TextRendererConfig = {
+      id: new_id,
+      name: "New Text Area",
+      text: new_text,
+      fontFamily: font_family,
+      dimensions: [300.0, 300.0] as [number, number],
+      position: {
+        x: 0,
+        y: 0,
+      },
+      layer: -2,
+      color: [20, 20, 20, 255] as [number, number, number, number],
+      fontSize: 16,
+      backgroundFill: { type: "Color", value: rgbToWgpu(200, 200, 200, 255) },
+    };
+
+    editorRef.current.initializeTextArea(text_config).then(() => {
+      if (!editorRef.current || !editorRef.current.multiPageEditor) {
+        return;
+      }
+
+      editorRef.current.multiPageEditor.insert(
+        0,
+        0,
+        testMarkdown,
+        defaultStyle,
+        editorRef.current.setMasterDoc,
+        true
+      );
+    });
 
     setEditorIsSet(true);
   });

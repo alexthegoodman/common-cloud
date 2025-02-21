@@ -11,6 +11,7 @@ import {
 } from "./editor";
 import { INTERNAL_LAYER_SPACE, Polygon, setupGradientBuffers } from "./polygon";
 import { BackgroundFill, ObjectType } from "./animations";
+import { RenderItem } from "./rte";
 
 export interface TextRendererConfig {
   id: string;
@@ -244,6 +245,14 @@ export class TextRenderer {
 
     this.groupBindGroup = tmp_group_bind_group;
   }
+
+  addAreaGlyphToAtlas() {}
+
+  renderAreaText(
+    device: GPUDevice,
+    queue: GPUQueue,
+    docByPage: { [key: number]: RenderItem[] }
+  ) {}
 
   addGlyphToAtlas(
     device: GPUDevice,
