@@ -3,6 +3,7 @@ import {
   SavedTimelineStateConfig,
   Sequence,
 } from "@/engine/animations";
+import { DocState } from "@/engine/data";
 import { DateTime } from "luxon";
 
 export interface AuthToken {
@@ -15,6 +16,8 @@ export interface SingleProjectResponse {
     id: string;
     name: string;
     fileData: SavedState;
+    docData: DocState;
+    presData: any;
     updatedAt: DateTime;
     createdAt: DateTime;
   } | null;

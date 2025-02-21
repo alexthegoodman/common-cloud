@@ -61,6 +61,8 @@ model Project {
 
   name     String
   fileData Json
+  docData  Json?
+  presData Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

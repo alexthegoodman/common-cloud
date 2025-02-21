@@ -54,11 +54,11 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
 
     let response = await getSingleProject(authToken.token, projectId);
 
-    let fileData = response.project?.fileData;
+    let docData = response.project?.docData;
 
-    console.info("savedState", fileData);
+    console.info("savedState", docData);
 
-    if (!fileData) {
+    if (!docData) {
       return;
     }
 
