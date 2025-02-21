@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { DebouncedInput } from "./items";
 import { Editor } from "@/engine/editor";
 import EditorState from "@/engine/editor_state";
@@ -691,6 +691,112 @@ export const VideoProperties = ({
         >
           Apply Pulse
         </button>
+      </div>
+    </>
+  );
+};
+
+export const KeyframeProperties = ({
+  editorRef,
+  editorStateRef,
+  currentSequenceId,
+  selectedKeyframe,
+  setRefreshTimeline,
+}: {
+  editorRef: React.RefObject<Editor | null>;
+  editorStateRef: React.RefObject<EditorState | null>;
+  currentSequenceId: string;
+  selectedKeyframe: string;
+  setRefreshTimeline: Dispatch<SetStateAction<number>>;
+}) => {
+  const [defaultsSet, setDefaultsSet] = useState(false);
+  const [time, setTime] = useState(0);
+
+  useEffect(() => {
+    let editor = editorRef.current;
+    let editorState = editorStateRef.current;
+
+    if (!editor || !editorState) {
+      return;
+    }
+
+    let sequence = editorState.savedState.sequences.find(
+      (s) => s.id === currentSequenceId
+    );
+
+    if (!sequence) {
+      return;
+    }
+
+    let keyframeData = sequence.polygonMotionPaths
+      .flatMap((p) => p.properties)
+      .flatMap((p) => p.keyframes)
+      .find((k) => k.id === selectedKeyframe);
+
+    if (!keyframeData) {
+      return;
+    }
+
+    setTime(keyframeData.time);
+
+    setDefaultsSet(true);
+  }, [selectedKeyframe]);
+
+  if (!defaultsSet) {
+    return <></>;
+  }
+
+  return (
+    <>
+      <div>
+        <div className="flex flex-row items-center">
+          <button
+            className="flex flex-col justify-center items-center text-xs w-[35px] h-[35px] text-center rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors mr-2"
+            // disabled={loading}
+            // onClick={() => handleGoBack()}
+          >
+            <CreateIcon icon="arrow-left" size="24px" />
+          </button>
+          <h5>Update Keyframe</h5>
+        </div>
+        <DebouncedInput
+          id="keyframe_time"
+          label="Time"
+          placeholder="Time"
+          key={"keyframe_time" + time.toString()}
+          initialValue={time.toString()}
+          onDebounce={async (value) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editor || !editorState) {
+              return;
+            }
+
+            let sequence = editorState.savedState.sequences.find(
+              (s) => s.id === currentSequenceId
+            );
+
+            if (!sequence) {
+              return;
+            }
+
+            let keyframeData = sequence.polygonMotionPaths
+              .flatMap((p) => p.properties)
+              .flatMap((p) => p.keyframes)
+              .find((k) => k.id === selectedKeyframe);
+
+            if (!keyframeData) {
+              return;
+            }
+
+            keyframeData.time = parseInt(value);
+
+            await saveSequencesData(editorState.savedState.sequences);
+
+            setRefreshTimeline(Date.now());
+          }}
+        />
       </div>
     </>
   );

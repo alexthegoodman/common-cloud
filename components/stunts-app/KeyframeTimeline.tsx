@@ -36,6 +36,7 @@ interface TimelineProps {
     keyframeId: string,
     newTime: number
   ) => void;
+  refreshTimeline: number;
 }
 
 interface DragState {
@@ -580,6 +581,7 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
   selectedKeyframes,
   setSelectedKeyframes,
   onKeyframeChanged,
+  refreshTimeline,
 }) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -619,7 +621,7 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
     }
 
     setAnimationData(data);
-  }, [editorRef, editorStateRef, sequenceId, objectId]); // Add proper dependencies
+  }, [editorRef, editorStateRef, sequenceId, objectId, refreshTimeline]); // Add proper dependencies
 
   //   const timeToX = (time: number) => {
   //     return time * propertyWidth * zoomLevel - scrollOffset;
@@ -712,6 +714,7 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
     //     ? prev.filter((k) => k !== keyframe)
     //     : [...prev, keyframe]
     // );
+    console.info("keyframe click", keyframe.id);
     setSelectedKeyframes([keyframe.id]);
   };
 
