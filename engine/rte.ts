@@ -856,7 +856,7 @@ export class FormattedPage {
           nextCharLayout.isLastOfLine
         ) {
           if (
-            currentX + currentCharLayout.width + nextCharLayout.width >
+            currentX + currentCharLayout.width + nextCharLayout.width <
             this.size.width
           ) {
             if (currentX + currentCharLayout.width < this.size.width) {

@@ -508,7 +508,7 @@ export class TextRenderer {
 
         // TODO: double check functioning with multiple pages
         if (page.preCalculatedIndex !== null) {
-          if (page.preCalculatedIndex <= globalNlIndex) {
+          if (page.preCalculatedIndex === globalIndex) {
             if (this.vertices && this.indices) {
               console.info("preCalculatedIndex", page.preCalculatedIndex);
               // push rest of this.vertices to vertices as cache

@@ -20,7 +20,7 @@ export default function ProjectSettings({ children = null }) {
           />
           <NavButton
             label="Video"
-            icon="motion-arrow"
+            icon="video"
             destination={`/project/${projectId}`}
           />
           <NavButton
