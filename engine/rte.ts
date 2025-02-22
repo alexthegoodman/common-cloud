@@ -1305,6 +1305,7 @@ export class MultiPageEditor {
     const renderableAll = this.renderAll();
     // setMasterJson(renderableAll);
     editor.setMasterDoc(renderableAll);
+    this.masterDoc = renderableAll;
 
     // this.rebalanceDebounceStaggered = setTimeout(() => {
     //   // update other page layouts in staggered fashion, first is done in rebalancePages()

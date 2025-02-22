@@ -4378,13 +4378,16 @@ export class Editor {
       let characterId = this.textArea.textAreaCharContainsPoint(
         this.lastTopLeft
       );
+
+      console.info("text area click", characterId);
+
       if (typeof characterId !== "undefined" && characterId !== null) {
         const characterIndex = parseInt(characterId.split("-")[2]);
         const characterNlIndex = parseInt(characterId.split("-")[3]);
 
         const character = this.multiPageEditor?.masterDoc[characterIndex];
 
-        console.info("character clicked ", characterId, character);
+        console.info("character clicked ", character);
 
         window.__canvasRTEInsertCharacterIndex = characterIndex;
         window.__canvasRTEInsertCharacterIndexNl = characterNlIndex;

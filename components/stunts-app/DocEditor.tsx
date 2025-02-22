@@ -48,6 +48,284 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     console.info("remount");
   }, []);
 
+  let setupCanvasMouseTracking = (canvas: HTMLCanvasElement) => {
+    let editor = editorRef.current;
+
+    if (!editor) {
+      return;
+    }
+
+    canvas.addEventListener("mousemove", (event: MouseEvent) => {
+      // Get the canvas's bounding rectangle
+      const rect = canvas.getBoundingClientRect();
+
+      // Calculate position relative to the canvas
+      const positionX = event.clientX - rect.left;
+      const positionY = event.clientY - rect.top;
+
+      editor.handle_mouse_move(positionX, positionY);
+    });
+
+    canvas.addEventListener("mousedown", () => {
+      editor.handle_mouse_down();
+    });
+
+    canvas.addEventListener("mouseup", () => {
+      editor.handle_mouse_up();
+    });
+
+    canvas.addEventListener("mouseleave", () => {
+      // Handle mouse leaving canvas if needed
+    });
+
+    window.addEventListener("keydown", (e: KeyboardEvent) => {
+      let editor = editorRef.current;
+
+      if (!editor) {
+        return;
+      }
+
+      // e.preventDefault();
+
+      // some key triggers do not require the editor to be active (?)
+      if (editor.textAreaActive) {
+        // const characterId = uuidv4();
+
+        // some key triggers do not require a cursor
+        //   if (!window.__canvasRTEInsertCharacterIndex) {
+        //     console.info("trigger key with no cursor?");
+        //     return;
+        //   }
+
+        // Check if Ctrl key (or Cmd key on Mac) is pressed
+        const isCtrlPressed = e.ctrlKey || e.metaKey;
+
+        // Handle copy (Ctrl+C / Cmd+C)
+        if (isCtrlPressed && e.key === "c") {
+          console.info("copy text");
+          //     const selectedText = window.getSelection().toString();
+          //   if (selectedText) {
+          //     navigator.clipboard.writeText(selectedText)
+          //       .then(() => console.log('Text copied to clipboard'))
+          //       .catch(err => console.error('Failed to copy text: ', err));
+          //   }
+          e.preventDefault();
+        }
+
+        // Handle paste (Ctrl+V / Cmd+V)
+        else if (isCtrlPressed && e.key === "v") {
+          console.info("paste text");
+
+          navigator.clipboard
+            .readText()
+            .then((text) => {
+              console.log("Pasted text:", text);
+
+              editor.multiPageEditor?.insert(
+                window.__canvasRTEInsertCharacterIndex,
+                window.__canvasRTEInsertCharacterIndexNl,
+                text,
+                defaultStyle,
+                editor,
+                false
+              );
+
+              window.__canvasRTEInsertCharacterIndex =
+                window.__canvasRTEInsertCharacterIndex + text.length;
+              window.__canvasRTEInsertCharacterIndexNl =
+                window.__canvasRTEInsertCharacterIndexNl + text.length;
+
+              // renderCursor();
+            })
+            .catch((err) => console.error("Failed to paste text: ", err));
+
+          e.preventDefault();
+        }
+
+        // Handle cut (Ctrl+X / Cmd+X)
+        else if (isCtrlPressed && e.key === "x") {
+          console.info("cut text");
+          // copy then delete
+          e.preventDefault();
+        }
+
+        if (!isCtrlPressed) {
+          switch (e.key) {
+            case "Enter":
+              {
+                e.preventDefault();
+
+                const character = "\n";
+
+                editor.multiPageEditor?.insert(
+                  window.__canvasRTEInsertCharacterIndex,
+                  window.__canvasRTEInsertCharacterIndexNl,
+                  character,
+                  defaultStyle,
+                  editor,
+                  false
+                );
+
+                // window.__canvasRTEInsertCharacterIndex =
+                //   window.__canvasRTEInsertCharacterIndex + 1;
+                window.__canvasRTEInsertCharacterIndexNl =
+                  window.__canvasRTEInsertCharacterIndexNl + 1;
+              }
+              break;
+            case "Backspace":
+              {
+                // if (firstSelectedNode && lastSelectedNode) {
+                //   const firstIndex = parseInt(firstSelectedNode.split("-")[2]);
+                //   const lastIndex = parseInt(lastSelectedNode.split("-")[2]);
+                //   const firstIndexNl = parseInt(firstSelectedNode.split("-")[3]);
+                //   const lastIndexNl = parseInt(lastSelectedNode.split("-")[3]);
+                //   const newlineCount = editorInstance?.getNewlinesBetween(
+                //     0,
+                //     firstIndex
+                //   );
+                //   console.info("backspace selection", newlineCount);
+                //   editorInstance?.delete(
+                //     firstIndex,
+                //     lastIndex,
+                //     firstIndexNl,
+                //     lastIndexNl + 1,
+                //     setMasterJson
+                //   );
+                //   setFirstSelectedNode(null);
+                //   setLastSelectedNode(null);
+                //   if (selectionDirection === "backward") {
+                //     let selectionLength = Math.abs(lastIndex - firstIndex);
+                //     let selectionLengthNl = Math.abs(lastIndexNl - firstIndexNl);
+                //     console.info(
+                //       "selection length",
+                //       selectionLength,
+                //       selectionLengthNl
+                //     );
+                //     window.__canvasRTEInsertCharacterIndex =
+                //       window.__canvasRTEInsertCharacterIndex - selectionLength;
+                //     window.__canvasRTEInsertCharacterIndexNl =
+                //       window.__canvasRTEInsertCharacterIndexNl -
+                //       selectionLengthNl;
+                //   }
+                // } else {
+                //   if (!editorActive) {
+                //     console.error("Editor not active");
+                //   }
+                //   const char = editorInstance?.getCharAtIndex(
+                //     window.__canvasRTEInsertCharacterIndex
+                //   );
+                //   console.info("backspace", char);
+                //   editorInstance?.delete(
+                //     window.__canvasRTEInsertCharacterIndex - 1,
+                //     window.__canvasRTEInsertCharacterIndex,
+                //     window.__canvasRTEInsertCharacterIndexNl - 1,
+                //     window.__canvasRTEInsertCharacterIndexNl,
+                //     setMasterJson
+                //   );
+                //   if (char !== "\n") {
+                //     window.__canvasRTEInsertCharacterIndex =
+                //       window.__canvasRTEInsertCharacterIndex - 1;
+                //   }
+                //   window.__canvasRTEInsertCharacterIndexNl =
+                //     window.__canvasRTEInsertCharacterIndexNl - 1;
+                // }
+                // renderCursor();
+              }
+              break;
+            case "Delete":
+              {
+              }
+              break;
+            case "ArrowLeft":
+              {
+              }
+              break;
+            case "ArrowRight":
+              {
+              }
+              break;
+            case "ArrowUp":
+              {
+              }
+              break;
+            case "ArrowDown":
+              {
+              }
+              break;
+            case "Escape":
+              {
+                // setEditorActive(false);
+              }
+              break;
+            case "Shift":
+              {
+              }
+              break;
+            case "Meta":
+              {
+              }
+              break;
+            case "Tab":
+              {
+                const type = "tab";
+                const character = "    ";
+
+                editor.multiPageEditor?.insert(
+                  window.__canvasRTEInsertCharacterIndex,
+                  window.__canvasRTEInsertCharacterIndexNl,
+                  character,
+                  defaultStyle,
+                  editor,
+                  false
+                );
+
+                window.__canvasRTEInsertCharacterIndex =
+                  window.__canvasRTEInsertCharacterIndex + 1;
+                window.__canvasRTEInsertCharacterIndexNl =
+                  window.__canvasRTEInsertCharacterIndexNl + 1;
+              }
+              break;
+            default:
+              {
+                e.preventDefault();
+
+                // any other character
+                const type = "character";
+                const character = e.key;
+
+                console.info("insert char", character);
+
+                editor.multiPageEditor?.insert(
+                  window.__canvasRTEInsertCharacterIndex,
+                  window.__canvasRTEInsertCharacterIndexNl,
+                  character,
+                  defaultStyle,
+                  editor,
+                  false
+                );
+
+                window.__canvasRTEInsertCharacterIndex =
+                  window.__canvasRTEInsertCharacterIndex + 1;
+                window.__canvasRTEInsertCharacterIndexNl =
+                  window.__canvasRTEInsertCharacterIndexNl + 1;
+
+                // renderCursor();
+              }
+              break;
+          }
+        }
+
+        // const renderable = editorInstanceRef.current?.renderVisible();
+
+        // if (renderable) {
+        //   setMasterJson(renderable);
+        // }
+      }
+    });
+
+    // TODO: cleanup event listeners
+  };
+
   let fetch_data = async () => {
     if (!authToken || !editorRef.current) {
       return;
@@ -118,8 +396,8 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     //   }
 
     // set handlers
-    //   const canvas = document.getElementById("scene-canvas") as HTMLCanvasElement;
-    //   setupCanvasMouseTracking(canvas);
+    const canvas = document.getElementById("doc-canvas") as HTMLCanvasElement;
+    setupCanvasMouseTracking(canvas);
 
     await editorRef.current.initializeRTE();
 
