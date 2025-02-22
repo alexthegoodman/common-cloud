@@ -754,8 +754,12 @@ export class FormattedPage {
       if (currentX + cachedWidth > this.size.width) {
         currentX = isBulletPoint ? bulletIndent : 0;
         currentY += lineHeight; // isNewLine
-        isLastOfLine = true;
         lineHeight = 0;
+
+        // isLastOfLine = true;
+        if (layoutInfo[layoutInfo.length - 1]) {
+          layoutInfo[layoutInfo.length - 1].isLastOfLine = true;
+        }
       }
 
       if (currentY + capHeight > pageHeight) {
@@ -859,7 +863,7 @@ export class FormattedPage {
               preCalculated = true;
 
               // efficiently add remaining info from allLayoutInfo to layoutInfo, marking as preCalculted
-              this.preCalculatedIndex = textIndex;
+              this.preCalculatedIndex = textIndex + 1;
 
               layoutInfo.push(
                 ...allLayoutInfo[0].layoutInfo?.slice(textIndex + 1)

@@ -450,6 +450,10 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
 
       // editorRef.current.textArea.renderAreaText(gpuResources.device, gpuResources.queue, );
 
+      let page = editorRef.current.multiPageEditor.pages[0];
+      let test = page.layout.query(0, page.content.length);
+      console.info("multiPageEditor", test);
+
       editorRef.current.textArea.hidden = false;
     });
 
