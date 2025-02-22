@@ -2,11 +2,11 @@
 
 import { ClientOnly } from "@/components/ClientOnly";
 import ErrorBoundary from "@/components/stunts-app/ErrorBoundary";
+import { VideoEditor } from "@/components/stunts-app/VideoEditor";
 import React from "react";
 import { useParams } from "next/navigation";
-import { DocEditor } from "@/components/stunts-app/DocEditor";
 
-export default function Documents() {
+export default function Videos() {
   const { projectId } = useParams();
 
   return (
@@ -16,7 +16,7 @@ export default function Documents() {
         {/* Error Boundary */}
         <ClientOnly>
           <div className="mx-auto">
-            <DocEditor projectId={projectId} />
+            <VideoEditor projectId={projectId} />
           </div>
         </ClientOnly>
       </ErrorBoundary>

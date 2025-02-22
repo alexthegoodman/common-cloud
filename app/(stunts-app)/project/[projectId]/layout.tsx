@@ -16,12 +16,12 @@ export default function ProjectSettings({ children = null }) {
           <NavButton
             label="Hub"
             icon="lightning"
-            destination={`/project/${projectId}/hub`}
+            destination={`/project/${projectId}`}
           />
           <NavButton
             label="Video"
             icon="video"
-            destination={`/project/${projectId}`}
+            destination={`/project/${projectId}/videos`}
           />
           <NavButton
             label="Docs"

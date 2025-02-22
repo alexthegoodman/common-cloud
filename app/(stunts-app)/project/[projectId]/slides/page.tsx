@@ -4,9 +4,8 @@ import { ClientOnly } from "@/components/ClientOnly";
 import ErrorBoundary from "@/components/stunts-app/ErrorBoundary";
 import React from "react";
 import { useParams } from "next/navigation";
-import { DocEditor } from "@/components/stunts-app/DocEditor";
 
-export default function Documents() {
+export default function Slides() {
   const { projectId } = useParams();
 
   return (
@@ -16,7 +15,7 @@ export default function Documents() {
         {/* Error Boundary */}
         <ClientOnly>
           <div className="mx-auto">
-            <DocEditor projectId={projectId} />
+            <h1>Slides</h1>
           </div>
         </ClientOnly>
       </ErrorBoundary>
