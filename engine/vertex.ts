@@ -26,6 +26,7 @@ export interface Vertex {
   color: [number, number, number, number];
   gradient_coords: [number, number];
   object_type: number;
+  id?: string; // never sent to shader
 }
 
 export function getZLayer(layer: number): number {

@@ -6,6 +6,7 @@ import { getZLayer, Vertex } from "./vertex";
 import {
   CANVAS_HORIZ_OFFSET,
   CANVAS_VERT_OFFSET,
+  Point,
   rgbToWgpu,
   wgpuToHuman,
 } from "./editor";
@@ -373,6 +374,8 @@ export class TextRenderer {
     // Calculate the total width and height of the text
     const startX = 0;
     const startY = 0;
+    let globalNlIndex = 0;
+    let globalIndex = 0;
     // let currentX = startX;
     for (let [pageIndex, charItems] of Object.entries(docByPage)) {
       // temp
@@ -382,6 +385,14 @@ export class TextRenderer {
       }
 
       for (let charItem of charItems) {
+        globalNlIndex++;
+
+        if (charItem?.char === "\n") {
+          continue;
+        }
+
+        globalIndex++;
+
         const glyph = charItem.realChar;
 
         // Create a unique key for the glyph (e.g., glyph ID + font size)
@@ -436,6 +447,10 @@ export class TextRenderer {
         const normalizedY1 =
           (y1 - this.transform.position[1]) / this.dimensions[1];
 
+        let vertexId = `${charItem.char}-${charItem.page}-${globalIndex}-${
+          globalNlIndex - 1
+        }`;
+
         // Add vertices for the glyph quad
         vertices.push(
           {
@@ -444,6 +459,7 @@ export class TextRenderer {
             color: activeColor,
             gradient_coords: [normalizedX0, normalizedY0],
             object_type: 1, // OBJECT_TYPE_TEXT
+            id: vertexId,
           },
           {
             position: [x1, y0, z],
@@ -451,6 +467,7 @@ export class TextRenderer {
             color: activeColor,
             gradient_coords: [normalizedX1, normalizedY0],
             object_type: 1, // OBJECT_TYPE_TEXT
+            id: vertexId,
           },
           {
             position: [x1, y1, z],
@@ -458,6 +475,7 @@ export class TextRenderer {
             color: activeColor,
             gradient_coords: [normalizedX1, normalizedY1],
             object_type: 1, // OBJECT_TYPE_TEXT
+            id: vertexId,
           },
           {
             position: [x0, y1, z],
@@ -465,6 +483,7 @@ export class TextRenderer {
             color: activeColor,
             gradient_coords: [normalizedX0, normalizedY1],
             object_type: 1, // OBJECT_TYPE_TEXT
+            id: vertexId,
           }
         );
 
@@ -907,6 +926,79 @@ export class TextRenderer {
       untranslated.y >= -0.5 * this.dimensions[1] &&
       untranslated.y <= 0.5 * this.dimensions[1]
     );
+  }
+
+  // textAreaCharContainsPoint(point: { x: number; y: number }) {
+  //   const untranslated = {
+  //     x: point.x - this.transform.position[0],
+  //     y: point.y - this.transform.position[1],
+  //   };
+
+  //   this.vertices?.forEach((v) => {
+  //     // if (untranslated.x > v.position[0] && untranslated.x < v.position[0] + v.) {
+
+  //     // }
+  //   })
+  // }
+
+  textAreaCharContainsPoint(point: Point): string | null | undefined {
+    if (!this.vertices) {
+      return null;
+    }
+
+    // Untranslate the point relative to the text area's position
+    const untranslated = {
+      x: point.x - this.transform.position[0],
+      y: point.y - this.transform.position[1],
+    };
+
+    // Step through vertices 4 at a time for each character
+    for (let i = 0; i < this.vertices.length; i += 4) {
+      // Get the 4 vertices for the current character
+      const topLeft = this.vertices[i].position; // [x0, y0, z]
+      const topRight = this.vertices[i + 1].position; // [x1, y0, z]
+      const bottomRight = this.vertices[i + 2].position; // [x1, y1, z]
+      const bottomLeft = this.vertices[i + 3].position; // [x0, y1, z]
+
+      // Find min/max bounds of the character
+      // TODO: unneccesary calculation?
+      const minX = Math.min(
+        topLeft[0],
+        topRight[0],
+        bottomRight[0],
+        bottomLeft[0]
+      );
+      const maxX = Math.max(
+        topLeft[0],
+        topRight[0],
+        bottomRight[0],
+        bottomLeft[0]
+      );
+      const minY = Math.min(
+        topLeft[1],
+        topRight[1],
+        bottomRight[1],
+        bottomLeft[1]
+      );
+      const maxY = Math.max(
+        topLeft[1],
+        topRight[1],
+        bottomRight[1],
+        bottomLeft[1]
+      );
+
+      // Check if point is within bounds
+      if (
+        untranslated.x >= minX &&
+        untranslated.x <= maxX &&
+        untranslated.y >= minY &&
+        untranslated.y <= maxY
+      ) {
+        return this.vertices[i].id;
+      }
+    }
+
+    return null;
   }
 
   toLocalSpace(

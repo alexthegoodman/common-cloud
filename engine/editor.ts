@@ -341,6 +341,7 @@ export class Editor {
   repeatManager: RepeatManager;
   multiPageEditor: MultiPageEditor | null = null;
   textArea: TextRenderer | null = null;
+  textAreaActive: boolean = false;
 
   // viewport
   viewport: Viewport;
@@ -366,7 +367,7 @@ export class Editor {
   onHandleMouseUp: OnHandleMouseUp | null;
   onPathMouseUp: OnPathMouseUp | null;
   currentView: string;
-  interactiveBounds: BoundingBox;
+  // interactiveBounds: BoundingBox;
 
   // state
   isPlaying: boolean;
@@ -469,14 +470,14 @@ export class Editor {
     this.generationFade = true;
 
     // TODO: update interactive bounds on window resize?
-    this.interactiveBounds = {
-      min: { x: 0.0, y: 0.0 }, // account for aside width, allow for some off-canvas positioning
-      max: {
-        x: windowSize.width,
-        // y: windowSize.height - 350.0, // 350.0 for timeline space
-        y: 550.0, // allow for 50.0 padding below and above the canvas
-      },
-    };
+    // this.interactiveBounds = {
+    //   min: { x: 0.0, y: 0.0 }, // account for aside width, allow for some off-canvas positioning
+    //   max: {
+    //     x: windowSize.width,
+    //     // y: windowSize.height - 350.0, // 350.0 for timeline space
+    //     y: 550.0, // allow for 50.0 padding below and above the canvas
+    //   },
+    // };
   }
 
   async initializeRTE() {
@@ -2379,14 +2380,14 @@ export class Editor {
   handleWHeel(delta: number, mouse_pos: Point) {
     let camera = this.camera;
 
-    if (
-      this.lastScreen.x < this.interactiveBounds.min.x ||
-      this.lastScreen.x > this.interactiveBounds.max.x ||
-      this.lastScreen.y < this.interactiveBounds.min.y ||
-      this.lastScreen.y > this.interactiveBounds.max.y
-    ) {
-      return;
-    }
+    // if (
+    //   this.lastScreen.x < this.interactiveBounds.min.x ||
+    //   this.lastScreen.x > this.interactiveBounds.max.x ||
+    //   this.lastScreen.y < this.interactiveBounds.min.y ||
+    //   this.lastScreen.y > this.interactiveBounds.max.y
+    // ) {
+    //   return;
+    // }
 
     // let zoom_factor = if delta > 0.0 { 1[1] } else { 0.9 };
     let zoom_factor = delta / 10.0;
@@ -3655,14 +3656,14 @@ export class Editor {
       return;
     }
 
-    if (
-      this.lastScreen.x < this.interactiveBounds.min.x ||
-      this.lastScreen.x > this.interactiveBounds.max.x ||
-      this.lastScreen.y < this.interactiveBounds.min.y ||
-      this.lastScreen.y > this.interactiveBounds.max.y
-    ) {
-      return;
-    }
+    // if (
+    //   this.lastScreen.x < this.interactiveBounds.min.x ||
+    //   this.lastScreen.x > this.interactiveBounds.max.x ||
+    //   this.lastScreen.y < this.interactiveBounds.min.y ||
+    //   this.lastScreen.y > this.interactiveBounds.max.y
+    // ) {
+    //   return;
+    // }
 
     // First, check if panning
     if (this.controlMode == ControlMode.Pan) {
@@ -4036,16 +4037,16 @@ export class Editor {
     this.globalTopLeft = top_left;
     this.lastScreen = { x, y };
 
-    if (
-      this.lastScreen.x < this.interactiveBounds.min.x ||
-      this.lastScreen.x > this.interactiveBounds.max.x ||
-      this.lastScreen.y < this.interactiveBounds.min.y ||
-      this.lastScreen.y > this.interactiveBounds.max.y
-    ) {
-      // reset when out of bounds
-      this.isPanning = false;
-      return;
-    }
+    // if (
+    //   this.lastScreen.x < this.interactiveBounds.min.x ||
+    //   this.lastScreen.x > this.interactiveBounds.max.x ||
+    //   this.lastScreen.y < this.interactiveBounds.min.y ||
+    //   this.lastScreen.y > this.interactiveBounds.max.y
+    // ) {
+    //   // reset when out of bounds
+    //   this.isPanning = false;
+    //   return;
+    // }
 
     this.lastTopLeft = top_left;
     // this.ds_ndc_pos = ds_ndc_pos;
@@ -4179,14 +4180,14 @@ export class Editor {
     }
 
     // TODO: does another bounds cause this to get stuck?
-    if (
-      this.lastScreen.x < this.interactiveBounds.min.x ||
-      this.lastScreen.x > this.interactiveBounds.max.x ||
-      this.lastScreen.y < this.interactiveBounds.min.y ||
-      this.lastScreen.y > this.interactiveBounds.max.y
-    ) {
-      return;
-    }
+    // if (
+    //   this.lastScreen.x < this.interactiveBounds.min.x ||
+    //   this.lastScreen.x > this.interactiveBounds.max.x ||
+    //   this.lastScreen.y < this.interactiveBounds.min.y ||
+    //   this.lastScreen.y > this.interactiveBounds.max.y
+    // ) {
+    //   return;
+    // }
 
     // handle object on mouse up
     let object_id = null;
@@ -4373,6 +4374,27 @@ export class Editor {
       }
     }
 
+    if (this.textArea) {
+      let characterId = this.textArea.textAreaCharContainsPoint(
+        this.lastTopLeft
+      );
+      if (typeof characterId !== "undefined" && characterId !== null) {
+        const characterIndex = parseInt(characterId.split("-")[2]);
+        const characterNlIndex = parseInt(characterId.split("-")[3]);
+
+        const character = this.multiPageEditor?.masterDoc[characterIndex];
+
+        console.info("character clicked ", characterId, character);
+
+        window.__canvasRTEInsertCharacterIndex = characterIndex;
+        window.__canvasRTEInsertCharacterIndexNl = characterNlIndex;
+
+        this.textAreaActive = true;
+
+        // renderCursor();
+      }
+    }
+
     // reset variables
     console.info("reset vars");
     this.draggingPolygon = null;
@@ -4395,6 +4417,8 @@ export class Editor {
     return;
   }
 
+  handle_key() {}
+
   reset_bounds(windowSize: WindowSize) {
     let camera = this.camera;
 
@@ -4406,14 +4430,14 @@ export class Editor {
     camera.position = vec2.create();
     camera.zoom = 1.0;
     this.updateCameraBinding();
-    this.interactiveBounds = {
-      min: { x: 550.0, y: 0.0 }, // account for aside width, allow for some off-canvas positioning
-      max: {
-        x: windowSize.width as number,
-        // y: windowSize.height as number - 350.0, // 350.0 for timeline space
-        y: 550.0, // allow for 50.0 padding below and above the canvas
-      },
-    };
+    // this.interactiveBounds = {
+    //   min: { x: 550.0, y: 0.0 }, // account for aside width, allow for some off-canvas positioning
+    //   max: {
+    //     x: windowSize.width as number,
+    //     // y: windowSize.height as number - 350.0, // 350.0 for timeline space
+    //     y: 550.0, // allow for 50.0 padding below and above the canvas
+    //   },
+    // };
   }
 
   move_polygon(
