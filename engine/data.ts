@@ -1,6 +1,6 @@
 export interface DocState {
-  contentFormatting: any;
-  markdownContent: string;
+  // contentFormatting: any;
+  // markdownContent: string;
 }
 
 export const testMarkdown = `
