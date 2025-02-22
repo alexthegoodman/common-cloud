@@ -64,6 +64,7 @@ import { TimelineTrack } from "./SequenceTimeline";
 import { hexParse } from "@kurkle/color";
 import { WebCapture } from "@/engine/capture";
 import { ToolGrid } from "./ToolGrid";
+import { PageSequence } from "@/engine/data";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -196,7 +197,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
-  let [sequences, set_sequences] = useState<Sequence[]>([]);
+  let [sequences, set_sequences] = useState<Sequence[] | PageSequence[]>([]);
   let [loading, set_loading] = useState(false);
   let [section, set_section] = useState("SequenceList");
   let [keyframe_count, set_keyframe_count] = useState(0);
@@ -642,7 +643,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
     set_loading(true);
 
-    let new_sequences = sequences;
+    let new_sequences = sequences as Sequence[];
 
     new_sequences.push({
       id: uuidv4().toString(),
@@ -1024,7 +1025,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
               </button>
             </div>
             <div className="flex flex-col w-full mt-2">
-              {sequences.map((sequence: Sequence) => (
+              {(sequences as Sequence[]).map((sequence: Sequence) => (
                 <div className="flex flex-row" key={sequence.id}>
                   <button
                     className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
