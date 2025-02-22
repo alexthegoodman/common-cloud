@@ -43,6 +43,7 @@ export interface RenderItem {
   capHeight: number;
   format: Style;
   page: number;
+  isLastOfLine: boolean;
 }
 
 export type Style = {
@@ -276,6 +277,8 @@ class FormattedPage {
   public pageNumber: number;
 
   public fontData: FontData[];
+
+  public preCalculatedIndex: number = 0;
 
   constructor(
     size: DocumentSize,
@@ -643,6 +646,14 @@ class FormattedPage {
     let isHeadline1 = false;
     const bulletIndent = 40;
 
+    let allLayoutInfo = this.layout.query(
+      insertIndex,
+      text.replace("\n", "").length
+    );
+    let textIndex = 0;
+    let preCalculated = false;
+    let isLastOfLine = true;
+
     for (let i = 0; i < text.length; i++) {
       const prevChar = text[i - 1];
       const char = text[i];
@@ -651,6 +662,7 @@ class FormattedPage {
         currentX = 0;
         currentY += lineHeight;
         isNewLine = true;
+        isLastOfLine = true;
         isBulletPoint = false;
         isHeadline1 = false;
         continue;
@@ -741,7 +753,8 @@ class FormattedPage {
 
       if (currentX + cachedWidth > this.size.width) {
         currentX = isBulletPoint ? bulletIndent : 0;
-        currentY += lineHeight;
+        currentY += lineHeight; // isNewLine
+        isLastOfLine = true;
         lineHeight = 0;
       }
 
@@ -749,6 +762,7 @@ class FormattedPage {
         currentPageNumber++;
         currentY = 0;
         isNewLine = true;
+        isLastOfLine = true;
         isBulletPoint = false;
       }
 
@@ -764,6 +778,7 @@ class FormattedPage {
           capHeight,
           format: style,
           page: currentPageNumber,
+          isLastOfLine,
         });
         layoutInfo.push({
           realChar: " ", // hide markdown, keep everything indexed properly
@@ -775,6 +790,7 @@ class FormattedPage {
           capHeight,
           format: style,
           page: currentPageNumber,
+          isLastOfLine,
         });
       } else if (isBulletPoint && isNewLine) {
         layoutInfo.push({
@@ -787,6 +803,7 @@ class FormattedPage {
           capHeight,
           format: style,
           page: currentPageNumber,
+          isLastOfLine,
         });
         layoutInfo.push({
           realChar: " ",
@@ -798,6 +815,7 @@ class FormattedPage {
           capHeight,
           format: style,
           page: currentPageNumber,
+          isLastOfLine,
         });
       } else {
         layoutInfo.push({
@@ -810,6 +828,7 @@ class FormattedPage {
           // format, // ?
           format: style,
           page: currentPageNumber,
+          isLastOfLine,
         });
       }
 
@@ -819,7 +838,42 @@ class FormattedPage {
         currentX += cachedWidth + letterSpacing;
       }
 
+      // if next char goes over edge, check if this char goes over edge
+      // if it doesn't, then use rest of allLayoutInfo to fill layoutInfo and break loop
+      // if it does, continue processing till next line
+      // TODO: perhaps best to calc all pages here? to determine changes between pages
+      if (allLayoutInfo[0].layoutInfo && textIndex >= insertIndex) {
+        // let prevCharLayout = layoutInfo[textIndex - 1];
+        let currentCharLayout = allLayoutInfo[0].layoutInfo[textIndex]; // if get isLastOfLine from cached layout here, then check rest
+        let nextCharLayout = allLayoutInfo[0].layoutInfo[textIndex + 1];
+        if (
+          currentCharLayout &&
+          nextCharLayout &&
+          nextCharLayout.isLastOfLine
+        ) {
+          if (
+            currentX + currentCharLayout.width + nextCharLayout.width >
+            this.size.width
+          ) {
+            if (currentX + currentCharLayout.width < this.size.width) {
+              preCalculated = true;
+
+              // efficiently add remaining info from allLayoutInfo to layoutInfo, marking as preCalculted
+              this.preCalculatedIndex = textIndex;
+
+              layoutInfo.push(
+                ...allLayoutInfo[0].layoutInfo?.slice(textIndex + 1)
+              );
+
+              break;
+            }
+          }
+        }
+      }
+
       isNewLine = false;
+      isLastOfLine = false;
+      textIndex++;
     }
 
     return layoutInfo;
@@ -1449,6 +1503,7 @@ export class MultiPageEditor {
           // format: format, // ?
           format: charLayout.format,
           page: charLayout.page,
+          isLastOfLine: charLayout.isLastOfLine,
         });
 
         contentIndex++;
@@ -1465,6 +1520,7 @@ export class MultiPageEditor {
               capHeight: charLayout.capHeight,
               format: charLayout.format,
               page: charLayout.page,
+              isLastOfLine: charLayout.isLastOfLine,
             });
           }
         }
