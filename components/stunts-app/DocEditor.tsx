@@ -293,7 +293,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                 const type = "character";
                 const character = e.key;
 
-                console.info("insert char", character);
+                // console.info("insert char", character);
 
                 editor.multiPageEditor?.insert(
                   window.__canvasRTEInsertCharacterIndex,

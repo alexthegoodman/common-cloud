@@ -12,7 +12,7 @@ import {
 } from "./editor";
 import { INTERNAL_LAYER_SPACE, Polygon, setupGradientBuffers } from "./polygon";
 import { BackgroundFill, ObjectType } from "./animations";
-import { RenderItem } from "./rte";
+import { FormattedPage, RenderItem } from "./rte";
 
 export interface TextRendererConfig {
   id: string;
@@ -366,7 +366,8 @@ export class TextRenderer {
   renderAreaText(
     device: GPUDevice,
     queue: GPUQueue,
-    docByPage: { [key: number]: RenderItem[] }
+    // docByPage: { [key: number]: RenderItem[] }
+    renderPages: FormattedPage[]
   ) {
     const vertices: Vertex[] = [];
     const indices: number[] = [];
@@ -377,14 +378,22 @@ export class TextRenderer {
     let globalNlIndex = 0;
     let globalIndex = 0;
     // let currentX = startX;
-    for (let [pageIndex, charItems] of Object.entries(docByPage)) {
+    for (let [pageIndex, page] of Object.entries(renderPages)) {
       // temp
-      console.info("pageindex", pageIndex);
+      // console.info("pageindex", pageIndex);
       if (parseInt(pageIndex) > 0) {
         continue;
       }
 
-      for (let charItem of charItems) {
+      let layoutNodes = page.layout.query(0, page.content.length);
+
+      if (!layoutNodes[0].layoutInfo) {
+        return;
+      }
+
+      for (let charItem of layoutNodes[0].layoutInfo) {
+        // let charItem = node.layoutInfo[0];
+
         globalNlIndex++;
 
         if (charItem?.char === "\n") {
@@ -393,7 +402,7 @@ export class TextRenderer {
 
         globalIndex++;
 
-        const glyph = charItem.realChar;
+        const glyph = charItem.char;
 
         // Create a unique key for the glyph (e.g., glyph ID + font size)
         const key = `${glyph}-${this.fontSize}`;
@@ -496,6 +505,24 @@ export class TextRenderer {
           baseVertex + 2,
           baseVertex + 3
         );
+
+        // TODO: double check functioning with multiple pages
+        if (page.preCalculatedIndex !== null) {
+          if (page.preCalculatedIndex <= globalNlIndex) {
+            if (this.vertices && this.indices) {
+              console.info("preCalculatedIndex", page.preCalculatedIndex);
+              // push rest of this.vertices to vertices as cache
+              // also same with indices
+              let vertLength = vertices.length;
+              let indLength = indices.length;
+
+              vertices.push(...this.vertices?.slice(vertLength));
+              indices.push(...this.indices?.slice(indLength));
+
+              break;
+            }
+          }
+        }
       }
     }
 

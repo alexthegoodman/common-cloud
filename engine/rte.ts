@@ -269,7 +269,7 @@ class LayoutNode {
   }
 }
 
-class FormattedPage {
+export class FormattedPage {
   public content: ComponentRope;
   public formatting: IntervalTree;
   public layout: LayoutTree;
@@ -278,7 +278,7 @@ class FormattedPage {
 
   public fontData: FontData[];
 
-  public preCalculatedIndex: number = 0;
+  public preCalculatedIndex: number | null = null;
 
   constructor(
     size: DocumentSize,
@@ -1356,10 +1356,10 @@ export class MultiPageEditor {
       this.updatePageLayouts(pageIndex); // run again on itialize
     }
 
-    const renderableAll = this.renderAll();
+    // const renderableAll = this.renderAll();
     // setMasterJson(renderableAll);
-    editor.setMasterDoc(renderableAll);
-    this.masterDoc = renderableAll;
+    editor.setMasterDoc(this.pages);
+    // this.masterDoc = renderableAll;
 
     // this.rebalanceDebounceStaggered = setTimeout(() => {
     //   // update other page layouts in staggered fashion, first is done in rebalancePages()
@@ -1468,7 +1468,7 @@ export class MultiPageEditor {
           newlinesEndIndex = contentIndex + newlinesToAdd;
           contentIndex += newlinesToAdd;
         }
-        // console.info("newlinesTOAdd", newlinesToAdd);
+        console.info("newlinesTOAdd", newlinesToAdd);
         const textItems = this.pages[textIndex].formatting.search(
           [i, i + 1],
           (value, key) => ({

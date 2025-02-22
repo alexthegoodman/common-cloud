@@ -314,7 +314,13 @@ import {
   getUploadedVideoData,
 } from "@/fetchers/projects";
 import { RepeatManager } from "./repeater";
-import { DocumentSize, loadFonts, MultiPageEditor, RenderItem } from "./rte";
+import {
+  DocumentSize,
+  FormattedPage,
+  loadFonts,
+  MultiPageEditor,
+  RenderItem,
+} from "./rte";
 // import * as fontkit from "fontkit";
 
 export class Editor {
@@ -560,28 +566,36 @@ export class Editor {
     this.textArea = textArea;
   }
 
-  setMasterDoc(doc: RenderItem[], optionalInsertIndex = 1, runCallback = true) {
+  setMasterDoc(
+    // doc: RenderItem[],
+    renderPages: FormattedPage[],
+    optionalInsertIndex = 1,
+    runCallback = true
+  ) {
     if (!this.multiPageEditor) {
       console.info("No editor");
       return;
     }
 
-    let currentMasterDoc = this.multiPageEditor.masterDoc;
-    let masterDoc =
-      optionalInsertIndex && currentMasterDoc
-        ? [
-            ...currentMasterDoc.slice(0, optionalInsertIndex), // Keep the elements before the replacement
-            ...doc, // Insert the new elements
-            ...currentMasterDoc.slice(optionalInsertIndex + doc.length), // Keep the elements after the replaced portion
-          ]
-        : doc;
+    // let currentMasterDoc = this.multiPageEditor.masterDoc;
+    // let masterDoc =
+    //   optionalInsertIndex && currentMasterDoc
+    //     ? [
+    //         ...currentMasterDoc.slice(0, optionalInsertIndex), // Keep the elements before the replacement
+    //         ...doc, // Insert the new elements
+    //         ...currentMasterDoc.slice(optionalInsertIndex + doc.length), // Keep the elements after the replaced portion
+    //       ]
+    //     : doc;
 
-    let docByPage = this.multiPageEditor.getJsonByPage(masterDoc);
+    // let docByPage = this.multiPageEditor.getJsonByPage(masterDoc);
 
-    this.renderTextNodes(docByPage);
+    this.renderTextNodes(renderPages);
   }
 
-  renderTextNodes(docByPage: { [key: number]: RenderItem[] }) {
+  renderTextNodes(
+    // docByPage: { [key: number]: RenderItem[] }
+    renderPages: FormattedPage[]
+  ) {
     let gpuResources = this.gpuResources;
     let camera = this.camera;
 
@@ -592,7 +606,8 @@ export class Editor {
     this.textArea?.renderAreaText(
       gpuResources.device,
       gpuResources.queue,
-      docByPage
+      // docByPage
+      renderPages
     );
   }
 
@@ -4382,12 +4397,14 @@ export class Editor {
       console.info("text area click", characterId);
 
       if (typeof characterId !== "undefined" && characterId !== null) {
+        const characterPage = parseInt(characterId.split("-")[1]);
         const characterIndex = parseInt(characterId.split("-")[2]);
         const characterNlIndex = parseInt(characterId.split("-")[3]);
 
-        const character = this.multiPageEditor?.masterDoc[characterIndex];
+        // const character = this.multiPageEditor?.masterDoc[characterIndex];
+        // const character = this.multiPageEditor?.pages[characterPage].layout.queryInfos(characterIndex);
 
-        console.info("character clicked ", character);
+        // console.info("character clicked ", character);
 
         window.__canvasRTEInsertCharacterIndex = characterIndex;
         window.__canvasRTEInsertCharacterIndexNl = characterNlIndex;
