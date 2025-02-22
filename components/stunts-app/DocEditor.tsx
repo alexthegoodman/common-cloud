@@ -12,6 +12,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
   let [loading, set_loading] = useState(false);
+  let [generateLoading, setGenerateLoading] = useState(false);
 
   let [layers, set_layers] = useState<Layer[]>([]);
 
@@ -181,7 +182,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
   const on_items_updated = () => {};
 
   return (
-    <>
+    <div className="flex flex-row w-full">
       <div className="flex flex-col gap-4 w-full max-w-[315px]">
         <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
           <div className="flex flex-col w-full gap-4 mb-4">
@@ -203,12 +204,12 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
             <button
               type="submit"
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading}
+              disabled={generateLoading}
               onClick={() => {
                 // on_generate_animation();
               }}
             >
-              {loading ? "Generating..." : "Generate Layout"}
+              {generateLoading ? "Generating..." : "Generate Layout"}
             </button>
             {/* <div className="flex flex-row flex-wrap gap-2">
               <OptionButton
@@ -523,6 +524,6 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
           height="1200"
         />
       </div>
-    </>
+    </div>
   );
 };
