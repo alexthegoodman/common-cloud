@@ -6,6 +6,11 @@ import LayerPanel, { Layer } from "./layers";
 import { CanvasPipeline } from "@/engine/pipeline";
 import { Editor, rgbToWgpu, Viewport } from "@/engine/editor";
 import { useDevEffectOnce } from "@/hooks/useDevOnce";
+import { OptionButton } from "./items";
+import { ToolGrid } from "./ToolGrid";
+import { WebCapture } from "@/engine/capture";
+import EditorState from "@/engine/editor_state";
+import { PageSequence } from "@/engine/data";
 
 export const DocEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
@@ -23,7 +28,15 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     null
   );
 
+  let [sequences, set_sequences] = useState<PageSequence[]>([]);
+
+  let [current_sequence_id, set_current_sequence_id] = useState<string | null>(
+    null
+  );
+
   const editorRef = useRef<Editor | null>(null);
+  const editorStateRef = useRef<EditorState | null>(null);
+  const webCaptureRef = useRef<WebCapture | null>(null);
   const canvasPipelineRef = useRef<CanvasPipeline | null>(null);
   const [editorIsSet, setEditorIsSet] = useState(false);
 
@@ -211,58 +224,15 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
             >
               {generateLoading ? "Generating..." : "Generate Layout"}
             </button>
-            {/* <div className="flex flex-row flex-wrap gap-2">
-              <OptionButton
-                style={{}}
-                label="Add Square"
-                icon="square"
-                callback={() => {
-                  if (!current_sequence_id) {
-                    return;
-                  }
 
-                  on_add_square(current_sequence_id);
-                }}
-              />
-              <OptionButton
-                style={{}}
-                label="Add Text"
-                icon="text"
-                callback={() => {
-                  if (!current_sequence_id) {
-                    return;
-                  }
-
-                  on_add_text(current_sequence_id);
-                }}
-              />
-
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  // Handle the selected file here
-                  if (!e.target.files || !current_sequence_id) {
-                    return;
-                  }
-
-                  const file = e.target.files[0];
-                  if (file) {
-                    // Do something with the file
-                    console.log("Selected file:", file);
-                    on_add_image(current_sequence_id, file);
-                  }
-                }}
-              />
-              <OptionButton
-                style={{}}
-                label="Add Image"
-                icon="image"
-                callback={() => fileInputRef.current?.click()}
-              />
-            </div> */}
+            <ToolGrid
+              editorRef={editorRef}
+              editorStateRef={editorStateRef}
+              webCaptureRef={webCaptureRef}
+              currentSequenceId={current_sequence_id}
+              set_sequences={set_sequences}
+              options={["square", "text", "image"]}
+            />
 
             {/* <div className="flex flex-row flex-wrap gap-2">
               {themes.map((theme: number[], i) => {

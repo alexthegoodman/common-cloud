@@ -1,7 +1,10 @@
 export interface DocState {
   // contentFormatting: any;
   // markdownContent: string;
+  sequences: PageSequence[];
 }
+
+export interface PageSequence {}
 
 export const testMarkdown = `
 Zero-Shot Generation vs HITL
