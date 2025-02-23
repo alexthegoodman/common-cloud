@@ -611,6 +611,11 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
     const sequence = editorState.savedState.sequences.find(
       (s) => s.id === sequenceId
     );
+
+    if (!sequence?.polygonMotionPaths) {
+      return;
+    }
+
     const data = sequence?.polygonMotionPaths.find(
       (p) => p.polygonId === objectId
     );

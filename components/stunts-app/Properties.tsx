@@ -656,7 +656,7 @@ export const VideoProperties = ({
               (s) => s.id === currentSequenceId
             );
 
-            if (!currentSequence) {
+            if (!currentSequence || !currentSequence?.polygonMotionPaths) {
               return;
             }
 
@@ -677,16 +677,18 @@ export const VideoProperties = ({
 
             editorState.savedState.sequences.forEach((s) => {
               if (s.id == currentSequenceId) {
-                let currentIndex = s.polygonMotionPaths.findIndex(
-                  (p) => p.id === current_animation_data.id
-                );
-                s.polygonMotionPaths[currentIndex] = newAnimationData;
+                if (s.polygonMotionPaths) {
+                  let currentIndex = s.polygonMotionPaths.findIndex(
+                    (p) => p.id === current_animation_data.id
+                  );
+                  s.polygonMotionPaths[currentIndex] = newAnimationData;
+                }
               }
             });
 
             let sequences = editorState.savedState.sequences;
 
-            await saveSequencesData(sequences);
+            await saveSequencesData(sequences, editorState.saveTarget);
           }}
         >
           Apply Pulse
@@ -724,7 +726,7 @@ export const KeyframeProperties = ({
       (s) => s.id === currentSequenceId
     );
 
-    if (!sequence) {
+    if (!sequence || !sequence.polygonMotionPaths) {
       return;
     }
 
@@ -777,7 +779,7 @@ export const KeyframeProperties = ({
               (s) => s.id === currentSequenceId
             );
 
-            if (!sequence) {
+            if (!sequence || !sequence.polygonMotionPaths) {
               return;
             }
 
@@ -792,7 +794,10 @@ export const KeyframeProperties = ({
 
             keyframeData.time = parseInt(value);
 
-            await saveSequencesData(editorState.savedState.sequences);
+            await saveSequencesData(
+              editorState.savedState.sequences,
+              editorState.saveTarget
+            );
 
             setRefreshTimeline(Date.now());
           }}

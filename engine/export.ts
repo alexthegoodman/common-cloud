@@ -421,7 +421,9 @@ export class FullExporter {
     // Calculate total duration from sequences (in milliseconds)
     let totalDurationMs = 0;
     cloned_sequences.forEach((s) => {
-      totalDurationMs += s.durationMs;
+      if (s.durationMs) {
+        totalDurationMs += s.durationMs;
+      }
     });
 
     let totalDurationS = totalDurationMs / 1000; // Convert to seconds

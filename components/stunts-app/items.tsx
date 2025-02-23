@@ -282,6 +282,10 @@ export const PlayVideoButton: React.FC<{
         } else {
           console.info("Play Video...");
 
+          if (!editorState.savedState.timeline_state) {
+            return;
+          }
+
           let timelineSequences =
             editorState.savedState.timeline_state.timeline_sequences;
 
@@ -415,7 +419,7 @@ export const ExportVideoButton: React.FC<{
 
     let timelineState = editorState.savedState.timeline_state;
 
-    if (timelineState.timeline_sequences.length === 0) {
+    if (!timelineState || timelineState.timeline_sequences.length === 0) {
       toast.error("Please add a sequence to the timeline before exporting.");
       return;
     }
