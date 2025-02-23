@@ -832,11 +832,185 @@ export class TextRenderer {
     };
   }
 
+  // renderText(device: GPUDevice, queue: GPUQueue) {
+  //   const vertices: Vertex[] = [];
+  //   const indices: number[] = [];
+
+  //   const text = this.text;
+
+  //   // Use fontkit's layout function to get glyph positions and metrics
+  //   const glyphRun = this.font.layout(text);
+
+  //   const capHeight =
+  //     ((this.font.capHeight + this.font.ascent + this.font.descent) /
+  //       this.font.unitsPerEm) *
+  //     this.fontSize;
+
+  //   // Calculate the scale factor based on the font's unitsPerEm
+  //   const scale = this.fontSize / this.font.unitsPerEm;
+
+  //   // // console.info("glyph scale", scale);
+
+  //   // Calculate the total width and height of the text
+  //   let totalWidth = 0;
+  //   let totalHeight = 0;
+  //   for (const position of glyphRun.positions) {
+  //     // Scale xAdvance and add to total width
+  //     totalWidth += position.xAdvance * scale;
+  //     // // console.info("added width", position.xAdvance * scale);
+  //     totalHeight = Math.max(
+  //       totalHeight,
+  //       (position.yOffset + glyphRun.bbox.maxY - glyphRun.bbox.minY) * scale
+  //     );
+  //   }
+
+  //   // console.info("totals", totalWidth, totalHeight);
+
+  //   // Calculate the starting x and y positions to center the text
+  //   const startX = -totalWidth / 2.0;
+  //   const startY = -totalHeight / 2.0;
+
+  //   let currentX = startX;
+
+  //   for (let i = 0; i < glyphRun.glyphs.length; i++) {
+  //     const glyph = glyphRun.glyphs[i];
+  //     const position = glyphRun.positions[i];
+
+  //     // console.info("glyph pos", position);
+
+  //     // Create a unique key for the glyph (e.g., glyph ID + font size)
+  //     const key = `${glyph.id}-${this.fontSize}`;
+
+  //     // Ensure the glyph is in the atlas
+  //     if (!this.glyphCache.has(key)) {
+  //       const atlasGlyph = this.addGlyphToAtlas(device, queue, {
+  //         character: String.fromCodePoint(glyph.codePoints[0]), // Convert code point to character
+  //         fontSize: this.fontSize,
+  //       });
+  //       this.glyphCache.set(key, atlasGlyph);
+  //     }
+
+  //     const atlasGlyph = this.glyphCache.get(key)!;
+
+  //     // // console.info("rendering glyph", atlasGlyph, glyph, position);
+
+  //     const baseVertex = vertices.length;
+
+  //     // Scale the glyph's position and metrics
+  //     let x0 = currentX;
+  //     let x1 = x0 + atlasGlyph.metrics.width;
+  //     currentX += position.xAdvance * scale; // Update for next character
+
+  //     let yOffset = position.yAdvance * scale;
+
+  //     // Calculate vertex positions using the scaled glyph's position and metrics
+
+  //     const baselineY = capHeight - atlasGlyph.metrics.height;
+
+  //     let y0 = startY - capHeight / 2 + baselineY;
+  //     let y1 = startY - capHeight / 2 + atlasGlyph.metrics.height + baselineY; // metrics[1] is already scaled in addGlyphToAtlas
+
+  //     // UV coordinates from atlas
+  //     let u0 = atlasGlyph.uv_rect[0];
+  //     let u1 = u0 + atlasGlyph.uv_rect[2];
+  //     let v0 = atlasGlyph.uv_rect[1];
+  //     let v1 = v0 + atlasGlyph.uv_rect[3];
+
+  //     const z = getZLayer(1.0);
+
+  //     const activeColor = rgbToWgpu(
+  //       this.color[0],
+  //       this.color[1],
+  //       this.color[2],
+  //       255.0
+  //     );
+
+  //     y0 = y0 === -Infinity || y0 === Infinity ? 0 : y0;
+  //     y1 = y1 === -Infinity || y1 === Infinity ? 0 : y1;
+
+  //     // console.info("vertice pos", x0, x1, y0, y1);
+
+  //     const normalizedX0 =
+  //       (x0 - this.transform.position[0]) / this.dimensions[0];
+  //     const normalizedY0 =
+  //       (y0 - this.transform.position[1]) / this.dimensions[1];
+  //     const normalizedX1 =
+  //       (x1 - this.transform.position[0]) / this.dimensions[0];
+  //     const normalizedY1 =
+  //       (y1 - this.transform.position[1]) / this.dimensions[1];
+
+  //     // Add vertices for the glyph quad
+  //     vertices.push(
+  //       {
+  //         position: [x0, y0, z],
+  //         tex_coords: [u0, v0],
+  //         color: activeColor,
+  //         gradient_coords: [normalizedX0, normalizedY0],
+  //         object_type: 1, // OBJECT_TYPE_TEXT
+  //       },
+  //       {
+  //         position: [x1, y0, z],
+  //         tex_coords: [u1, v0],
+  //         color: activeColor,
+  //         gradient_coords: [normalizedX1, normalizedY0],
+  //         object_type: 1, // OBJECT_TYPE_TEXT
+  //       },
+  //       {
+  //         position: [x1, y1, z],
+  //         tex_coords: [u1, v1],
+  //         color: activeColor,
+  //         gradient_coords: [normalizedX1, normalizedY1],
+  //         object_type: 1, // OBJECT_TYPE_TEXT
+  //       },
+  //       {
+  //         position: [x0, y1, z],
+  //         tex_coords: [u0, v1],
+  //         color: activeColor,
+  //         gradient_coords: [normalizedX0, normalizedY1],
+  //         object_type: 1, // OBJECT_TYPE_TEXT
+  //       }
+  //     );
+
+  //     // Add indices for the glyph quad (two triangles)
+  //     indices.push(
+  //       baseVertex,
+  //       baseVertex + 1,
+  //       baseVertex + 2,
+  //       baseVertex,
+  //       baseVertex + 2,
+  //       baseVertex + 3
+  //     );
+  //   }
+
+  //   // console.info("vertices", vertices);
+
+  //   // Update buffers
+  //   queue.writeBuffer(
+  //     this.vertexBuffer,
+  //     0,
+  //     new Float32Array(
+  //       vertices.flatMap((v) => [
+  //         ...v.position,
+  //         ...v.tex_coords,
+  //         ...v.color,
+  //         ...v.gradient_coords,
+  //         v.object_type,
+  //       ])
+  //     )
+  //   );
+  //   queue.writeBuffer(this.indexBuffer, 0, new Uint32Array(indices));
+
+  //   // Store vertices and indices for later use
+  //   this.vertices = vertices;
+  //   this.indices = indices;
+  // }
+
   renderText(device: GPUDevice, queue: GPUQueue) {
     const vertices: Vertex[] = [];
     const indices: number[] = [];
 
     const text = this.text;
+    const maxLineWidth = this.dimensions[0]; // Define your maximum line width here
 
     // Use fontkit's layout function to get glyph positions and metrics
     const glyphRun = this.font.layout(text);
@@ -849,140 +1023,169 @@ export class TextRenderer {
     // Calculate the scale factor based on the font's unitsPerEm
     const scale = this.fontSize / this.font.unitsPerEm;
 
-    // // console.info("glyph scale", scale);
+    // Track lines and their widths
+    const lines: {
+      glyphs: typeof glyphRun.glyphs;
+      positions: typeof glyphRun.positions;
+      width: number;
+    }[] = [];
+    let currentLine: {
+      glyphs: typeof glyphRun.glyphs;
+      positions: typeof glyphRun.positions;
+      width: number;
+    } = {
+      glyphs: [],
+      positions: [],
+      width: 0,
+    };
 
-    // Calculate the total width and height of the text
-    let totalWidth = 0;
-    let totalHeight = 0;
-    for (const position of glyphRun.positions) {
-      // Scale xAdvance and add to total width
-      totalWidth += position.xAdvance * scale;
-      // // console.info("added width", position.xAdvance * scale);
-      totalHeight = Math.max(
-        totalHeight,
-        (position.yOffset + glyphRun.bbox.maxY - glyphRun.bbox.minY) * scale
+    // Split text into words and handle word-wrap
+    const words = text.split(" ");
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      const wordGlyphRun = this.font.layout(word);
+      const wordWidth = wordGlyphRun.positions.reduce(
+        (sum, pos) => sum + pos.xAdvance * scale,
+        0
       );
+
+      // If adding this word would exceed the max line width, start a new line
+      if (
+        currentLine.width + wordWidth > maxLineWidth &&
+        currentLine.glyphs.length > 0
+      ) {
+        lines.push(currentLine);
+        currentLine = { glyphs: [], positions: [], width: 0 };
+      }
+
+      // Add the word to the current line
+      currentLine.glyphs.push(...wordGlyphRun.glyphs);
+      currentLine.positions.push(...wordGlyphRun.positions);
+      currentLine.width += wordWidth;
+
+      // Add space width (if not the last word)
+      if (i < words.length - 1) {
+        const spaceGlyphRun = this.font.layout(" ");
+        const spaceWidth = spaceGlyphRun.positions[0].xAdvance * scale;
+        currentLine.glyphs.push(...spaceGlyphRun.glyphs);
+        currentLine.positions.push(...spaceGlyphRun.positions);
+        currentLine.width += spaceWidth;
+      }
     }
 
-    // console.info("totals", totalWidth, totalHeight);
+    // Add the last line
+    if (currentLine.glyphs.length > 0) {
+      lines.push(currentLine);
+    }
+
+    // Calculate total width and height of the wrapped text
+    const totalWidth = Math.max(...lines.map((line) => line.width));
+    const totalHeight = lines.length * capHeight;
 
     // Calculate the starting x and y positions to center the text
     const startX = -totalWidth / 2.0;
     const startY = -totalHeight / 2.0;
 
-    let currentX = startX;
+    let currentY = startY;
 
-    for (let i = 0; i < glyphRun.glyphs.length; i++) {
-      const glyph = glyphRun.glyphs[i];
-      const position = glyphRun.positions[i];
+    // Render each line
+    for (const line of lines) {
+      let currentX = startX;
 
-      // console.info("glyph pos", position);
+      for (let i = 0; i < line.glyphs.length; i++) {
+        const glyph = line.glyphs[i];
+        const position = line.positions[i];
 
-      // Create a unique key for the glyph (e.g., glyph ID + font size)
-      const key = `${glyph.id}-${this.fontSize}`;
+        // Create a unique key for the glyph (e.g., glyph ID + font size)
+        const key = `${glyph.id}-${this.fontSize}`;
 
-      // Ensure the glyph is in the atlas
-      if (!this.glyphCache.has(key)) {
-        const atlasGlyph = this.addGlyphToAtlas(device, queue, {
-          character: String.fromCodePoint(glyph.codePoints[0]), // Convert code point to character
-          fontSize: this.fontSize,
-        });
-        this.glyphCache.set(key, atlasGlyph);
+        // Ensure the glyph is in the atlas
+        if (!this.glyphCache.has(key)) {
+          const atlasGlyph = this.addGlyphToAtlas(device, queue, {
+            character: String.fromCodePoint(glyph.codePoints[0]), // Convert code point to character
+            fontSize: this.fontSize,
+          });
+          this.glyphCache.set(key, atlasGlyph);
+        }
+
+        const atlasGlyph = this.glyphCache.get(key)!;
+
+        // Calculate vertex positions using the scaled glyph's position and metrics
+        const x0 = currentX;
+        const x1 = x0 + atlasGlyph.metrics.width;
+        currentX += position.xAdvance * scale; // Update for next character
+
+        // const y0 = currentY - capHeight / 2;
+        // const y1 = y0 + atlasGlyph.metrics.height;
+
+        const baselineY = capHeight - atlasGlyph.metrics.height;
+
+        let y0 = currentY - capHeight / 2 + baselineY;
+        let y1 =
+          currentY - capHeight / 2 + atlasGlyph.metrics.height + baselineY; // metrics[1] is already scaled in addGlyphToAtlas
+
+        // UV coordinates from atlas
+        const u0 = atlasGlyph.uv_rect[0];
+        const u1 = u0 + atlasGlyph.uv_rect[2];
+        const v0 = atlasGlyph.uv_rect[1];
+        const v1 = v0 + atlasGlyph.uv_rect[3];
+
+        const z = getZLayer(1.0);
+
+        const activeColor = rgbToWgpu(
+          this.color[0],
+          this.color[1],
+          this.color[2],
+          255.0
+        );
+
+        // Add vertices for the glyph quad
+        const baseVertex = vertices.length;
+        vertices.push(
+          {
+            position: [x0, y0, z],
+            tex_coords: [u0, v0],
+            color: activeColor,
+            gradient_coords: [x0 / this.dimensions[0], y0 / this.dimensions[1]],
+            object_type: 1, // OBJECT_TYPE_TEXT
+          },
+          {
+            position: [x1, y0, z],
+            tex_coords: [u1, v0],
+            color: activeColor,
+            gradient_coords: [x1 / this.dimensions[0], y0 / this.dimensions[1]],
+            object_type: 1, // OBJECT_TYPE_TEXT
+          },
+          {
+            position: [x1, y1, z],
+            tex_coords: [u1, v1],
+            color: activeColor,
+            gradient_coords: [x1 / this.dimensions[0], y1 / this.dimensions[1]],
+            object_type: 1, // OBJECT_TYPE_TEXT
+          },
+          {
+            position: [x0, y1, z],
+            tex_coords: [u0, v1],
+            color: activeColor,
+            gradient_coords: [x0 / this.dimensions[0], y1 / this.dimensions[1]],
+            object_type: 1, // OBJECT_TYPE_TEXT
+          }
+        );
+
+        // Add indices for the glyph quad (two triangles)
+        indices.push(
+          baseVertex,
+          baseVertex + 1,
+          baseVertex + 2,
+          baseVertex,
+          baseVertex + 2,
+          baseVertex + 3
+        );
       }
 
-      const atlasGlyph = this.glyphCache.get(key)!;
-
-      // // console.info("rendering glyph", atlasGlyph, glyph, position);
-
-      const baseVertex = vertices.length;
-
-      // Scale the glyph's position and metrics
-      let x0 = currentX;
-      let x1 = x0 + atlasGlyph.metrics.width;
-      currentX += position.xAdvance * scale; // Update for next character
-
-      let yOffset = position.yAdvance * scale;
-
-      // Calculate vertex positions using the scaled glyph's position and metrics
-
-      const baselineY = capHeight - atlasGlyph.metrics.height;
-
-      let y0 = startY - capHeight / 2 + baselineY;
-      let y1 = startY - capHeight / 2 + atlasGlyph.metrics.height + baselineY; // metrics[1] is already scaled in addGlyphToAtlas
-
-      // UV coordinates from atlas
-      let u0 = atlasGlyph.uv_rect[0];
-      let u1 = u0 + atlasGlyph.uv_rect[2];
-      let v0 = atlasGlyph.uv_rect[1];
-      let v1 = v0 + atlasGlyph.uv_rect[3];
-
-      const z = getZLayer(1.0);
-
-      const activeColor = rgbToWgpu(
-        this.color[0],
-        this.color[1],
-        this.color[2],
-        255.0
-      );
-
-      y0 = y0 === -Infinity || y0 === Infinity ? 0 : y0;
-      y1 = y1 === -Infinity || y1 === Infinity ? 0 : y1;
-
-      // console.info("vertice pos", x0, x1, y0, y1);
-
-      const normalizedX0 =
-        (x0 - this.transform.position[0]) / this.dimensions[0];
-      const normalizedY0 =
-        (y0 - this.transform.position[1]) / this.dimensions[1];
-      const normalizedX1 =
-        (x1 - this.transform.position[0]) / this.dimensions[0];
-      const normalizedY1 =
-        (y1 - this.transform.position[1]) / this.dimensions[1];
-
-      // Add vertices for the glyph quad
-      vertices.push(
-        {
-          position: [x0, y0, z],
-          tex_coords: [u0, v0],
-          color: activeColor,
-          gradient_coords: [normalizedX0, normalizedY0],
-          object_type: 1, // OBJECT_TYPE_TEXT
-        },
-        {
-          position: [x1, y0, z],
-          tex_coords: [u1, v0],
-          color: activeColor,
-          gradient_coords: [normalizedX1, normalizedY0],
-          object_type: 1, // OBJECT_TYPE_TEXT
-        },
-        {
-          position: [x1, y1, z],
-          tex_coords: [u1, v1],
-          color: activeColor,
-          gradient_coords: [normalizedX1, normalizedY1],
-          object_type: 1, // OBJECT_TYPE_TEXT
-        },
-        {
-          position: [x0, y1, z],
-          tex_coords: [u0, v1],
-          color: activeColor,
-          gradient_coords: [normalizedX0, normalizedY1],
-          object_type: 1, // OBJECT_TYPE_TEXT
-        }
-      );
-
-      // Add indices for the glyph quad (two triangles)
-      indices.push(
-        baseVertex,
-        baseVertex + 1,
-        baseVertex + 2,
-        baseVertex,
-        baseVertex + 2,
-        baseVertex + 3
-      );
+      // Move to the next line
+      currentY += capHeight;
     }
-
-    // console.info("vertices", vertices);
 
     // Update buffers
     queue.writeBuffer(
