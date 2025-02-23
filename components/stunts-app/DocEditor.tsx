@@ -23,6 +23,11 @@ import { TextRendererConfig } from "@/engine/text";
 import { PolygonConfig } from "@/engine/polygon";
 import { WindowSize } from "@/engine/camera";
 
+let docCanasSize: WindowSize = {
+  width: 900,
+  height: 1100,
+};
+
 export const DocEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
@@ -244,7 +249,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
 
     console.info("Starting Editor...");
 
-    let viewport = new Viewport(900, 1200);
+    let viewport = new Viewport(docCanasSize.width, docCanasSize.height);
 
     editorRef.current = new Editor(viewport);
 
@@ -336,8 +341,8 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       true,
       "doc-canvas",
       {
-        width: 900,
-        height: 1200,
+        width: docCanasSize.width,
+        height: docCanasSize.height,
       }
     );
 
@@ -703,9 +708,9 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       <div className="flex flex-col justify-center items-center w-[calc(100vw-420px)] gap-2">
         <canvas
           id="doc-canvas"
-          className="w-[900px] h-[1200px] border border-black"
-          width="900"
-          height="1200"
+          className={`w-[${docCanasSize.width}px] h-[${docCanasSize.height}px] border border-black`}
+          width={docCanasSize.width}
+          height={docCanasSize.height}
         />
       </div>
     </div>
