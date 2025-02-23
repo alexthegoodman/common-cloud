@@ -981,8 +981,8 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
           width={docCanvasSize.width}
           height={docCanvasSize.height}
         />
-        {Array.from(previewCache).length > 0 && (
-          <div>
+        {/* {Array.from(previewCache).length > 0 && (
+          <div className="fixed bottom-0 bg-white rounded p-4">
             {Array.from(previewCache).map((cacheItem, i) => {
               // const cacheItem = previewCache.get(sequenceId);
 
@@ -994,7 +994,35 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
               );
             })}
           </div>
-        )}
+        )} */}
+        <div className="fixed bottom-[-210px]">
+          <div className="bg-white rounded-t-lg shadow-xl p-2">
+            {/* <div className="flex items-center justify-between mb-2">
+              <h3 className="font-xs text-gray-700">Your Pages</h3>
+            </div> */}
+
+            <div className="space-y-2">
+              {Array.from(previewCache).map((cacheItem, i) => (
+                <div
+                  key={cacheItem[0] + "preview"}
+                  className="group relative transition-all duration-300 transform translate-y-0 hover:translate-y-[-70px]"
+                >
+                  <div className="bg-white rounded-lg p-2 shadow-md transition-all duration-300 group-hover:shadow-lg">
+                    <img
+                      src={cacheItem[1].blobUrl}
+                      alt={`Preview page ${i + 1}`}
+                      className="rounded"
+                      width={200}
+                    />
+                    <p className="mt-2 text-sm text-gray-600 font-medium">
+                      Page {i + 1}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
