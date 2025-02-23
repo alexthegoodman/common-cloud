@@ -25,12 +25,12 @@ export default function ProjectSettings({ children = null }) {
           />
           <NavButton
             label="Docs"
-            icon="text"
+            icon="file-cloud"
             destination={`/project/${projectId}/documents`}
           />
           <NavButton
             label="Slides"
-            icon="image"
+            icon="presentation"
             destination={`/project/${projectId}/slides`}
           />
           <NavButton

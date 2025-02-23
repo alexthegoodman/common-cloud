@@ -19,6 +19,7 @@ import {
   DotsThreeOutlineVertical,
   Faders,
   FastForward,
+  FileCloud,
   FilePlus,
   FolderPlus,
   Gear,
@@ -32,6 +33,7 @@ import {
   Panorama,
   Plus,
   Polygon,
+  ProjectorScreenChart,
   Resize,
   Shapes,
   Speedometer,
@@ -184,6 +186,12 @@ export const CreateIcon = ({ icon, size }: { icon: string; size: string }) => {
     }
     case "market": {
       return <Storefront weight="thin" size={size} />;
+    }
+    case "presentation": {
+      return <ProjectorScreenChart weight="thin" size={size} />;
+    }
+    case "file-cloud": {
+      return <FileCloud weight="thin" size={size} />;
     }
     default: {
       return <></>;
