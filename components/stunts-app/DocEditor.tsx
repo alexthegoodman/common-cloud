@@ -137,7 +137,8 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     if (previewManager.isPreviewStale(sequenceId, documentTimestamp)) {
       previewManager.pipeline?.renderFrame(previewManager.editor);
       const previewUrl = await previewManager.generatePreview(sequenceId);
-      return previewUrl;
+      // return previewUrl;
+      console.info("update preview", previewUrl);
     }
     // const blobUrl = previewManager.getPreview(sequenceId);
 
@@ -968,16 +969,16 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
           width={docCanvasSize.width}
           height={docCanvasSize.height}
         />
-        {previewCache.size > 0 && (
+        {Array.from(previewCache).length > 0 && (
           <div>
-            {previewCache.keys().map((sequenceId, i) => {
-              const cacheItem = previewCache.get(sequenceId);
+            {Array.from(previewCache).map((cacheItem, i) => {
+              // const cacheItem = previewCache.get(sequenceId);
 
               return (
-                <>
-                  <img src={cacheItem?.blobUrl} width={200} />
+                <div key={cacheItem[0] + "preview"}>
+                  <img src={cacheItem[1].blobUrl} width={200} />
                   <p>Page {i + 1}</p>
-                </>
+                </div>
               );
             })}
           </div>

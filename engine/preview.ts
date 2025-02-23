@@ -21,7 +21,7 @@ export class PreviewManager {
 
     let pipelineC = new CanvasPipeline();
 
-    this.pipeline = await pipelineC.new(this.editor, true, "doc-canvas", {
+    this.pipeline = await pipelineC.new(this.editor, false, "", {
       width: docCanvasSize.width,
       height: docCanvasSize.height,
     });
