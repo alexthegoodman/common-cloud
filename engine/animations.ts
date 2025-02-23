@@ -296,3 +296,46 @@ function shouldFlipCurve(
   // This creates more natural arcs for different movement directions
   return angle < 0.0;
 }
+
+export function findObjectType(
+  lastSavedState: SavedState,
+  objectId: string
+): ObjectType | null {
+  // Check active polygons
+  if (
+    lastSavedState.sequences.some((s) =>
+      s.activePolygons.some((ap) => ap.id === objectId)
+    )
+  ) {
+    return ObjectType.Polygon;
+  }
+
+  // Check active images
+  if (
+    lastSavedState.sequences.some((s) =>
+      s.activeImageItems.some((ai) => ai.id === objectId)
+    )
+  ) {
+    return ObjectType.ImageItem;
+  }
+
+  // Check active text
+  if (
+    lastSavedState.sequences.some((s) =>
+      s.activeTextItems.some((at) => at.id === objectId)
+    )
+  ) {
+    return ObjectType.TextItem;
+  }
+
+  // Check active videos
+  if (
+    lastSavedState.sequences.some((s) =>
+      s.activeVideoItems.some((av) => av.id === objectId)
+    )
+  ) {
+    return ObjectType.VideoItem;
+  }
+
+  return null;
+}

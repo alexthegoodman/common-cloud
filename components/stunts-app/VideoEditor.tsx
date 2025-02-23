@@ -12,6 +12,7 @@ import {
 import { CreateIcon } from "./icon";
 import {
   BackgroundFill,
+  findObjectType,
   GradientStop,
   ObjectType,
   SavedState,
@@ -65,6 +66,7 @@ import { hexParse } from "@kurkle/color";
 import { WebCapture } from "@/engine/capture";
 import { ToolGrid } from "./ToolGrid";
 import { PageSequence } from "@/engine/data";
+import { WindowSize } from "@/engine/camera";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -152,49 +154,6 @@ export function update_keyframe(
   });
 
   saveSequencesData(editor_state.savedState.sequences, SaveTarget.Videos);
-}
-
-function findObjectType(
-  lastSavedState: SavedState,
-  objectId: string
-): ObjectType | null {
-  // Check active polygons
-  if (
-    lastSavedState.sequences.some((s) =>
-      s.activePolygons.some((ap) => ap.id === objectId)
-    )
-  ) {
-    return ObjectType.Polygon;
-  }
-
-  // Check active images
-  if (
-    lastSavedState.sequences.some((s) =>
-      s.activeImageItems.some((ai) => ai.id === objectId)
-    )
-  ) {
-    return ObjectType.ImageItem;
-  }
-
-  // Check active text
-  if (
-    lastSavedState.sequences.some((s) =>
-      s.activeTextItems.some((at) => at.id === objectId)
-    )
-  ) {
-    return ObjectType.TextItem;
-  }
-
-  // Check active videos
-  if (
-    lastSavedState.sequences.some((s) =>
-      s.activeVideoItems.some((av) => av.id === objectId)
-    )
-  ) {
-    return ObjectType.VideoItem;
-  }
-
-  return null;
 }
 
 export const VideoEditor: React.FC<any> = ({ projectId }) => {
@@ -825,6 +784,15 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       console.info("Video restored!");
     });
 
+    if (!editor.camera) {
+      return;
+    }
+
+    let backgroundSize: WindowSize = {
+      width: editor.camera?.windowSize.width - 100,
+      height: editor.camera?.windowSize.height - 100,
+    };
+
     // if (background_fill.type === "Color") {
     editor.replace_background(
       saved_sequence.id,
@@ -834,7 +802,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       //   background_fill.value[2],
       //   background_fill.value[3]
       // )
-      background_fill
+      background_fill,
+      backgroundSize
     );
     // }
 

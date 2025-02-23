@@ -1,6 +1,7 @@
 import {
   AuthToken,
   getSingleProject,
+  saveSequencesData,
   updateSequences,
 } from "@/fetchers/projects";
 import { useLocalStorage } from "@uidotdev/usehooks";
@@ -8,14 +9,19 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import LayerPanel, { Layer, LayerFromConfig } from "./layers";
 import { CanvasPipeline } from "@/engine/pipeline";
-import { Editor, rgbToWgpu, Viewport } from "@/engine/editor";
+import { Editor, Point, rgbToWgpu, Viewport } from "@/engine/editor";
 import { useDevEffectOnce } from "@/hooks/useDevOnce";
 import { OptionButton } from "./items";
 import { ToolGrid } from "./ToolGrid";
 import { WebCapture } from "@/engine/capture";
 import EditorState, { SaveTarget } from "@/engine/editor_state";
 import { PageSequence } from "@/engine/data";
-import { BackgroundFill, Sequence } from "@/engine/animations";
+import {
+  BackgroundFill,
+  findObjectType,
+  ObjectType,
+  Sequence,
+} from "@/engine/animations";
 import { v4 as uuidv4 } from "uuid";
 import { StVideoConfig } from "@/engine/video";
 import { StImageConfig } from "@/engine/image";
@@ -43,6 +49,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
   let [selected_image_id, set_selected_image_id] = useState<string | null>(
     null
   );
+  let [selected_text_id, set_selected_text_id] = useState<string | null>(null);
 
   let [sequences, set_sequences] = useState<PageSequence[]>([]);
 
@@ -55,6 +62,153 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
   const webCaptureRef = useRef<WebCapture | null>(null);
   const canvasPipelineRef = useRef<CanvasPipeline | null>(null);
   const [editorIsSet, setEditorIsSet] = useState(false);
+
+  let select_polygon = (polygon_id: string) => {
+    set_selected_polygon_id(polygon_id);
+    set_selected_text_id(null);
+    set_selected_image_id(null);
+    // set_selected_video_id(null);
+  };
+
+  let select_text = (text_id: string) => {
+    set_selected_polygon_id(null);
+    set_selected_text_id(text_id);
+    set_selected_image_id(null);
+    // set_selected_video_id(null);
+  };
+
+  let select_image = (image_id: string) => {
+    set_selected_polygon_id(null);
+    set_selected_text_id(null);
+    set_selected_image_id(image_id);
+    // set_selected_video_id(null);
+  };
+
+  // let select_video = (video_id: string) => {
+  //   set_selected_polygon_id(null);
+  //   set_selected_text_id(null);
+  //   set_selected_image_id(null);
+  //   set_selected_video_id(video_id);
+  // };
+
+  let handle_polygon_click = (
+    polygon_id: string,
+    polygon_config: PolygonConfig
+  ) => {
+    select_polygon(polygon_id);
+  };
+
+  let handle_text_click = (
+    text_id: string
+    // polygon_config: PolygonConfig
+  ) => {
+    select_text(text_id);
+  };
+
+  let handle_image_click = (
+    image_id: string
+    // polygon_config: PolygonConfig
+  ) => {
+    select_image(image_id);
+  };
+
+  // let handle_video_click = (
+  //   video_id: string
+  //   // polygon_config: PolygonConfig
+  // ) => {
+  //   select_video(video_id);
+  // };
+
+  let handle_mouse_up = (
+    object_id: string,
+    point: Point
+  ): [Sequence, string[]] | null => {
+    let last_saved_state = editorStateRef.current?.savedState;
+
+    if (!last_saved_state) {
+      return null;
+    }
+
+    let object_type = findObjectType(last_saved_state, object_id);
+
+    console.info(
+      "see type",
+      object_type,
+      "id",
+      object_id,
+      "id2",
+      current_sequence_id
+    );
+
+    last_saved_state.sequences.forEach((s) => {
+      if (s.id == current_sequence_id) {
+        switch (object_type) {
+          case ObjectType.Polygon: {
+            s.activePolygons.forEach((ap) => {
+              if (ap.id == object_id) {
+                console.info("updating position...");
+                ap.position = {
+                  x: point.x,
+                  y: point.y,
+                };
+              }
+            });
+            break;
+          }
+          case ObjectType.TextItem: {
+            s.activeTextItems.forEach((tr) => {
+              if (tr.id == object_id) {
+                tr.position = {
+                  x: point.x,
+                  y: point.y,
+                };
+              }
+            });
+            break;
+          }
+          case ObjectType.ImageItem: {
+            s.activeImageItems.forEach((si) => {
+              if (si.id == object_id) {
+                si.position = {
+                  x: point.x,
+                  y: point.y,
+                };
+              }
+            });
+            break;
+          }
+          case ObjectType.VideoItem: {
+            console.info("saving point", point);
+            s.activeVideoItems.forEach((si) => {
+              if (si.id == object_id) {
+                si.position = {
+                  x: point.x,
+                  y: point.y,
+                };
+              }
+            });
+            break;
+          }
+        }
+      }
+    });
+
+    // last_saved_state.sequences = updatedSequences;
+
+    saveSequencesData(last_saved_state.sequences, SaveTarget.Docs);
+
+    console.info("Position updated!");
+
+    let current_sequence_data = last_saved_state.sequences.find(
+      (s) => s.id === current_sequence_id
+    );
+
+    if (!current_sequence_data) {
+      return null;
+    }
+
+    return [current_sequence_data, []];
+  };
 
   let on_create_sequence = async () => {
     let editor = editorRef.current;
@@ -363,17 +517,17 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
 
     // console.info("Restoring objects...");
 
-    if (cloned_sequences.length > 0) {
-      let first_page = cloned_sequences[0];
-      on_open_sequence(first_page.id);
-    }
-
     for (let [sequenceIndex, sequence] of cloned_sequences.entries()) {
       editorRef.current.restore_sequence_objects(
         sequence,
         sequenceIndex === 0 ? false : true
         // authToken.token,
       );
+    }
+
+    if (cloned_sequences.length > 0) {
+      let first_page = cloned_sequences[0];
+      on_open_sequence(first_page.id);
     }
 
     // set handlers
@@ -400,14 +554,14 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       console.info("Setting event handlers!");
 
       // set handlers that rely on state
-      // editorRef.current.handlePolygonClick = handle_polygon_click;
-      // editorRef.current.handleTextClick = handle_text_click;
-      // editorRef.current.handleImageClick = handle_image_click;
+      editorRef.current.handlePolygonClick = handle_polygon_click;
+      editorRef.current.handleTextClick = handle_text_click;
+      editorRef.current.handleImageClick = handle_image_click;
       // editorRef.current.handleVideoClick = handle_video_click;
-      // editorRef.current.onMouseUp = handle_mouse_up;
+      editorRef.current.onMouseUp = handle_mouse_up;
       // editorRef.current.onHandleMouseUp = on_handle_mouse_up;
     }
-  }, [editorIsSet]);
+  }, [editorIsSet, current_sequence_id]);
 
   const on_item_deleted = () => {};
   const on_item_duplicated = () => {};
