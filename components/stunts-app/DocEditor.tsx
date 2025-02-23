@@ -29,6 +29,7 @@ import { TextRendererConfig } from "@/engine/text";
 import { PolygonConfig } from "@/engine/polygon";
 import { WindowSize } from "@/engine/camera";
 import { PreviewManager } from "@/engine/preview";
+import { ThemePicker } from "./ThemePicker";
 
 let docCanvasSize: WindowSize = {
   width: 900,
@@ -684,256 +685,53 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
 
   return (
     <div className="flex flex-row w-full">
-      <div className="flex flex-col gap-4 w-full max-w-[315px]">
-        <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-          <div className="flex flex-col w-full gap-4 mb-4">
-            <div className="flex flex-row items-center">
-              <h5>Update Document</h5>
-            </div>
-            <div className="flex flex-row gap-2">
-              <input
-                type="checkbox"
-                id="auto_choreograph"
-                name="auto_choreograph"
-                // checked={auto_choreograph}
-                // onChange={(ev) => set_auto_choreograph(ev.target.checked)}
+      {current_sequence_id && (
+        <div className="flex flex-col gap-4 w-full max-w-[315px]">
+          <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+            <div className="flex flex-col w-full gap-4 mb-4">
+              <div className="flex flex-row items-center">
+                <h5>Update Document</h5>
+              </div>
+              {/* <div className="flex flex-row gap-2">
+                <input
+                  type="checkbox"
+                  id="auto_choreograph"
+                  name="auto_choreograph"
+                  // checked={auto_choreograph}
+                  // onChange={(ev) => set_auto_choreograph(ev.target.checked)}
+                />
+                <label htmlFor="auto_choreograph" className="text-xs">
+                  Auto-Arrange
+                </label>
+              </div> */}
+              <button
+                type="submit"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={generateLoading}
+                onClick={() => {
+                  // on_generate_animation();
+                }}
+              >
+                {generateLoading ? "Generating..." : "Generate Layout"}
+              </button>
+
+              <ToolGrid
+                editorRef={editorRef}
+                editorStateRef={editorStateRef}
+                webCaptureRef={webCaptureRef}
+                currentSequenceId={current_sequence_id}
+                set_sequences={set_sequences}
+                options={["page", "square", "text", "image"]}
               />
-              <label htmlFor="auto_choreograph" className="text-xs">
-                Auto-Arrange
-              </label>
-            </div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={generateLoading}
-              onClick={() => {
-                // on_generate_animation();
-              }}
-            >
-              {generateLoading ? "Generating..." : "Generate Layout"}
-            </button>
 
-            <ToolGrid
-              editorRef={editorRef}
-              editorStateRef={editorStateRef}
-              webCaptureRef={webCaptureRef}
-              currentSequenceId={current_sequence_id}
-              set_sequences={set_sequences}
-              options={["page", "square", "text", "image"]}
-            />
+              <ThemePicker
+                editorRef={editorRef}
+                editorStateRef={editorStateRef}
+                currentSequenceId={current_sequence_id}
+                saveTarget={SaveTarget.Docs}
+              />
 
-            {/* <div className="flex flex-row flex-wrap gap-2">
-              {themes.map((theme: number[], i) => {
-                const backgroundColorRow = Math.floor(theme[0]);
-                const backgroundColorColumn = Math.floor((theme[0] % 1) * 10);
-                const backgroundColor =
-                  colors[backgroundColorRow][backgroundColorColumn];
-                const textColorRow = Math.floor(theme[4]);
-                const textColorColumn = Math.floor((theme[4] % 1) * 10);
-                const textColor = colors[textColorRow][textColorColumn];
-
-                const backgroundRgb = hexParse(backgroundColor);
-                const textRgb = hexParse(textColor);
-
-                const fontIndex = theme[2];
-
-                return (
-                  <OptionButton
-                    key={`${backgroundColor}-${textColor}-${i}`}
-                    // style={`color: ${textColor}; background-color: ${backgroundColor};`}
-                    style={{
-                      color: textColor,
-                      backgroundColor: backgroundColor,
-                    }}
-                    label="Apply Theme"
-                    icon="brush"
-                    callback={async () => {
-                      let editor = editorRef.current;
-                      let editorState = editorStateRef.current;
-
-                      if (!editor || !editorState) {
-                        return;
-                      }
-
-                      console.log("Apply Theme...");
-
-                      // apply theme to background canvas and text objects
-
-                      let text_color_wgpu = rgbToWgpu(
-                        textRgb.r,
-                        textRgb.g,
-                        textRgb.b,
-                        255.0
-                      );
-
-                      let text_color = [
-                        textRgb.r,
-                        textRgb.g,
-                        textRgb.b,
-                        255,
-                      ] as [number, number, number, number];
-
-                      let background_color_wgpu = rgbToWgpu(
-                        backgroundRgb.r,
-                        backgroundRgb.g,
-                        backgroundRgb.b,
-                        255.0
-                      );
-
-                      // using for text and canvas, so text_color can provide contrast
-                      let background_color = [
-                        backgroundRgb.r,
-                        backgroundRgb.g,
-                        backgroundRgb.b,
-                        255,
-                      ] as [number, number, number, number];
-
-                      let ids_to_update = editor.textItems
-                        .filter((text) => {
-                          return text.currentSequenceId === current_sequence_id;
-                        })
-                        .map((text) => text.id);
-
-                      console.info("texts to update", ids_to_update);
-
-                      let fontId = editor.fontManager.fontData[fontIndex].name;
-                      for (let id of ids_to_update) {
-                        editor.update_text_color(id, background_color);
-                        await editor.update_text_fontFamily(fontId, id);
-                      }
-
-                      editorState.savedState.sequences.forEach((s) => {
-                        if (s.id == current_sequence_id) {
-                          s.activeTextItems.forEach((t) => {
-                            // if t.id == selected_text_id.get().to_string() {
-                            t.color = background_color;
-                            t.fontFamily = fontId;
-                            // }
-                          });
-                        }
-                      });
-
-                      for (let id of ids_to_update) {
-                        editor.update_text(
-                          id,
-                          "red_fill",
-                          InputValue.Number,
-                          text_color_wgpu[0]
-                        );
-                        editor.update_text(
-                          id,
-                          "green_fill",
-                          InputValue.Number,
-                          text_color_wgpu[1]
-                        );
-                        editor.update_text(
-                          id,
-                          "blue_fill",
-                          InputValue.Number,
-                          text_color_wgpu[2]
-                        );
-                      }
-
-                      editorState.savedState.sequences.forEach((s) => {
-                        s.activeTextItems.forEach((p) => {
-                          p.backgroundFill = {
-                            type: "Color",
-                            value: text_color_wgpu,
-                          };
-                        });
-                      });
-
-                      console.info("Updating canvas background...");
-
-                      let background_uuid = current_sequence_id;
-
-                      let stops: GradientStop[] = [
-                        {
-                          offset: 0,
-                          color: text_color_wgpu,
-                        },
-                        {
-                          offset: 1,
-                          color: background_color_wgpu,
-                        },
-                      ];
-
-                      let gradientBackground: BackgroundFill = {
-                        type: "Gradient",
-                        value: {
-                          stops: stops,
-                          numStops: stops.length, // numStops
-                          type: "linear", // gradientType (0 is linear, 1 is radial)
-                          startPoint: [0, 0], // startPoint
-                          endPoint: [1, 0], // endPoint
-                          center: [0.5, 0.5], // center
-                          radius: 1.0, // radius
-                          timeOffset: 0, // timeOffset
-                          animationSpeed: 1, // animationSpeed
-                          enabled: 1, // enabled
-                        },
-                      };
-
-                      // editor.update_background(
-                      //   background_uuid,
-                      //   "red",
-                      //   InputValue.Number,
-                      //   background_color[0]
-                      // );
-                      // editor.update_background(
-                      //   background_uuid,
-                      //   "green",
-                      //   InputValue.Number,
-                      //   background_color[1]
-                      // );
-                      // editor.update_background(
-                      //   background_uuid,
-                      //   "blue",
-                      //   InputValue.Number,
-                      //   background_color[2]
-                      // );
-
-                      editor.update_background(
-                        background_uuid,
-                        gradientBackground
-                      );
-
-                      editorState.savedState.sequences.forEach((s) => {
-                        if (s.id == current_sequence_id) {
-                          if (!s.backgroundFill) {
-                            s.backgroundFill = {
-                              type: "Color",
-                              value: [0.8, 0.8, 0.8, 1],
-                            } as BackgroundFill;
-                          }
-
-                          // switch (s.backgroundFill.type) {
-                          //   case "Color": {
-                          //     s.backgroundFill = {
-                          //       type: "Color",
-                          //       value: background_color_wgpu,
-                          //     };
-
-                          //     break;
-                          //   }
-                          //   case "Gradient": {
-                          //     s.backgroundFill = gradientBackground;
-                          //     break;
-                          //   }
-                          // }
-
-                          // gradient only on theme picker
-                          s.backgroundFill = gradientBackground;
-                        }
-                      });
-
-                      saveSequencesData(editorState.savedState.sequences);
-                    }}
-                  />
-                );
-              })}
-            </div> */}
-            {/* <label className="text-sm">Background Color</label>
+              {/* <label className="text-sm">Background Color</label>
                   <div className="flex flex-row gap-2 mb-4">
                     <DebouncedInput
                       id="background_red"
@@ -962,18 +760,19 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                         set_background_blue(parseInt(value));
                       }}
                     /> */}
+            </div>
+          </div>
+          <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+            <LayerPanel
+              layers={layers}
+              setLayers={set_layers}
+              onItemDeleted={on_item_deleted}
+              onItemDuplicated={on_item_duplicated}
+              onItemsUpdated={on_items_updated}
+            />
           </div>
         </div>
-        <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-          <LayerPanel
-            layers={layers}
-            setLayers={set_layers}
-            onItemDeleted={on_item_deleted}
-            onItemDuplicated={on_item_duplicated}
-            onItemsUpdated={on_items_updated}
-          />
-        </div>
-      </div>
+      )}
       <div className="flex flex-col justify-center items-center w-[calc(100vw-420px)] gap-2">
         <canvas
           id="doc-canvas"

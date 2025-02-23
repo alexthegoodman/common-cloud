@@ -3076,7 +3076,7 @@ export class Editor {
                     {
                       type: "Color",
                       value: [
-                        colorToWgpu(new_value),
+                        new_value,
                         selected_text.backgroundPolygon.backgroundFill.value[1],
                         selected_text.backgroundPolygon.backgroundFill.value[2],
                         selected_text.backgroundPolygon.backgroundFill.value[3],
@@ -3100,7 +3100,7 @@ export class Editor {
                       type: "Color",
                       value: [
                         selected_text.backgroundPolygon.backgroundFill.value[0],
-                        colorToWgpu(new_value),
+                        new_value,
                         selected_text.backgroundPolygon.backgroundFill.value[2],
                         selected_text.backgroundPolygon.backgroundFill.value[3],
                       ],
@@ -3124,7 +3124,7 @@ export class Editor {
                       value: [
                         selected_text.backgroundPolygon.backgroundFill.value[0],
                         selected_text.backgroundPolygon.backgroundFill.value[1],
-                        colorToWgpu(new_value),
+                        new_value,
                         selected_text.backgroundPolygon.backgroundFill.value[3],
                       ],
                     },
