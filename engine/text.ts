@@ -569,10 +569,8 @@ export class TextRenderer {
     };
 
     // Create an offscreen canvas to render the glyph
-    let canvas_width = Math.ceil(boundingBox.width * scale);
-    let canvas_height = Math.ceil(
-      (boundingBox.maxY - boundingBox.minY) * scale
-    );
+    let canvas_width = Math.ceil(metrics.width) + 1;
+    let canvas_height = Math.ceil(metrics.height) + 2;
 
     if (canvas_width <= 0 || canvas_height <= 0) {
       canvas_width = 1;
@@ -619,7 +617,8 @@ export class TextRenderer {
     // Draw the character using the native Canvas API
     // ctx.fillText(rasterConfig.character, 0, 0);
 
-    const baselineY = Math.ceil(boundingBox.maxY * scale);
+    // const baselineY = Math.ceil(boundingBox.maxY * scale);
+    const baselineY = Math.ceil(canvas_height);
     ctx.fillText(rasterConfig.character, 0, baselineY);
 
     // Get the image data from the canvas
@@ -695,6 +694,11 @@ export class TextRenderer {
     // Use fontkit's layout function to get glyph positions and metrics
     const glyphRun = this.font.layout(text);
 
+    const capHeight =
+      ((this.font.capHeight + this.font.ascent + this.font.descent) /
+        this.font.unitsPerEm) *
+      this.fontSize;
+
     // Calculate the scale factor based on the font's unitsPerEm
     const scale = this.fontSize / this.font.unitsPerEm;
 
@@ -753,8 +757,11 @@ export class TextRenderer {
       let yOffset = position.yAdvance * scale;
 
       // Calculate vertex positions using the scaled glyph's position and metrics
-      let y0 = startY + yOffset;
-      let y1 = y0 + atlasGlyph.metrics.height; // metrics[1] is already scaled in addGlyphToAtlas
+
+      const baselineY = capHeight - atlasGlyph.metrics.height;
+
+      let y0 = startY + baselineY;
+      let y1 = startY + atlasGlyph.metrics.height + baselineY; // metrics[1] is already scaled in addGlyphToAtlas
 
       // UV coordinates from atlas
       let u0 = atlasGlyph.uv_rect[0];
