@@ -120,7 +120,7 @@ export const OptionButton: React.FC<OptionButtonProps> = ({
       <div className="text-black mb-1">
         <CreateIcon icon={icon} size="24px" />
       </div>
-      <span className="text-xs">{label}</span>
+      <span className="text-[11px]">{label}</span>
     </button>
   );
 };

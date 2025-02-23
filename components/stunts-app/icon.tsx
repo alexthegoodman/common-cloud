@@ -19,6 +19,7 @@ import {
   DotsThreeOutlineVertical,
   Faders,
   FastForward,
+  FilePlus,
   FolderPlus,
   Gear,
   Image,
@@ -172,6 +173,9 @@ export const CreateIcon = ({ icon, size }: { icon: string; size: string }) => {
     }
     case "lightning": {
       return <Lightning weight="thin" size={size} />;
+    }
+    case "file-plus": {
+      return <FilePlus weight="thin" size={size} />;
     }
     default: {
       return <></>;

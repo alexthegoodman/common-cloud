@@ -437,6 +437,21 @@ export const ToolGrid = ({
 
   return (
     <div className="flex flex-row flex-wrap gap-2">
+      {options.includes("page") && (
+        <OptionButton
+          style={{}}
+          label="Add Page"
+          icon="file-plus"
+          callback={() => {
+            if (!currentSequenceId) {
+              return;
+            }
+
+            // on_add_square(currentSequenceId);
+          }}
+        />
+      )}
+
       {options.includes("square") && (
         <OptionButton
           style={{}}

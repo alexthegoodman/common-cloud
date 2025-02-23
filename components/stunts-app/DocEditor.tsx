@@ -238,7 +238,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
               webCaptureRef={webCaptureRef}
               currentSequenceId={current_sequence_id}
               set_sequences={set_sequences}
-              options={["square", "text", "image"]}
+              options={["page", "square", "text", "image"]}
             />
 
             {/* <div className="flex flex-row flex-wrap gap-2">
