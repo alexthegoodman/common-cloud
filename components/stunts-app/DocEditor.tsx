@@ -21,6 +21,7 @@ import { StVideoConfig } from "@/engine/video";
 import { StImageConfig } from "@/engine/image";
 import { TextRendererConfig } from "@/engine/text";
 import { PolygonConfig } from "@/engine/polygon";
+import { WindowSize } from "@/engine/camera";
 
 export const DocEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
@@ -69,7 +70,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     new_sequences.push({
       id: uuidv4().toString(),
       name: "New Page",
-      backgroundFill: { type: "Color", value: [200, 200, 200, 255] },
+      backgroundFill: { type: "Color", value: [0.8, 0.8, 0.8, 1] },
       activePolygons: [],
       activeTextItems: [],
       activeImageItems: [],
@@ -180,7 +181,15 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       video.hidden = false;
     });
 
-    editor.replace_background(saved_sequence.id, background_fill);
+    let paperAspectRatio = 11 / 8.5; // standard US paper size
+    let width = 800;
+    let height = width * paperAspectRatio;
+    let paperSize: WindowSize = {
+      width,
+      height,
+    };
+
+    editor.replace_background(saved_sequence.id, background_fill, paperSize);
 
     console.info("Objects restored!", saved_sequence.id);
 

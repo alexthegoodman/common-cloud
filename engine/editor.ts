@@ -1605,7 +1605,16 @@ export class Editor {
         return;
       }
 
-      this.replace_background(this.currentSequenceData.id, backgroundFill);
+      let backgroundSize: WindowSize = {
+        width: 800,
+        height: 450,
+      };
+
+      this.replace_background(
+        this.currentSequenceData.id,
+        backgroundFill,
+        backgroundSize
+      );
     }
   }
 
@@ -2626,8 +2635,8 @@ export class Editor {
 
   replace_background(
     sequence_id: string,
-    // fill: [number, number, number, number]
-    backgroundFill: BackgroundFill
+    backgroundFill: BackgroundFill,
+    backgroundSize: WindowSize
   ) {
     let gpuResources = this.gpuResources;
     let camera = this.camera;
@@ -2670,10 +2679,10 @@ export class Editor {
         { x: 1.0, y: 1.0 },
         { x: 0.0, y: 1.0 },
       ],
-      [800.0 as number, 450.0 as number],
+      [backgroundSize.width as number, backgroundSize.height as number],
       {
-        x: 900.0 / 2.0,
-        y: 550.0 / 2.0,
+        x: windowSize.width / 2.0,
+        y: windowSize.height / 2.0,
       },
       0.0,
       0.0,
