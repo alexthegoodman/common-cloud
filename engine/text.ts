@@ -1088,6 +1088,13 @@ export class TextRenderer {
       camera
     );
 
+    console.info(
+      "update text dimensions",
+      dimensions,
+      this.backgroundPolygon.dimensions,
+      this.backgroundPolygon.backgroundFill
+    );
+
     this.dimensions = dimensions;
 
     // Re-render text to ensure proper wrapping

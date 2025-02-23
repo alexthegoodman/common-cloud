@@ -420,6 +420,8 @@ export const TextProperties = ({
               return;
             }
 
+            console.info("double call?");
+
             editorState.updateWidth(
               editor,
               currentTextId,
@@ -440,6 +442,8 @@ export const TextProperties = ({
             if (!editorState || !editor) {
               return;
             }
+
+            console.info("height debounce");
 
             editorState.updateHeight(
               editor,

@@ -30,6 +30,11 @@ import { PolygonConfig } from "@/engine/polygon";
 import { WindowSize } from "@/engine/camera";
 import { PreviewManager } from "@/engine/preview";
 import { ThemePicker } from "./ThemePicker";
+import {
+  ImageProperties,
+  PolygonProperties,
+  TextProperties,
+} from "./Properties";
 
 let docCanvasSize: WindowSize = {
   width: 900,
@@ -687,12 +692,57 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     <div className="flex flex-row w-full">
       {current_sequence_id && (
         <div className="flex flex-col gap-4 w-full max-w-[315px]">
-          <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-            <div className="flex flex-col w-full gap-4 mb-4">
-              <div className="flex flex-row items-center">
-                <h5>Update Document</h5>
+          {selected_polygon_id && (
+            <PolygonProperties
+              editorRef={editorRef}
+              editorStateRef={editorStateRef}
+              currentSequenceId={current_sequence_id}
+              currentPolygonId={selected_polygon_id}
+              handleGoBack={() => {
+                set_selected_polygon_id(null);
+              }}
+            />
+          )}
+
+          {selected_image_id && (
+            <>
+              <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                <ImageProperties
+                  editorRef={editorRef}
+                  editorStateRef={editorStateRef}
+                  currentSequenceId={current_sequence_id}
+                  currentImageId={selected_image_id}
+                  handleGoBack={() => {
+                    set_selected_image_id(null);
+                  }}
+                />
               </div>
-              {/* <div className="flex flex-row gap-2">
+            </>
+          )}
+
+          {selected_text_id && (
+            <>
+              <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                <TextProperties
+                  editorRef={editorRef}
+                  editorStateRef={editorStateRef}
+                  currentSequenceId={current_sequence_id}
+                  currentTextId={selected_text_id}
+                  handleGoBack={() => {
+                    set_selected_text_id(null);
+                  }}
+                />
+              </div>
+            </>
+          )}
+          {!selected_polygon_id && !selected_image_id && !selected_text_id && (
+            <>
+              <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                <div className="flex flex-col w-full gap-4 mb-4">
+                  <div className="flex flex-row items-center">
+                    <h5>Update Document</h5>
+                  </div>
+                  {/* <div className="flex flex-row gap-2">
                 <input
                   type="checkbox"
                   id="auto_choreograph"
@@ -704,34 +754,34 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                   Auto-Arrange
                 </label>
               </div> */}
-              <button
-                type="submit"
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={generateLoading}
-                onClick={() => {
-                  // on_generate_animation();
-                }}
-              >
-                {generateLoading ? "Generating..." : "Generate Layout"}
-              </button>
+                  <button
+                    type="submit"
+                    className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={generateLoading}
+                    onClick={() => {
+                      // on_generate_animation();
+                    }}
+                  >
+                    {generateLoading ? "Generating..." : "Generate Layout"}
+                  </button>
 
-              <ToolGrid
-                editorRef={editorRef}
-                editorStateRef={editorStateRef}
-                webCaptureRef={webCaptureRef}
-                currentSequenceId={current_sequence_id}
-                set_sequences={set_sequences}
-                options={["page", "square", "text", "image"]}
-              />
+                  <ToolGrid
+                    editorRef={editorRef}
+                    editorStateRef={editorStateRef}
+                    webCaptureRef={webCaptureRef}
+                    currentSequenceId={current_sequence_id}
+                    set_sequences={set_sequences}
+                    options={["page", "square", "text", "image"]}
+                  />
 
-              <ThemePicker
-                editorRef={editorRef}
-                editorStateRef={editorStateRef}
-                currentSequenceId={current_sequence_id}
-                saveTarget={SaveTarget.Docs}
-              />
+                  <ThemePicker
+                    editorRef={editorRef}
+                    editorStateRef={editorStateRef}
+                    currentSequenceId={current_sequence_id}
+                    saveTarget={SaveTarget.Docs}
+                  />
 
-              {/* <label className="text-sm">Background Color</label>
+                  {/* <label className="text-sm">Background Color</label>
                   <div className="flex flex-row gap-2 mb-4">
                     <DebouncedInput
                       id="background_red"
@@ -760,17 +810,19 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                         set_background_blue(parseInt(value));
                       }}
                     /> */}
-            </div>
-          </div>
-          <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-            <LayerPanel
-              layers={layers}
-              setLayers={set_layers}
-              onItemDeleted={on_item_deleted}
-              onItemDuplicated={on_item_duplicated}
-              onItemsUpdated={on_items_updated}
-            />
-          </div>
+                </div>
+              </div>
+              <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                <LayerPanel
+                  layers={layers}
+                  setLayers={set_layers}
+                  onItemDeleted={on_item_deleted}
+                  onItemDuplicated={on_item_duplicated}
+                  onItemsUpdated={on_items_updated}
+                />
+              </div>
+            </>
+          )}
         </div>
       )}
       <div className="flex flex-col justify-center items-center w-[calc(100vw-420px)] gap-2">

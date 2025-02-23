@@ -2853,6 +2853,7 @@ export class Editor {
                   [new_value, selected_polygon.dimensions[1]],
                   camera
                 );
+                break;
               }
               case "height": {
                 selected_polygon.updateDataFromDimensions(
@@ -2863,6 +2864,7 @@ export class Editor {
                   [selected_polygon.dimensions[0], new_value],
                   camera
                 );
+                break;
               }
               case "borderRadius": {
                 selected_polygon.updateDataFromBorderRadius(
@@ -2873,6 +2875,7 @@ export class Editor {
                   new_value,
                   camera
                 );
+                break;
               }
               case "red": {
                 if (selected_polygon.backgroundFill.type === "Color") {
@@ -2884,7 +2887,7 @@ export class Editor {
                     {
                       type: "Color",
                       value: [
-                        colorToWgpu(new_value),
+                        new_value,
                         selected_polygon.backgroundFill.value[1],
                         selected_polygon.backgroundFill.value[2],
                         selected_polygon.backgroundFill.value[3],
@@ -2893,6 +2896,7 @@ export class Editor {
                     camera
                   );
                 }
+                break;
               }
               case "green": {
                 if (selected_polygon.backgroundFill.type === "Color") {
@@ -2905,7 +2909,7 @@ export class Editor {
                       type: "Color",
                       value: [
                         selected_polygon.backgroundFill.value[0],
-                        colorToWgpu(new_value),
+                        new_value,
                         selected_polygon.backgroundFill.value[2],
                         selected_polygon.backgroundFill.value[3],
                       ],
@@ -2913,6 +2917,7 @@ export class Editor {
                     camera
                   );
                 }
+                break;
               }
               case "blue": {
                 if (selected_polygon.backgroundFill.type === "Color") {
@@ -2926,13 +2931,14 @@ export class Editor {
                       value: [
                         selected_polygon.backgroundFill.value[0],
                         selected_polygon.backgroundFill.value[1],
-                        colorToWgpu(new_value),
+                        new_value,
                         selected_polygon.backgroundFill.value[3],
                       ],
                     },
                     camera
                   );
                 }
+                break;
               }
               case "stroke_thickness": {
                 selected_polygon.updateDataFromStroke(
@@ -2946,6 +2952,7 @@ export class Editor {
                   },
                   camera
                 );
+                break;
               }
               case "stroke_red": {
                 selected_polygon.updateDataFromStroke(
@@ -2964,6 +2971,7 @@ export class Editor {
                   },
                   camera
                 );
+                break;
               }
               case "stroke_green": {
                 selected_polygon.updateDataFromStroke(
@@ -2982,6 +2990,7 @@ export class Editor {
                   },
                   camera
                 );
+                break;
               }
               case "stroke_blue": {
                 selected_polygon.updateDataFromStroke(
@@ -3000,6 +3009,7 @@ export class Editor {
                   },
                   camera
                 );
+                break;
               }
             }
           }
@@ -3040,10 +3050,13 @@ export class Editor {
       if (this.textItems[text_index]) {
         let selected_text = this.textItems[text_index];
 
+        console.info("check 2", key);
+
         switch (new_value_type) {
           case InputValue.Number: {
             switch (key) {
               case "width": {
+                console.info("update the width");
                 selected_text.updateDataFromDimensions(
                   windowSize,
                   device,
@@ -3052,8 +3065,10 @@ export class Editor {
                   [new_value, selected_text.dimensions[1]],
                   camera
                 );
+                break;
               }
               case "height": {
+                console.info("update the height");
                 selected_text.updateDataFromDimensions(
                   windowSize,
                   device,
@@ -3062,6 +3077,7 @@ export class Editor {
                   [selected_text.dimensions[0], new_value],
                   camera
                 );
+                break;
               }
               case "red_fill": {
                 if (
@@ -3085,6 +3101,7 @@ export class Editor {
                     camera
                   );
                 }
+                break;
               }
               case "green_fill": {
                 if (
@@ -3108,6 +3125,7 @@ export class Editor {
                     camera
                   );
                 }
+                break;
               }
               case "blue_fill": {
                 if (
@@ -3131,6 +3149,7 @@ export class Editor {
                     camera
                   );
                 }
+                break;
               }
             }
           }
@@ -3183,6 +3202,7 @@ export class Editor {
                   [new_value as number, selected_image.dimensions[1] as number]
                   //   camera
                 );
+                break;
               }
               case "height": {
                 selected_image.updateDataFromDimensions(
@@ -3193,6 +3213,7 @@ export class Editor {
                   [selected_image.dimensions[0] as number, new_value as number]
                   //   camera
                 );
+                break;
               }
             }
           }
@@ -3245,6 +3266,7 @@ export class Editor {
                   [new_value as number, selected_video.dimensions[1] as number]
                   //   camera
                 );
+                break;
               }
               case "height": {
                 selected_video.updateDataFromDimensions(
@@ -3255,6 +3277,7 @@ export class Editor {
                   [selected_video.dimensions[0] as number, new_value as number]
                   //   camera
                 );
+                break;
               }
             }
           }

@@ -56,6 +56,7 @@ export default class EditorState {
         break;
       }
       case ObjectType.TextItem: {
+        console.info("test 1");
         editor.update_text(objectId, "width", InputValue.Number, value);
 
         this.savedState.sequences.forEach((s) => {
@@ -130,6 +131,7 @@ export default class EditorState {
         break;
       }
       case ObjectType.TextItem: {
+        console.info("test 2");
         editor.update_text(objectId, "height", InputValue.Number, value);
 
         this.savedState.sequences.forEach((s) => {
