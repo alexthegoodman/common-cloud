@@ -6,7 +6,7 @@ import { SavedStVideoConfig } from "./video";
 
 export interface SavedState {
   sequences: Sequence[];
-  timeline_state: SavedTimelineStateConfig;
+  timeline_state: SavedTimelineStateConfig | null;
 }
 
 export interface ProjectData {
@@ -68,11 +68,11 @@ export interface CurveData {
 
 export interface Sequence {
   id: string;
-  name: string;
+  name?: string;
   backgroundFill?: BackgroundFill;
-  durationMs: number;
+  durationMs?: number;
   activePolygons: SavedPolygonConfig[];
-  polygonMotionPaths: AnimationData[];
+  polygonMotionPaths?: AnimationData[];
   activeTextItems: SavedTextRendererConfig[];
   activeImageItems: SavedStImageConfig[];
   activeVideoItems: SavedStVideoConfig[];

@@ -4,6 +4,7 @@ import {
   Sequence,
 } from "@/engine/animations";
 import { DocState } from "@/engine/data";
+import { SaveTarget } from "@/engine/editor_state";
 import { DateTime } from "luxon";
 
 export interface AuthToken {
@@ -16,8 +17,8 @@ export interface SingleProjectResponse {
     id: string;
     name: string;
     fileData: SavedState;
-    docData: DocState;
-    presData: any;
+    docData: SavedState;
+    presData: SavedState;
     updatedAt: DateTime;
     createdAt: DateTime;
   } | null;
@@ -153,7 +154,8 @@ export const createProject = async (
 };
 
 export async function saveSequencesData(
-  sequences: Sequence[]
+  sequences: Sequence[],
+  saveTarget: SaveTarget
 ): Promise<UpdateSequencesResponse> {
   try {
     // Get stored-project and auth-token from local storage
@@ -173,7 +175,8 @@ export async function saveSequencesData(
     return await updateSequences(
       authToken.token,
       storedProject.project_id,
-      sequences
+      sequences,
+      saveTarget
     );
   } catch (error) {
     console.error("Error saving sequences data:", error);
@@ -187,7 +190,8 @@ export async function saveSequencesData(
 export const updateSequences = async (
   token: string,
   projectId: string,
-  sequences: Sequence[]
+  sequences: Sequence[],
+  saveTarget: SaveTarget
 ): Promise<UpdateSequencesResponse> => {
   const response = await fetch(
     "http://localhost:3000/api/projects/update-sequences",
@@ -197,7 +201,7 @@ export const updateSequences = async (
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ projectId, sequences }),
+      body: JSON.stringify({ projectId, saveTarget, sequences }),
     }
   );
 

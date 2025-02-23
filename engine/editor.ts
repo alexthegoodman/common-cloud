@@ -188,7 +188,7 @@ export type OnHandleMouseUp = (
   objectId: string,
   handleId: string,
   point: Point
-) => [Sequence | null, string[] | null];
+) => [Sequence | null, string[] | null] | undefined;
 export type OnPathMouseUp = () =>
   | ((id: string, point: Point) => [Sequence, UIKeyframe[]])
   | null;
@@ -1635,7 +1635,7 @@ export class Editor {
     }
 
     const sequence = this.currentSequenceData;
-    if (!sequence) {
+    if (!sequence || !sequence.polygonMotionPaths || !sequence.durationMs) {
       throw new Error("Couldn't get sequence");
     }
 
@@ -2266,6 +2266,10 @@ export class Editor {
     objectId: string,
     colorIndex: number
   ): void {
+    if (!sequence.polygonMotionPaths) {
+      return;
+    }
+
     const animationData = sequence.polygonMotionPaths.find(
       (anim) => anim.polygonId === objectId
     );
@@ -4338,16 +4342,23 @@ export class Editor {
         if (handle_object_id) {
           // let handle_point = handle_point.expect("Couldn't get handle point");
           console.info("calling video handle mouse up!");
-          let [selected_sequence_data, selected_keyframes] =
-            this.onHandleMouseUp(handle_keyframe_id, handle_object_id, {
+          let upObject = this.onHandleMouseUp(
+            handle_keyframe_id,
+            handle_object_id,
+            {
               x: handle_point.x - CANVAS_HORIZ_OFFSET,
               y: handle_point.y - CANVAS_VERT_OFFSET,
-            });
+            }
+          );
 
-          // always updated when handle is moved
-          if (selected_sequence_data) {
-            this.updateMotionPaths(selected_sequence_data);
-            console.info("Motion Paths updated!");
+          if (upObject) {
+            let [selected_sequence_data, selected_keyframes] = upObject;
+
+            // always updated when handle is moved
+            if (selected_sequence_data) {
+              this.updateMotionPaths(selected_sequence_data);
+              console.info("Motion Paths updated!");
+            }
           }
         }
       }

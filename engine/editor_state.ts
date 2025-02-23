@@ -15,9 +15,18 @@ import { SavedStImageConfig } from "./image";
 import { SavedStVideoConfig } from "./video";
 import { Editor, InputValue } from "./editor";
 
+export enum SaveTarget {
+  Videos = "Videos",
+  Docs = "Docs",
+  Slides = "Slides",
+  Promos = "Promos",
+}
+
 export default class EditorState {
   selected_polygon_id: string = "";
   savedState: SavedState;
+  supportsMotionPaths: boolean = true;
+  saveTarget: SaveTarget = SaveTarget.Videos;
 
   constructor(savedState: SavedState) {
     this.savedState = savedState;
@@ -43,7 +52,7 @@ export default class EditorState {
           // }
         });
 
-        saveSequencesData(this.savedState.sequences);
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
         break;
       }
       case ObjectType.TextItem: {
@@ -59,7 +68,7 @@ export default class EditorState {
           // }
         });
 
-        saveSequencesData(this.savedState.sequences);
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
         break;
       }
       case ObjectType.ImageItem: {
@@ -75,7 +84,7 @@ export default class EditorState {
           // }
         });
 
-        saveSequencesData(this.savedState.sequences);
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
         break;
       }
       case ObjectType.VideoItem: {
@@ -91,7 +100,7 @@ export default class EditorState {
           // }
         });
 
-        saveSequencesData(this.savedState.sequences);
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
         break;
       }
     }
@@ -117,7 +126,7 @@ export default class EditorState {
           // }
         });
 
-        saveSequencesData(this.savedState.sequences);
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
         break;
       }
       case ObjectType.TextItem: {
@@ -133,7 +142,7 @@ export default class EditorState {
           // }
         });
 
-        saveSequencesData(this.savedState.sequences);
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
         break;
       }
       case ObjectType.ImageItem: {
@@ -149,7 +158,7 @@ export default class EditorState {
           // }
         });
 
-        saveSequencesData(this.savedState.sequences);
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
         break;
       }
       case ObjectType.VideoItem: {
@@ -165,7 +174,7 @@ export default class EditorState {
           // }
         });
 
-        saveSequencesData(this.savedState.sequences);
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
         break;
       }
     }
@@ -184,7 +193,7 @@ export default class EditorState {
       // }
     });
 
-    saveSequencesData(this.savedState.sequences);
+    saveSequencesData(this.savedState.sequences, this.saveTarget);
   }
 
   save_default_keyframes(
@@ -875,13 +884,16 @@ export default class EditorState {
     saved_state.sequences.forEach((s) => {
       if (s.id == selected_sequence_id) {
         s.activePolygons.push(savable_polygon);
-        s.polygonMotionPaths.push(new_motion_path);
+
+        if (this.supportsMotionPaths && s.polygonMotionPaths) {
+          s.polygonMotionPaths.push(new_motion_path);
+        }
       }
     });
 
     let sequences = saved_state.sequences;
 
-    await saveSequencesData(sequences);
+    await saveSequencesData(sequences, this.saveTarget);
 
     this.savedState = saved_state;
   }
@@ -901,13 +913,16 @@ export default class EditorState {
     saved_state.sequences.forEach((s) => {
       if (s.id == selected_sequence_id) {
         s.activeTextItems.push(savable_text);
-        s.polygonMotionPaths.push(new_motion_path);
+
+        if (this.supportsMotionPaths && s.polygonMotionPaths) {
+          s.polygonMotionPaths.push(new_motion_path);
+        }
       }
     });
 
     let sequences = saved_state.sequences;
 
-    await saveSequencesData(sequences);
+    await saveSequencesData(sequences, this.saveTarget);
 
     this.savedState = saved_state;
   }
@@ -927,13 +942,16 @@ export default class EditorState {
     saved_state.sequences.forEach((s) => {
       if (s.id == selected_sequence_id) {
         s.activeImageItems.push(savable_text);
-        s.polygonMotionPaths.push(new_motion_path);
+
+        if (this.supportsMotionPaths && s.polygonMotionPaths) {
+          s.polygonMotionPaths.push(new_motion_path);
+        }
       }
     });
 
     let sequences = saved_state.sequences;
 
-    await saveSequencesData(sequences);
+    await saveSequencesData(sequences, this.saveTarget);
 
     this.savedState = saved_state;
   }
@@ -953,13 +971,16 @@ export default class EditorState {
     saved_state.sequences.forEach((s) => {
       if (s.id == selected_sequence_id) {
         s.activeVideoItems.push(savable_text);
-        s.polygonMotionPaths.push(new_motion_path);
+
+        if (this.supportsMotionPaths && s.polygonMotionPaths) {
+          s.polygonMotionPaths.push(new_motion_path);
+        }
       }
     });
 
     let sequences = saved_state.sequences;
 
-    await saveSequencesData(sequences);
+    await saveSequencesData(sequences, this.saveTarget);
 
     this.savedState = saved_state;
   }

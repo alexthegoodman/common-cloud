@@ -48,7 +48,7 @@ import { StVideoConfig } from "@/engine/video";
 import { fileToBlob, StImageConfig } from "@/engine/image";
 import { TextRendererConfig } from "@/engine/text";
 import { PolygonConfig } from "@/engine/polygon";
-import EditorState from "@/engine/editor_state";
+import EditorState, { SaveTarget } from "@/engine/editor_state";
 import LayerPanel, { Layer, LayerFromConfig } from "./layers";
 import { CanvasPipeline } from "@/engine/pipeline";
 import {
@@ -79,6 +79,10 @@ export function update_keyframe(
   selected_sequence_id: string
   // sequence_selected: RwSignal<bool>,
 ) {
+  if (!current_sequence.polygonMotionPaths) {
+    return;
+  }
+
   if (selected_keyframes) {
     let selected_keyframe = selected_keyframes[0];
     if (current_keyframe.id != selected_keyframe) {
@@ -147,7 +151,7 @@ export function update_keyframe(
     }
   });
 
-  saveSequencesData(editor_state.savedState.sequences);
+  saveSequencesData(editor_state.savedState.sequences, SaveTarget.Videos);
 }
 
 function findObjectType(
@@ -407,7 +411,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
     // last_saved_state.sequences = updatedSequences;
 
-    saveSequencesData(last_saved_state.sequences);
+    saveSequencesData(last_saved_state.sequences, SaveTarget.Videos);
 
     console.info("Position updated!");
 
@@ -472,6 +476,10 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     }
     if (is_video) {
       select_video(objectId);
+    }
+
+    if (!selected_sequence?.polygonMotionPaths) {
+      return;
     }
 
     const currentKf =
@@ -664,7 +672,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     let response = await updateSequences(
       authToken.token,
       projectId,
-      new_sequences
+      new_sequences,
+      SaveTarget.Videos
     );
 
     set_quick_access();
@@ -682,19 +691,25 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
     let durations = {} as Record<string, number>;
     editorState.savedState.sequences.forEach((s) => {
-      durations[s.id] = s.durationMs;
+      if (s.durationMs) {
+        durations[s.id] = s.durationMs;
+      }
     });
 
     setSequenceDurations(durations);
 
     let quickAccess = {} as Record<string, string>;
     editorState.savedState.sequences.forEach((s) => {
-      quickAccess[s.id] = s.name;
+      if (s.name) {
+        quickAccess[s.id] = s.name;
+      }
     });
 
     setSequenceQuickAccess(quickAccess);
 
-    setTSequences(editorState.savedState.timeline_state.timeline_sequences);
+    if (editorState.savedState.timeline_state) {
+      setTSequences(editorState.savedState.timeline_state.timeline_sequences);
+    }
   };
 
   let on_open_sequence = (sequence_id: string) => {
@@ -914,7 +929,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
     editor.updateMotionPaths(updatedSequence);
 
-    saveSequencesData(editor_state.savedState.sequences);
+    saveSequencesData(editor_state.savedState.sequences, SaveTarget.Videos);
 
     set_loading(false);
   };
@@ -1047,7 +1062,10 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                     onClick={async () => {
                       let editor_state = editorStateRef.current;
 
-                      if (!editor_state) {
+                      if (
+                        !editor_state ||
+                        !editor_state.savedState.timeline_state
+                      ) {
                         return;
                       }
 
@@ -1505,7 +1523,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                                   );
 
                                   saveSequencesData(
-                                    editorState.savedState.sequences
+                                    editorState.savedState.sequences,
+                                    SaveTarget.Videos
                                   );
                                 }}
                               />

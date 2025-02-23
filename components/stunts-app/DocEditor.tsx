@@ -9,7 +9,7 @@ import { useDevEffectOnce } from "@/hooks/useDevOnce";
 import { OptionButton } from "./items";
 import { ToolGrid } from "./ToolGrid";
 import { WebCapture } from "@/engine/capture";
-import EditorState from "@/engine/editor_state";
+import EditorState, { SaveTarget } from "@/engine/editor_state";
 import { PageSequence } from "@/engine/data";
 
 export const DocEditor: React.FC<any> = ({ projectId }) => {
@@ -106,17 +106,24 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
 
     console.info("savedState", docData);
 
-    // if (!docData) {
-    //   return;
-    // }
+    if (!docData) {
+      docData = {
+        sequences: [], // represents pages for docs
+        timeline_state: null,
+      };
+    }
 
-    //   editorStateRef.current = new EditorState(fileData);
+    editorStateRef.current = new EditorState(docData);
+    editorStateRef.current.supportsMotionPaths = false;
+    editorStateRef.current.saveTarget = SaveTarget.Docs;
 
-    //   let cloned_sequences = fileData?.sequences;
+    let cloned_sequences = docData?.sequences;
 
-    //   if (!cloned_sequences) {
-    //     return;
-    //   }
+    if (!cloned_sequences) {
+      return;
+    }
+
+    set_sequences(cloned_sequences);
 
     console.info("Initializing pipeline...");
 

@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { projectId, sequences } = await req.json();
+    const { projectId, saveTarget, sequences } = await req.json();
 
     const project = await prisma.project.findUnique({
       where: {
@@ -31,16 +31,23 @@ export async function POST(req: Request) {
       },
     });
 
-    let fileData = project?.fileData as any;
-    fileData.sequences = sequences;
+    let saveData: any = {};
+
+    if (saveTarget === "Videos") {
+      let fileData = project?.fileData as any;
+      fileData.sequences = sequences;
+      saveData.fileData = fileData;
+    } else if (saveTarget === "Docs") {
+      let docData = project?.docData as any;
+      docData.sequences = sequences;
+      saveData.docData = docData;
+    }
 
     const updatedProject = await prisma.project.update({
       where: {
         id: projectId,
       },
-      data: {
-        fileData,
-      },
+      data: saveData,
     });
 
     return NextResponse.json({
