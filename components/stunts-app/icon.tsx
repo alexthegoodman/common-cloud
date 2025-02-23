@@ -37,6 +37,8 @@ import {
   Speedometer,
   Sphere,
   Square,
+  SquaresFour,
+  Storefront,
   TextT,
   Trash,
   Triangle,
@@ -77,6 +79,9 @@ export const CreateIcon = ({ icon, size }: { icon: string; size: string }) => {
     }
     case "square": {
       return <Square weight="thin" size={size} />;
+    }
+    case "squares": {
+      return <SquaresFour weight="thin" size={size} />;
     }
     case "triangle": {
       return <Triangle weight="thin" size={size} />;
@@ -176,6 +181,9 @@ export const CreateIcon = ({ icon, size }: { icon: string; size: string }) => {
     }
     case "file-plus": {
       return <FilePlus weight="thin" size={size} />;
+    }
+    case "market": {
+      return <Storefront weight="thin" size={size} />;
     }
     default: {
       return <></>;

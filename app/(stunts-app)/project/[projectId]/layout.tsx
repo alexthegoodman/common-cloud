@@ -34,6 +34,16 @@ export default function ProjectSettings({ children = null }) {
             destination={`/project/${projectId}/slides`}
           />
           <NavButton
+            label="Promos"
+            icon="squares"
+            destination={`/project/${projectId}/promos`}
+          />
+          <NavButton
+            label="Market"
+            icon="market"
+            destination={`/project/${projectId}/market`}
+          />
+          <NavButton
             label="Settings"
             icon="gear"
             destination={`/project/${projectId}/settings`}
