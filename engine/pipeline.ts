@@ -28,6 +28,8 @@ export class CanvasPipeline {
   depthView: GPUTextureView | null = null;
   multisampledView: GPUTextureView | null = null;
   private animationFrameId: number | null = null;
+  public stepFrames: boolean = true;
+  public canvas: HTMLCanvasElement | OffscreenCanvas | null = null;
 
   constructor() {}
 
@@ -35,15 +37,22 @@ export class CanvasPipeline {
     editor: Editor,
     onScreenCanvas: boolean,
     canvasId: string,
-    windowSize: WindowSize
+    windowSize: WindowSize,
+    stepFrames: boolean = true
   ) {
+    this.stepFrames = stepFrames;
     console.log("Initializing Canvas Renderer...");
 
-    let canvas = null;
+    this.canvas = null;
     if (onScreenCanvas) {
-      canvas = document.getElementById(canvasId) as HTMLCanvasElement;
+      this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
 
-      if (!canvas) throw new Error("Canvas not found");
+      if (!this.canvas) throw new Error("Canvas not found");
+    } else {
+      // let render_canvas: HTMLCanvasElement | OffscreenCanvas | null = canvas;
+      // if (!render_canvas) {
+      this.canvas = new OffscreenCanvas(windowSize.width, windowSize.height);
+      // }
     }
 
     // Set canvas dimensions
@@ -55,7 +64,7 @@ export class CanvasPipeline {
     // const windowSize: WindowSize = { width, height };
 
     // Initialize WebGPU
-    const gpuResources = await WebGpuResources.request(canvas, windowSize);
+    const gpuResources = await WebGpuResources.request(this.canvas, windowSize);
 
     console.info("Initializing pipeline...");
 
@@ -262,7 +271,7 @@ export class CanvasPipeline {
     return this;
   }
 
-  beginRendering(editor: Editor): void {
+  async beginRendering(editor: Editor): Promise<void> {
     // Make sure we clean up any existing animation loop
     //  this.stopRendering();
 
@@ -274,16 +283,20 @@ export class CanvasPipeline {
       return;
     }
 
-    // Start the animation loop
-    const renderLoop = async () => {
-      await this.renderFrame(editor);
+    if (this.stepFrames) {
+      // Start the animation loop
+      const renderLoop = async () => {
+        await this.renderFrame(editor);
 
-      // Schedule the next frame
+        // Schedule the next frame
+        this.animationFrameId = window.requestAnimationFrame(renderLoop);
+      };
+
+      // Start the first frame
       this.animationFrameId = window.requestAnimationFrame(renderLoop);
-    };
-
-    // Start the first frame
-    this.animationFrameId = window.requestAnimationFrame(renderLoop);
+    } else {
+      await this.renderFrame(editor);
+    }
   }
 
   recreateDepthView(window_width: number, window_height: number) {

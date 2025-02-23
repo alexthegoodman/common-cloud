@@ -223,12 +223,11 @@ export class WebGpuResources {
   }
 
   static async request(
-    canvas: HTMLCanvasElement | null,
+    canvas: HTMLCanvasElement | OffscreenCanvas | null,
     windowSize: WindowSize
   ): Promise<WebGpuResources> {
-    let render_canvas: HTMLCanvasElement | OffscreenCanvas | null = canvas;
-    if (!render_canvas) {
-      render_canvas = new OffscreenCanvas(windowSize.width, windowSize.height);
+    if (!canvas) {
+      throw Error("No canvas provided");
     }
 
     if (!navigator.gpu) {
@@ -252,7 +251,7 @@ export class WebGpuResources {
     });
 
     // Get canvas context
-    const context = render_canvas.getContext("webgpu");
+    const context = canvas.getContext("webgpu");
     if (!context) {
       throw new Error("Couldn't get WebGPU context from canvas");
     }

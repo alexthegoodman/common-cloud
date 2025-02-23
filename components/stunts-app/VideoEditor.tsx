@@ -549,7 +549,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
     console.info("Beginning rendering...");
 
-    canvasPipelineRef.current.beginRendering(editorRef.current);
+    await canvasPipelineRef.current.beginRendering(editorRef.current);
 
     // console.info("Restoring objects...");
 
