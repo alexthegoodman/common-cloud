@@ -760,8 +760,8 @@ export class TextRenderer {
 
       const baselineY = capHeight - atlasGlyph.metrics.height;
 
-      let y0 = startY + baselineY;
-      let y1 = startY + atlasGlyph.metrics.height + baselineY; // metrics[1] is already scaled in addGlyphToAtlas
+      let y0 = startY - capHeight / 2 + baselineY;
+      let y1 = startY - capHeight / 2 + atlasGlyph.metrics.height + baselineY; // metrics[1] is already scaled in addGlyphToAtlas
 
       // UV coordinates from atlas
       let u0 = atlasGlyph.uv_rect[0];
