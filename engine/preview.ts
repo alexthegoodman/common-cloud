@@ -3,8 +3,8 @@ import { WindowSize } from "./camera";
 import { Editor, Viewport } from "./editor";
 import { CanvasPipeline } from "./pipeline";
 
-class PreviewManager {
-  public previewCache;
+export class PreviewManager {
+  public previewCache: Map<string, { blobUrl: string; timestamp: number }>;
   public pipeline: CanvasPipeline | null = null;
   public editor: Editor | null = null;
 
@@ -12,8 +12,8 @@ class PreviewManager {
     this.previewCache = new Map(); // Map<sequenceId, {blobUrl, timestamp}>
   }
 
-  async initialize(docCanasSize: WindowSize, sequences: Sequence[]) {
-    let viewport = new Viewport(docCanasSize.width, docCanasSize.height);
+  async initialize(docCanvasSize: WindowSize, sequences: Sequence[]) {
+    let viewport = new Viewport(docCanvasSize.width, docCanvasSize.height);
 
     this.editor = new Editor(viewport);
 
@@ -22,8 +22,8 @@ class PreviewManager {
     let pipelineC = new CanvasPipeline();
 
     this.pipeline = await pipelineC.new(this.editor, true, "doc-canvas", {
-      width: docCanasSize.width,
-      height: docCanasSize.height,
+      width: docCanvasSize.width,
+      height: docCanvasSize.height,
     });
 
     let windowSize = this.editor.camera?.windowSize;
@@ -50,9 +50,9 @@ class PreviewManager {
     }
   }
 
-  async generatePreview(sequenceId: string) {
+  async generatePreview(sequenceId: string): Promise<string> {
     if (!this.editor || !this.pipeline?.canvas) {
-      return;
+      throw Error("No editor or canvas for preview");
     }
 
     for (const polygon of this.editor.polygons) {
@@ -77,8 +77,12 @@ class PreviewManager {
     );
 
     // Revoke old blob URL if it exists
-    if (this.previewCache.has(sequenceId)) {
-      URL.revokeObjectURL(this.previewCache.get(sequenceId).blobUrl);
+    if (this.previewCache && this.previewCache.has(sequenceId)) {
+      let cacheItem = this.previewCache.get(sequenceId);
+
+      if (cacheItem?.blobUrl) {
+        URL.revokeObjectURL(cacheItem?.blobUrl);
+      }
     }
 
     // Create and store new blob URL
@@ -91,9 +95,9 @@ class PreviewManager {
     return blobUrl;
   }
 
-  getPreview(sequenceId: string) {
-    return this.previewCache.get(sequenceId)?.blobUrl;
-  }
+  //   getPreview(sequenceId: string): string {
+  //     return this.previewCache.get(sequenceId)?.blobUrl;
+  //   }
 
   isPreviewStale(sequenceId: string, documentTimestamp: number) {
     const preview = this.previewCache.get(sequenceId);
@@ -108,17 +112,3 @@ class PreviewManager {
     this.previewCache.clear();
   }
 }
-
-// Usage example
-// const previewManager = new PreviewManager();
-
-// async function updateDocumentPreview(
-//   sequenceId: string,
-//   documentTimestamp: number
-// ) {
-//   if (previewManager.isPreviewStale(sequenceId, documentTimestamp)) {
-//     const previewUrl = await previewManager.generatePreview(sequenceId);
-//     return previewUrl;
-//   }
-//   return previewManager.getPreview(sequenceId);
-// }

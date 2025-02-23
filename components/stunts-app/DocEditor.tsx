@@ -28,8 +28,9 @@ import { StImageConfig } from "@/engine/image";
 import { TextRendererConfig } from "@/engine/text";
 import { PolygonConfig } from "@/engine/polygon";
 import { WindowSize } from "@/engine/camera";
+import { PreviewManager } from "@/engine/preview";
 
-let docCanasSize: WindowSize = {
+let docCanvasSize: WindowSize = {
   width: 900,
   height: 1100,
 };
@@ -57,10 +58,15 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     null
   );
 
+  let [previewCache, setPreviewCache] = useState<
+    Map<string, { blobUrl: string; timestamp: number }>
+  >(new Map());
+
   const editorRef = useRef<Editor | null>(null);
   const editorStateRef = useRef<EditorState | null>(null);
   const webCaptureRef = useRef<WebCapture | null>(null);
   const canvasPipelineRef = useRef<CanvasPipeline | null>(null);
+  const previewManagerRef = useRef<PreviewManager | null>(null);
   const [editorIsSet, setEditorIsSet] = useState(false);
 
   let select_polygon = (polygon_id: string) => {
@@ -119,13 +125,44 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
   //   select_video(video_id);
   // };
 
+  async function updateDocumentPreview(
+    previewManager: PreviewManager,
+    sequenceId: string,
+    documentTimestamp: number
+  ) {
+    if (!previewManager.editor) {
+      return;
+    }
+
+    if (previewManager.isPreviewStale(sequenceId, documentTimestamp)) {
+      previewManager.pipeline?.renderFrame(previewManager.editor);
+      const previewUrl = await previewManager.generatePreview(sequenceId);
+      return previewUrl;
+    }
+    // const blobUrl = previewManager.getPreview(sequenceId);
+
+    setPreviewCache(previewManager.previewCache);
+  }
+
+  async function updateDocumentPreviews(
+    previewManager: PreviewManager,
+    sequenceIds: string[],
+    documentTimestamp: number
+  ) {
+    for (let id of sequenceIds) {
+      await updateDocumentPreview(previewManager, id, documentTimestamp);
+    }
+  }
+
   let handle_mouse_up = (
     object_id: string,
     point: Point
   ): [Sequence, string[]] | null => {
+    let previewManager = previewManagerRef.current;
+    let previewGpuResources = previewManager?.editor?.gpuResources;
     let last_saved_state = editorStateRef.current?.savedState;
 
-    if (!last_saved_state) {
+    if (!last_saved_state || !previewManager || !previewGpuResources) {
       return null;
     }
 
@@ -147,10 +184,24 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
             s.activePolygons.forEach((ap) => {
               if (ap.id == object_id) {
                 console.info("updating position...");
+
                 ap.position = {
                   x: point.x,
                   y: point.y,
                 };
+
+                previewManager.editor?.polygons.find((p) => {
+                  if (p.id === object_id) {
+                    p.transform.updatePosition(
+                      [point.x, point.y],
+                      docCanvasSize
+                    );
+                    p.transform.updateUniformBuffer(
+                      previewGpuResources.queue,
+                      docCanvasSize
+                    );
+                  }
+                });
               }
             });
             break;
@@ -162,6 +213,19 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                   x: point.x,
                   y: point.y,
                 };
+
+                previewManager.editor?.textItems.find((p) => {
+                  if (p.id === object_id) {
+                    p.transform.updatePosition(
+                      [point.x, point.y],
+                      docCanvasSize
+                    );
+                    p.transform.updateUniformBuffer(
+                      previewGpuResources.queue,
+                      docCanvasSize
+                    );
+                  }
+                });
               }
             });
             break;
@@ -173,22 +237,35 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                   x: point.x,
                   y: point.y,
                 };
+
+                previewManager.editor?.imageItems.find((p) => {
+                  if (p.id === object_id) {
+                    p.transform.updatePosition(
+                      [point.x, point.y],
+                      docCanvasSize
+                    );
+                    p.transform.updateUniformBuffer(
+                      previewGpuResources.queue,
+                      docCanvasSize
+                    );
+                  }
+                });
               }
             });
             break;
           }
-          case ObjectType.VideoItem: {
-            console.info("saving point", point);
-            s.activeVideoItems.forEach((si) => {
-              if (si.id == object_id) {
-                si.position = {
-                  x: point.x,
-                  y: point.y,
-                };
-              }
-            });
-            break;
-          }
+          // case ObjectType.VideoItem: {
+          //   console.info("saving point", point);
+          //   s.activeVideoItems.forEach((si) => {
+          //     if (si.id == object_id) {
+          //       si.position = {
+          //         x: point.x,
+          //         y: point.y,
+          //       };
+          //     }
+          //   });
+          //   break;
+          // }
         }
       }
     });
@@ -203,9 +280,11 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       (s) => s.id === current_sequence_id
     );
 
-    if (!current_sequence_data) {
+    if (!current_sequence_id || !current_sequence_data) {
       return null;
     }
+
+    updateDocumentPreview(previewManager, current_sequence_id, Date.now());
 
     return [current_sequence_data, []];
   };
@@ -394,6 +473,20 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     console.info("set current", sequence_id);
 
     set_current_sequence_id(sequence_id);
+
+    if (!previewManagerRef.current) {
+      return;
+    }
+
+    let sequence_ids = editorStateRef.current?.savedState.sequences.map(
+      (s) => s.id
+    );
+
+    if (!sequence_ids) {
+      return;
+    }
+
+    updateDocumentPreviews(previewManagerRef.current, sequence_ids, Date.now());
   };
 
   useDevEffectOnce(async () => {
@@ -403,7 +496,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
 
     console.info("Starting Editor...");
 
-    let viewport = new Viewport(docCanasSize.width, docCanasSize.height);
+    let viewport = new Viewport(docCanvasSize.width, docCanvasSize.height);
 
     editorRef.current = new Editor(viewport);
 
@@ -484,6 +577,15 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       return;
     }
 
+    previewManagerRef.current = new PreviewManager();
+
+    let docCanvasSize: WindowSize = {
+      width: 900,
+      height: 1100,
+    };
+
+    await previewManagerRef.current.initialize(docCanvasSize, cloned_sequences);
+
     set_sequences(cloned_sequences);
 
     console.info("Initializing pipeline...");
@@ -495,8 +597,8 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       true,
       "doc-canvas",
       {
-        width: docCanasSize.width,
-        height: docCanasSize.height,
+        width: docCanvasSize.width,
+        height: docCanvasSize.height,
       }
     );
 
@@ -862,10 +964,24 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       <div className="flex flex-col justify-center items-center w-[calc(100vw-420px)] gap-2">
         <canvas
           id="doc-canvas"
-          className={`w-[${docCanasSize.width}px] h-[${docCanasSize.height}px] border border-black`}
-          width={docCanasSize.width}
-          height={docCanasSize.height}
+          className={`w-[${docCanvasSize.width}px] h-[${docCanvasSize.height}px] border border-black`}
+          width={docCanvasSize.width}
+          height={docCanvasSize.height}
         />
+        {previewCache.size > 0 && (
+          <div>
+            {previewCache.keys().map((sequenceId, i) => {
+              const cacheItem = previewCache.get(sequenceId);
+
+              return (
+                <>
+                  <img src={cacheItem?.blobUrl} width={200} />
+                  <p>Page {i + 1}</p>
+                </>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
