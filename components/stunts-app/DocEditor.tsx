@@ -514,6 +514,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     let viewport = new Viewport(docCanvasSize.width, docCanvasSize.height);
 
     editorRef.current = new Editor(viewport);
+    editorRef.current.target = SaveTarget.Docs;
 
     setEditorIsSet(true);
   });

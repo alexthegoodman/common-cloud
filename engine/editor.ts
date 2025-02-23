@@ -320,6 +320,7 @@ import {
   MultiPageEditor,
   RenderItem,
 } from "./rte";
+import { SaveTarget } from "./editor_state";
 // import * as fontkit from "fontkit";
 
 export class Editor {
@@ -347,6 +348,7 @@ export class Editor {
   multiPageEditor: MultiPageEditor | null = null;
   textArea: TextRenderer | null = null;
   textAreaActive: boolean = false;
+  target: SaveTarget = SaveTarget.Videos;
 
   // viewport
   viewport: Viewport;
@@ -2700,6 +2702,8 @@ export class Editor {
     );
 
     console.info("bg poly", canvas_polygon);
+
+    canvas_polygon.updateGradientAnimation(gpuResources.device, 0.01);
 
     this.staticPolygons.push(canvas_polygon);
   }

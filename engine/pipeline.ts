@@ -10,6 +10,7 @@ import { TextRenderer } from "./text";
 import { RepeatableObject } from "./repeater";
 
 import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
+import { SaveTarget } from "./editor_state";
 
 interface WindowSize {
   width: number;
@@ -443,7 +444,11 @@ export class CanvasPipeline {
         polygon.transform.updateUniformBuffer(queue, editor.camera.windowSize);
       }
 
-      if (polygon.name === "canvas_background") {
+      if (
+        polygon.name === "canvas_background" &&
+        editor.target === SaveTarget.Videos &&
+        editor.isPlaying
+      ) {
         polygon.updateGradientAnimation(device, 0.001);
       }
 
