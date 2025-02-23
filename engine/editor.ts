@@ -720,7 +720,8 @@ export class Editor {
       console.log("Polygon restored...");
     });
 
-    saved_sequence.activeTextItems.forEach(async (t) => {
+    // saved_sequence.activeTextItems.forEach(async (t) => {
+    for (let t of saved_sequence.activeTextItems) {
       const position = {
         x: CANVAS_HORIZ_OFFSET + t.position.x,
         y: CANVAS_VERT_OFFSET + t.position.y,
@@ -777,7 +778,7 @@ export class Editor {
       this.textItems.push(restored_text);
 
       console.log("Text restored...");
-    });
+    }
 
     // saved_sequence.activeImageItems.forEach((i) => {
     for (let i of saved_sequence.activeImageItems) {

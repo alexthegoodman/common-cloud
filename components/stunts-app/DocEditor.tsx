@@ -479,7 +479,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
 
     set_layers(new_layers);
 
-    console.info("set current", sequence_id);
+    console.info("set current", sequence_id, new_layers);
 
     set_current_sequence_id(sequence_id);
 
@@ -633,7 +633,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     // console.info("Restoring objects...");
 
     for (let [sequenceIndex, sequence] of cloned_sequences.entries()) {
-      editorRef.current.restore_sequence_objects(
+      await editorRef.current.restore_sequence_objects(
         sequence,
         sequenceIndex === 0 ? false : true
         // authToken.token,
