@@ -547,6 +547,122 @@ export class TextRenderer {
     this.indices = indices;
   }
 
+  // addGlyphToAtlas(
+  //   device: GPUDevice,
+  //   queue: GPUQueue,
+  //   rasterConfig: GlyphRasterConfig
+  // ): AtlasGlyph {
+  //   // Get the glyph layout for the given character (using fontkit for metrics)
+  //   const glyphRun = this.font.layout(rasterConfig.character);
+  //   const glyph = glyphRun.glyphs[0];
+  //   const position = glyphRun.positions[0];
+
+  //   // Calculate metrics
+  //   const scale = rasterConfig.fontSize / this.font.unitsPerEm;
+  //   const boundingBox = glyph.bbox;
+
+  //   const metrics = {
+  //     width: position.xAdvance * scale,
+  //     height: (boundingBox.maxY - boundingBox.minY) * scale,
+  //     xmin: boundingBox.minX * scale,
+  //     ymin: boundingBox.minY * scale,
+  //   };
+
+  //   // Create an offscreen canvas to render the glyph
+  //   let canvas_width = Math.ceil(metrics.width) + 1;
+  //   let canvas_height = Math.ceil(metrics.height) + 2;
+
+  //   if (canvas_width <= 0 || canvas_height <= 0) {
+  //     canvas_width = 1;
+  //     canvas_height = 1;
+  //   }
+
+  //   const canvas = new OffscreenCanvas(canvas_width, canvas_height);
+  //   const ctx = canvas.getContext("2d");
+  //   if (!ctx) {
+  //     throw new Error("Could not create canvas context");
+  //   }
+
+  //   ctx.globalAlpha = 0.5;
+  //   ctx.globalCompositeOperation = "copy"; // Disable premultiplied alpha
+
+  //   // Set canvas size to match the glyph's bounding box
+  //   canvas.width = canvas_width;
+  //   canvas.height = canvas_height;
+
+  //   // Render the glyph onto the canvas using native Canvas API
+  //   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  //   ctx.fillStyle = "white"; // Use white for the glyph color, or black for testing
+
+  //   // Set up the font and text rendering
+  //   ctx.textRendering = "optimizeLegibility"; // Set antialiasing
+  //   ctx.font = `${rasterConfig.fontSize}px ${this.font.familyName}`;
+
+  //   console.info("this.font.familyName", this.font.familyName);
+
+  //   ctx.textBaseline = "alphabetic"; // Align text to the baseline
+  //   ctx.textAlign = "left"; // Align text to the left
+
+  //   const baselineY = Math.ceil(canvas_height);
+  //   ctx.fillText(rasterConfig.character, 0, baselineY);
+
+  //   // Get the image data from the canvas
+  //   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+  //   // Convert the image data to RGBA format
+  //   const rgbaData = new Uint8Array(imageData.data.buffer);
+
+  //   // Check if we need to move to the next row in the atlas
+  //   if (this.nextAtlasPosition[0] + canvas.width > this.atlasSize[0]) {
+  //     this.nextAtlasPosition[0] = 0;
+  //     this.nextAtlasPosition[1] += this.currentRowHeight;
+  //     this.currentRowHeight = 0;
+  //   }
+
+  //   // Update current row height if this glyph is taller
+  //   this.currentRowHeight = Math.max(this.currentRowHeight, canvas.height);
+
+  //   // Calculate UV coordinates
+  //   const uv_rect: [number, number, number, number] = [
+  //     this.nextAtlasPosition[0] / this.atlasSize[0],
+  //     this.nextAtlasPosition[1] / this.atlasSize[1],
+  //     canvas.width / this.atlasSize[0],
+  //     canvas.height / this.atlasSize[1],
+  //   ];
+
+  //   // Write glyph bitmap to atlas
+  //   queue.writeTexture(
+  //     {
+  //       texture: this.atlasTexture,
+  //       mipLevel: 0,
+  //       origin: {
+  //         x: this.nextAtlasPosition[0],
+  //         y: this.nextAtlasPosition[1],
+  //         z: 0,
+  //       },
+  //     },
+  //     rgbaData,
+  //     {
+  //       offset: 0,
+  //       bytesPerRow: canvas.width * 4, // *4 for RGBA
+  //       rowsPerImage: canvas.height,
+  //     },
+  //     {
+  //       width: canvas.width,
+  //       height: canvas.height,
+  //       depthOrArrayLayers: 1,
+  //     }
+  //   );
+
+  //   // Update atlas position for next glyph
+  //   this.nextAtlasPosition[0] += canvas.width;
+
+  //   return {
+  //     uv_rect,
+  //     metrics,
+  //   };
+  // }
+
   addGlyphToAtlas(
     device: GPUDevice,
     queue: GPUQueue,
@@ -568,9 +684,10 @@ export class TextRenderer {
       ymin: boundingBox.minY * scale,
     };
 
-    // Create an offscreen canvas to render the glyph
-    let canvas_width = Math.ceil(metrics.width) + 1;
-    let canvas_height = Math.ceil(metrics.height) + 2;
+    // Create an offscreen canvas with 3x resolution
+    const DPI_SCALE = 3; // Increase this for even higher quality
+    let canvas_width = Math.ceil(metrics.width * DPI_SCALE) + 1;
+    let canvas_height = Math.ceil(metrics.height * DPI_SCALE) + 2;
 
     if (canvas_width <= 0 || canvas_height <= 0) {
       canvas_width = 1;
@@ -578,76 +695,109 @@ export class TextRenderer {
     }
 
     const canvas = new OffscreenCanvas(canvas_width, canvas_height);
-    // let canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", {
+      alpha: true,
+      antialias: true,
+    });
+
     if (!ctx) {
       throw new Error("Could not create canvas context");
     }
 
+    // Enable subpixel rendering and set better quality
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+
     ctx.globalAlpha = 0.5;
     ctx.globalCompositeOperation = "copy"; // Disable premultiplied alpha
 
-    // Set canvas size to match the glyph's bounding box
+    // Set canvas size to match the high DPI glyph
     canvas.width = canvas_width;
     canvas.height = canvas_height;
 
-    // console.info(
-    //   "text canvas dimensions",
-    //   rasterConfig,
-    //   this.font.familyName,
-    //   canvas.width,
-    //   canvas.height
-    // );
-
-    // Render the glyph onto the canvas using native Canvas API
+    // Clear with transparent black
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "white"; // Use white for the glyph color, or black for testing
+    ctx.fillStyle = "white";
 
-    // Set up the font and text rendering
-    ctx.font = `${rasterConfig.fontSize}px ${this.font.familyName}`;
+    // Set up the font and text rendering with scaled size
+    ctx.textRendering = "optimizeLegibility"; // Better than optimizeLegibility for high DPI
+    const scaledFontSize = rasterConfig.fontSize * DPI_SCALE;
+    ctx.font = `${scaledFontSize}px ${this.font.familyName}`;
 
     console.info("this.font.familyName", this.font.familyName);
 
-    ctx.textBaseline = "alphabetic"; // Align text to the baseline
-    ctx.textAlign = "left"; // Align text to the left
+    ctx.textBaseline = "alphabetic";
+    ctx.textAlign = "left";
 
-    // Translate to account for the glyph's bounding box
-    // ctx.translate(-boundingBox.minX * scale, -boundingBox.minY * scale);
-
-    // Draw the character using the native Canvas API
-    // ctx.fillText(rasterConfig.character, 0, 0);
-
-    // const baselineY = Math.ceil(boundingBox.maxY * scale);
     const baselineY = Math.ceil(canvas_height);
     ctx.fillText(rasterConfig.character, 0, baselineY);
 
-    // Get the image data from the canvas
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    // Get the high DPI image data
+    // const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    let final_canvas_width = Math.ceil(metrics.width) + 1;
+    let final_canvas_height = Math.ceil(metrics.height) + 2;
+
+    if (final_canvas_width <= 0 || final_canvas_height <= 0) {
+      final_canvas_width = 1;
+      final_canvas_height = 1;
+    }
+
+    // Create a temporary downscaling canvas
+    const finalCanvas = new OffscreenCanvas(
+      final_canvas_width,
+      final_canvas_height
+    );
+    const finalCtx = finalCanvas.getContext("2d", {
+      alpha: true,
+      antialias: true,
+    });
+
+    if (!finalCtx) {
+      throw new Error("Could not create final canvas context");
+    }
+
+    // Draw the high DPI canvas onto the final size canvas
+    finalCtx.drawImage(
+      canvas,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+      0,
+      0,
+      finalCanvas.width,
+      finalCanvas.height
+    );
+
+    // Get the downscaled image data
+    const finalImageData = finalCtx.getImageData(
+      0,
+      0,
+      finalCanvas.width,
+      finalCanvas.height
+    );
 
     // Convert the image data to RGBA format
-    const rgbaData = new Uint8Array(imageData.data.buffer);
-
-    // visualizeRGBA(rgbaData, canvas.width, canvas.height, "glyphCanvas"); // Pass the canvas width/height
+    const rgbaData = new Uint8Array(finalImageData.data.buffer);
 
     // Check if we need to move to the next row in the atlas
-    if (this.nextAtlasPosition[0] + canvas.width > this.atlasSize[0]) {
+    if (this.nextAtlasPosition[0] + finalCanvas.width > this.atlasSize[0]) {
       this.nextAtlasPosition[0] = 0;
       this.nextAtlasPosition[1] += this.currentRowHeight;
       this.currentRowHeight = 0;
     }
 
     // Update current row height if this glyph is taller
-    this.currentRowHeight = Math.max(this.currentRowHeight, canvas.height);
+    this.currentRowHeight = Math.max(this.currentRowHeight, finalCanvas.height);
 
     // Calculate UV coordinates
     const uv_rect: [number, number, number, number] = [
       this.nextAtlasPosition[0] / this.atlasSize[0],
       this.nextAtlasPosition[1] / this.atlasSize[1],
-      canvas.width / this.atlasSize[0],
-      canvas.height / this.atlasSize[1],
+      finalCanvas.width / this.atlasSize[0],
+      finalCanvas.height / this.atlasSize[1],
     ];
-
-    // console.info("rgbData", rgbaData.length);
 
     // Write glyph bitmap to atlas
     queue.writeTexture(
@@ -663,24 +813,21 @@ export class TextRenderer {
       rgbaData,
       {
         offset: 0,
-        bytesPerRow: canvas.width * 4, // *4 for RGBA
-        rowsPerImage: canvas.height,
+        bytesPerRow: finalCanvas.width * 4,
+        rowsPerImage: finalCanvas.height,
       },
       {
-        width: canvas.width,
-        height: canvas.height,
+        width: finalCanvas.width,
+        height: finalCanvas.height,
         depthOrArrayLayers: 1,
       }
     );
 
     // Update atlas position for next glyph
-    this.nextAtlasPosition[0] += canvas.width;
-
-    // console.info("atlas position", this.nextAtlasPosition);
+    this.nextAtlasPosition[0] += finalCanvas.width;
 
     return {
       uv_rect,
-      // metrics: [metrics.width, metrics.height, metrics.xmin, metrics.ymin],
       metrics,
     };
   }
