@@ -92,7 +92,7 @@ export const ThemePicker = ({
           const textRgb = hexParse(textColor);
 
           const textKurkle = new Color(textRgb);
-          const darkTextColor = textKurkle.darken(0.3);
+          const darkTextColor = textKurkle.darken(0.15);
 
           const fontIndex = theme[2];
 
