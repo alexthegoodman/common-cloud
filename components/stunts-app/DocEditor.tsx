@@ -368,10 +368,10 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       on_open_sequence(first_page.id);
     }
 
-    for (let sequence of cloned_sequences) {
+    for (let [sequenceIndex, sequence] of cloned_sequences.entries()) {
       editorRef.current.restore_sequence_objects(
         sequence,
-        true
+        sequenceIndex === 0 ? false : true
         // authToken.token,
       );
     }
