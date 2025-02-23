@@ -132,7 +132,9 @@ export const getProjects = async (
 export const createProject = async (
   token: string,
   name: string,
-  emptyFileData: any
+  emptyVideoData: SavedState,
+  emptyDocData: SavedState,
+  emptyPresData: SavedState
 ): Promise<CreateProjectResponse> => {
   const response = await fetch("http://localhost:3000/api/projects/create", {
     method: "POST",
@@ -140,7 +142,7 @@ export const createProject = async (
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ name, emptyFileData }),
+    body: JSON.stringify({ name, emptyVideoData, emptyDocData, emptyPresData }),
   });
 
   if (!response.ok) {

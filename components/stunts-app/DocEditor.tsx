@@ -1,8 +1,12 @@
-import { AuthToken, getSingleProject } from "@/fetchers/projects";
+import {
+  AuthToken,
+  getSingleProject,
+  updateSequences,
+} from "@/fetchers/projects";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import LayerPanel, { Layer } from "./layers";
+import LayerPanel, { Layer, LayerFromConfig } from "./layers";
 import { CanvasPipeline } from "@/engine/pipeline";
 import { Editor, rgbToWgpu, Viewport } from "@/engine/editor";
 import { useDevEffectOnce } from "@/hooks/useDevOnce";
@@ -11,6 +15,12 @@ import { ToolGrid } from "./ToolGrid";
 import { WebCapture } from "@/engine/capture";
 import EditorState, { SaveTarget } from "@/engine/editor_state";
 import { PageSequence } from "@/engine/data";
+import { BackgroundFill, Sequence } from "@/engine/animations";
+import { v4 as uuidv4 } from "uuid";
+import { StVideoConfig } from "@/engine/video";
+import { StImageConfig } from "@/engine/image";
+import { TextRendererConfig } from "@/engine/text";
+import { PolygonConfig } from "@/engine/polygon";
 
 export const DocEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
@@ -39,6 +49,184 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
   const webCaptureRef = useRef<WebCapture | null>(null);
   const canvasPipelineRef = useRef<CanvasPipeline | null>(null);
   const [editorIsSet, setEditorIsSet] = useState(false);
+
+  let on_create_sequence = async () => {
+    let editor = editorRef.current;
+    let editorState = editorStateRef.current;
+
+    if (!editor || !editorState) {
+      return;
+    }
+
+    if (!authToken) {
+      return;
+    }
+
+    set_loading(true);
+
+    let new_sequences = sequences as Sequence[];
+
+    new_sequences.push({
+      id: uuidv4().toString(),
+      name: "New Page",
+      backgroundFill: { type: "Color", value: [200, 200, 200, 255] },
+      activePolygons: [],
+      activeTextItems: [],
+      activeImageItems: [],
+      activeVideoItems: [],
+    });
+
+    set_sequences(new_sequences);
+
+    editorState.savedState.sequences = new_sequences;
+
+    let response = await updateSequences(
+      authToken.token,
+      projectId,
+      new_sequences,
+      SaveTarget.Docs
+    );
+
+    set_loading(false);
+  };
+
+  let on_open_sequence = (sequence_id: string) => {
+    // set_section("SequenceView");
+
+    console.info("Open Sequence...");
+
+    let editor = editorRef.current;
+    let editor_state = editorStateRef.current;
+
+    if (!editor || !editor_state) {
+      return;
+    }
+
+    let saved_state = editor_state?.savedState;
+
+    if (!saved_state) {
+      return;
+    }
+
+    let saved_sequence = saved_state.sequences.find((s) => s.id == sequence_id);
+
+    if (!saved_sequence) {
+      return;
+    }
+
+    let background_fill = {
+      type: "Color",
+      value: [0.8, 0.8, 0.8, 1],
+    } as BackgroundFill;
+
+    if (saved_sequence?.backgroundFill) {
+      background_fill = saved_sequence.backgroundFill;
+    }
+
+    // for the background polygon and its signal
+    editor_state.selected_polygon_id = saved_sequence.id;
+
+    console.info("Opening Sequence...");
+
+    // set hidden to false based on sequence
+    // also reset all objects to hidden=true beforehand
+    editor.polygons.forEach((p) => {
+      p.hidden = true;
+    });
+    editor?.imageItems.forEach((i) => {
+      i.hidden = true;
+    });
+    editor?.textItems.forEach((t) => {
+      t.hidden = true;
+    });
+    editor?.videoItems.forEach((t) => {
+      t.hidden = true;
+    });
+
+    saved_sequence.activePolygons.forEach((ap) => {
+      let polygon = editor.polygons.find((p) => p.id == ap.id);
+
+      if (!polygon) {
+        return;
+      }
+
+      polygon.hidden = false;
+    });
+    saved_sequence.activeImageItems.forEach((si) => {
+      let image = editor.imageItems.find((i) => i.id == si.id);
+
+      if (!image) {
+        return;
+      }
+
+      image.hidden = false;
+    });
+    saved_sequence.activeTextItems.forEach((tr) => {
+      let text = editor.textItems.find((t) => t.id == tr.id);
+
+      if (!text) {
+        return;
+      }
+
+      text.hidden = false;
+    });
+    saved_sequence.activeVideoItems.forEach((tr) => {
+      let video = editor.videoItems.find((t) => t.id == tr.id);
+
+      if (!video) {
+        return;
+      }
+
+      video.hidden = false;
+    });
+
+    editor.replace_background(saved_sequence.id, background_fill);
+
+    console.info("Objects restored!", saved_sequence.id);
+
+    console.info("Restoring layers...");
+
+    let new_layers: Layer[] = [];
+    editor.polygons.forEach((polygon) => {
+      if (!polygon.hidden) {
+        let polygon_config: PolygonConfig = polygon.toConfig();
+        let new_layer: Layer =
+          LayerFromConfig.fromPolygonConfig(polygon_config);
+        new_layers.push(new_layer);
+      }
+    });
+    editor.textItems.forEach((text) => {
+      if (!text.hidden) {
+        let text_config: TextRendererConfig = text.toConfig();
+        let new_layer: Layer = LayerFromConfig.fromTextConfig(text_config);
+        new_layers.push(new_layer);
+      }
+    });
+    editor.imageItems.forEach((image) => {
+      if (!image.hidden) {
+        let image_config: StImageConfig = image.toConfig();
+        let new_layer: Layer = LayerFromConfig.fromImageConfig(image_config);
+        new_layers.push(new_layer);
+      }
+    });
+    editor.videoItems.forEach((video) => {
+      if (!video.hidden) {
+        let video_config: StVideoConfig = video.toConfig();
+        let new_layer: Layer = LayerFromConfig.fromVideoConfig(video_config);
+        new_layers.push(new_layer);
+      }
+    });
+
+    // sort layers by layer_index property, lower values should come first in the list
+    // but reverse the order because the UI outputs the first one first, thus it displays last
+    new_layers.sort((a, b) => a.initial_layer_index);
+
+    set_layers(new_layers);
+
+    console.info("set current", sequence_id);
+
+    set_current_sequence_id(sequence_id);
+  };
 
   useDevEffectOnce(async () => {
     if (editorIsSet) {
@@ -117,7 +305,12 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     editorStateRef.current.supportsMotionPaths = false;
     editorStateRef.current.saveTarget = SaveTarget.Docs;
 
-    let cloned_sequences = docData?.sequences;
+    if (docData.sequences.length === 0) {
+      await on_create_sequence();
+    }
+
+    // let cloned_sequences = docData?.sequences;
+    let cloned_sequences = editorStateRef.current.savedState.sequences;
 
     if (!cloned_sequences) {
       return;
@@ -156,13 +349,18 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
 
     // console.info("Restoring objects...");
 
-    //   for (let sequence of cloned_sequences) {
-    //     editorRef.current.restore_sequence_objects(
-    //       sequence,
-    //       true
-    //       // authToken.token,
-    //     );
-    //   }
+    if (cloned_sequences.length > 0) {
+      let first_page = cloned_sequences[0];
+      on_open_sequence(first_page.id);
+    }
+
+    for (let sequence of cloned_sequences) {
+      editorRef.current.restore_sequence_objects(
+        sequence,
+        true
+        // authToken.token,
+      );
+    }
 
     // set handlers
     const canvas = document.getElementById("doc-canvas") as HTMLCanvasElement;

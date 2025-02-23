@@ -25,18 +25,34 @@ const ProjectForm = () => {
 
     // Type the form data
     try {
-      const savedState: SavedState = {
+      const videoState: SavedState = {
         sequences: [],
         timeline_state: {
           timeline_sequences: [],
         },
       };
 
+      const docState: SavedState = {
+        sequences: [],
+        timeline_state: null,
+      };
+
+      const presState: SavedState = {
+        sequences: [],
+        timeline_state: null,
+      };
+
       if (!authToken?.token) {
         throw new Error("No auth token available");
       }
 
-      await createProject(authToken.token, data.project_name, savedState);
+      await createProject(
+        authToken.token,
+        data.project_name,
+        videoState,
+        docState,
+        presState
+      );
       router.push("/projects");
     } catch (error) {
       console.error("Error creating project:", error);

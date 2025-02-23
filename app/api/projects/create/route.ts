@@ -23,13 +23,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { name, emptyFileData } = await req.json();
+    const { name, emptyVideoData, emptyDocData, emptyPresData } =
+      await req.json();
 
     const newProject = await prisma.project.create({
       data: {
         ownerId: user.id,
         name,
-        fileData: emptyFileData,
+        fileData: emptyVideoData,
+        docData: emptyDocData,
+        presData: emptyPresData,
       },
     });
 

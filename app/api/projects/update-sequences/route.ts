@@ -25,6 +25,8 @@ export async function POST(req: Request) {
 
     const { projectId, saveTarget, sequences } = await req.json();
 
+    console.info("updating sequences", projectId, saveTarget);
+
     const project = await prisma.project.findUnique({
       where: {
         id: projectId,
@@ -41,6 +43,10 @@ export async function POST(req: Request) {
       let docData = project?.docData as any;
       docData.sequences = sequences;
       saveData.docData = docData;
+    } else if (saveTarget === "Slides") {
+      let presData = project?.presData as any;
+      presData.sequences = sequences;
+      saveData.presData = presData;
     }
 
     const updatedProject = await prisma.project.update({
