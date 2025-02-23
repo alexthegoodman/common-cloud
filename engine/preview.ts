@@ -1,4 +1,4 @@
-import { Sequence } from "./animations";
+import { BackgroundFill, Sequence } from "./animations";
 import { WindowSize } from "./camera";
 import { Editor, Viewport } from "./editor";
 import { CanvasPipeline } from "./pipeline";
@@ -7,12 +7,19 @@ export class PreviewManager {
   public previewCache: Map<string, { blobUrl: string; timestamp: number }>;
   public pipeline: CanvasPipeline | null = null;
   public editor: Editor | null = null;
+  public paperSize: WindowSize | null = null;
 
   constructor() {
     this.previewCache = new Map(); // Map<sequenceId, {blobUrl, timestamp}>
   }
 
-  async initialize(docCanvasSize: WindowSize, sequences: Sequence[]) {
+  async initialize(
+    docCanvasSize: WindowSize,
+    paperSize: WindowSize,
+    sequences: Sequence[]
+  ) {
+    this.paperSize = paperSize;
+
     let viewport = new Viewport(docCanvasSize.width, docCanvasSize.height);
 
     this.editor = new Editor(viewport);
@@ -50,7 +57,7 @@ export class PreviewManager {
     }
   }
 
-  async generatePreview(sequenceId: string): Promise<string> {
+  preparePreview(sequenceId: string, savedSequence: Sequence) {
     if (!this.editor || !this.pipeline?.canvas) {
       throw Error("No editor or canvas for preview");
     }
@@ -68,6 +75,23 @@ export class PreviewManager {
       video.hidden = video.currentSequenceId !== sequenceId;
     }
 
+    if (!this.paperSize) {
+      return;
+    }
+
+    let background_fill = {
+      type: "Color",
+      value: [0.8, 0.8, 0.8, 1],
+    } as BackgroundFill;
+
+    if (savedSequence?.backgroundFill) {
+      background_fill = savedSequence.backgroundFill;
+    }
+
+    this.editor.replace_background(sequenceId, background_fill, this.paperSize);
+  }
+
+  async generatePreview(sequenceId: string): Promise<string> {
     // Get the rendered content as a blob
     const blob = await (this.pipeline?.canvas as OffscreenCanvas).convertToBlob(
       {

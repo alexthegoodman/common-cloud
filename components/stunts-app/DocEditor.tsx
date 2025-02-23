@@ -35,6 +35,14 @@ let docCanvasSize: WindowSize = {
   height: 1100,
 };
 
+let paperAspectRatio = 11 / 8.5; // standard US paper size
+let width = 800;
+let height = width * paperAspectRatio;
+let paperSize: WindowSize = {
+  width,
+  height,
+};
+
 export const DocEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
@@ -130,17 +138,25 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     sequenceId: string,
     documentTimestamp: number
   ) {
-    if (!previewManager.editor) {
+    let editorState = editorStateRef.current;
+
+    if (!previewManager.editor || !editorState) {
       return;
     }
 
     if (previewManager.isPreviewStale(sequenceId, documentTimestamp)) {
+      let savedSequence = editorState.savedState.sequences.find(
+        (s) => s.id === sequenceId
+      );
+
+      if (!savedSequence) {
+        return;
+      }
+
+      previewManager.preparePreview(sequenceId, savedSequence);
       previewManager.pipeline?.renderFrame(previewManager.editor);
       const previewUrl = await previewManager.generatePreview(sequenceId);
-      // return previewUrl;
-      console.info("update preview", previewUrl);
     }
-    // const blobUrl = previewManager.getPreview(sequenceId);
 
     setPreviewCache(previewManager.previewCache);
   }
@@ -420,14 +436,6 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       video.hidden = false;
     });
 
-    let paperAspectRatio = 11 / 8.5; // standard US paper size
-    let width = 800;
-    let height = width * paperAspectRatio;
-    let paperSize: WindowSize = {
-      width,
-      height,
-    };
-
     editor.replace_background(saved_sequence.id, background_fill, paperSize);
 
     console.info("Objects restored!", saved_sequence.id);
@@ -585,7 +593,11 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       height: 1100,
     };
 
-    await previewManagerRef.current.initialize(docCanvasSize, cloned_sequences);
+    await previewManagerRef.current.initialize(
+      docCanvasSize,
+      paperSize,
+      cloned_sequences
+    );
 
     set_sequences(cloned_sequences);
 
