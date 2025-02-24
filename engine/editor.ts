@@ -398,6 +398,7 @@ export class Editor {
   dsNdcPos: Point; // double-width sized ndc-style positioning (screen-oriented)
   ndc: Point;
   previousTopLeft: Point;
+  gridSnap: number = 25;
 
   // ai
   generationCount: number;
@@ -3896,6 +3897,11 @@ export class Editor {
         this.draggingPolygon = polygon.id;
         this.dragStart = this.lastTopLeft;
 
+        polygon.transform.startPosition = vec2.fromValues(
+          this.dragStart.x,
+          this.dragStart.y
+        );
+
         // TODO: make DRY with below
         if (this.handlePolygonClick) {
           // let handler_creator = this.handlePolygonClick;
@@ -3931,6 +3937,11 @@ export class Editor {
 
         this.draggingText = text_item.id;
         this.dragStart = this.lastTopLeft;
+
+        text_item.transform.startPosition = vec2.fromValues(
+          this.dragStart.x,
+          this.dragStart.y
+        );
 
         // TODO: make DRY with below
         if (this.handleTextClick) {
@@ -3980,6 +3991,11 @@ export class Editor {
         this.draggingImage = image_item.id;
         this.dragStart = this.lastTopLeft;
 
+        image_item.transform.startPosition = vec2.fromValues(
+          this.dragStart.x,
+          this.dragStart.y
+        );
+
         // TODO: make DRY with below
         if (this.handleImageClick) {
           // let handler_creator = this.handleImageClick;
@@ -4018,6 +4034,11 @@ export class Editor {
 
         this.draggingVideo = video_item.id;
         this.dragStart = this.lastTopLeft;
+
+        video_item.transform.startPosition = vec2.fromValues(
+          this.dragStart.x,
+          this.dragStart.y
+        );
 
         console.info("Video interaction");
 
@@ -4530,9 +4551,31 @@ export class Editor {
       return;
     }
 
+    // let new_position = {
+    //   x: roundToGrid(polygon.transform.position[0] + dx, this.gridSnap), // not sure relation with aspect_ratio?
+    //   y: roundToGrid(polygon.transform.position[1] + dy, this.gridSnap),
+    // };
+
+    // Get the original position when drag started
+    const originalX = polygon.transform.startPosition
+      ? polygon.transform.startPosition[0]
+      : polygon.transform.position[0];
+    const originalY = polygon.transform.startPosition
+      ? polygon.transform.startPosition[1]
+      : polygon.transform.position[1];
+
+    // On first drag, store original position
+    if (!polygon.transform.startPosition) {
+      polygon.transform.startPosition = vec2.fromValues(
+        polygon.transform.position[0],
+        polygon.transform.position[1]
+      );
+    }
+
+    // Calculate new position based on original position + total movement
     let new_position = {
-      x: polygon.transform.position[0] + dx, // not sure relation with aspect_ratio?
-      y: polygon.transform.position[1] + dy,
+      x: roundToGrid(originalX + dx, this.gridSnap),
+      y: roundToGrid(originalY + dy, this.gridSnap),
     };
 
     // console.info("move_polygon {:?}", new_position);
@@ -4545,7 +4588,7 @@ export class Editor {
       camera
     );
 
-    this.dragStart = mouse_pos;
+    // this.dragStart = mouse_pos;
     // this.update_guide_lines(poly_index, windowSize);
   }
 
@@ -4707,21 +4750,38 @@ export class Editor {
 
     let aspect_ratio = ((camera.windowSize.width as number) /
       camera.windowSize.height) as number;
+
+    // Calculate dx and dy relative to the original drag start point
     let dx = mouse_pos.x - start.x;
     let dy = mouse_pos.y - start.y;
-    // let text_item = .textItems[text_index];
+
     let text_item = this.textItems.find((t) => t.id == text_id);
 
     if (!text_item) {
       return;
     }
 
-    let new_position = {
-      x: text_item.transform.position[0] + dx, // not sure relation with aspect_ratio?
-      y: text_item.transform.position[1] + dy,
-    };
+    // Get the original position when drag started
+    const originalX = text_item.transform.startPosition
+      ? text_item.transform.startPosition[0]
+      : text_item.transform.position[0];
+    const originalY = text_item.transform.startPosition
+      ? text_item.transform.startPosition[1]
+      : text_item.transform.position[1];
 
-    // console.info("move_text {:?}", new_position);
+    // On first drag, store original position
+    if (!text_item.transform.startPosition) {
+      text_item.transform.startPosition = vec2.fromValues(
+        text_item.transform.position[0],
+        text_item.transform.position[1]
+      );
+    }
+
+    // Calculate new position based on original position + total movement
+    let new_position = {
+      x: roundToGrid(originalX + dx, this.gridSnap),
+      y: roundToGrid(originalY + dy, this.gridSnap),
+    };
 
     text_item.transform.updatePosition(
       [new_position.x, new_position.y],
@@ -4732,8 +4792,7 @@ export class Editor {
       windowSize
     );
 
-    this.dragStart = mouse_pos;
-    // this.update_guide_lines(poly_index, windowSize);
+    // this.dragStart = mouse_pos;
   }
 
   move_image(
@@ -4760,9 +4819,35 @@ export class Editor {
       return;
     }
 
+    // let new_position = {
+    //   x: image_item.transform.position[0] + dx, // not sure relation with aspect_ratio?
+    //   y: image_item.transform.position[1] + dy,
+    // };
+    // let new_position = {
+    //   x: roundToGrid(image_item.transform.position[0] + dx, this.gridSnap), // not sure relation with aspect_ratio?
+    //   y: roundToGrid(image_item.transform.position[1] + dy, this.gridSnap),
+    // };
+
+    // Get the original position when drag started
+    const originalX = image_item.transform.startPosition
+      ? image_item.transform.startPosition[0]
+      : image_item.transform.position[0];
+    const originalY = image_item.transform.startPosition
+      ? image_item.transform.startPosition[1]
+      : image_item.transform.position[1];
+
+    // On first drag, store original position
+    if (!image_item.transform.startPosition) {
+      image_item.transform.startPosition = vec2.fromValues(
+        image_item.transform.position[0],
+        image_item.transform.position[1]
+      );
+    }
+
+    // Calculate new position based on original position + total movement
     let new_position = {
-      x: image_item.transform.position[0] + dx, // not sure relation with aspect_ratio?
-      y: image_item.transform.position[1] + dy,
+      x: roundToGrid(originalX + dx, this.gridSnap),
+      y: roundToGrid(originalY + dy, this.gridSnap),
     };
 
     // console.info("move_image {:?}", new_position);
@@ -4772,7 +4857,7 @@ export class Editor {
       windowSize
     );
 
-    this.dragStart = mouse_pos;
+    // this.dragStart = mouse_pos;
     // this.update_guide_lines(poly_index, windowSize);
   }
 
@@ -4800,9 +4885,36 @@ export class Editor {
       return;
     }
 
+    // let new_position = {
+    //   x: video_item.groupTransform.position[0] + dx, // not sure relation with aspect_ratio?
+    //   y: video_item.groupTransform.position[1] + dy,
+    // };
+
+    // let new_position = {
+    //   x: roundToGrid(video_item.transform.position[0] + dx, this.gridSnap), // not sure relation with aspect_ratio?
+    //   y: roundToGrid(video_item.transform.position[1] + dy, this.gridSnap),
+    // };
+
+    // Get the original position when drag started
+    const originalX = video_item.transform.startPosition
+      ? video_item.transform.startPosition[0]
+      : video_item.transform.position[0];
+    const originalY = video_item.transform.startPosition
+      ? video_item.transform.startPosition[1]
+      : video_item.transform.position[1];
+
+    // On first drag, store original position
+    if (!video_item.transform.startPosition) {
+      video_item.transform.startPosition = vec2.fromValues(
+        video_item.transform.position[0],
+        video_item.transform.position[1]
+      );
+    }
+
+    // Calculate new position based on original position + total movement
     let new_position = {
-      x: video_item.groupTransform.position[0] + dx, // not sure relation with aspect_ratio?
-      y: video_item.groupTransform.position[1] + dy,
+      x: roundToGrid(originalX + dx, this.gridSnap),
+      y: roundToGrid(originalY + dy, this.gridSnap),
     };
 
     // console.info("move_video {:?}", new_position);
@@ -4812,7 +4924,7 @@ export class Editor {
       windowSize
     );
 
-    this.dragStart = mouse_pos;
+    // this.dragStart = mouse_pos;
     // this.update_guide_lines(poly_index, windowSize);
   }
 
@@ -4847,6 +4959,41 @@ export class Editor {
     this.staticPolygons = [];
   }
 }
+
+// used for grid snap
+export function roundUp(numToRound: number, multiple: number): number {
+  if (multiple == 0) {
+    return numToRound;
+  }
+
+  let remainder = numToRound % multiple;
+  if (remainder == 0) {
+    return numToRound;
+  }
+
+  return numToRound + multiple - remainder;
+}
+
+export function roundToGrid(numToRound: number, grid: number): number {
+  return Math.round(numToRound / grid) * grid;
+}
+
+// export function roundToGrid(
+//   numToRound: number,
+//   grid: number,
+//   roundUp = true
+// ): number {
+//   if (roundUp) {
+//     // For positive numbers, ceil rounds up
+//     // For negative numbers, floor rounds "up" (to more negative)
+//     return numToRound >= 0
+//       ? Math.ceil(1 / grid) * grid
+//       : Math.floor(-1 / grid) * grid;
+//   } else {
+//     // Standard rounding behavior
+//     return Math.round(numToRound / grid) * grid;
+//   }
+// }
 
 export function interpolatePosition(
   start: UIKeyframe,

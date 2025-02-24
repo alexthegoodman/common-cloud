@@ -4,6 +4,7 @@ import { Point } from "./editor";
 
 export class Transform {
   position: vec2;
+  startPosition: vec2;
   rotation: number; // Rotation angle in radians
   scale: vec2;
   uniformBuffer: GPUBuffer;
@@ -17,6 +18,7 @@ export class Transform {
     // windowSize: WindowSize
   ) {
     this.position = position;
+    this.startPosition = position;
     this.rotation = rotation;
     this.scale = scale;
     this.uniformBuffer = uniformBuffer;
