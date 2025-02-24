@@ -263,6 +263,8 @@ export const PolygonProperties = ({
 }) => {
   const [defaultsSet, setDefaultsSet] = useState(false);
   const [defaultWidth, setDefaultWidth] = useState(0);
+  const [defaultHeight, setDefaultHeight] = useState(0);
+  const [defaultBorderRadius, setDefaultBorderRadius] = useState(0);
 
   useEffect(() => {
     let editor = editorRef.current;
@@ -280,9 +282,17 @@ export const PolygonProperties = ({
     );
 
     let width = currentObject?.dimensions[0];
+    let height = currentObject?.dimensions[1];
+    let borderRadius = currentObject?.borderRadius;
 
     if (width) {
       setDefaultWidth(width);
+    }
+    if (height) {
+      setDefaultHeight(height);
+    }
+    if (borderRadius) {
+      setDefaultBorderRadius(borderRadius);
     }
 
     setDefaultsSet(true);
@@ -311,6 +321,34 @@ export const PolygonProperties = ({
           placeholder="Width"
           initialValue={defaultWidth.toString()}
           onDebounce={(value) => {}}
+        />
+        <DebouncedInput
+          id="polygon_height"
+          label="Height"
+          placeholder="Height"
+          initialValue={defaultHeight.toString()}
+          onDebounce={(value) => {}}
+        />
+        <DebouncedInput
+          id="polygon_border_radius"
+          label="Border Radius"
+          placeholder="Border Radius"
+          initialValue={defaultBorderRadius.toString()}
+          onDebounce={(value) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            editorState.updateBorderRadius(
+              editor,
+              currentPolygonId,
+              ObjectType.Polygon,
+              parseInt(value)
+            );
+          }}
         />
         <RepeatProperties
           editorRef={editorRef}
@@ -453,6 +491,27 @@ export const TextProperties = ({
             );
           }}
         />
+        {/* <DebouncedInput
+          id="text_border_radius"
+          label="Border Radius"
+          placeholder="Border Radius"
+          initialValue={defaultHeight.toString()}
+          onDebounce={(value) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            // editorState.updateHeight(
+            //   editor,
+            //   currentTextId,
+            //   ObjectType.TextItem,
+            //   parseInt(value)
+            // );
+          }}
+        /> */}
         <RepeatProperties
           editorRef={editorRef}
           editorStateRef={editorStateRef}

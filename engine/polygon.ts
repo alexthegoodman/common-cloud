@@ -954,126 +954,171 @@ export function getPolygonData(
 // Helper function to create a LyonPoint (if needed, adjust import if LyonPoint is defined differently)
 const lyonPoint = (x: number, y: number) => ({ x, y }); // Simple object for now
 
-export function createRoundedPolygonPath(
-  normalizedPoints: Point[],
-  dimensions: [number, number],
-  borderRadius: number
-): number[][] {
-  const n = normalizedPoints.length;
-
-  // console.info("create rounded path", n);
-
-  const scaledRadius = borderRadius / Math.min(dimensions[0], dimensions[1]);
-  const halfWidth = dimensions[0] / 2.0;
-  const halfHeight = dimensions[1] / 2.0;
-  const pathPoints: number[][] = [];
-
-  for (let i = 0; i < n; i++) {
-    const p0 = normalizedPoints[(i + n - 1) % n];
-    const p1 = normalizedPoints[i];
-    const p2 = normalizedPoints[(i + 1) % n];
-
-    const v1 = vec2.fromValues(p1.x - p0.x, p1.y - p0.y);
-    const v2 = vec2.fromValues(p2.x - p1.x, p2.y - p1.y);
-
-    const len1 = vec2.length(v1);
-    const len2 = vec2.length(v2);
-
-    // Skip if vectors have zero length
-    if (len1 === 0 || len2 === 0) {
-      console.error("Zero-length vector detected at index", i);
-      continue;
-    }
-
-    const radius = Math.min(scaledRadius, len1 / 2.0, len2 / 2.0);
-
-    const offset1 = vec2.create();
-    vec2.scale(offset1, vec2.normalize(vec2.create(), v1), radius);
-    const offset2 = vec2.create();
-    vec2.scale(offset2, vec2.normalize(vec2.create(), v2), radius);
-
-    const p1Scaled = {
-      x: p1.x * dimensions[0] - halfWidth,
-      y: p1.y * dimensions[1] - halfHeight,
-    };
-
-    const cornerStart = [
-      p1Scaled.x - offset1[0] * dimensions[0],
-      p1Scaled.y - offset1[1] * dimensions[1],
-    ];
-    const cornerEnd = [
-      p1Scaled.x + offset2[0] * dimensions[0],
-      p1Scaled.y + offset2[1] * dimensions[1],
-    ];
-
-    if (i === 0) {
-      pathPoints.push(cornerStart);
-    }
-
-    const dotProduct = vec2.dot(offset1, offset2);
-
-    // Handle orthogonal vectors (dotProduct === 0)
-    if (dotProduct === 0) {
-      // For orthogonal vectors, the rounded corner is a quarter-circle
-      const steps = 5; // Number of segments to approximate the arc
-      const angleIncrement = Math.PI / 2 / steps; // 90 degrees divided into steps
-
-      for (let j = 1; j <= steps; j++) {
-        const currentAngle = angleIncrement * j;
-        const rotatedOffset = vec2.create();
-        vec2.rotate(rotatedOffset, offset1, vec2.create(), currentAngle);
-
-        const cornerPoint = [
-          p1Scaled.x + rotatedOffset[0] * dimensions[0],
-          p1Scaled.y + rotatedOffset[1] * dimensions[1],
-        ];
-        pathPoints.push(cornerPoint);
-      }
-    } else {
-      // For non-orthogonal vectors, compute the angle dynamically
-      const angleInput =
-        dotProduct / (vec2.length(offset1) * vec2.length(offset2));
-      const clampedAngleInput = Math.max(-1, Math.min(1, angleInput));
-
-      if (isNaN(clampedAngleInput)) {
-        console.warn(
-          "Invalid input to Math.acos at index",
-          i,
-          ":",
-          clampedAngleInput
-        );
-        continue;
-      }
-
-      const angle = Math.acos(clampedAngleInput);
-      const steps = 5; // Number of segments to approximate the arc
-
-      for (let j = 1; j <= steps; j++) {
-        const t = j / steps;
-        const currentAngle = angle * t;
-        const rotatedOffset = vec2.create();
-        vec2.rotate(rotatedOffset, offset1, vec2.create(), currentAngle);
-
-        const cornerPoint = [
-          p1Scaled.x + rotatedOffset[0] * dimensions[0],
-          p1Scaled.y + rotatedOffset[1] * dimensions[1],
-        ];
-        pathPoints.push(cornerPoint);
-      }
-    }
-
-    pathPoints.push(cornerEnd);
-  }
-
-  return pathPoints;
-}
-
 // import FragShader from "./shaders/frag_primary.wgsl?raw";
 
 // let defs = makeShaderDataDefinitions(FragShader);
 // const gradientValues = makeStructuredView(defs.uniforms.gradient);
 
 // console.info("test utils", defs.uniforms);
+
+function createRoundedPolygonPath(
+  normalizedPoints: Point[],
+  dimensions: number[],
+  borderRadius: number
+) {
+  const [width, height] = dimensions;
+  const centerX = width / 2;
+  const centerY = height / 2;
+
+  // Scale the normalized points to the dimensions
+  const scaledPoints = normalizedPoints.map((point) => [
+    point.x * width - centerX,
+    point.y * height - centerY,
+  ]);
+
+  // Function to calculate the rounded corner points
+  // function roundedCorner(
+  //   start: number[],
+  //   corner: number[],
+  //   end: number[],
+  //   radius: number
+  // ) {
+  //   const [x1, y1] = start;
+  //   const [x2, y2] = corner;
+  //   const [x3, y3] = end;
+
+  //   // Calculate the vectors for the incoming and outgoing edges
+  //   const dx1 = x2 - x1;
+  //   const dy1 = y2 - y1;
+  //   const dx2 = x2 - x3;
+  //   const dy2 = y2 - y3;
+
+  //   // Calculate the angles of the edges
+  //   const angle1 = Math.atan2(dy1, dx1);
+  //   const angle2 = Math.atan2(dy2, dx2);
+  //   const angleBetween = Math.PI - Math.abs(angle1 - angle2);
+
+  //   // Calculate the distance to the rounded corner control point
+  //   const dist = radius / Math.tan(angleBetween / 2);
+
+  //   // Calculate the control points for the rounded corner
+  //   const cx1 = x2 - dist * Math.cos(angle1);
+  //   const cy1 = y2 - dist * Math.sin(angle1);
+  //   const cx2 = x2 - dist * Math.cos(angle2);
+  //   const cy2 = y2 - dist * Math.sin(angle2);
+
+  //   return [
+  //     [cx1, cy1], // Start of the rounded corner
+  //     [cx2, cy2], // End of the rounded corner
+  //   ];
+  // }
+
+  function roundedCorner(
+    start: number[],
+    corner: number[],
+    end: number[],
+    radius: number
+  ) {
+    const [x1, y1] = start;
+    const [x2, y2] = corner;
+    const [x3, y3] = end;
+
+    // Calculate the vectors for the incoming and outgoing edges
+    const v1x = x1 - x2;
+    const v1y = y1 - y2;
+    const v2x = x3 - x2;
+    const v2y = y3 - y2;
+
+    // Normalize the vectors
+    const len1 = Math.sqrt(v1x * v1x + v1y * v1y);
+    const len2 = Math.sqrt(v2x * v2x + v2y * v2y);
+
+    const uv1x = v1x / len1;
+    const uv1y = v1y / len2;
+    const uv2x = v2x / len2;
+    const uv2y = v2y / len2;
+
+    // Calculate the distance to move from corner along each edge
+    const angleBetween = Math.acos(uv1x * uv2x + uv1y * uv2y);
+    const dist = radius / Math.tan(angleBetween / 2);
+
+    // Limit distance to prevent issues with very sharp angles
+    const maxDist = Math.min(len1, len2) * 0.5;
+    const actualDist = Math.min(dist, maxDist);
+
+    // Calculate the control points along each edge
+    const cx1 = x2 + uv1x * actualDist;
+    const cy1 = y2 + uv1y * actualDist;
+    const cx2 = x2 + uv2x * actualDist;
+    const cy2 = y2 + uv2y * actualDist;
+
+    return [
+      [cx1, cy1], // Start of the rounded corner
+      [cx2, cy2], // End of the rounded corner
+    ];
+  }
+
+  // Function to interpolate points along a curve
+  function interpolatePoints(
+    start: number[],
+    end: number[],
+    control: number[],
+    numSegments: number
+  ) {
+    const points = [];
+    for (let i = 0; i <= numSegments; i++) {
+      const t = i / numSegments;
+      const x =
+        (1 - t) ** 2 * start[0] +
+        2 * (1 - t) * t * control[0] +
+        t ** 2 * end[0];
+      const y =
+        (1 - t) ** 2 * start[1] +
+        2 * (1 - t) * t * control[1] +
+        t ** 2 * end[1];
+      points.push([x, y]);
+    }
+    return points;
+  }
+
+  // Generate the path with rounded corners
+  const path = [];
+  const numSegments = 10; // Number of segments per rounded corner
+
+  for (let i = 0; i < scaledPoints.length; i++) {
+    const prev =
+      scaledPoints[(i - 1 + scaledPoints.length) % scaledPoints.length];
+    const current = scaledPoints[i];
+    const next = scaledPoints[(i + 1) % scaledPoints.length];
+
+    // Calculate the rounded corner control points
+    const [startCorner, endCorner] = roundedCorner(
+      prev,
+      current,
+      next,
+      borderRadius
+    );
+
+    // Interpolate points along the rounded corner
+    const roundedPoints = interpolatePoints(
+      startCorner,
+      endCorner,
+      current,
+      numSegments
+    );
+
+    // Add the points to the path
+    if (i === 0) {
+      path.push(startCorner);
+    }
+    path.push(...roundedPoints);
+  }
+
+  // Close the path by connecting back to the first point
+  path.push(path[0]);
+
+  return path;
+}
 
 export function setupGradientBuffers(
   device: GPUDevice,

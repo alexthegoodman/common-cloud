@@ -182,6 +182,85 @@ export default class EditorState {
     }
   }
 
+  updateBorderRadius(
+    editor: Editor,
+    objectId: string,
+    objectType: ObjectType,
+    value: number
+  ) {
+    switch (objectType) {
+      case ObjectType.Polygon: {
+        editor.update_polygon(
+          objectId,
+          "borderRadius",
+          InputValue.Number,
+          value
+        );
+
+        this.savedState.sequences.forEach((s) => {
+          // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+          s.activePolygons.forEach((p) => {
+            if (p.id == objectId) {
+              p.borderRadius = value;
+            }
+          });
+          // }
+        });
+
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
+        break;
+      }
+      // case ObjectType.TextItem: {
+      //   editor.update_text(objectId, "height", InputValue.Number, value);
+
+      //   this.savedState.sequences.forEach((s) => {
+      //     // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+      //     s.activeTextItems.forEach((p) => {
+      //       if (p.id == objectId) {
+      //         p.dimensions = [p.dimensions[0], value];
+      //       }
+      //     });
+      //     // }
+      //   });
+
+      //   saveSequencesData(this.savedState.sequences, this.saveTarget);
+      //   break;
+      // }
+      // case ObjectType.ImageItem: {
+      //   editor.update_image(objectId, "height", InputValue.Number, value);
+
+      //   this.savedState.sequences.forEach((s) => {
+      //     // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+      //     s.activeImageItems.forEach((p) => {
+      //       if (p.id == objectId) {
+      //         p.dimensions = [p.dimensions[0], value];
+      //       }
+      //     });
+      //     // }
+      //   });
+
+      //   saveSequencesData(this.savedState.sequences, this.saveTarget);
+      //   break;
+      // }
+      // case ObjectType.VideoItem: {
+      //   editor.update_video(objectId, "height", InputValue.Number, value);
+
+      //   this.savedState.sequences.forEach((s) => {
+      //     // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+      //     s.activeVideoItems.forEach((p) => {
+      //       if (p.id == objectId) {
+      //         p.dimensions = [p.dimensions[0], value];
+      //       }
+      //     });
+      //     // }
+      //   });
+
+      //   saveSequencesData(this.savedState.sequences, this.saveTarget);
+      //   break;
+      // }
+    }
+  }
+
   updateTextContent(editor: Editor, objectId: string, value: string) {
     editor.update_text_content(objectId, value);
 
