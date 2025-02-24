@@ -261,6 +261,39 @@ export default class EditorState {
     }
   }
 
+  updateIsCircle(
+    editor: Editor,
+    objectId: string,
+    objectType: ObjectType,
+    value: boolean
+  ) {
+    switch (objectType) {
+      case ObjectType.ImageItem: {
+        let gpuResources = editor.gpuResources;
+        let image = editor.imageItems.find((i) => i.id === objectId);
+
+        if (!image || !gpuResources) {
+          return;
+        }
+
+        image.setIsCircle(gpuResources.queue, value);
+
+        this.savedState.sequences.forEach((s) => {
+          // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+          s.activeImageItems.forEach((p) => {
+            if (p.id == objectId) {
+              p.isCircle = value;
+            }
+          });
+          // }
+        });
+
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
+        break;
+      }
+    }
+  }
+
   updateTextContent(editor: Editor, objectId: string, value: string) {
     editor.update_text_content(objectId, value);
 

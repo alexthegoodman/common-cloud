@@ -539,6 +539,8 @@ export const ImageProperties = ({
 }) => {
   const [defaultsSet, setDefaultsSet] = useState(false);
   const [defaultWidth, setDefaultWidth] = useState(0);
+  const [defaultHeight, setDefaultHeight] = useState(0);
+  const [is_circle, set_is_circle] = useState(false);
 
   useEffect(() => {
     let editor = editorRef.current;
@@ -556,9 +558,17 @@ export const ImageProperties = ({
     );
 
     let width = currentObject?.dimensions[0];
+    let height = currentObject?.dimensions[1];
+    let isCircle = currentObject?.isCircle;
 
     if (width) {
       setDefaultWidth(width);
+    }
+    if (height) {
+      setDefaultHeight(height);
+    }
+    if (typeof isCircle !== "undefined" && isCircle !== null) {
+      set_is_circle(isCircle);
     }
 
     setDefaultsSet(true);
@@ -586,8 +596,69 @@ export const ImageProperties = ({
           label="Width"
           placeholder="Width"
           initialValue={defaultWidth.toString()}
-          onDebounce={(value) => {}}
+          onDebounce={(value) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            editorState.updateWidth(
+              editor,
+              currentImageId,
+              ObjectType.ImageItem,
+              parseInt(value)
+            );
+          }}
         />
+        <DebouncedInput
+          id="image_height"
+          label="Height"
+          placeholder="Height"
+          initialValue={defaultHeight.toString()}
+          onDebounce={(value) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            editorState.updateHeight(
+              editor,
+              currentImageId,
+              ObjectType.ImageItem,
+              parseInt(value)
+            );
+          }}
+        />
+        <input
+          type="checkbox"
+          id="is_circle"
+          name="is_circle"
+          checked={is_circle}
+          onChange={(ev) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            editorState.updateIsCircle(
+              editor,
+              currentImageId,
+              ObjectType.ImageItem,
+              ev.target.checked
+            );
+
+            set_is_circle(ev.target.checked);
+          }}
+        />
+        <label htmlFor="is_circle" className="text-xs">
+          Is Circle
+        </label>
         <RepeatProperties
           editorRef={editorRef}
           editorStateRef={editorStateRef}

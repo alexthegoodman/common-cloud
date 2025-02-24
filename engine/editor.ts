@@ -797,11 +797,27 @@ export class Editor {
         url: i.url,
         position,
         layer: i.layer,
+        isCircle: i.isCircle,
       };
 
       let blob = await getUploadedImageData(i.url);
 
       const restored_image = new StImage(
+        device,
+        queue,
+        i.url,
+        blob, // load of image data
+        image_config,
+        windowSize,
+        this.modelBindGroupLayout!,
+        this.groupBindGroupLayout!,
+        // this.gradientBindGroupLayout!,
+        -2.0,
+        saved_sequence.id,
+        hidden
+      );
+
+      await restored_image.initialize(
         device,
         queue,
         i.url,
