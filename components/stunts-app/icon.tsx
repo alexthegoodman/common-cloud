@@ -12,6 +12,7 @@ import {
   Broadcast,
   CaretDown,
   CaretRight,
+  Check,
   CirclesThree,
   Copy,
   CubeFocus,
@@ -192,6 +193,9 @@ export const CreateIcon = ({ icon, size }: { icon: string; size: string }) => {
     }
     case "file-cloud": {
       return <FileCloud weight="thin" size={size} />;
+    }
+    case "check": {
+      return <Check weight="thin" size={size} />;
     }
     default: {
       return <></>;
