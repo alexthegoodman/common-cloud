@@ -18,6 +18,22 @@ export default function Project() {
         <ClientOnly>
           <div className="flex flex-col justify-center items-center mx-auto">
             <h1 className="text-3xl text-center mb-12">Welcome to Hub</h1>
+            <div className="flex flex-row gap-4 mb-12">
+              <div className="flex flex-row gap-1">
+                <span>1.</span>
+                <span className="underline underline-offset-8">
+                  Your Prompt
+                </span>
+              </div>
+              <div className="flex flex-row gap-1 text-gray-400">
+                <span>2.</span>
+                <span>Your Content</span>
+              </div>
+              <div className="flex flex-row gap-1 text-gray-400">
+                <span>3.</span>
+                <span>Intelligent Questions</span>
+              </div>
+            </div>
             <div className="flex flex-col">
               <div className="flex flex-row gap-2 mb-4">
                 <div className="flex flex-row items-center border border-slate-500 rounded-full cursor-pointer">
