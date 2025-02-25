@@ -76,8 +76,8 @@ model Flow {
   owner   User   @relation(fields: [ownerId], references: [id])
   ownerId String
 
-  brandKit   BrandKit @relation(fields: [brandKitId], references: [id])
-  brandKitId String
+  brandKit   BrandKit? @relation(fields: [brandKitId], references: [id])
+  brandKitId String?
 
   prompt    String
   content   Json

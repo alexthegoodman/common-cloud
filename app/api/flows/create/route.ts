@@ -26,13 +26,21 @@ export async function POST(req: Request) {
     const { prompt, brandKitId, emptyContent, emptyQuestions } =
       await req.json();
 
+    let addtData = {};
+
+    if (brandKitId) {
+      addtData = {
+        brandKitId,
+      };
+    }
+
     const newFlow = await prisma.flow.create({
       data: {
         ownerId: user.id,
-        brandKitId,
         prompt,
         content: emptyContent,
         questions: emptyQuestions,
+        ...addtData,
       },
     });
 
