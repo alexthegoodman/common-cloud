@@ -34,7 +34,10 @@ export const BrandKitList = () => {
           <span className="text-sm">Default Brand Kit</span>
         </div>
       </div>
-      <div className="flex flex-row items-center rounded-full cursor-pointer">
+      <div
+        className="flex flex-row items-center rounded-full cursor-pointer"
+        onClick={() => setIsOpen(true)}
+      >
         <div className="p-1 rounded-full bg-indigo-500 text-white">
           {/* <CreateIcon icon="check" size="24px" /> */}
           <Plus weight="regular" size="24px" />

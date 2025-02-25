@@ -16,7 +16,7 @@ export default function Project() {
         {/* Error Boundary */}
         <ClientOnly>
           <div className="flex flex-col justify-center items-center mx-auto">
-            <h1 className="text-3xl text-center mb-12">Welcome to Hub</h1>
+            <h1 className="text-3xl text-center mb-12">Add Your Content</h1>
             <FlowSteps step={2} />
             <div className="flex flex-col">{/*  Content */}</div>
           </div>
