@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     }
 
     // Basic cleaning
-    mainContent = mainContent.replace(/\s+/g, " ").trim();
+    mainContent = mainContent.replace(/\s+/g, " ").substring(0, 1000).trim();
 
     return NextResponse.json({
       url,
