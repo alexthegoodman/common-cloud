@@ -2,24 +2,10 @@ import { NextResponse } from "next/server";
 import { verifyJWT } from "@/lib/jwt";
 import { openai } from "@ai-sdk/openai";
 import { streamObject } from "ai";
-import { z } from "zod";
+import { dataSchema } from "@/def/ai";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
-
-// define a schema for the notifications
-const dataSchema = z.object({
-  bulletPoints: z.array(
-    z.object({
-      dataPoint: z
-        .string()
-        .describe("The qualitative or quantitative data point if one exists."),
-      description: z
-        .string()
-        .describe("The text summarizing this bullet point."),
-    })
-  ),
-});
 
 export async function POST(req: Request) {
   try {
@@ -31,19 +17,20 @@ export async function POST(req: Request) {
 
     const decoded = verifyJWT(token) as { userId: string; email: string };
 
-    const { content } = await req.json();
+    // const { content } = await req.json();
+    const context = await req.json();
 
-    if (!content) {
+    if (!context) {
       return NextResponse.json(
-        { error: "Content is required" },
+        { error: "Content context is required" },
         { status: 400 }
       );
     }
 
     const result = streamObject({
-      model: openai("o3-mini"),
+      model: openai("gpt-4o-mini"),
       schema: dataSchema,
-      prompt: `Generate 3 bullet points for this content:` + content,
+      prompt: `Generate 3 bullet points for this content:` + context,
     });
 
     return result.toTextStreamResponse();

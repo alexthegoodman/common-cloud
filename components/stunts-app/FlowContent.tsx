@@ -2,8 +2,15 @@
 
 import { useState, useRef, ChangeEvent, DragEventHandler } from "react";
 import { Spinner } from "@phosphor-icons/react";
+import toast from "react-hot-toast";
+import { scrapeLink } from "@/fetchers/flows";
+import { AuthToken } from "@/fetchers/projects";
+import { useLocalStorage } from "@uidotdev/usehooks";
+import { AnalyzeLink } from "./AnalyzeLink";
 
 export default function FlowContent() {
+  const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
+
   // State for file upload
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -46,7 +53,11 @@ export default function FlowContent() {
       );
     });
 
-    setFiles((prev) => [...prev, ...validFiles]);
+    if (validFiles.length > 3) {
+      toast.error("You can only upload up to 3 files");
+    } else {
+      setFiles((prev) => [...prev, ...validFiles]);
+    }
   };
 
   // Handle drag events
@@ -78,33 +89,6 @@ export default function FlowContent() {
     const newLinks = [...links];
     newLinks[index] = value;
     setLinks(newLinks);
-  };
-
-  // Handle link analysis
-  const analyzeLink = async (index: number) => {
-    if (!links[index].trim()) return;
-
-    // Set the analyzing state for this link
-    const newIsAnalyzing = [...isAnalyzing];
-    newIsAnalyzing[index] = true;
-    setIsAnalyzing(newIsAnalyzing);
-
-    try {
-      // Simulate API call with a timeout
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Handle successful analysis
-      console.log(`Analyzed link ${index + 1}: ${links[index]}`);
-
-      // Here you would normally process the response
-    } catch (error) {
-      console.error(`Error analyzing link ${index + 1}:`, error);
-    } finally {
-      // Reset the analyzing state
-      const resetIsAnalyzing = [...isAnalyzing];
-      resetIsAnalyzing[index] = false;
-      setIsAnalyzing(resetIsAnalyzing);
-    }
   };
 
   // Get file type icon/preview
@@ -144,12 +128,13 @@ export default function FlowContent() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-[1200px] flex flex-row gap-4 mx-auto p-6">
       {/* <h1 className="text-3xl font-bold mb-8">File Upload & Link Analyzer</h1> */}
 
       {/* File Upload Section */}
-      <div className="mb-10">
-        <h2 className="text-xl font-semibold mb-4">Upload Files</h2>
+      <div className="max-w-[600px] mb-10">
+        <h2 className="text-xl font-semibold mb-2">Upload Files</h2>
+        <span className="block text-slate-500 mb-4">Optional</span>
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
             isDragging
@@ -210,39 +195,21 @@ export default function FlowContent() {
       </div>
 
       {/* Link Analysis Section */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Analyze Links</h2>
+      <div className="max-w-[600px]">
+        <h2 className="text-xl font-semibold mb-2">Analyze Links</h2>
+        <span className="block text-slate-500 mb-4">Optional</span>
         <div className="space-y-4">
           {links.map((link, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <div className="flex-grow">
-                <input
-                  type="url"
-                  placeholder={`Link ${index + 1}`}
-                  value={link}
-                  onChange={(e) => handleLinkChange(index, e.target.value)}
-                  className="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                />
-              </div>
-              <button
-                onClick={() => analyzeLink(index)}
-                disabled={isAnalyzing[index] || !link.trim()}
-                className={`p-3 rounded-md ${
-                  isAnalyzing[index] || !link.trim()
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-blue-500 hover:bg-blue-600 text-white"
-                }`}
-              >
-                {isAnalyzing[index] ? (
-                  <div className="flex items-center">
-                    <Spinner className="w-5 h-5 animate-spin mr-2" />
-                    Analyzing...
-                  </div>
-                ) : (
-                  "Analyze"
-                )}
-              </button>
-            </div>
+            <AnalyzeLink
+              key={"link" + index}
+              authToken={authToken}
+              links={links}
+              setIsAnalyzing={setIsAnalyzing}
+              index={index}
+              isAnalyzing={isAnalyzing}
+              link={link}
+              handleLinkChange={handleLinkChange}
+            />
           ))}
         </div>
       </div>

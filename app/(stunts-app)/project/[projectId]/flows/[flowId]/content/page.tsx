@@ -21,7 +21,9 @@ export default function Project() {
             <FlowSteps step={2} />
             <div className="flex flex-col">
               <FlowContent />
-              <button>Continue</button>
+              <button className="stunts-gradient text-white p-2 rounded w-1/4 mx-auto mt-8">
+                Continue
+              </button>
             </div>
           </div>
         </ClientOnly>

@@ -35,7 +35,40 @@ export const createFlow = async (
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `Create project request failed: ${response.status} - ${response.statusText} - ${errorText}`
+      `Create flow request failed: ${response.status} - ${response.statusText} - ${errorText}`
+    );
+  }
+
+  return response.json();
+};
+
+export interface ScrapeLinkResponse {
+  url: string;
+  content: string;
+  title: string;
+  description: string;
+}
+
+export const scrapeLink = async (
+  token: string,
+  url: string
+): Promise<ScrapeLinkResponse> => {
+  const emptyContent = {};
+  const emptyQuestions = {};
+
+  const response = await fetch("http://localhost:3000/api/flows/scrape-link", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ url }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Scrape link request failed: ${response.status} - ${response.statusText} - ${errorText}`
     );
   }
 
