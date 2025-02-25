@@ -2,10 +2,11 @@
 
 import { ClientOnly } from "@/components/ClientOnly";
 import ErrorBoundary from "@/components/stunts-app/ErrorBoundary";
-import React from "react";
+import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import { CreateIcon } from "@/components/stunts-app/icon";
 import { Check, Plus } from "@phosphor-icons/react";
+import { BrandKitList } from "@/components/stunts-app/BrandKitList";
 
 export default function Project() {
   const { projectId } = useParams();
@@ -35,39 +36,7 @@ export default function Project() {
               </div>
             </div>
             <div className="flex flex-col">
-              <div className="flex flex-row gap-2 mb-4">
-                <div className="flex flex-row items-center border border-slate-500 rounded-full cursor-pointer">
-                  <div className="border border-slate-500 border-l-none p-1 rounded-full bg-green-500 text-white">
-                    {/* <CreateIcon icon="check" size="24px" /> */}
-                    <Check weight="regular" size="24px" />
-                  </div>
-                  <div className="pl-2 pr-3">
-                    <span className="text-sm">Common Brand Kit</span>
-                  </div>
-                </div>
-                <div className="flex flex-row items-center border border-slate-500 rounded-full cursor-pointer">
-                  {/* <div className="border border-black border-l-none p-1 rounded-full">
-                    <CreateIcon icon="check" size="24px" />
-                  </div> */}
-                  <div className="pl-3 pr-3">
-                    <span className="text-sm">Stunts Branding</span>
-                  </div>
-                </div>
-                <div className="flex flex-row items-center border border-slate-500 rounded-full cursor-pointer">
-                  {/* <div className="border border-black border-l-none p-1 rounded-full">
-                    <CreateIcon icon="check" size="24px" />
-                  </div> */}
-                  <div className="pl-3 pr-3">
-                    <span className="text-sm">Default Brand Kit</span>
-                  </div>
-                </div>
-                <div className="flex flex-row items-center rounded-full cursor-pointer">
-                  <div className="p-1 rounded-full bg-indigo-500 text-white">
-                    {/* <CreateIcon icon="check" size="24px" /> */}
-                    <Plus weight="regular" size="24px" />
-                  </div>
-                </div>
-              </div>
+              <BrandKitList />
               <div className="flex flex-col justify-center items-center mx-auto w-[600px] rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
                 <textarea
                   className="w-full p-4 rounded-[15px] rounded-b-none"
