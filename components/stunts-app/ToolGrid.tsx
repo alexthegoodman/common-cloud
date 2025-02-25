@@ -212,6 +212,7 @@ export const ToolGrid = ({
         // path: new_path.clone(),
         url: url,
         layer: -1,
+        isCircle: false,
       };
 
       editor.add_image_item(image_config, url, blob, new_id, sequence_id);
@@ -229,6 +230,7 @@ export const ToolGrid = ({
           y: position.y,
         },
         layer: image_config.layer,
+        isCircle: image_config.isCircle,
       });
 
       console.info("Saved image!");

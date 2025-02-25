@@ -8,7 +8,7 @@ import { z } from "zod";
 export const maxDuration = 30;
 
 // define a schema for the notifications
-export const dataSchema = z.object({
+const dataSchema = z.object({
   bulletPoints: z.array(
     z.object({
       dataPoint: z
