@@ -348,7 +348,8 @@ function createPathSegment(
     1, // positive to use INTERNAL_LAYER_SPACE
     "motion_path_segment",
     uuidv4(),
-    selectedSequenceId
+    selectedSequenceId,
+    false
   );
 }
 
@@ -395,7 +396,8 @@ function createPathHandle(
     1,
     "motion_path_handle",
     uuidv4(),
-    selectedSequenceId
+    selectedSequenceId,
+    false
   );
 }
 
@@ -448,7 +450,8 @@ function createPathArrow(
     1,
     "motion_path_arrow",
     uuidv4(),
-    selectedSequenceId
+    selectedSequenceId,
+    false
   );
 }
 

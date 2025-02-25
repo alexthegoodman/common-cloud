@@ -116,6 +116,7 @@ export const ToolGrid = ({
         thickness: 2.0,
       },
       layer: -2,
+      isCircle: false,
     };
 
     editor.add_polygon(polygon_config, "Polygon", new_id, sequence_id);
@@ -140,6 +141,7 @@ export const ToolGrid = ({
         ],
       },
       layer: polygon_config.layer,
+      isCircle: polygon_config.isCircle,
     });
 
     let saved_state = editor_state.savedState;
@@ -298,6 +300,7 @@ export const ToolGrid = ({
       //   number
       // ],
       backgroundFill: { type: "Color", value: rgbToWgpu(200, 200, 200, 255) },
+      isCircle: false,
     };
 
     await editor.add_text_item(text_config, new_text, new_id, sequence_id);
@@ -316,6 +319,7 @@ export const ToolGrid = ({
       color: text_config.color,
       fontSize: text_config.fontSize,
       backgroundFill: text_config.backgroundFill,
+      isCircle: text_config.isCircle,
     });
 
     let saved_state = editor_state.savedState;

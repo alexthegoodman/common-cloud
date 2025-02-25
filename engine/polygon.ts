@@ -42,6 +42,7 @@ export interface PolygonConfig {
   borderRadius: number;
   stroke: Stroke;
   layer: number;
+  isCircle: boolean;
 }
 
 export interface SavedPoint {
@@ -64,6 +65,7 @@ export interface SavedPolygonConfig {
   borderRadius: number;
   stroke: SavedStroke;
   layer: number;
+  isCircle: boolean;
 }
 
 export interface PolygonShape {
@@ -78,6 +80,7 @@ export interface PolygonShape {
   baseLayer: number;
   transformLayer: number;
   id: string; // Add an ID field
+  isCircle: boolean;
 }
 
 export class Polygon implements PolygonShape {
@@ -109,6 +112,7 @@ export class Polygon implements PolygonShape {
   layer: number;
   objectType: ObjectType;
   textureView: GPUTextureView;
+  isCircle: boolean;
 
   gradient?: GradientDefinition;
   gradientBuffer?: GPUBuffer;
@@ -134,7 +138,8 @@ export class Polygon implements PolygonShape {
     transformLayer: number,
     name: string,
     id: string,
-    currentSequenceId: string
+    currentSequenceId: string,
+    isCircle: boolean
   ) {
     this.points = points;
     this.dimensions = dimensions;
@@ -150,6 +155,7 @@ export class Polygon implements PolygonShape {
     this.name = name;
     this.hidden = false;
     this.objectType = ObjectType.Polygon;
+    this.isCircle = isCircle;
 
     this.currentSequenceId = currentSequenceId;
     // this.sourcePolygonId = null;
@@ -176,6 +182,7 @@ export class Polygon implements PolygonShape {
       // baseLayer,
       // transformLayer,
       layer: transformLayer,
+      isCircle,
     };
 
     let [
@@ -365,6 +372,59 @@ export class Polygon implements PolygonShape {
     return local_point;
   }
 
+  setIsCircle(
+    window_size: WindowSize,
+    device: GPUDevice,
+    queue: GPUQueue,
+    bind_group_layout: GPUBindGroupLayout,
+    isCircle: boolean,
+    camera: Camera
+  ) {
+    let config: PolygonConfig = {
+      id: this.id,
+      name: this.name,
+      dimensions: this.dimensions,
+      points: this.points,
+      position: {
+        x: this.transform.position[0],
+        y: this.transform.position[1],
+      },
+      rotation: this.transform.rotation,
+      borderRadius: this.borderRadius,
+      // fill: this.fill,
+      backgroundFill: this.backgroundFill,
+      stroke: this.stroke,
+      // 0.0,
+      layer: this.layer + INTERNAL_LAYER_SPACE,
+      isCircle,
+    };
+
+    let [
+      vertices,
+      indices,
+      vertex_buffer,
+      index_buffer,
+      bind_group,
+      transform,
+    ] = getPolygonData(
+      window_size,
+      device,
+      queue,
+      bind_group_layout,
+      camera,
+      // this.points,
+      config
+    );
+
+    this.isCircle = isCircle;
+    this.vertices = vertices;
+    this.indices = indices;
+    this.vertexBuffer = vertex_buffer;
+    this.indexBuffer = index_buffer;
+    this.bindGroup = bind_group;
+    this.transform = transform;
+  }
+
   updateDataFromDimensions(
     window_size: WindowSize,
     device: GPUDevice,
@@ -389,6 +449,7 @@ export class Polygon implements PolygonShape {
       stroke: this.stroke,
       // 0.0,
       layer: this.layer + INTERNAL_LAYER_SPACE,
+      isCircle: this.isCircle,
     };
 
     let [
@@ -451,6 +512,7 @@ export class Polygon implements PolygonShape {
       stroke: this.stroke,
       // 0.0,
       layer: this.layer + INTERNAL_LAYER_SPACE,
+      isCircle: this.isCircle,
     };
 
     let [
@@ -514,6 +576,7 @@ export class Polygon implements PolygonShape {
       stroke: stroke,
       // 0.0,
       layer: this.layer + INTERNAL_LAYER_SPACE,
+      isCircle: this.isCircle,
     };
 
     let [
@@ -578,6 +641,7 @@ export class Polygon implements PolygonShape {
       stroke: this.stroke,
       // 0.0,
       layer: this.layer + INTERNAL_LAYER_SPACE,
+      isCircle: this.isCircle,
     };
 
     let [
@@ -655,6 +719,7 @@ export class Polygon implements PolygonShape {
       borderRadius: this.borderRadius,
       stroke: this.stroke,
       layer: this.layer,
+      isCircle: this.isCircle,
     };
 
     return config;
@@ -699,6 +764,57 @@ export class Polygon implements PolygonShape {
   // }
 }
 
+function generateCircleVertices(
+  dimensions: [number, number],
+  color: [number, number, number, number]
+): Vertex[] {
+  const vertices: Vertex[] = [];
+  const segments = 32; // Number of segments to approximate the circle
+  const radius = dimensions[0] / 2; // Radius of the circle
+
+  for (let i = 0; i < segments; i++) {
+    const angle = (i / segments) * 2 * Math.PI;
+    const x = radius * Math.cos(angle);
+    const y = radius * Math.sin(angle);
+
+    // UV coordinates map the texture to the circle
+    // const u = x + 0.5;
+    // const v = y + 0.5;
+
+    vertices.push({
+      position: [x, y, 0.0],
+      tex_coords: [0, 0],
+      color,
+      gradient_coords: [x, y], // Adjust gradient coords if needed
+      object_type: 0, // OBJECT_TYPE_POLYGON
+    });
+  }
+
+  // Add the center vertex
+  vertices.push({
+    position: [0.0, 0.0, 0.0],
+    tex_coords: [0, 0],
+    color,
+    gradient_coords: [0.0, 0.0],
+    object_type: 0, // OBJECT_TYPE_POLYGON
+  });
+
+  return vertices;
+}
+
+function generateCircleIndices(): number[] {
+  const indices: number[] = [];
+  const segments = 32;
+  const centerIndex = segments; // Center vertex is the last one
+
+  for (let i = 0; i < segments; i++) {
+    const nextIndex = (i + 1) % segments;
+    indices.push(centerIndex, i, nextIndex);
+  }
+
+  return indices;
+}
+
 export function getPolygonData(
   windowSize: WindowSize,
   device: GPUDevice,
@@ -718,86 +834,108 @@ export function getPolygonData(
   GPUBuffer,
   GradientDefinition
 ] {
-  // 1. Tessellate using @thi.ng/geom-tessellate
-  let rounded_points = createRoundedPolygonPath(
-    polygon.points,
-    polygon.dimensions,
-    polygon.borderRadius
-  );
-
-  // console.info("rounded_points", rounded_points);
-
-  const tessellationResult = gt.tessellate(
-    rounded_points.map((p) => [p[0], p[1]]),
-    gt.triFan
-  ); // Or appropriate tessellation method
-
-  // 2. Prepare vertex and index data
   const vertices: Vertex[] = [];
   const indices: number[] = [];
 
-  // Assuming triFan gives us a list of points and faces as indices into the points array
-  if (
-    tessellationResult &&
-    tessellationResult.points &&
-    tessellationResult.faces
-  ) {
-    tessellationResult.points.forEach((point) => {
-      const normalizedX = point[0] / polygon.dimensions[0] + 0.5;
-      const normalizedY = point[1] / polygon.dimensions[1] + 0.5;
-
-      // console.info("normalized poly", normalizedX, normalizedY);
-
-      let fill = [1, 1, 1, 1] as [number, number, number, number];
-      if (polygon.backgroundFill.type === "Gradient") {
-        let firstStop = polygon.backgroundFill.value.stops[0];
-        fill = [
-          firstStop.color[0],
-          firstStop.color[1],
-          firstStop.color[2],
-          1,
-        ] as [number, number, number, number];
-      } else if (polygon.backgroundFill.type === "Color") {
-        fill = [
-          polygon.backgroundFill.value[0],
-          polygon.backgroundFill.value[1],
-          polygon.backgroundFill.value[2],
-          1,
-        ] as [number, number, number, number];
-      }
-
+  if (polygon.isCircle) {
+    if (polygon.backgroundFill.type === "Color") {
       vertices.push(
-        // createVertex(point[0], point[1], getZLayer(1.0), polygon.fill, ObjectType.Polygon)
-        {
-          position: [point[0], point[1], 0],
-          tex_coords: [0, 0],
-          color: fill,
-          gradient_coords: [normalizedX, normalizedY],
-          object_type: 0, // OBJECT_TYPE_POLYGON
-        }
+        ...generateCircleVertices(
+          polygon.dimensions,
+          polygon.backgroundFill.value
+        )
       );
-    });
-    tessellationResult.faces.forEach((face) => {
-      face.forEach((index) => indices.push(index));
-    });
+      indices.push(...generateCircleIndices());
+      console.info("polygon circle color", vertices, indices);
+    } else if (polygon.backgroundFill.type === "Gradient") {
+      vertices.push(
+        ...generateCircleVertices(
+          polygon.dimensions,
+          polygon.backgroundFill.value.stops[0].color
+        )
+      );
+      indices.push(...generateCircleIndices());
+    }
   } else {
-    console.error(
-      "Tessellation failed or returned unexpected result:",
-      tessellationResult
+    // 1. Tessellate using @thi.ng/geom-tessellate
+    let rounded_points = createRoundedPolygonPath(
+      polygon.points,
+      polygon.dimensions,
+      polygon.borderRadius
     );
-    // Handle the error appropriately, e.g., return default values or throw an exception.
-    return [
-      [],
-      [],
-      null as unknown as GPUBuffer,
-      null as unknown as GPUBuffer,
-      null as unknown as GPUBindGroup,
-      null as unknown as Transform,
-      null as unknown as GPUTextureView,
-      null as unknown as GPUSampler,
-      null as unknown as GPUBuffer,
-      null as unknown as GradientDefinition,
-    ];
+
+    // console.info("rounded_points", rounded_points);
+
+    const tessellationResult = gt.tessellate(
+      rounded_points.map((p) => [p[0], p[1]]),
+      gt.triFan
+    ); // Or appropriate tessellation method
+
+    // 2. Prepare vertex and index data
+
+    // Assuming triFan gives us a list of points and faces as indices into the points array
+    if (
+      tessellationResult &&
+      tessellationResult.points &&
+      tessellationResult.faces
+    ) {
+      tessellationResult.points.forEach((point) => {
+        const normalizedX = point[0] / polygon.dimensions[0] + 0.5;
+        const normalizedY = point[1] / polygon.dimensions[1] + 0.5;
+
+        // console.info("normalized poly", normalizedX, normalizedY);
+
+        let fill = [1, 1, 1, 1] as [number, number, number, number];
+        if (polygon.backgroundFill.type === "Gradient") {
+          let firstStop = polygon.backgroundFill.value.stops[0];
+          fill = [
+            firstStop.color[0],
+            firstStop.color[1],
+            firstStop.color[2],
+            1,
+          ] as [number, number, number, number];
+        } else if (polygon.backgroundFill.type === "Color") {
+          fill = [
+            polygon.backgroundFill.value[0],
+            polygon.backgroundFill.value[1],
+            polygon.backgroundFill.value[2],
+            1,
+          ] as [number, number, number, number];
+        }
+
+        vertices.push(
+          // createVertex(point[0], point[1], getZLayer(1.0), polygon.fill, ObjectType.Polygon)
+          {
+            position: [point[0], point[1], 0],
+            tex_coords: [0, 0],
+            color: fill,
+            gradient_coords: [normalizedX, normalizedY],
+            object_type: 0, // OBJECT_TYPE_POLYGON
+          }
+        );
+      });
+      tessellationResult.faces.forEach((face) => {
+        face.forEach((index) => indices.push(index));
+      });
+    } else {
+      console.error(
+        "Tessellation failed or returned unexpected result:",
+        tessellationResult
+      );
+      // Handle the error appropriately, e.g., return default values or throw an exception.
+      return [
+        [],
+        [],
+        null as unknown as GPUBuffer,
+        null as unknown as GPUBuffer,
+        null as unknown as GPUBindGroup,
+        null as unknown as Transform,
+        null as unknown as GPUTextureView,
+        null as unknown as GPUSampler,
+        null as unknown as GPUBuffer,
+        null as unknown as GradientDefinition,
+      ];
+    }
   }
 
   const vertexBuffer = device.createBuffer({

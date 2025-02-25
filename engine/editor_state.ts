@@ -291,6 +291,42 @@ export default class EditorState {
         saveSequencesData(this.savedState.sequences, this.saveTarget);
         break;
       }
+      case ObjectType.TextItem: {
+        let gpuResources = editor.gpuResources;
+        let text = editor.textItems.find((i) => i.id === objectId);
+
+        if (
+          !text ||
+          !gpuResources ||
+          !editor.camera ||
+          !editor.modelBindGroupLayout
+        ) {
+          return;
+        }
+
+        text.isCircle = value;
+        text.backgroundPolygon.setIsCircle(
+          editor.camera?.windowSize,
+          gpuResources.device,
+          gpuResources.queue,
+          editor.modelBindGroupLayout,
+          value,
+          editor.camera
+        );
+
+        this.savedState.sequences.forEach((s) => {
+          // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+          s.activeTextItems.forEach((p) => {
+            if (p.id == objectId) {
+              p.isCircle = value;
+            }
+          });
+          // }
+        });
+
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
+        break;
+      }
     }
   }
 

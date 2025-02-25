@@ -425,6 +425,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       color: [20, 20, 20, 255] as [number, number, number, number],
       fontSize: 16,
       backgroundFill: { type: "Color", value: rgbToWgpu(200, 200, 200, 255) },
+      isCircle: false,
     };
 
     editorRef.current.initializeTextArea(text_config).then(() => {

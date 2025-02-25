@@ -379,6 +379,7 @@ export const TextProperties = ({
   const [defaultWidth, setDefaultWidth] = useState(0);
   const [defaultHeight, setDefaultHeight] = useState(0);
   const [defaultContent, setDefaultContent] = useState("");
+  const [is_circle, set_is_circle] = useState(false);
 
   useEffect(() => {
     let editor = editorRef.current;
@@ -398,6 +399,7 @@ export const TextProperties = ({
     let width = currentObject?.dimensions[0];
     let height = currentObject?.dimensions[1];
     let content = currentObject?.text;
+    let isCircle = currentObject?.isCircle;
 
     if (width) {
       setDefaultWidth(width);
@@ -407,6 +409,9 @@ export const TextProperties = ({
     }
     if (content) {
       setDefaultContent(content);
+    }
+    if (typeof isCircle !== "undefined" && isCircle !== null) {
+      set_is_circle(isCircle);
     }
 
     setDefaultsSet(true);
@@ -512,6 +517,32 @@ export const TextProperties = ({
             // );
           }}
         /> */}
+        <input
+          type="checkbox"
+          id="is_circle"
+          name="is_circle"
+          checked={is_circle}
+          onChange={(ev) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            editorState.updateIsCircle(
+              editor,
+              currentTextId,
+              ObjectType.TextItem,
+              ev.target.checked
+            );
+
+            set_is_circle(ev.target.checked);
+          }}
+        />
+        <label htmlFor="is_circle" className="text-xs">
+          Is Circle
+        </label>
         <RepeatProperties
           editorRef={editorRef}
           editorStateRef={editorStateRef}

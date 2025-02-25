@@ -26,6 +26,7 @@ export interface TextRendererConfig {
   color: [number, number, number, number];
   // backgroundFill: [number, number, number, number];
   backgroundFill: BackgroundFill;
+  isCircle: boolean;
 }
 
 export interface SavedTextRendererConfig {
@@ -40,6 +41,7 @@ export interface SavedTextRendererConfig {
   color: [number, number, number, number];
   // backgroundFill?: [number, number, number, number];
   backgroundFill: BackgroundFill;
+  isCircle: boolean;
 }
 
 export interface GlyphRasterConfig {
@@ -95,6 +97,7 @@ export class TextRenderer {
   currentSequenceId: string;
   objectType: ObjectType;
   textureView: GPUTextureView;
+  isCircle: boolean;
   // gradientBindGroup: GPUBindGroup;
 
   constructor(
@@ -122,6 +125,7 @@ export class TextRenderer {
     this.initialized = false;
     this.currentSequenceId = currentSequenceId;
     this.objectType = ObjectType.TextItem;
+    this.isCircle = textConfig.isCircle;
 
     this.glyphCache = new Map();
     this.atlasSize = [4096, 4096];
@@ -235,7 +239,8 @@ export class TextRenderer {
       textConfig.layer - 1.0 - INTERNAL_LAYER_SPACE,
       textConfig.name,
       this.id,
-      currentSequenceId
+      currentSequenceId,
+      textConfig.isCircle
     );
 
     this.backgroundPolygon.hidden = false;
@@ -1139,6 +1144,7 @@ export class TextRenderer {
       color: this.color,
       fontSize: this.fontSize,
       backgroundFill: this.backgroundPolygon.backgroundFill,
+      isCircle: this.backgroundPolygon.isCircle,
     };
   }
 

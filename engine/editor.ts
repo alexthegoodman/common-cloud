@@ -713,7 +713,8 @@ export class Editor {
         p.layer,
         p.name,
         p.id, // Generate a new UUID
-        saved_sequence.id
+        saved_sequence.id,
+        p.isCircle
       );
 
       restored_polygon.hidden = hidden;
@@ -756,6 +757,7 @@ export class Editor {
         //     )
         //   : rgbToWgpu(100, 100, 100, 255),
         backgroundFill: t.backgroundFill,
+        isCircle: t.isCircle,
       };
 
       const restored_text = new TextRenderer(
@@ -2486,7 +2488,8 @@ export class Editor {
       polygon_config.layer,
       polygon_name,
       new_id,
-      selected_sequence_id
+      selected_sequence_id,
+      polygon_config.isCircle
     );
 
     this.polygons.push(polygon);
@@ -2715,7 +2718,8 @@ export class Editor {
       -89, // camera far is -100
       "canvas_background",
       sequence_id,
-      sequence_id
+      sequence_id,
+      false
     );
 
     console.info("bg poly", canvas_polygon);
@@ -3941,6 +3945,7 @@ export class Editor {
             backgroundFill: polygon.backgroundFill,
             stroke: polygon.stroke,
             layer: polygon.layer,
+            isCircle: polygon.isCircle,
           });
           this.selectedPolygonId = polygon.id;
           // polygon.old_points = polygon.points;
