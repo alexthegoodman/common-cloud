@@ -21,7 +21,7 @@ export function BrandKitModal({
 
   return (
     <>
-      <button onClick={() => setIsOpen(true)}>Open dialog</button>
+      {/* <button onClick={() => setIsOpen(true)}>Open dialog</button> */}
       <Dialog
         open={isOpen}
         onClose={() => setIsOpen(false)}

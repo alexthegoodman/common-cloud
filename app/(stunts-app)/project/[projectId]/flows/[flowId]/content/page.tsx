@@ -8,7 +8,7 @@ import { FlowSteps } from "@/components/stunts-app/FlowSteps";
 import FlowContent from "@/components/stunts-app/FlowContent";
 
 export default function Project() {
-  const { projectId } = useParams();
+  const { projectId, flowId } = useParams();
 
   return (
     <React.Suspense fallback={<div>Loading...</div>}>

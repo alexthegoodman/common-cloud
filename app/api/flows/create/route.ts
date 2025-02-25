@@ -34,6 +34,8 @@ export async function POST(req: Request) {
       };
     }
 
+    console.info("data", prompt, brandKitId, emptyContent, emptyQuestions);
+
     const newFlow = await prisma.flow.create({
       data: {
         ownerId: user.id,
