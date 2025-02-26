@@ -12,13 +12,15 @@ import EditorState from "@/engine/editor_state";
 import React, { useRef, useState } from "react";
 import { WebCapture } from "@/engine/capture";
 import { v4 as uuidv4 } from "uuid";
-import { fileToBlob } from "@/engine/image";
+import { fileToBlob, StImageConfig } from "@/engine/image";
 import { AuthToken, saveImage, saveVideo } from "@/fetchers/projects";
 import { Sequence } from "@/engine/animations";
 import { PolygonConfig } from "@/engine/polygon";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { TextRendererConfig } from "@/engine/text";
 import { PageSequence } from "@/engine/data";
+import { Layer, LayerFromConfig } from "./layers";
+import { StVideoConfig } from "@/engine/video";
 
 export const ToolGrid = ({
   editorRef,
@@ -28,6 +30,8 @@ export const ToolGrid = ({
   set_sequences,
   options,
   on_create_sequence,
+  layers,
+  setLayers,
 }: {
   editorRef: React.RefObject<Editor | null>;
   editorStateRef: React.RefObject<EditorState | null>;
@@ -38,6 +42,8 @@ export const ToolGrid = ({
   >;
   options: string[];
   on_create_sequence?: () => void;
+  layers: Layer[];
+  setLayers: React.Dispatch<React.SetStateAction<Layer[]>>;
 }) => {
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
@@ -117,7 +123,7 @@ export const ToolGrid = ({
         fill: [1.0, 1.0, 1.0, 1.0],
         thickness: 2.0,
       },
-      layer: -2,
+      layer: -layers.length,
       isCircle: false,
     };
 
@@ -165,6 +171,17 @@ export const ToolGrid = ({
     editor.currentSequenceData = sequence_cloned;
 
     editor.updateMotionPaths(sequence_cloned);
+
+    editor.polygons.forEach((polygon) => {
+      if (!polygon.hidden && polygon.id === polygon_config.id) {
+        let polygon_config: PolygonConfig = polygon.toConfig();
+        let new_layer: Layer =
+          LayerFromConfig.fromPolygonConfig(polygon_config);
+        layers.push(new_layer);
+      }
+    });
+
+    setLayers(layers);
 
     console.info("Square added!");
   };
@@ -215,7 +232,7 @@ export const ToolGrid = ({
         position,
         // path: new_path.clone(),
         url: url,
-        layer: -1,
+        layer: -layers.length,
         isCircle: false,
       };
 
@@ -257,6 +274,16 @@ export const ToolGrid = ({
       editor.currentSequenceData = sequence_cloned;
       editor.updateMotionPaths(sequence_cloned);
 
+      editor.imageItems.forEach((image) => {
+        if (!image.hidden && image.id === image_config.id) {
+          let image_config: StImageConfig = image.toConfig();
+          let new_layer: Layer = LayerFromConfig.fromImageConfig(image_config);
+          layers.push(new_layer);
+        }
+      });
+
+      setLayers(layers);
+
       console.info("Image added!");
     }
   };
@@ -291,7 +318,7 @@ export const ToolGrid = ({
       fontFamily: font_family,
       dimensions: [100.0, 100.0] as [number, number],
       position,
-      layer: -2,
+      layer: -layers.length,
       // color: rgbToWgpu(20, 20, 200, 255) as [number, number, number, number],
       color: [20, 20, 200, 255] as [number, number, number, number],
       fontSize: 28,
@@ -344,6 +371,16 @@ export const ToolGrid = ({
     editor.currentSequenceData = sequence_cloned;
     editor.updateMotionPaths(sequence_cloned);
 
+    editor.textItems.forEach((text) => {
+      if (!text.hidden && text.id === text_config.id) {
+        let text_config: TextRendererConfig = text.toConfig();
+        let new_layer: Layer = LayerFromConfig.fromTextConfig(text_config);
+        layers.push(new_layer);
+      }
+    });
+
+    setLayers(layers);
+
     // drop(editor);
   };
 
@@ -388,7 +425,7 @@ export const ToolGrid = ({
         // path: new_path.clone(),
         path: url,
         mousePath: "",
-        layer: -1,
+        layer: -layers.length,
       };
 
       editor.add_video_item(video_config, blob, new_id, sequence_id, [], null);
@@ -428,6 +465,16 @@ export const ToolGrid = ({
 
       editor.currentSequenceData = sequence_cloned;
       editor.updateMotionPaths(sequence_cloned);
+
+      editor.videoItems.forEach((video) => {
+        if (!video.hidden && video.id === video_config.id) {
+          let video_config: StVideoConfig = video.toConfig();
+          let new_layer: Layer = LayerFromConfig.fromVideoConfig(video_config);
+          layers.push(new_layer);
+        }
+      });
+
+      setLayers(layers);
 
       console.info("video added!");
     }
