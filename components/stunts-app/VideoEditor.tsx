@@ -1202,6 +1202,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                             "video",
                             "capture",
                           ]}
+                          layers={layers}
+                          setLayers={set_layers}
                         />
 
                         <ThemePicker
@@ -1245,11 +1247,11 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                     </div>
                     <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
                       <LayerPanel
+                        editorRef={editorRef}
+                        editorStateRef={editorStateRef}
+                        currentSequenceId={current_sequence_id}
                         layers={layers}
                         setLayers={set_layers}
-                        onItemDeleted={on_item_deleted}
-                        onItemDuplicated={on_item_duplicated}
-                        onItemsUpdated={on_items_updated}
                       />
                     </div>
                   </>
