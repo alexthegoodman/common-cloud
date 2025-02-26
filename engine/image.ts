@@ -129,8 +129,10 @@ export class StImage {
     console.info("imgBitmap", originalDimensions);
 
     const textureSize: GPUExtent3DStrict = {
-      width: dimensions[0],
-      height: dimensions[1],
+      // width: dimensions[0],
+      // height: dimensions[1],
+      width: originalDimensions[0],
+      height: originalDimensions[1],
       depthOrArrayLayers: 1,
     };
 
@@ -147,10 +149,21 @@ export class StImage {
 
     // surely we can get write our textures without creating all these canvases
     const context = document.createElement("canvas").getContext("2d")!;
-    context.canvas.width = dimensions[0];
-    context.canvas.height = dimensions[1];
-    context.drawImage(imageBitmap, 0, 0, dimensions[0], dimensions[1]);
-    const rgba = context.getImageData(0, 0, dimensions[0], dimensions[1]).data;
+    context.canvas.width = originalDimensions[0];
+    context.canvas.height = originalDimensions[1];
+    context.drawImage(
+      imageBitmap,
+      0,
+      0,
+      originalDimensions[0],
+      originalDimensions[1]
+    );
+    const rgba = context.getImageData(
+      0,
+      0,
+      originalDimensions[0],
+      originalDimensions[1]
+    ).data;
 
     queue.writeTexture(
       {
@@ -162,8 +175,8 @@ export class StImage {
       rgba,
       {
         offset: 0,
-        bytesPerRow: dimensions[0] * 4,
-        rowsPerImage: dimensions[1],
+        bytesPerRow: originalDimensions[0] * 4,
+        rowsPerImage: originalDimensions[1],
       },
       textureSize
     );
