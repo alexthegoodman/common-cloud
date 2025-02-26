@@ -627,70 +627,72 @@ export class TextRenderer {
     ctx.fillText(rasterConfig.character, 0, baselineY);
 
     // Get the high DPI image data
-    // const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-    let final_canvas_width = Math.ceil(metrics.width) + 1;
-    let final_canvas_height = Math.ceil(metrics.height) + 2;
+    // let final_canvas_width = Math.ceil(metrics.width) + 1;
+    // let final_canvas_height = Math.ceil(metrics.height) + 2;
 
-    if (final_canvas_width <= 0 || final_canvas_height <= 0) {
-      final_canvas_width = 1;
-      final_canvas_height = 1;
-    }
+    // if (final_canvas_width <= 0 || final_canvas_height <= 0) {
+    //   final_canvas_width = 1;
+    //   final_canvas_height = 1;
+    // }
 
-    // Create a temporary downscaling canvas
-    const finalCanvas = new OffscreenCanvas(
-      final_canvas_width,
-      final_canvas_height
-    );
-    const finalCtx = finalCanvas.getContext("2d", {
-      alpha: true,
-      antialias: true,
-    });
+    // // Create a temporary downscaling canvas
+    // const finalCanvas = new OffscreenCanvas(
+    //   final_canvas_width,
+    //   final_canvas_height
+    // );
+    // const finalCtx = finalCanvas.getContext("2d", {
+    //   alpha: true,
+    //   antialias: true,
+    // });
 
-    if (!finalCtx) {
-      throw new Error("Could not create final canvas context");
-    }
+    // if (!finalCtx) {
+    //   throw new Error("Could not create final canvas context");
+    // }
 
-    // Draw the high DPI canvas onto the final size canvas
-    finalCtx.drawImage(
-      canvas,
-      0,
-      0,
-      canvas.width,
-      canvas.height,
-      0,
-      0,
-      finalCanvas.width,
-      finalCanvas.height
-    );
+    // // Draw the high DPI canvas onto the final size canvas
+    // finalCtx.drawImage(
+    //   canvas,
+    //   0,
+    //   0,
+    //   canvas.width,
+    //   canvas.height,
+    //   0,
+    //   0,
+    //   finalCanvas.width,
+    //   finalCanvas.height
+    // );
 
-    // Get the downscaled image data
-    const finalImageData = finalCtx.getImageData(
-      0,
-      0,
-      finalCanvas.width,
-      finalCanvas.height
-    );
+    // // Get the downscaled image data
+    // const finalImageData = finalCtx.getImageData(
+    //   0,
+    //   0,
+    //   finalCanvas.width,
+    //   finalCanvas.height
+    // );
 
-    // Convert the image data to RGBA format
-    const rgbaData = new Uint8Array(finalImageData.data.buffer);
+    // // Convert the image data to RGBA format
+    // const rgbaData = new Uint8Array(finalImageData.data.buffer);
+
+    const rgbaData = new Uint8Array(imageData.data.buffer);
 
     // Check if we need to move to the next row in the atlas
-    if (this.nextAtlasPosition[0] + finalCanvas.width > this.atlasSize[0]) {
+    if (this.nextAtlasPosition[0] + canvas.width > this.atlasSize[0]) {
       this.nextAtlasPosition[0] = 0;
       this.nextAtlasPosition[1] += this.currentRowHeight;
       this.currentRowHeight = 0;
     }
 
     // Update current row height if this glyph is taller
-    this.currentRowHeight = Math.max(this.currentRowHeight, finalCanvas.height);
+    this.currentRowHeight = Math.max(this.currentRowHeight, canvas.height);
 
     // Calculate UV coordinates
     const uv_rect: [number, number, number, number] = [
       this.nextAtlasPosition[0] / this.atlasSize[0],
       this.nextAtlasPosition[1] / this.atlasSize[1],
-      finalCanvas.width / this.atlasSize[0],
-      finalCanvas.height / this.atlasSize[1],
+      canvas.width / this.atlasSize[0],
+      canvas.height / this.atlasSize[1],
     ];
 
     // Write glyph bitmap to atlas
@@ -707,18 +709,18 @@ export class TextRenderer {
       rgbaData,
       {
         offset: 0,
-        bytesPerRow: finalCanvas.width * 4,
-        rowsPerImage: finalCanvas.height,
+        bytesPerRow: canvas.width * 4,
+        rowsPerImage: canvas.height,
       },
       {
-        width: finalCanvas.width,
-        height: finalCanvas.height,
+        width: canvas.width,
+        height: canvas.height,
         depthOrArrayLayers: 1,
       }
     );
 
     // Update atlas position for next glyph
-    this.nextAtlasPosition[0] += finalCanvas.width;
+    this.nextAtlasPosition[0] += canvas.width;
 
     return {
       uv_rect,
