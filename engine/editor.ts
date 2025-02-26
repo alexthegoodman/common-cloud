@@ -2548,7 +2548,7 @@ export class Editor {
     this.textItems.push(text_item);
   }
 
-  add_image_item(
+  async add_image_item(
     // windowSize: WindowSize,
     // device: GPUDevice,
     // queue: GPUQueue,
@@ -2589,6 +2589,21 @@ export class Editor {
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
       // this.gradientBindGroupLayout,
+      0.0,
+      selected_sequence_id,
+      false
+    );
+
+    await image_item.initialize(
+      device,
+      queue,
+      url,
+      blob, // load of image data
+      image_config,
+      windowSize,
+      this.modelBindGroupLayout!,
+      this.groupBindGroupLayout!,
+      // this.gradientBindGroupLayout!,
       0.0,
       selected_sequence_id,
       false
