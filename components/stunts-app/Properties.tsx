@@ -265,6 +265,7 @@ export const PolygonProperties = ({
   const [defaultWidth, setDefaultWidth] = useState(0);
   const [defaultHeight, setDefaultHeight] = useState(0);
   const [defaultBorderRadius, setDefaultBorderRadius] = useState(0);
+  const [is_circle, set_is_circle] = useState(false);
 
   useEffect(() => {
     let editor = editorRef.current;
@@ -284,6 +285,7 @@ export const PolygonProperties = ({
     let width = currentObject?.dimensions[0];
     let height = currentObject?.dimensions[1];
     let borderRadius = currentObject?.borderRadius;
+    let isCircle = currentObject?.isCircle;
 
     if (width) {
       setDefaultWidth(width);
@@ -293,6 +295,9 @@ export const PolygonProperties = ({
     }
     if (borderRadius) {
       setDefaultBorderRadius(borderRadius);
+    }
+    if (typeof isCircle !== "undefined" && isCircle !== null) {
+      set_is_circle(isCircle);
     }
 
     setDefaultsSet(true);
@@ -378,6 +383,32 @@ export const PolygonProperties = ({
             );
           }}
         />
+        <input
+          type="checkbox"
+          id="is_circle"
+          name="is_circle"
+          checked={is_circle}
+          onChange={(ev) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            editorState.updateIsCircle(
+              editor,
+              currentPolygonId,
+              ObjectType.Polygon,
+              ev.target.checked
+            );
+
+            set_is_circle(ev.target.checked);
+          }}
+        />
+        <label htmlFor="is_circle" className="text-xs">
+          Is Circle
+        </label>
         <RepeatProperties
           editorRef={editorRef}
           editorStateRef={editorStateRef}

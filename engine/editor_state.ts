@@ -327,6 +327,42 @@ export default class EditorState {
         saveSequencesData(this.savedState.sequences, this.saveTarget);
         break;
       }
+      case ObjectType.Polygon: {
+        let gpuResources = editor.gpuResources;
+        let polygon = editor.polygons.find((i) => i.id === objectId);
+
+        if (
+          !polygon ||
+          !gpuResources ||
+          !editor.camera ||
+          !editor.modelBindGroupLayout
+        ) {
+          return;
+        }
+
+        polygon.isCircle = value;
+        polygon.setIsCircle(
+          editor.camera?.windowSize,
+          gpuResources.device,
+          gpuResources.queue,
+          editor.modelBindGroupLayout,
+          value,
+          editor.camera
+        );
+
+        this.savedState.sequences.forEach((s) => {
+          // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+          s.activePolygons.forEach((p) => {
+            if (p.id == objectId) {
+              p.isCircle = value;
+            }
+          });
+          // }
+        });
+
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
+        break;
+      }
     }
   }
 
