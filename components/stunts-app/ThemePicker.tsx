@@ -174,10 +174,12 @@ export const ThemePicker = ({
                 editorState.savedState.sequences.forEach((s) => {
                   if (s.id == currentSequenceId) {
                     s.activeTextItems.forEach((t) => {
-                      // if t.id == selected_text_id.get().to_string() {
-                      t.color = background_color;
-                      t.fontFamily = fontId;
-                      // }
+                      if (ids_to_update.includes(t.id)) {
+                        // if t.id == selected_text_id.get().to_string() {
+                        t.color = background_color;
+                        t.fontFamily = fontId;
+                        // }
+                      }
                     });
                   }
                 });
@@ -205,10 +207,12 @@ export const ThemePicker = ({
 
                 editorState.savedState.sequences.forEach((s) => {
                   s.activeTextItems.forEach((p) => {
-                    p.backgroundFill = {
-                      type: "Color",
-                      value: text_color_dark_wgpu,
-                    };
+                    if (ids_to_update.includes(p.id)) {
+                      p.backgroundFill = {
+                        type: "Color",
+                        value: text_color_dark_wgpu,
+                      };
+                    }
                   });
                 });
 
