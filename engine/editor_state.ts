@@ -182,6 +182,180 @@ export default class EditorState {
     }
   }
 
+  updatePositionX(
+    editor: Editor,
+    objectId: string,
+    objectType: ObjectType,
+    value: number
+  ) {
+    switch (objectType) {
+      case ObjectType.Polygon: {
+        editor.update_polygon(objectId, "positionX", InputValue.Number, value);
+
+        this.savedState.sequences.forEach((s) => {
+          // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+          s.activePolygons.forEach((p) => {
+            if (p.id == objectId) {
+              p.position = {
+                x: value,
+                y: p.position.y,
+              };
+            }
+          });
+          // }
+        });
+
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
+        break;
+      }
+      case ObjectType.TextItem: {
+        console.info("test 2");
+        editor.update_text(objectId, "positionX", InputValue.Number, value);
+
+        this.savedState.sequences.forEach((s) => {
+          // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+          s.activeTextItems.forEach((p) => {
+            if (p.id == objectId) {
+              p.position = {
+                x: value,
+                y: p.position.y,
+              };
+            }
+          });
+          // }
+        });
+
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
+        break;
+      }
+      case ObjectType.ImageItem: {
+        editor.update_image(objectId, "positionX", InputValue.Number, value);
+
+        this.savedState.sequences.forEach((s) => {
+          // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+          s.activeImageItems.forEach((p) => {
+            if (p.id == objectId) {
+              p.position = {
+                x: value,
+                y: p.position.y,
+              };
+            }
+          });
+          // }
+        });
+
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
+        break;
+      }
+      case ObjectType.VideoItem: {
+        editor.update_video(objectId, "positionX", InputValue.Number, value);
+
+        this.savedState.sequences.forEach((s) => {
+          // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+          s.activeVideoItems.forEach((p) => {
+            if (p.id == objectId) {
+              p.position = {
+                x: value,
+                y: p.position.y,
+              };
+            }
+          });
+          // }
+        });
+
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
+        break;
+      }
+    }
+  }
+
+  updatePositionY(
+    editor: Editor,
+    objectId: string,
+    objectType: ObjectType,
+    value: number
+  ) {
+    switch (objectType) {
+      case ObjectType.Polygon: {
+        editor.update_polygon(objectId, "positionY", InputValue.Number, value);
+
+        this.savedState.sequences.forEach((s) => {
+          // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+          s.activePolygons.forEach((p) => {
+            if (p.id == objectId) {
+              p.position = {
+                x: p.position.x,
+                y: value,
+              };
+            }
+          });
+          // }
+        });
+
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
+        break;
+      }
+      case ObjectType.TextItem: {
+        console.info("test 2");
+        editor.update_text(objectId, "positionY", InputValue.Number, value);
+
+        this.savedState.sequences.forEach((s) => {
+          // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+          s.activeTextItems.forEach((p) => {
+            if (p.id == objectId) {
+              p.position = {
+                x: p.position.x,
+                y: value,
+              };
+            }
+          });
+          // }
+        });
+
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
+        break;
+      }
+      case ObjectType.ImageItem: {
+        editor.update_image(objectId, "positionY", InputValue.Number, value);
+
+        this.savedState.sequences.forEach((s) => {
+          // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+          s.activeImageItems.forEach((p) => {
+            if (p.id == objectId) {
+              p.position = {
+                x: p.position.x,
+                y: value,
+              };
+            }
+          });
+          // }
+        });
+
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
+        break;
+      }
+      case ObjectType.VideoItem: {
+        editor.update_video(objectId, "positionY", InputValue.Number, value);
+
+        this.savedState.sequences.forEach((s) => {
+          // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+          s.activeVideoItems.forEach((p) => {
+            if (p.id == objectId) {
+              p.position = {
+                x: p.position.x,
+                y: value,
+              };
+            }
+          });
+          // }
+        });
+
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
+        break;
+      }
+    }
+  }
+
   updateBorderRadius(
     editor: Editor,
     objectId: string,

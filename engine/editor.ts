@@ -3051,6 +3051,42 @@ export class Editor {
                 );
                 break;
               }
+              case "positionX": {
+                selected_polygon.updateDataFromPosition(
+                  windowSize,
+                  device,
+                  // queue,
+                  this.modelBindGroupLayout,
+                  {
+                    x: new_value,
+                    y: selected_polygon.position.y,
+                  },
+                  camera
+                );
+                selected_polygon.transform.updateUniformBuffer(
+                  gpuResources.queue,
+                  camera.windowSize
+                );
+                break;
+              }
+              case "positionY": {
+                selected_polygon.updateDataFromPosition(
+                  windowSize,
+                  device,
+                  // queue,
+                  this.modelBindGroupLayout,
+                  {
+                    x: selected_polygon.position.x,
+                    y: new_value,
+                  },
+                  camera
+                );
+                selected_polygon.transform.updateUniformBuffer(
+                  gpuResources.queue,
+                  camera.windowSize
+                );
+                break;
+              }
             }
           }
         }

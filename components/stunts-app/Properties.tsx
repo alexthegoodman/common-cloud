@@ -265,6 +265,8 @@ export const PolygonProperties = ({
   const [defaultWidth, setDefaultWidth] = useState(0);
   const [defaultHeight, setDefaultHeight] = useState(0);
   const [defaultBorderRadius, setDefaultBorderRadius] = useState(0);
+  const [positionX, setPositionX] = useState(0);
+  const [positionY, setPositionY] = useState(0);
   const [is_circle, set_is_circle] = useState(false);
 
   useEffect(() => {
@@ -286,6 +288,8 @@ export const PolygonProperties = ({
     let height = currentObject?.dimensions[1];
     let borderRadius = currentObject?.borderRadius;
     let isCircle = currentObject?.isCircle;
+    let positionX = currentObject?.position.x;
+    let positionY = currentObject?.position.y;
 
     if (width) {
       setDefaultWidth(width);
@@ -298,6 +302,12 @@ export const PolygonProperties = ({
     }
     if (typeof isCircle !== "undefined" && isCircle !== null) {
       set_is_circle(isCircle);
+    }
+    if (positionX) {
+      setPositionX(positionX);
+    }
+    if (positionY) {
+      setPositionY(positionY);
     }
 
     setDefaultsSet(true);
@@ -320,6 +330,48 @@ export const PolygonProperties = ({
           </button>
           <h5>Update Polygon</h5>
         </div>
+        <DebouncedInput
+          id="polygon_x"
+          label="X"
+          placeholder="X"
+          initialValue={positionX.toString()}
+          onDebounce={(value) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            editorState.updatePositionX(
+              editor,
+              currentPolygonId,
+              ObjectType.Polygon,
+              parseInt(value)
+            );
+          }}
+        />
+        <DebouncedInput
+          id="polygon_y"
+          label="Y"
+          placeholder="Y"
+          initialValue={positionY.toString()}
+          onDebounce={(value) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            editorState.updatePositionY(
+              editor,
+              currentPolygonId,
+              ObjectType.Polygon,
+              parseInt(value)
+            );
+          }}
+        />
         <DebouncedInput
           id="polygon_width"
           label="Width"

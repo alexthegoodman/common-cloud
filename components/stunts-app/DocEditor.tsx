@@ -72,6 +72,8 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     null
   );
 
+  let [mouseUpTime, setMosueUpTime] = useState<number | null>(null);
+
   let [previewCache, setPreviewCache] = useState<
     Map<string, { blobUrl: string; timestamp: number }>
   >(new Map());
@@ -310,6 +312,8 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     // updateDocumentPreview(previewManager, current_sequence_id, Date.now());
 
     // setPreviewCache(previewManager.previewCache);
+
+    setMosueUpTime(Date.now());
 
     return [current_sequence_data, []];
   };
@@ -712,10 +716,10 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
   return (
     <div className="flex flex-row w-full">
       {current_sequence_id && (
-        <div className="flex flex-col gap-4 w-full max-w-[315px]">
+        <div className="flex flex-col gap-4 w-[315px]">
           {selected_polygon_id && (
             <PolygonProperties
-              key={"props" + selected_polygon_id}
+              key={"props" + selected_polygon_id + mouseUpTime}
               editorRef={editorRef}
               editorStateRef={editorStateRef}
               currentSequenceId={current_sequence_id}
