@@ -1030,6 +1030,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           {selected_keyframes && selected_keyframes?.length > 0 ? (
             <>
               <KeyframeProperties
+                key={"props" + selected_keyframes[0]}
                 editorRef={editorRef}
                 editorStateRef={editorStateRef}
                 currentSequenceId={current_sequence_id}
@@ -1041,6 +1042,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             <>
               {selected_polygon_id && (
                 <PolygonProperties
+                  key={"props" + selected_polygon_id}
                   editorRef={editorRef}
                   editorStateRef={editorStateRef}
                   currentSequenceId={current_sequence_id}
@@ -1055,6 +1057,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 <>
                   <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
                     <ImageProperties
+                      key={"props" + selected_image_id}
                       editorRef={editorRef}
                       editorStateRef={editorStateRef}
                       currentSequenceId={current_sequence_id}
@@ -1071,6 +1074,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 <>
                   <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
                     <TextProperties
+                      key={"props" + selected_text_id}
                       editorRef={editorRef}
                       editorStateRef={editorStateRef}
                       currentSequenceId={current_sequence_id}
@@ -1087,6 +1091,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 <>
                   <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
                     <VideoProperties
+                      key={"props" + selected_video_id}
                       editorRef={editorRef}
                       editorStateRef={editorStateRef}
                       currentSequenceId={current_sequence_id}

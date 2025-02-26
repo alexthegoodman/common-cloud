@@ -61,7 +61,7 @@ const RepeatProperties = ({
 
     set_is_repeat(true);
     setDefaultsSet(true);
-  }, []);
+  }, [currentObjectId]);
 
   let set_prop = (partialPattern: Partial<RepeatPattern>) => {
     let editor = editorRef.current;

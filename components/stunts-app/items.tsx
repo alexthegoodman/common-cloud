@@ -178,6 +178,7 @@ export const DebouncedInput: React.FC<DebouncedInputProps> = ({
       <input
         id={id}
         name={id}
+        key={id}
         placeholder={placeholder}
         type="text"
         value={value}
