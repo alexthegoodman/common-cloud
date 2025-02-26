@@ -84,6 +84,8 @@ export const SortableItem: React.FC<{
       (layer) => layer.instance_id === itemId
     );
 
+    console.info("positions", draggerPos, hoverPos);
+
     if (draggerPos !== -1 && hoverPos !== -1 && draggerPos !== hoverPos) {
       const newItems = [...sortableItems];
       const item = newItems.splice(draggerPos, 1)[0];
@@ -198,7 +200,7 @@ export const LayerPanel: React.FC<{
 
     // sort layers by layer_index property, lower values should come first in the list
     // but reverse the order because the UI outputs the first one first, thus it displays last
-    new_layers.sort((a, b) => a.initial_layer_index);
+    new_layers.sort((a, b) => a.initial_layer_index - b.initial_layer_index);
 
     setLayers(new_layers);
   };
@@ -256,7 +258,7 @@ export const LayerPanel: React.FC<{
     update_layer_list();
   };
   const onItemDuplicated = () => {};
-  const onItemsUpdated = () => {
+  const onItemsUpdated = async () => {
     // use updated layer list to update the editor
     let editor = editorRef.current;
     let editorState = editorStateRef.current;
@@ -283,55 +285,66 @@ export const LayerPanel: React.FC<{
     // update the layer property on each object that is not hidden
     editor.polygons.forEach((polygon) => {
       if (!polygon.hidden) {
-        let matchingLayer = layers.find((l) => l.instance_id === polygon.id);
-        if (matchingLayer) {
-          polygon.updateLayer(matchingLayer.initial_layer_index);
+        let index = layers.findIndex((l) => l.instance_id === polygon.id);
+        if (index > -1) {
+          polygon.updateLayer(index);
           polygon.transform.updateUniformBuffer(
             gpuResources.queue,
             camera.windowSize
           );
+          sequence.activePolygons.find((p) => p.id === polygon.id)!.layer =
+            index;
         }
       }
     });
 
     editor.textItems.forEach((text) => {
       if (!text.hidden) {
-        let matchingLayer = layers.find((l) => l.instance_id === text.id);
-        if (matchingLayer) {
-          text.updateLayer(matchingLayer.initial_layer_index);
+        let index = layers.findIndex((l) => l.instance_id === text.id);
+        if (index > -1) {
+          text.updateLayer(index);
           text.transform.updateUniformBuffer(
             gpuResources.queue,
             camera.windowSize
           );
+          sequence.activeTextItems.find((t) => t.id === text.id)!.layer = index;
         }
       }
     });
 
     editor.imageItems.forEach((image) => {
       if (!image.hidden) {
-        let matchingLayer = layers.find((l) => l.instance_id === image.id);
-        if (matchingLayer) {
-          image.updateLayer(matchingLayer.initial_layer_index);
+        let index = layers.findIndex((l) => l.instance_id === image.id);
+        if (index > -1) {
+          image.updateLayer(index);
           image.transform.updateUniformBuffer(
             gpuResources.queue,
             camera.windowSize
           );
+          sequence.activeImageItems.find((i) => i.id === image.id)!.layer =
+            index;
         }
       }
     });
 
     editor.videoItems.forEach((video) => {
       if (!video.hidden) {
-        let matchingLayer = layers.find((l) => l.instance_id === video.id);
-        if (matchingLayer) {
-          video.updateLayer(matchingLayer.initial_layer_index);
+        let index = layers.findIndex((l) => l.instance_id === video.id);
+        if (index > -1) {
+          video.updateLayer(index);
           video.transform.updateUniformBuffer(
             gpuResources.queue,
             camera.windowSize
           );
+          sequence.activeVideoItems.find((v) => v.id === video.id)!.layer =
+            index;
         }
       }
     });
+
+    await saveSequencesData(editorState.savedState.sequences, editor.target);
+
+    update_layer_list();
   };
 
   return (
