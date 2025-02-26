@@ -320,14 +320,42 @@ export const PolygonProperties = ({
           label="Width"
           placeholder="Width"
           initialValue={defaultWidth.toString()}
-          onDebounce={(value) => {}}
+          onDebounce={(value) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            editorState.updateWidth(
+              editor,
+              currentPolygonId,
+              ObjectType.Polygon,
+              parseInt(value)
+            );
+          }}
         />
         <DebouncedInput
           id="polygon_height"
           label="Height"
           placeholder="Height"
           initialValue={defaultHeight.toString()}
-          onDebounce={(value) => {}}
+          onDebounce={(value) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            editorState.updateHeight(
+              editor,
+              currentPolygonId,
+              ObjectType.Polygon,
+              parseInt(value)
+            );
+          }}
         />
         <DebouncedInput
           id="polygon_border_radius"

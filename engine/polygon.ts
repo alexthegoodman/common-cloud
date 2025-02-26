@@ -330,12 +330,12 @@ export class Polygon implements PolygonShape {
     );
   }
 
-  // updateLayer( layer_index: number) {
-  //     // -10.0 to provide 10 spots for internal items on top of objects
-  //     let layer_index = layer_index - INTERNAL_LAYER_SPACE;
-  //     this.layer = layer_index;
-  //     this.transform.layer = layer_index as number;
-  // }
+  updateLayer(layer: number) {
+    // -10.0 to provide 10 spots for internal items on top of objects
+    let layer_index = layer - INTERNAL_LAYER_SPACE;
+    this.layer = layer_index;
+    this.transform.layer = layer_index as number;
+  }
 
   updateGroupPosition(position: [number, number]) {
     this.activeGroupPosition = position;

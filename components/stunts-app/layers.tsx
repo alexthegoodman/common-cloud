@@ -6,6 +6,9 @@ import { TextRendererConfig } from "@/engine/text";
 import { StVideoConfig } from "@/engine/video";
 import { ObjectType } from "@/engine/animations";
 import { CreateIcon } from "./icon";
+import { Editor } from "@/engine/editor";
+import EditorState from "@/engine/editor_state";
+import { saveSequencesData } from "@/fetchers/projects";
 
 export interface Layer {
   instance_id: string;
@@ -125,19 +128,211 @@ export const SortableItem: React.FC<{
 };
 
 export const LayerPanel: React.FC<{
+  editorRef: React.RefObject<Editor | null>;
+  editorStateRef: React.RefObject<EditorState | null>;
+  currentSequenceId: string;
   layers: Layer[];
   setLayers: React.Dispatch<React.SetStateAction<Layer[]>>;
-  onItemsUpdated: () => void;
-  onItemDuplicated: (id: string, kind: ObjectType) => void;
-  onItemDeleted: (id: string, kind: ObjectType) => void;
+  // onItemsUpdated: () => void;
+  // onItemDuplicated: (id: string, kind: ObjectType) => void;
+  // onItemDeleted: (id: string, kind: ObjectType) => void;
 }> = ({
+  editorRef,
+  editorStateRef,
+  currentSequenceId,
   layers,
   setLayers,
-  onItemsUpdated,
-  onItemDuplicated,
-  onItemDeleted,
+  // onItemsUpdated,
+  // onItemDuplicated,
+  // onItemDeleted,
 }) => {
   const [draggerId, setDraggerId] = useState<string | null>(null);
+
+  const update_layer_list = () => {
+    let editor = editorRef.current;
+    let editorState = editorStateRef.current;
+
+    if (!editor || !editorState) {
+      return;
+    }
+
+    let sequence = editorState.savedState.sequences.find(
+      (s) => s.id === currentSequenceId
+    );
+
+    if (!sequence) {
+      return;
+    }
+
+    let new_layers: Layer[] = [];
+
+    editor.polygons.forEach((polygon) => {
+      if (!polygon.hidden) {
+        let polygon_config: PolygonConfig = polygon.toConfig();
+        let new_layer: Layer =
+          LayerFromConfig.fromPolygonConfig(polygon_config);
+        new_layers.push(new_layer);
+      }
+    });
+    editor.textItems.forEach((text) => {
+      if (!text.hidden) {
+        let text_config: TextRendererConfig = text.toConfig();
+        let new_layer: Layer = LayerFromConfig.fromTextConfig(text_config);
+        new_layers.push(new_layer);
+      }
+    });
+    editor.imageItems.forEach((image) => {
+      if (!image.hidden) {
+        let image_config: StImageConfig = image.toConfig();
+        let new_layer: Layer = LayerFromConfig.fromImageConfig(image_config);
+        new_layers.push(new_layer);
+      }
+    });
+    editor.videoItems.forEach((video) => {
+      if (!video.hidden) {
+        let video_config: StVideoConfig = video.toConfig();
+        let new_layer: Layer = LayerFromConfig.fromVideoConfig(video_config);
+        new_layers.push(new_layer);
+      }
+    });
+
+    // sort layers by layer_index property, lower values should come first in the list
+    // but reverse the order because the UI outputs the first one first, thus it displays last
+    new_layers.sort((a, b) => a.initial_layer_index);
+
+    setLayers(new_layers);
+  };
+
+  const onItemDeleted = async (id: string, kind: ObjectType) => {
+    let editor = editorRef.current;
+    let editorState = editorStateRef.current;
+
+    if (!editor || !editorState) {
+      return;
+    }
+
+    let sequence = editorState.savedState.sequences.find(
+      (s) => s.id === currentSequenceId
+    );
+
+    if (!sequence) {
+      return;
+    }
+
+    switch (kind) {
+      case ObjectType.Polygon:
+        editor.polygons = editor.polygons.filter((p) => p.id !== id);
+        sequence.activePolygons = sequence.activePolygons.filter(
+          (p) => p.id !== id
+        );
+        break;
+      case ObjectType.ImageItem:
+        editor.imageItems = editor.imageItems.filter((i) => i.id !== id);
+        sequence.activeImageItems = sequence.activeImageItems.filter(
+          (i) => i.id !== id
+        );
+        break;
+
+      case ObjectType.TextItem:
+        editor.textItems = editor.textItems.filter((t) => t.id !== id);
+        sequence.activeTextItems = sequence.activeTextItems.filter(
+          (t) => t.id !== id
+        );
+        break;
+
+      case ObjectType.VideoItem:
+        editor.videoItems = editor.videoItems.filter((v) => v.id !== id);
+        sequence.activeVideoItems = sequence.activeVideoItems.filter(
+          (v) => v.id !== id
+        );
+        break;
+
+      default:
+        break;
+    }
+
+    await saveSequencesData(editorState.savedState.sequences, editor.target);
+
+    update_layer_list();
+  };
+  const onItemDuplicated = () => {};
+  const onItemsUpdated = () => {
+    // use updated layer list to update the editor
+    let editor = editorRef.current;
+    let editorState = editorStateRef.current;
+    let gpuResources = editor?.gpuResources;
+
+    if (!editor || !editorState || !gpuResources) {
+      return;
+    }
+
+    let camera = editor.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    let sequence = editorState.savedState.sequences.find(
+      (s) => s.id === currentSequenceId
+    );
+
+    if (!sequence) {
+      return;
+    }
+
+    // update the layer property on each object that is not hidden
+    editor.polygons.forEach((polygon) => {
+      if (!polygon.hidden) {
+        let matchingLayer = layers.find((l) => l.instance_id === polygon.id);
+        if (matchingLayer) {
+          polygon.updateLayer(matchingLayer.initial_layer_index);
+          polygon.transform.updateUniformBuffer(
+            gpuResources.queue,
+            camera.windowSize
+          );
+        }
+      }
+    });
+
+    editor.textItems.forEach((text) => {
+      if (!text.hidden) {
+        let matchingLayer = layers.find((l) => l.instance_id === text.id);
+        if (matchingLayer) {
+          text.updateLayer(matchingLayer.initial_layer_index);
+          text.transform.updateUniformBuffer(
+            gpuResources.queue,
+            camera.windowSize
+          );
+        }
+      }
+    });
+
+    editor.imageItems.forEach((image) => {
+      if (!image.hidden) {
+        let matchingLayer = layers.find((l) => l.instance_id === image.id);
+        if (matchingLayer) {
+          image.updateLayer(matchingLayer.initial_layer_index);
+          image.transform.updateUniformBuffer(
+            gpuResources.queue,
+            camera.windowSize
+          );
+        }
+      }
+    });
+
+    editor.videoItems.forEach((video) => {
+      if (!video.hidden) {
+        let matchingLayer = layers.find((l) => l.instance_id === video.id);
+        if (matchingLayer) {
+          video.updateLayer(matchingLayer.initial_layer_index);
+          video.transform.updateUniformBuffer(
+            gpuResources.queue,
+            camera.windowSize
+          );
+        }
+      }
+    });
+  };
 
   return (
     <div className="flex flex-col w-full">
