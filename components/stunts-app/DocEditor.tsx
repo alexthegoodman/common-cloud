@@ -163,8 +163,6 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       previewManager.pipeline?.renderFrame(previewManager.editor);
       const previewUrl = await previewManager.generatePreview(sequenceId);
     }
-
-    setPreviewCache(previewManager.previewCache);
   }
 
   async function updateDocumentPreviews(
@@ -175,6 +173,8 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     for (let id of sequenceIds) {
       await updateDocumentPreview(previewManager, id, documentTimestamp);
     }
+
+    setPreviewCache(previewManager.previewCache);
   }
 
   let handle_mouse_up = (
@@ -307,7 +307,9 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       return null;
     }
 
-    updateDocumentPreview(previewManager, current_sequence_id, Date.now());
+    // updateDocumentPreview(previewManager, current_sequence_id, Date.now());
+
+    // setPreviewCache(previewManager.previewCache);
 
     return [current_sequence_data, []];
   };
@@ -347,6 +349,26 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       projectId,
       new_sequences,
       SaveTarget.Docs
+    );
+
+    if (!previewManagerRef.current) {
+      return;
+    }
+
+    let sequence_ids = editorStateRef.current?.savedState.sequences.map(
+      (s) => s.id
+    );
+
+    if (!sequence_ids) {
+      return;
+    }
+
+    console.info("sequence ids", sequence_ids);
+
+    await updateDocumentPreviews(
+      previewManagerRef.current,
+      sequence_ids,
+      Date.now()
     );
 
     set_loading(false);
@@ -500,6 +522,8 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     if (!sequence_ids) {
       return;
     }
+
+    console.info("sequence ids", sequence_ids);
 
     updateDocumentPreviews(previewManagerRef.current, sequence_ids, Date.now());
   };
@@ -773,6 +797,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                     currentSequenceId={current_sequence_id}
                     set_sequences={set_sequences}
                     options={["page", "square", "text", "image"]}
+                    on_create_sequence={on_create_sequence}
                   />
 
                   <ThemePicker
@@ -847,32 +872,33 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
             })}
           </div>
         )} */}
-        <div className="fixed bottom-[-210px]">
-          <div className="bg-white rounded-t-lg shadow-xl p-2">
-            {/* <div className="flex items-center justify-between mb-2">
+        <div className="fixed bottom-[0px] h-[75px] w-[900px] overflow-x-scroll overflow-y-hidden bg-white rounded-t-lg shadow-xl p-2">
+          {/* <div className="flex items-center justify-between mb-2">
               <h3 className="font-xs text-gray-700">Your Pages</h3>
             </div> */}
 
-            <div className="space-y-2">
-              {Array.from(previewCache).map((cacheItem, i) => (
-                <div
-                  key={cacheItem[0] + "preview"}
-                  className="group relative transition-all duration-300 transform translate-y-0 hover:translate-y-[-70px]"
-                >
-                  <div className="bg-white rounded-lg p-2 shadow-md transition-all duration-300 group-hover:shadow-lg">
-                    <img
-                      src={cacheItem[1].blobUrl}
-                      alt={`Preview page ${i + 1}`}
-                      className="rounded"
-                      width={200}
-                    />
-                    <p className="mt-2 text-sm text-gray-600 font-medium">
-                      Page {i + 1}
-                    </p>
-                  </div>
+          <div className="w-max">
+            {Array.from(previewCache).map((cacheItem, i) => (
+              <div
+                key={cacheItem[0] + "preview"}
+                className="inline-block w-[200px] group relative transition-all duration-300 transform translate-y-0 hover:translate-y-[-70px]"
+                onClick={() => {
+                  on_open_sequence(cacheItem[0]);
+                }}
+              >
+                <div className="bg-white rounded-lg p-2 shadow-md transition-all duration-300 group-hover:shadow-lg">
+                  <img
+                    src={cacheItem[1].blobUrl}
+                    alt={`Preview page ${i + 1}`}
+                    className="block absolute rounded"
+                    width={200}
+                  />
+                  <p className="mt-2 text-sm text-gray-600 font-medium">
+                    Page {i + 1}
+                  </p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

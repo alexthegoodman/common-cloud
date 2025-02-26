@@ -27,6 +27,7 @@ export const ToolGrid = ({
   currentSequenceId,
   set_sequences,
   options,
+  on_create_sequence,
 }: {
   editorRef: React.RefObject<Editor | null>;
   editorStateRef: React.RefObject<EditorState | null>;
@@ -36,6 +37,7 @@ export const ToolGrid = ({
     React.SetStateAction<Sequence[] | PageSequence[]>
   >;
   options: string[];
+  on_create_sequence?: () => void;
 }) => {
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
@@ -449,11 +451,11 @@ export const ToolGrid = ({
           label="Add Page"
           icon="file-plus"
           callback={() => {
-            if (!currentSequenceId) {
+            if (!currentSequenceId || !on_create_sequence) {
               return;
             }
 
-            // on_add_square(currentSequenceId);
+            on_create_sequence();
           }}
         />
       )}
