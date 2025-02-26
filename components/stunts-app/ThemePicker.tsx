@@ -156,7 +156,10 @@ export const ThemePicker = ({
 
                 let ids_to_update = editor.textItems
                   .filter((text) => {
-                    return text.currentSequenceId === currentSequenceId;
+                    return (
+                      !text.hidden &&
+                      text.currentSequenceId === currentSequenceId
+                    );
                   })
                   .map((text) => text.id);
 
