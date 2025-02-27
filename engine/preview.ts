@@ -28,10 +28,16 @@ export class PreviewManager {
 
     let pipelineC = new CanvasPipeline();
 
-    this.pipeline = await pipelineC.new(this.editor, false, "", {
-      width: docCanvasSize.width,
-      height: docCanvasSize.height,
-    });
+    this.pipeline = await pipelineC.new(
+      this.editor,
+      false,
+      "",
+      {
+        width: docCanvasSize.width,
+        height: docCanvasSize.height,
+      },
+      false
+    );
 
     let windowSize = this.editor.camera?.windowSize;
 
