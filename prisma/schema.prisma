@@ -61,7 +61,9 @@ model Project {
   owner   User   @relation(fields: [ownerId], references: [id])
   ownerId String
 
-  name     String
+  name   String
+  public Boolean @default(true)
+
   fileData Json
   docData  Json?
   presData Json?
