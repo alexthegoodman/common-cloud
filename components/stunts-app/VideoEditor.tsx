@@ -533,7 +533,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       {
         width: 900,
         height: 550,
-      }
+      },
+      true
     );
 
     let windowSize = editorRef.current.camera?.windowSize;

@@ -3,6 +3,8 @@ import { Editor, Viewport } from "./editor";
 import EditorState from "./editor_state";
 import { CanvasPipeline } from "./pipeline";
 import { SavedState } from "./animations";
+import { WindowSize } from "./camera";
+import { vec2 } from "gl-matrix";
 
 class WebGPUVideoEncoder {
   private device: GPUDevice;
@@ -363,19 +365,31 @@ export class FullExporter {
       totalDuration: number
     ) => void
   ) {
-    this.viewport = new Viewport(900, 550);
+    let windowSize: WindowSize = {
+      width: 800,
+      height: 450,
+    };
+
+    this.viewport = new Viewport(windowSize.width, windowSize.height);
 
     this.editor = new Editor(this.viewport);
     this.editorState = new EditorState(savedState);
 
     let pipeline = new CanvasPipeline();
 
-    this.pipeline = await pipeline.new(this.editor, false, "", {
-      width: 900,
-      height: 550,
-    });
+    this.pipeline = await pipeline.new(
+      this.editor,
+      false,
+      "",
+      windowSize,
+      false
+    );
 
-    let windowSize = this.editor.camera?.windowSize;
+    if (!this.editor.camera) {
+      return;
+    }
+
+    this.editor.camera.position = vec2.fromValues(50.0, 50.0);
 
     if (!windowSize?.width || !windowSize?.height) {
       return;

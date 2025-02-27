@@ -647,7 +647,8 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       {
         width: docCanvasSize.width,
         height: docCanvasSize.height,
-      }
+      },
+      true
     );
 
     let windowSize = editorRef.current.camera?.windowSize;

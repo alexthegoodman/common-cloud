@@ -367,7 +367,8 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       {
         width: 900,
         height: 1200,
-      }
+      },
+      true
     );
 
     let windowSize = editorRef.current.camera?.windowSize;

@@ -39,7 +39,7 @@ export class CanvasPipeline {
     onScreenCanvas: boolean,
     canvasId: string,
     windowSize: WindowSize,
-    stepFrames: boolean = true
+    stepFrames: boolean
   ) {
     this.stepFrames = stepFrames;
     console.log("Initializing Canvas Renderer...");
