@@ -1,5 +1,9 @@
 "use client";
 
+import { ClientOnly } from "@/components/ClientOnly";
+import UserMenu from "@/components/mosaic/UserMenu";
+import useCurrentUser from "@/hooks/useCurrentUser";
+
 export default function Page() {
   return (
     <div className="container max-w-xl mx-auto px-4 py-4">
@@ -16,10 +20,9 @@ export default function Page() {
                   className="px-4 py-1 rounded-md border border-gray-300"
                 />
               </div>
-              <div className="flex items-center">
-                <span className="mr-2">alexthegoodman...</span>
-                <div className="w-8 h-8 bg-gray-400 rounded-full"></div>
-              </div>
+              <ClientOnly>
+                <UserMenu />
+              </ClientOnly>
             </div>
           </header>
 

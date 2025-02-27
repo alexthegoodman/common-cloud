@@ -4,6 +4,30 @@ import { useLocalStorage } from "@uidotdev/usehooks";
 import { useEffect } from "react";
 import useSWR, { mutate } from "swr";
 
+export interface CurrentPlan {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  stripePriceId: string;
+  stripeDevPriceId: string;
+  features: string[];
+}
+export interface CurrentUser {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  stripeCustomerId: string;
+  subscriptionId: string;
+  subscriptionStatus: string;
+  currentPeriodEnd: string;
+  plan: CurrentPlan;
+  cancelAtPeriodEnd: boolean;
+  trialEndsAt: string;
+}
+
 const getCurrentUser = async (token: string) => {
   console.info("fetching current user");
 
@@ -15,7 +39,7 @@ const getCurrentUser = async (token: string) => {
     },
   });
 
-  const json = await res.json();
+  const json: CurrentUser = await res.json();
 
   return json;
 };
