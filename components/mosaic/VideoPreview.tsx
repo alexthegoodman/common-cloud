@@ -31,6 +31,8 @@ export default function VideoPreview({
 
     let cloned_sequences = project?.video_data.sequences;
 
+    console.info("cloned_sequences", cloned_sequences);
+
     if (!cloned_sequences) {
       return;
     }

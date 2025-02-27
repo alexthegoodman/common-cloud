@@ -26,6 +26,10 @@ export async function GET(req: Request) {
     const projects = await prisma.project.findMany({
       where: {
         public: true,
+        fileData: {
+          path: ["sequences"],
+          array_contains: [{}], // videos
+        },
       },
       orderBy: {
         updatedAt: "desc",
