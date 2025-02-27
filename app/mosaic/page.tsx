@@ -2,9 +2,28 @@
 
 import { ClientOnly } from "@/components/ClientOnly";
 import UserMenu from "@/components/mosaic/UserMenu";
-import useCurrentUser from "@/hooks/useCurrentUser";
+import { getPublicProjects } from "@/fetchers/mosaic";
+import useSWR from "swr";
 
 export default function Page() {
+  let {
+    data: projects,
+    isLoading,
+    error,
+  } = useSWR("projects", () => getPublicProjects());
+
+  if (isLoading) {
+    return <div>Loading projects...</div>;
+  }
+
+  if (error) {
+    return <div>Error</div>;
+  }
+
+  if (!projects) {
+    return <div>No projects found.</div>;
+  }
+
   return (
     <div className="container max-w-xl mx-auto px-4 py-4">
       <div className="bg-gray-100 min-h-screen">
@@ -28,17 +47,28 @@ export default function Page() {
 
           {/* Main Content */}
           <main>
-            {/* Featured Video Section */}
-            <section className="mb-8">
-              <div className="w-full aspect-video bg-gray-400 mb-4"></div>
-              <h2 className="text-xl font-bold">Launch Promo Video</h2>
-            </section>
-
-            {/* Additional Video Section */}
-            <section>
-              <div className="w-96 aspect-video bg-gray-400 mb-4"></div>
-              <h2 className="text-xl font-bold">Video for the Fun of It</h2>
-            </section>
+            {/* Projects Section */}
+            {projects.map((project, i) => {
+              if (i === 0) {
+                return (
+                  <section className="mb-8">
+                    <div className="w-full aspect-video bg-gray-400 mb-4"></div>
+                    <h2 className="text-xl font-bold">
+                      {project.project_name}
+                    </h2>
+                  </section>
+                );
+              } else {
+                return (
+                  <section className="mb-8">
+                    <div className="w-96 aspect-video bg-gray-400 mb-4"></div>
+                    <h2 className="text-xl font-bold">
+                      {project.project_name}
+                    </h2>
+                  </section>
+                );
+              }
+            })}
           </main>
         </div>
       </div>
