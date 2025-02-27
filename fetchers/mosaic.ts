@@ -14,7 +14,15 @@ export interface ProjectData {
   createdAt: string;
 }
 
-export const getPublicProjects = async (): Promise<ProjectInfo[]> => {
+export interface PublicProjectInfo {
+  project_id: string;
+  project_name: string;
+  video_data: SavedState;
+  created: DateTime;
+  modified: DateTime;
+}
+
+export const getPublicProjects = async (): Promise<PublicProjectInfo[]> => {
   const response = await fetch("http://localhost:3000/api/projects/public", {
     method: "GET",
     headers: {
@@ -32,13 +40,15 @@ export const getPublicProjects = async (): Promise<ProjectInfo[]> => {
 
   const projectsResponse: ProjectsResponse = await response.json();
 
-  const projects: ProjectInfo[] = projectsResponse.projects.map((data) => ({
-    project_id: data.id,
-    project_name: data.name,
-    video_data: data.fileData,
-    created: DateTime.fromISO(data.createdAt), // Handle nulls and parse with DateTime
-    modified: DateTime.fromISO(data.updatedAt),
-  }));
+  const projects: PublicProjectInfo[] = projectsResponse.projects.map(
+    (data) => ({
+      project_id: data.id,
+      project_name: data.name,
+      video_data: data.fileData,
+      created: DateTime.fromISO(data.createdAt), // Handle nulls and parse with DateTime
+      modified: DateTime.fromISO(data.updatedAt),
+    })
+  );
 
   return projects.sort((a, b) => b.modified.diff(a.modified).milliseconds); // Sort using luxon's diff
 };

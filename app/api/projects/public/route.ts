@@ -37,7 +37,7 @@ export async function GET(req: Request) {
         createdAt: true,
         updatedAt: true,
       },
-      take: 5,
+      take: 3,
     });
 
     return NextResponse.json({

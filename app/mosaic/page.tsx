@@ -54,7 +54,7 @@ export default function Page() {
                 return (
                   <section key={"project" + i} className="mb-8">
                     <ClientOnly>
-                      <VideoPreview />
+                      <VideoPreview project={project} />
                     </ClientOnly>
                     <h2 className="text-xl font-bold">
                       {project.project_name}
@@ -65,7 +65,7 @@ export default function Page() {
                 return (
                   <section key={"project" + i} className="w-96 mb-8">
                     <ClientOnly>
-                      <VideoPreview />
+                      <VideoPreview project={project} />
                     </ClientOnly>
                     <h2 className="text-xl font-bold">
                       {project.project_name}
