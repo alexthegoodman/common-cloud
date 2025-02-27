@@ -2,6 +2,7 @@
 
 import { ClientOnly } from "@/components/ClientOnly";
 import UserMenu from "@/components/mosaic/UserMenu";
+import VideoPreview from "@/components/mosaic/VideoPreview";
 import { getPublicProjects } from "@/fetchers/mosaic";
 import useSWR from "swr";
 
@@ -51,8 +52,10 @@ export default function Page() {
             {projects.map((project, i) => {
               if (i === 0) {
                 return (
-                  <section className="mb-8">
-                    <div className="w-full aspect-video bg-gray-400 mb-4"></div>
+                  <section key={"project" + i} className="mb-8">
+                    <ClientOnly>
+                      <VideoPreview />
+                    </ClientOnly>
                     <h2 className="text-xl font-bold">
                       {project.project_name}
                     </h2>
@@ -60,8 +63,10 @@ export default function Page() {
                 );
               } else {
                 return (
-                  <section className="mb-8">
-                    <div className="w-96 aspect-video bg-gray-400 mb-4"></div>
+                  <section key={"project" + i} className="w-96 mb-8">
+                    <ClientOnly>
+                      <VideoPreview />
+                    </ClientOnly>
                     <h2 className="text-xl font-bold">
                       {project.project_name}
                     </h2>
