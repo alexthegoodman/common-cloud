@@ -287,7 +287,7 @@ export const LayerPanel: React.FC<{
       if (!polygon.hidden) {
         let index = layers.findIndex((l) => l.instance_id === polygon.id);
         if (index > -1) {
-          polygon.updateLayer(index);
+          polygon.updateLayer(-index);
           polygon.transform.updateUniformBuffer(
             gpuResources.queue,
             camera.windowSize
@@ -302,7 +302,7 @@ export const LayerPanel: React.FC<{
       if (!text.hidden) {
         let index = layers.findIndex((l) => l.instance_id === text.id);
         if (index > -1) {
-          text.updateLayer(index);
+          text.updateLayer(-index);
           text.transform.updateUniformBuffer(
             gpuResources.queue,
             camera.windowSize
@@ -316,7 +316,7 @@ export const LayerPanel: React.FC<{
       if (!image.hidden) {
         let index = layers.findIndex((l) => l.instance_id === image.id);
         if (index > -1) {
-          image.updateLayer(index);
+          image.updateLayer(-index);
           image.transform.updateUniformBuffer(
             gpuResources.queue,
             camera.windowSize
@@ -331,7 +331,7 @@ export const LayerPanel: React.FC<{
       if (!video.hidden) {
         let index = layers.findIndex((l) => l.instance_id === video.id);
         if (index > -1) {
-          video.updateLayer(index);
+          video.updateLayer(-index);
           video.transform.updateUniformBuffer(
             gpuResources.queue,
             camera.windowSize
