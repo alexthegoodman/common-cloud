@@ -3,12 +3,19 @@
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import { CreateIcon } from "./icon";
-import { useDebounce } from "@uidotdev/usehooks";
+import { useDebounce, useLocalStorage } from "@uidotdev/usehooks";
 import { Editor } from "@/engine/editor";
 import EditorState from "@/engine/editor_state";
 import { FullExporter } from "@/engine/export";
 
 import toast from "react-hot-toast";
+import {
+  AuthToken,
+  createProject,
+  getProjects,
+  getSingleProject,
+} from "@/fetchers/projects";
+import { mutate } from "swr";
 
 export const ProjectItem = ({
   project_id,
@@ -21,6 +28,7 @@ export const ProjectItem = ({
 }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
   const storedProject = JSON.parse(
     localStorage.getItem("stored-project") || "{}"
   );
@@ -35,19 +43,60 @@ export const ProjectItem = ({
     setLoading(false);
   };
 
+  const handleDuplicate = async (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault();
+
+    if (!authToken) {
+      return;
+    }
+
+    setLoading(true);
+
+    const { project } = await getSingleProject(authToken.token, project_id);
+
+    if (!project?.fileData || !project.docData || !project.presData) {
+      return;
+    }
+
+    await createProject(
+      authToken.token,
+      project?.name + " Duplicate",
+      project?.fileData,
+      project?.docData,
+      project?.presData
+    );
+
+    mutate("projects", () => getProjects(authToken));
+
+    setLoading(false);
+  };
+
   return (
-    <button
-      className="w-64 rounded-xl flex items-center justify-start py-2 bg-white
+    <div className="flex flex-row gap-2">
+      <button
+        className="w-64 rounded-xl flex items-center justify-start p-2 bg-white
             border-b border-gray-200 hover:bg-gray-200 hover:cursor-pointer 
             active:bg-[#edda4] transition-colors"
-      disabled={loading}
-      onClick={handleSubmit}
-    >
-      <div className="w-6 h-6 text-black mr-2">
-        <CreateIcon icon={icon} size="24px" />
-      </div>
-      <span>{project_label}</span>
-    </button>
+        disabled={loading}
+        onClick={handleSubmit}
+      >
+        <div className="w-6 h-6 text-black mr-2">
+          <CreateIcon icon={icon} size="24px" />
+        </div>
+        <span>{project_label}</span>
+      </button>
+      <button
+        className="w-32 rounded-xl flex items-center justify-start p-2 bg-white
+            border-b border-gray-200 hover:bg-gray-200 hover:cursor-pointer 
+            active:bg-[#edda4] transition-colors"
+        disabled={loading}
+        onClick={handleDuplicate}
+      >
+        Duplicate
+      </button>
+    </div>
   );
 };
 
