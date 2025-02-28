@@ -13,12 +13,18 @@ export function ColorPicker({
   color: IColor;
   setColor: React.Dispatch<React.SetStateAction<IColor>>;
 }) {
-  //   const [color, setColor] = useColor("#561ecb");
+  const [localColor, setLocalColor] = useColor(
+    `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`
+  );
 
   return (
     <>
       <label>{label}</label>
-      <Picker color={color} onChange={setColor} />
+      <Picker
+        color={localColor}
+        onChange={setLocalColor}
+        onChangeComplete={setColor}
+      />
     </>
   );
 }
