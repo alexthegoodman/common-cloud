@@ -335,11 +335,12 @@ export const ColorProperties = ({
     }
 
     if (defaultColor.type === "Color") {
+      // console.info("check ", wgpuToHuman(defaultColor.value[3]), color.rgb.a);
       if (
         wgpuToHuman(defaultColor.value[0]) !== color.rgb.r ||
         wgpuToHuman(defaultColor.value[1]) !== color.rgb.g ||
         wgpuToHuman(defaultColor.value[2]) !== color.rgb.b ||
-        wgpuToHuman(defaultColor.value[3]) !== color.rgb.a
+        defaultColor.value[3] !== color.rgb.a
       ) {
         if (is_gradient) {
           let stops: GradientStop[] = [
@@ -436,19 +437,25 @@ export const ColorProperties = ({
         }
       }
     } else if (defaultColor.type === "Gradient") {
+      // console.info(
+      //   "check also ",
+      //   wgpuToHuman(defaultColor.value.stops[0].color[3]),
+      //   color.rgb.a,
+      //   wgpuToHuman(defaultColor.value.stops[1].color[3]),
+      //   colorSecondary.rgb.a
+      // );
       if (
         wgpuToHuman(defaultColor.value.stops[0].color[0]) !== color.rgb.r ||
         wgpuToHuman(defaultColor.value.stops[0].color[1]) !== color.rgb.g ||
         wgpuToHuman(defaultColor.value.stops[0].color[2]) !== color.rgb.b ||
-        wgpuToHuman(defaultColor.value.stops[0].color[3]) !== color.rgb.a ||
+        defaultColor.value.stops[0].color[3] !== color.rgb.a ||
         wgpuToHuman(defaultColor.value.stops[1].color[0]) !==
           colorSecondary.rgb.r ||
         wgpuToHuman(defaultColor.value.stops[1].color[1]) !==
           colorSecondary.rgb.g ||
         wgpuToHuman(defaultColor.value.stops[1].color[2]) !==
           colorSecondary.rgb.b ||
-        wgpuToHuman(defaultColor.value.stops[1].color[3]) !==
-          colorSecondary.rgb.a
+        defaultColor.value.stops[1].color[3] !== colorSecondary.rgb.a
       ) {
         if (is_gradient) {
           let stops: GradientStop[] = [
