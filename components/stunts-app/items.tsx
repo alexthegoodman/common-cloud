@@ -143,6 +143,7 @@ interface DebouncedInputProps {
   placeholder: string;
   initialValue: string;
   onDebounce: (value: string) => void;
+  style?: any;
 }
 
 export const DebouncedInput: React.FC<DebouncedInputProps> = ({
@@ -151,6 +152,7 @@ export const DebouncedInput: React.FC<DebouncedInputProps> = ({
   placeholder,
   initialValue,
   onDebounce,
+  style,
 }) => {
   const [value, setValue] = useState(initialValue);
   const debouncedValue = useDebounce(value, 300);
@@ -171,7 +173,7 @@ export const DebouncedInput: React.FC<DebouncedInputProps> = ({
   }, [debouncedValue]);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" style={style}>
       <label htmlFor={id} className="text-xs">
         {label}
       </label>

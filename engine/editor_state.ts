@@ -2,6 +2,7 @@ import { saveSequencesData } from "@/fetchers/projects";
 import {
   AnimationData,
   AnimationProperty,
+  BackgroundFill,
   EasingType,
   ObjectType,
   PathType,
@@ -30,6 +31,48 @@ export default class EditorState {
 
   constructor(savedState: SavedState) {
     this.savedState = savedState;
+  }
+
+  updateBackground(
+    editor: Editor,
+    objectId: string,
+    objectType: ObjectType,
+    value: BackgroundFill
+  ) {
+    switch (objectType) {
+      case ObjectType.Polygon: {
+        editor.updateBackgroundFill(objectId, ObjectType.Polygon, value);
+
+        this.savedState.sequences.forEach((s) => {
+          // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+          s.activePolygons.forEach((p) => {
+            if (p.id == objectId) {
+              p.backgroundFill = value;
+            }
+          });
+          // }
+        });
+
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
+        break;
+      }
+      case ObjectType.TextItem: {
+        editor.updateBackgroundFill(objectId, ObjectType.TextItem, value);
+
+        this.savedState.sequences.forEach((s) => {
+          // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+          s.activeTextItems.forEach((p) => {
+            if (p.id == objectId) {
+              p.backgroundFill = value;
+            }
+          });
+          // }
+        });
+
+        saveSequencesData(this.savedState.sequences, this.saveTarget);
+        break;
+      }
+    }
   }
 
   updateWidth(

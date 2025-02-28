@@ -2851,6 +2851,61 @@ export class Editor {
     }
   }
 
+  updateBackgroundFill(
+    selected_id: string,
+    objectType: ObjectType,
+    new_value: BackgroundFill
+  ) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+
+    if (!gpuResources || !camera || !this.modelBindGroupLayout) {
+      return;
+    }
+
+    if (objectType === ObjectType.Polygon) {
+      let polygon = this.polygons.find((p) => p.id == selected_id);
+
+      if (!polygon) {
+        return;
+      }
+
+      let device = gpuResources.device;
+      let queue = gpuResources.queue;
+
+      let windowSize = camera.windowSize;
+
+      polygon.updateDataFromFill(
+        windowSize,
+        device,
+        queue,
+        this.modelBindGroupLayout,
+        new_value,
+        camera
+      );
+    } else if (objectType === ObjectType.TextItem) {
+      let text = this.textItems.find((p) => p.id == selected_id);
+
+      if (!text) {
+        return;
+      }
+
+      let device = gpuResources.device;
+      let queue = gpuResources.queue;
+
+      let windowSize = camera.windowSize;
+
+      text.backgroundPolygon.updateDataFromFill(
+        windowSize,
+        device,
+        queue,
+        this.modelBindGroupLayout,
+        new_value,
+        camera
+      );
+    }
+  }
+
   update_polygon(
     selected_id: string,
     key: string,
