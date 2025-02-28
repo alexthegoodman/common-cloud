@@ -560,19 +560,21 @@ export const ColorProperties = ({
   let halfs = aside_width / 2.0 + 5.0 * 2.0;
 
   return (
-    <>
-      <input
-        type="checkbox"
-        id="is_gradient"
-        name="is_gradient"
-        checked={is_gradient}
-        onChange={(ev) => {
-          set_is_gradient(true);
-        }}
-      />
-      <label htmlFor="is_gradient" className="text-xs">
-        Is Gradient
-      </label>
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-row gap-2">
+        <input
+          type="checkbox"
+          id="is_gradient"
+          name="is_gradient"
+          checked={is_gradient}
+          onChange={(ev) => {
+            set_is_gradient(true);
+          }}
+        />
+        <label htmlFor="is_gradient" className="text-xs">
+          Is Gradient
+        </label>
+      </div>
 
       <ColorPicker label="Select Color" color={color} setColor={setColor} />
 
@@ -674,7 +676,7 @@ export const ColorProperties = ({
           Is Transparent
         </label>
       </div>
-    </>
+    </div>
   );
 };
 

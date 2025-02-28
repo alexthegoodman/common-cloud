@@ -1268,7 +1268,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       ) : (
         <></>
       )}
-      <div className="flex flex-col justify-center items-center w-[calc(100vw-420px)] gap-2">
+      <div className="flex flex-col justify-start items-center w-[calc(100vw-420px)] gap-2">
         <canvas
           id="scene-canvas"
           className="w-[900px] h-[550px] border border-black"

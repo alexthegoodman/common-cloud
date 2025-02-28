@@ -28,6 +28,17 @@ body {
   background: linear-gradient(145deg, #ff6b6b 60%, #feca57 100%);
 }
 
+/** Color Picker **/
+div.rcp-root,
+div.rcp {
+  background-color: white;
+}
+
+input.rcp-field-input {
+  color: black;
+  font-size: 12px;
+}
+
 /* Define each font using @font-face */
 @font-face {
   font-family: "Actor";
