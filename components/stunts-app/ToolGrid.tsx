@@ -21,6 +21,12 @@ import { TextRendererConfig } from "@/engine/text";
 import { PageSequence } from "@/engine/data";
 import { Layer, LayerFromConfig } from "./layers";
 import { StVideoConfig } from "@/engine/video";
+import {
+  Description,
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+} from "@headlessui/react";
 
 export const ToolGrid = ({
   editorRef,
@@ -51,6 +57,8 @@ export const ToolGrid = ({
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [generateImageModalOpen, setGenerateImageModalOpen] = useState(false);
 
   const handleStartCapture = async () => {
     let webCapture = webCaptureRef.current;
@@ -610,6 +618,50 @@ export const ToolGrid = ({
             }
           }}
         />
+      )}
+
+      {options.includes("imageGeneration") && (
+        <>
+          <OptionButton
+            style={{}}
+            label="Generate Image"
+            icon="image"
+            callback={() => {
+              setGenerateImageModalOpen(true);
+            }}
+          />
+          <Dialog
+            open={generateImageModalOpen}
+            onClose={() => setGenerateImageModalOpen(false)}
+            className="relative z-50"
+          >
+            <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
+              <DialogPanel className="max-w-lg space-y-4 border bg-white p-12">
+                <DialogTitle className="font-bold">
+                  Generate New Image
+                </DialogTitle>
+                <Description>
+                  This will enable you to create images which you can use freely
+                  in your projects.
+                </Description>
+                <div>
+                  <textarea
+                    placeholder="A dog eating food with delight..."
+                    rows={2}
+                  ></textarea>
+                </div>
+                <div className="flex gap-4">
+                  <button onClick={() => setGenerateImageModalOpen(false)}>
+                    Cancel
+                  </button>
+                  <button onClick={() => setGenerateImageModalOpen(false)}>
+                    Generate
+                  </button>
+                </div>
+              </DialogPanel>
+            </div>
+          </Dialog>
+        </>
       )}
     </div>
   );

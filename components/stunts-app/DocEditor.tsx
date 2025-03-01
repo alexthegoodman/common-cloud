@@ -829,7 +829,13 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                     webCaptureRef={webCaptureRef}
                     currentSequenceId={current_sequence_id}
                     set_sequences={set_sequences}
-                    options={["page", "square", "text", "image"]}
+                    options={[
+                      "page",
+                      "square",
+                      "text",
+                      "image",
+                      "imageGeneration",
+                    ]}
                     on_create_sequence={on_create_sequence}
                     layers={layers}
                     setLayers={set_layers}
