@@ -218,8 +218,16 @@ export class StImage {
       this.vertices = this.generateCircleVertices();
       this.indices = this.generateCircleIndices();
 
-      console.info("indices circle ", this.indices);
+      // console.info("indices circle ", this.indices);
     } else {
+      // Calculate the texture coordinates
+      const { u0, u1, v0, v1 } = this.calculateCoverTextureCoordinates(
+        dimensions[0],
+        dimensions[1],
+        originalDimensions[0],
+        originalDimensions[1]
+      );
+
       const normalizedX0 =
         (-0.5 - this.transform.position[0]) / this.dimensions[0];
       const normalizedY0 =
@@ -232,28 +240,28 @@ export class StImage {
       this.vertices = [
         {
           position: [-0.5, -0.5, 0.0],
-          tex_coords: [0.0, 0.0],
+          tex_coords: [u0, v0],
           color: [1.0, 1.0, 1.0, 1.0],
           gradient_coords: [normalizedX0, normalizedY0],
           object_type: 2, // OBJECT_TYPE_IMAGE
         },
         {
           position: [0.5, -0.5, 0.0],
-          tex_coords: [1.0, 0.0],
+          tex_coords: [u1, v0],
           color: [1.0, 1.0, 1.0, 1.0],
           gradient_coords: [normalizedX1, normalizedY0],
           object_type: 2, // OBJECT_TYPE_IMAGE
         },
         {
           position: [0.5, 0.5, 0.0],
-          tex_coords: [1.0, 1.0],
+          tex_coords: [u1, v1],
           color: [1.0, 1.0, 1.0, 1.0],
           gradient_coords: [normalizedX1, normalizedY1],
           object_type: 2, // OBJECT_TYPE_IMAGE
         },
         {
           position: [-0.5, 0.5, 0.0],
-          tex_coords: [0.0, 1.0],
+          tex_coords: [u0, v1],
           color: [1.0, 1.0, 1.0, 1.0],
           gradient_coords: [normalizedX0, normalizedY1],
           object_type: 2, // OBJECT_TYPE_IMAGE
@@ -305,6 +313,44 @@ export class StImage {
     this.groupBindGroup = group_bind_group;
     console.info("set hidden", loadedHidden);
     this.hidden = loadedHidden;
+  }
+
+  calculateCoverTextureCoordinates(
+    containerWidth: number,
+    containerHeight: number,
+    imageWidth: number,
+    imageHeight: number
+  ) {
+    // Calculate aspect ratios
+    const containerAspect = containerWidth / containerHeight;
+    const imageAspect = imageWidth / imageHeight;
+
+    // Initialize texture coordinate variables
+    let u0 = 0,
+      u1 = 1,
+      v0 = 0,
+      v1 = 1;
+
+    // If image is wider than container (relative to their heights)
+    if (imageAspect > containerAspect) {
+      // We need to crop the sides
+      const scaleFactor = containerAspect / imageAspect;
+      const cropAmount = (1 - scaleFactor) / 2;
+
+      u0 = cropAmount;
+      u1 = 1 - cropAmount;
+    }
+    // If image is taller than container (relative to their widths)
+    else if (imageAspect < containerAspect) {
+      // We need to crop top and bottom
+      const scaleFactor = imageAspect / containerAspect;
+      const cropAmount = (1 - scaleFactor) / 2;
+
+      v0 = cropAmount;
+      v1 = 1 - cropAmount;
+    }
+
+    return { u0, u1, v0, v1 };
   }
 
   setIsCircle(queue: GPUQueue, isCircle: boolean): void {
