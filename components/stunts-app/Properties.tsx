@@ -754,6 +754,11 @@ export const PolygonProperties = ({
     return <></>;
   }
 
+  let aside_width = 260.0;
+  let quarters = aside_width / 4.0 + 5.0 * 4.0;
+  let thirds = aside_width / 3.0 + 5.0 * 3.0;
+  let halfs = aside_width / 2.0 + 5.0 * 2.0;
+
   return (
     <>
       <div>
@@ -767,90 +772,94 @@ export const PolygonProperties = ({
           </button>
           <h5>Update Polygon</h5>
         </div>
-        <DebouncedInput
-          id="polygon_x"
-          label="X"
-          placeholder="X"
-          initialValue={positionX.toString()}
-          onDebounce={(value) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
+        <div className="flex flex-row gap-2">
+          <DebouncedInput
+            id="polygon_x"
+            label="X"
+            placeholder="X"
+            initialValue={positionX.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
 
-            if (!editorState || !editor) {
-              return;
-            }
+              if (!editorState || !editor) {
+                return;
+              }
 
-            editorState.updatePositionX(
-              editor,
-              currentPolygonId,
-              ObjectType.Polygon,
-              parseInt(value)
-            );
-          }}
-        />
-        <DebouncedInput
-          id="polygon_y"
-          label="Y"
-          placeholder="Y"
-          initialValue={positionY.toString()}
-          onDebounce={(value) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
+              editorState.updatePositionX(
+                editor,
+                currentPolygonId,
+                ObjectType.Polygon,
+                parseInt(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="polygon_y"
+            label="Y"
+            placeholder="Y"
+            initialValue={positionY.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
 
-            if (!editorState || !editor) {
-              return;
-            }
+              if (!editorState || !editor) {
+                return;
+              }
 
-            editorState.updatePositionY(
-              editor,
-              currentPolygonId,
-              ObjectType.Polygon,
-              parseInt(value)
-            );
-          }}
-        />
-        <DebouncedInput
-          id="polygon_width"
-          label="Width"
-          placeholder="Width"
-          initialValue={defaultWidth.toString()}
-          onDebounce={(value) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
+              editorState.updatePositionY(
+                editor,
+                currentPolygonId,
+                ObjectType.Polygon,
+                parseInt(value)
+              );
+            }}
+          />
+        </div>
+        <div className="flex flex-row gap-2">
+          <DebouncedInput
+            id="polygon_width"
+            label="Width"
+            placeholder="Width"
+            initialValue={defaultWidth.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
 
-            if (!editorState || !editor) {
-              return;
-            }
+              if (!editorState || !editor) {
+                return;
+              }
 
-            editorState.updateWidth(
-              editor,
-              currentPolygonId,
-              ObjectType.Polygon,
-              parseInt(value)
-            );
-          }}
-        />
-        <DebouncedInput
-          id="polygon_height"
-          label="Height"
-          placeholder="Height"
-          initialValue={defaultHeight.toString()}
-          onDebounce={(value) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
+              editorState.updateWidth(
+                editor,
+                currentPolygonId,
+                ObjectType.Polygon,
+                parseInt(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="polygon_height"
+            label="Height"
+            placeholder="Height"
+            initialValue={defaultHeight.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
 
-            if (!editorState || !editor) {
-              return;
-            }
+              if (!editorState || !editor) {
+                return;
+              }
 
-            editorState.updateHeight(
-              editor,
-              currentPolygonId,
-              ObjectType.Polygon,
-              parseInt(value)
-            );
-          }}
-        />
+              editorState.updateHeight(
+                editor,
+                currentPolygonId,
+                ObjectType.Polygon,
+                parseInt(value)
+              );
+            }}
+          />
+        </div>
         <DebouncedInput
           id="polygon_border_radius"
           label="Border Radius"
@@ -982,6 +991,11 @@ export const TextProperties = ({
     return <></>;
   }
 
+  let aside_width = 260.0;
+  let quarters = aside_width / 4.0 + 5.0 * 4.0;
+  let thirds = aside_width / 3.0 + 5.0 * 3.0;
+  let halfs = aside_width / 2.0 + 5.0 * 2.0;
+
   return (
     <>
       <div>
@@ -1011,52 +1025,54 @@ export const TextProperties = ({
             editorState.updateTextContent(editor, currentTextId, value);
           }}
         />
-        <DebouncedInput
-          id="text_width"
-          label="Width"
-          placeholder="Width"
-          initialValue={defaultWidth.toString()}
-          onDebounce={(value) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
+        <div className="flex flex-row gap-2">
+          <DebouncedInput
+            id="text_width"
+            label="Width"
+            placeholder="Width"
+            initialValue={defaultWidth.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
 
-            if (!editorState || !editor) {
-              return;
-            }
+              if (!editorState || !editor) {
+                return;
+              }
 
-            console.info("double call?");
+              console.info("double call?");
 
-            editorState.updateWidth(
-              editor,
-              currentTextId,
-              ObjectType.TextItem,
-              parseInt(value)
-            );
-          }}
-        />
-        <DebouncedInput
-          id="text_height"
-          label="Height"
-          placeholder="height"
-          initialValue={defaultHeight.toString()}
-          onDebounce={(value) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
+              editorState.updateWidth(
+                editor,
+                currentTextId,
+                ObjectType.TextItem,
+                parseInt(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="text_height"
+            label="Height"
+            placeholder="height"
+            initialValue={defaultHeight.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
 
-            if (!editorState || !editor) {
-              return;
-            }
+              if (!editorState || !editor) {
+                return;
+              }
 
-            console.info("height debounce");
+              console.info("height debounce");
 
-            editorState.updateHeight(
-              editor,
-              currentTextId,
-              ObjectType.TextItem,
-              parseInt(value)
-            );
-          }}
-        />
+              editorState.updateHeight(
+                editor,
+                currentTextId,
+                ObjectType.TextItem,
+                parseInt(value)
+              );
+            }}
+          />
+        </div>
         {/* <DebouncedInput
           id="text_border_radius"
           label="Border Radius"
@@ -1178,6 +1194,11 @@ export const ImageProperties = ({
     return <></>;
   }
 
+  let aside_width = 260.0;
+  let quarters = aside_width / 4.0 + 5.0 * 4.0;
+  let thirds = aside_width / 3.0 + 5.0 * 3.0;
+  let halfs = aside_width / 2.0 + 5.0 * 2.0;
+
   return (
     <>
       <div>
@@ -1191,48 +1212,50 @@ export const ImageProperties = ({
           </button>
           <h5>Update Image</h5>
         </div>
-        <DebouncedInput
-          id="image_width"
-          label="Width"
-          placeholder="Width"
-          initialValue={defaultWidth.toString()}
-          onDebounce={(value) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
+        <div className="flex flex-row gap-2">
+          <DebouncedInput
+            id="image_width"
+            label="Width"
+            placeholder="Width"
+            initialValue={defaultWidth.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
 
-            if (!editorState || !editor) {
-              return;
-            }
+              if (!editorState || !editor) {
+                return;
+              }
 
-            editorState.updateWidth(
-              editor,
-              currentImageId,
-              ObjectType.ImageItem,
-              parseInt(value)
-            );
-          }}
-        />
-        <DebouncedInput
-          id="image_height"
-          label="Height"
-          placeholder="Height"
-          initialValue={defaultHeight.toString()}
-          onDebounce={(value) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
+              editorState.updateWidth(
+                editor,
+                currentImageId,
+                ObjectType.ImageItem,
+                parseInt(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="image_height"
+            label="Height"
+            placeholder="Height"
+            initialValue={defaultHeight.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
 
-            if (!editorState || !editor) {
-              return;
-            }
+              if (!editorState || !editor) {
+                return;
+              }
 
-            editorState.updateHeight(
-              editor,
-              currentImageId,
-              ObjectType.ImageItem,
-              parseInt(value)
-            );
-          }}
-        />
+              editorState.updateHeight(
+                editor,
+                currentImageId,
+                ObjectType.ImageItem,
+                parseInt(value)
+              );
+            }}
+          />
+        </div>
         <input
           type="checkbox"
           id="is_circle"
@@ -1320,6 +1343,11 @@ export const VideoProperties = ({
     return <></>;
   }
 
+  let aside_width = 260.0;
+  let quarters = aside_width / 4.0 + 5.0 * 4.0;
+  let thirds = aside_width / 3.0 + 5.0 * 3.0;
+  let halfs = aside_width / 2.0 + 5.0 * 2.0;
+
   return (
     <>
       <div>
@@ -1333,48 +1361,50 @@ export const VideoProperties = ({
           </button>
           <h5>Update Video</h5>
         </div>
-        <DebouncedInput
-          id="video_width"
-          label="Width"
-          placeholder="Width"
-          initialValue={defaultWidth.toString()}
-          onDebounce={(value) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
+        <div className="flex flex-row gap-2">
+          <DebouncedInput
+            id="video_width"
+            label="Width"
+            placeholder="Width"
+            initialValue={defaultWidth.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
 
-            if (!editorState || !editor) {
-              return;
-            }
+              if (!editorState || !editor) {
+                return;
+              }
 
-            editorState.updateWidth(
-              editor,
-              currentVideoId,
-              ObjectType.VideoItem,
-              parseInt(value)
-            );
-          }}
-        />
-        <DebouncedInput
-          id="video_height"
-          label="Height"
-          placeholder="height"
-          initialValue={defaultHeight.toString()}
-          onDebounce={(value) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
+              editorState.updateWidth(
+                editor,
+                currentVideoId,
+                ObjectType.VideoItem,
+                parseInt(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="video_height"
+            label="Height"
+            placeholder="height"
+            initialValue={defaultHeight.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
 
-            if (!editorState || !editor) {
-              return;
-            }
+              if (!editorState || !editor) {
+                return;
+              }
 
-            editorState.updateHeight(
-              editor,
-              currentVideoId,
-              ObjectType.VideoItem,
-              parseInt(value)
-            );
-          }}
-        />
+              editorState.updateHeight(
+                editor,
+                currentVideoId,
+                ObjectType.VideoItem,
+                parseInt(value)
+              );
+            }}
+          />
+        </div>
         <p>Apply Animations</p>
         <button
           className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
@@ -1481,6 +1511,11 @@ export const KeyframeProperties = ({
   if (!defaultsSet) {
     return <></>;
   }
+
+  let aside_width = 260.0;
+  let quarters = aside_width / 4.0 + 5.0 * 4.0;
+  let thirds = aside_width / 3.0 + 5.0 * 3.0;
+  let halfs = aside_width / 2.0 + 5.0 * 2.0;
 
   return (
     <>
