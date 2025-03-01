@@ -17,6 +17,7 @@ import {
 } from "@/engine/animations";
 import EditorState from "@/engine/editor_state";
 import { Editor } from "@/engine/editor";
+import { Plus } from "@phosphor-icons/react";
 
 interface TimelineProps {
   editorRef: React.RefObject<Editor | null>;
@@ -44,233 +45,6 @@ interface DragState {
   startX: number;
   originalTime: number;
 }
-
-// // const renderPropertyKeyframes = (
-// //   property: AnimationProperty,
-// //   y: number,
-// //   xToTime: any,
-// //   timeToX: any,
-// //   drawKeyframe: any,
-// //   drawConnectingLine: any,
-// //   handleKeyframeClick: any,
-// //   propertyWidth: any,
-// //   selectedKeyframes: any,
-// //   scrollOffset: any,
-// //   rowHeight: any,
-// //   onKeyframeChanged: (
-// //     propertyPath: string,
-// //     keyframeId: string,
-// //     newTime: number
-// //   ) => void
-// // ) => {
-// //   const [dragState, setDragState] = useState<DragState>({
-// //     isDragging: false,
-// //     startX: 0,
-// //     originalTime: 0,
-// //   });
-
-// //   // Snapping threshold in pixels
-// //   const SNAP_THRESHOLD = 5;
-
-// //   const findNearestSnapPoint = (x: number): number => {
-// //     // Convert x position to time
-// //     const currentTime = xToTime(x);
-
-// //     // Find nearest snap points (e.g., every second or half second)
-// //     const snapInterval = 0.5; // Half second intervals
-// //     const nearestSnap = Math.round(currentTime / snapInterval) * snapInterval;
-
-// //     // Convert back to x position
-// //     const snapX = timeToX(nearestSnap);
-
-// //     // If within threshold, return snap point, otherwise return original position
-// //     return Math.abs(snapX - x) < SNAP_THRESHOLD ? snapX : x;
-// //   };
-
-// //   const handleDragStart = (e: React.MouseEvent, keyframe: any) => {
-// //     console.info("handleDragStart");
-
-// //     setDragState({
-// //       isDragging: true,
-// //       startX: e.clientX,
-// //       originalTime: keyframe.time,
-// //     });
-
-// //     // Prevent text selection while dragging
-// //     e.preventDefault();
-// //   };
-
-// //   const handleDrag = (e: React.MouseEvent, keyframe: any) => {
-// //     if (!dragState.isDragging) return;
-
-// //     const deltaX = e.clientX - dragState.startX;
-// //     const newX = timeToX(msToSec(dragState.originalTime)) + deltaX;
-// //     const snappedX = findNearestSnapPoint(newX);
-
-// //     // Convert position back to time
-// //     const newTime = secToMs(xToTime(snappedX));
-
-// //     // Call the onChange callback with the new time
-// //     onKeyframeChanged(property.propertyPath, keyframe.id, newTime);
-// //   };
-
-// //   const handleDragEnd = () => {
-// //     setDragState({
-// //       isDragging: false,
-// //       startX: 0,
-// //       originalTime: 0,
-// //     });
-// //   };
-
-// //   return property.keyframes.map((keyframe, i) => {
-// //     const x = timeToX(msToSec(keyframe.time)) - propertyWidth;
-// //     const isSelected =
-// //       selectedKeyframes?.some((k: string) => k === keyframe.id) || false;
-
-// //     return (
-// //       <div
-// //         key={`${property.propertyPath}-${keyframe.time}`}
-// //         onClick={() => handleKeyframeClick(property.propertyPath, keyframe)}
-// //       >
-// //         {drawKeyframe(
-// //           x,
-// //           y + rowHeight / 2,
-// //           keyframe.keyType.type,
-// //           isSelected,
-// //           (e: any) => handleDragStart(e, keyframe),
-// //           (e: any) => handleDrag(e, keyframe),
-// //           handleDragEnd
-// //         )}
-// //         {i > 0 &&
-// //           msToSec(property.keyframes[i - 1].time) >= xToTime(-scrollOffset) &&
-// //           drawConnectingLine(
-// //             timeToX(msToSec(property.keyframes[i - 1].time)),
-// //             y + rowHeight / 2,
-// //             x,
-// //             y + rowHeight / 2
-// //           )}
-// //       </div>
-// //     );
-// //   });
-// // };
-
-// // PropertyKeyframe component to handle individual keyframe state
-// interface PropertyKeyframeProps {
-//   property: AnimationProperty;
-//   keyframe: any; // Replace with your keyframe type
-//   index: number;
-//   y: number;
-//   xToTime: (x: number) => number;
-//   timeToX: (time: number) => number;
-//   drawKeyframe: any; // Replace with proper type
-//   drawConnectingLine: any; // Replace with proper type
-//   handleKeyframeClick: (propertyPath: string, keyframe: any) => void;
-//   propertyWidth: number;
-//   selectedKeyframes: string[] | null;
-//   scrollOffset: number;
-//   rowHeight: number;
-//   onKeyframeChanged: (
-//     propertyPath: string,
-//     keyframeId: string,
-//     newTime: number
-//   ) => void;
-// }
-
-// const PropertyKeyframe: React.FC<PropertyKeyframeProps> = ({
-//   property,
-//   keyframe,
-//   index,
-//   y,
-//   xToTime,
-//   timeToX,
-//   drawKeyframe,
-//   drawConnectingLine,
-//   handleKeyframeClick,
-//   propertyWidth,
-//   selectedKeyframes,
-//   scrollOffset,
-//   rowHeight,
-//   onKeyframeChanged,
-// }) => {
-//   const [dragState, setDragState] = useState<{
-//     isDragging: boolean;
-//     startX: number;
-//     originalTime: number;
-//   }>({
-//     isDragging: false,
-//     startX: 0,
-//     originalTime: 0,
-//   });
-
-//   // Snapping threshold in pixels
-//   const SNAP_THRESHOLD = 5;
-
-//   const findNearestSnapPoint = (x: number): number => {
-//     const currentTime = xToTime(x);
-//     const snapInterval = 0.5; // Half second intervals
-//     const nearestSnap = Math.round(currentTime / snapInterval) * snapInterval;
-//     const snapX = timeToX(nearestSnap);
-//     return Math.abs(snapX - x) < SNAP_THRESHOLD ? snapX : x;
-//   };
-
-//   const handleDragStart = (e: React.MouseEvent) => {
-//     console.info("handleDragStart");
-//     setDragState({
-//       isDragging: true,
-//       startX: e.clientX,
-//       originalTime: keyframe.time,
-//     });
-//     e.preventDefault();
-//   };
-
-//   const handleDrag = (e: React.MouseEvent) => {
-//     // console.info("handle drag", dragState);
-//     if (!dragState.isDragging) return;
-
-//     const deltaX = e.clientX - dragState.startX;
-//     const newX = timeToX(msToSec(dragState.originalTime)) + deltaX;
-//     const snappedX = findNearestSnapPoint(newX);
-//     const newTime = secToMs(xToTime(snappedX));
-
-//     onKeyframeChanged(property.propertyPath, keyframe.id, newTime);
-//   };
-
-//   const handleDragEnd = () => {
-//     setDragState({
-//       isDragging: false,
-//       startX: 0,
-//       originalTime: 0,
-//     });
-//   };
-
-//   const x = timeToX(msToSec(keyframe.time)) - propertyWidth;
-//   const isSelected = selectedKeyframes?.some((k) => k === keyframe.id) || false;
-
-//   return (
-//     <div
-//       key={`${property.propertyPath}-${keyframe.time}`}
-//       onClick={() => handleKeyframeClick(property.propertyPath, keyframe)}
-//     >
-//       {drawKeyframe(
-//         x,
-//         y + rowHeight / 2,
-//         keyframe.keyType.type,
-//         isSelected,
-//         handleDragStart,
-//         handleDrag,
-//         handleDragEnd
-//       )}
-//       {index > 0 &&
-//         msToSec(property.keyframes[index - 1].time) >= xToTime(-scrollOffset) &&
-//         drawConnectingLine(
-//           timeToX(msToSec(property.keyframes[index - 1].time)),
-//           y + rowHeight / 2,
-//           x,
-//           y + rowHeight / 2
-//         )}
-//     </div>
-//   );
-// };
 
 // PropertyKeyframes component to handle the collection of keyframes
 
@@ -483,41 +257,6 @@ const PropertyKeyframes: React.FC<PropertyKeyframesProps> = ({
     />
   ));
 };
-
-// const PropertyKeyframes: React.FC<PropertyKeyframesProps> = ({
-//   property,
-//   y,
-//   xToTime,
-//   timeToX,
-//   drawKeyframe,
-//   drawConnectingLine,
-//   handleKeyframeClick,
-//   propertyWidth,
-//   selectedKeyframes,
-//   scrollOffset,
-//   rowHeight,
-//   onKeyframeChanged,
-// }) => {
-//   return property.keyframes.map((keyframe, index) => (
-//     <PropertyKeyframe
-//       key={`${property.propertyPath}-${keyframe.time}`}
-//       property={property}
-//       keyframe={keyframe}
-//       index={index}
-//       y={y}
-//       xToTime={xToTime}
-//       timeToX={timeToX}
-//       drawKeyframe={drawKeyframe}
-//       drawConnectingLine={drawConnectingLine}
-//       handleKeyframeClick={handleKeyframeClick}
-//       propertyWidth={propertyWidth}
-//       selectedKeyframes={selectedKeyframes}
-//       scrollOffset={scrollOffset}
-//       rowHeight={rowHeight}
-//       onKeyframeChanged={onKeyframeChanged}
-//     />
-//   ));
-// };
 
 const renderProperties = (
   properties: AnimationProperty[],
@@ -756,42 +495,6 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
     );
   };
 
-  // const drawKeyframe = (
-  //   x: number,
-  //   y: number,
-  //   keyType: string,
-  //   isSelected: boolean
-  // ) => {
-  //   const size = 6;
-  //   const color = isSelected
-  //     ? keyType === "Frame"
-  //       ? "blue"
-  //       : "red"
-  //     : keyType === "Frame"
-  //     ? "orange"
-  //     : "orangered";
-
-  //   const adjustedWidth = getAdjustedPropertyWidth(propertyWidth, zoomLevel);
-  //   const adjustedX = adjustedWidth + x; // Add property width to position keyframes after the label
-
-  //   return (
-  //     <div
-  //       style={{
-  //         position: "absolute",
-  //         left: `${adjustedX - size}px`,
-  //         top: `${y - size}px`,
-  //         width: `${size * 2}px`,
-  //         height: `${size * 2}px`,
-  //         transform: "rotate(45deg)",
-  //         backgroundColor: color,
-  //         cursor: "pointer",
-  //         zIndex: 2,
-  //       }}
-  //       className="keyframe"
-  //     />
-  //   );
-  // };
-
   const drawKeyframe = (
     x: number,
     y: number,
@@ -835,6 +538,8 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
     );
   };
 
+  const [lineHoverPosition, setLineHoverPosition] = useState(0);
+
   const drawConnectingLine = (
     x1: number,
     y1: number,
@@ -847,90 +552,40 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
     const adjustedX2 = adjustedWidth + x2;
 
     return (
-      <div
-        style={{
-          position: "absolute",
-          top: `${Math.min(y1, y2)}px`,
-          left: `${Math.min(adjustedX1, adjustedX2)}px`,
-          width: `${Math.abs(adjustedX2 - adjustedX1 + propertyWidth)}px`,
-          height: "1px",
-          backgroundColor: "darkgray",
-        }}
-      />
+      <>
+        <div
+          style={{
+            position: "absolute",
+            top: `${Math.min(y1, y2)}px`,
+            left: `${Math.min(adjustedX1, adjustedX2)}px`,
+            width: `${Math.abs(adjustedX2 - adjustedX1 + propertyWidth)}px`,
+            height: "2px",
+            backgroundColor: "darkgray",
+          }}
+          onMouseMove={(e) => {
+            setLineHoverPosition(e.clientX);
+          }}
+          onMouseLeave={() => {
+            setLineHoverPosition(0);
+          }}
+        />
+        {lineHoverPosition && (
+          <div
+            style={{
+              position: "absolute",
+              top: `${Math.min(y1, y2) - 4}px`,
+              left: `${lineHoverPosition - 300}px`,
+              width: "10px",
+              height: "10px",
+              backgroundColor: "indigo",
+            }}
+          >
+            <Plus size="9px" />
+          </div>
+        )}
+      </>
     );
   };
-
-  // const renderPropertyKeyframes = (property: AnimationProperty, y: number) => {
-  //   return property.keyframes.map((keyframe, i) => {
-  //     const x = timeToX(msToSec(keyframe.time)) - propertyWidth;
-  //     let isSelected = selectedKeyframes?.some((k) => k === keyframe.id);
-
-  //     if (typeof isSelected === "undefined") {
-  //       isSelected = false;
-  //     }
-
-  //     return (
-  //       <div
-  //         key={`${property.propertyPath}-${keyframe.time}`}
-  //         onClick={() => handleKeyframeClick(property.propertyPath, keyframe)}
-  //       >
-  //         {drawKeyframe(
-  //           x,
-  //           y + rowHeight / 2,
-  //           keyframe.keyType.type,
-  //           isSelected
-  //         )}
-  //         {i > 0 &&
-  //           msToSec(property.keyframes[i - 1].time) >= xToTime(-scrollOffset) &&
-  //           drawConnectingLine(
-  //             timeToX(msToSec(property.keyframes[i - 1].time)),
-  //             y + rowHeight / 2,
-  //             x,
-  //             y + rowHeight / 2
-  //           )}
-  //       </div>
-  //     );
-  //   });
-  // };
-
-  // const renderProperties = (
-  //   properties: AnimationProperty[],
-  //   startY: number,
-  //   onKeyframeChanged: (
-  //     propertyPath: string,
-  //     keyframeId: string,
-  //     newTime: number
-  //   ) => void
-  // ): { elements: JSX.Element[]; nextY: number } => {
-  //   let currentY = startY;
-  //   const elements: JSX.Element[] = [];
-
-  //   properties.forEach((property) => {
-  //     // Add property label and keyframes at current Y position
-  //     elements.push(
-  //       drawPropertyLabel(property, currentY),
-  //       ...renderPropertyKeyframes(
-  //         property,
-  //         currentY,
-  //         xToTime,
-  //         timeToX,
-  //         drawKeyframe,
-  //         drawConnectingLine,
-  //         handleKeyframeClick,
-  //         propertyWidth,
-  //         selectedKeyframes,
-  //         scrollOffset,
-  //         rowHeight,
-  //         onKeyframeChanged
-  //       )
-  //     );
-
-  //     // Move to next row
-  //     currentY += rowHeight;
-  //   });
-
-  //   return { elements, nextY: currentY };
-  // };
 
   if (!animationData) {
     return <div>No animation data available.</div>;
