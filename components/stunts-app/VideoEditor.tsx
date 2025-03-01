@@ -1292,30 +1292,34 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             editorStateRef={editorStateRef}
           />
         )}
-        {current_sequence_id && (
-          <>
-            {sequences
-              .filter((s) => s.id === current_sequence_id)
-              .map((sequence) => {
-                if (sequence.polygonMotionPaths) {
-                  return (
-                    <>
-                      {sequence.polygonMotionPaths.map((animation) => {
-                        return (
-                          <ObjectTrack
-                            type={TrackType.Video}
-                            objectData={animation}
-                            pixelsPerSecond={25}
-                            onSequenceDragEnd={handleObjectDragEnd}
-                          />
-                        );
-                      })}
-                    </>
-                  );
-                }
-              })}
-          </>
-        )}
+        {current_sequence_id &&
+          !selected_polygon_id &&
+          !selected_text_id &&
+          !selected_image_id &&
+          !selected_video_id && (
+            <>
+              {sequences
+                .filter((s) => s.id === current_sequence_id)
+                .map((sequence) => {
+                  if (sequence.polygonMotionPaths) {
+                    return (
+                      <>
+                        {sequence.polygonMotionPaths.map((animation) => {
+                          return (
+                            <ObjectTrack
+                              type={TrackType.Video}
+                              objectData={animation}
+                              pixelsPerSecond={25}
+                              onSequenceDragEnd={handleObjectDragEnd}
+                            />
+                          );
+                        })}
+                      </>
+                    );
+                  }
+                })}
+            </>
+          )}
         {!current_sequence_id &&
           !selected_polygon_id &&
           !selected_text_id &&
