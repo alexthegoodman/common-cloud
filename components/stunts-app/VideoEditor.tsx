@@ -1286,6 +1286,12 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             selected_sequence_id={current_sequence_id}
           />
         )}
+        {!current_sequence_id && (
+          <PlayVideoButton
+            editorRef={editorRef}
+            editorStateRef={editorStateRef}
+          />
+        )}
         {current_sequence_id && (
           <>
             {sequences
@@ -1309,12 +1315,6 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 }
               })}
           </>
-        )}
-        {!current_sequence_id && (
-          <PlayVideoButton
-            editorRef={editorRef}
-            editorStateRef={editorStateRef}
-          />
         )}
         {!current_sequence_id &&
           !selected_polygon_id &&
