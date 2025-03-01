@@ -67,6 +67,7 @@ import { ToolGrid } from "./ToolGrid";
 import { PageSequence } from "@/engine/data";
 import { WindowSize } from "@/engine/camera";
 import { ThemePicker } from "./ThemePicker";
+import { ObjectTrack } from "./ObjectTimeline";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -160,7 +161,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
-  let [sequences, set_sequences] = useState<Sequence[] | PageSequence[]>([]);
+  let [sequences, set_sequences] = useState<Sequence[]>([]);
   let [loading, set_loading] = useState(false);
   let [section, set_section] = useState("SequenceList");
   let [keyframe_count, set_keyframe_count] = useState(0);
@@ -923,6 +924,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     );
   };
 
+  const handleObjectDragEnd = () => {};
+
   let [background_red, set_background_red] = useState(0);
   let [background_green, set_background_green] = useState(0);
   let [background_blue, set_background_blue] = useState(0);
@@ -1282,6 +1285,30 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             editorStateRef={editorStateRef}
             selected_sequence_id={current_sequence_id}
           />
+        )}
+        {current_sequence_id && (
+          <>
+            {sequences
+              .filter((s) => s.id === current_sequence_id)
+              .map((sequence) => {
+                if (sequence.polygonMotionPaths) {
+                  return (
+                    <>
+                      {sequence.polygonMotionPaths.map((animation) => {
+                        return (
+                          <ObjectTrack
+                            type={TrackType.Video}
+                            objectData={animation}
+                            pixelsPerSecond={25}
+                            onSequenceDragEnd={handleObjectDragEnd}
+                          />
+                        );
+                      })}
+                    </>
+                  );
+                }
+              })}
+          </>
         )}
         {!current_sequence_id && (
           <PlayVideoButton

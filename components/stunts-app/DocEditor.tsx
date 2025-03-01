@@ -67,7 +67,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
   );
   let [selected_text_id, set_selected_text_id] = useState<string | null>(null);
 
-  let [sequences, set_sequences] = useState<PageSequence[]>([]);
+  let [sequences, set_sequences] = useState<Sequence[]>([]);
 
   let [current_sequence_id, set_current_sequence_id] = useState<string | null>(
     null

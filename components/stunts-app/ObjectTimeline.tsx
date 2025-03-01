@@ -1,24 +1,24 @@
-import { TimelineSequence, TrackType } from "@/engine/animations";
+import {
+  AnimationData,
+  TimelineSequence,
+  TrackType,
+} from "@/engine/animations";
 import React, { useState, useCallback } from "react";
 
 interface TrackProps {
   type: TrackType;
-  tSequences: TimelineSequence[];
+  objectData: AnimationData;
   pixelsPerSecond: number;
-  sequenceQuickAccess: Record<string, string>;
-  sequenceDurations: Record<string, number>;
   onSequenceDragEnd: (
     sequence: TimelineSequence,
     newStartTimeMs: number
   ) => void;
 }
 
-export const TimelineTrack: React.FC<TrackProps> = ({
+export const ObjectTrack: React.FC<TrackProps> = ({
   type,
-  tSequences,
+  objectData,
   pixelsPerSecond,
-  sequenceQuickAccess,
-  sequenceDurations,
   onSequenceDragEnd,
 }) => {
   //   console.info("tSequences", tSequences);
@@ -65,7 +65,7 @@ export const TimelineTrack: React.FC<TrackProps> = ({
 
       {/* Sequences */}
       <div className="absolute w-full h-full p-1">
-        {tSequences
+        {/* {tSequences
           .filter((seq) => seq.trackType === type)
           .map((tSequence) => {
             const left = tSequence.startTimeMs * pixelsPerMs;
@@ -87,7 +87,7 @@ export const TimelineTrack: React.FC<TrackProps> = ({
                 {sequenceQuickAccess[tSequence.sequenceId]}
               </div>
             );
-          })}
+          })} */}
       </div>
     </div>
   );

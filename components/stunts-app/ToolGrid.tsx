@@ -43,9 +43,7 @@ export const ToolGrid = ({
   editorStateRef: React.RefObject<EditorState | null>;
   webCaptureRef: React.RefObject<WebCapture | null>;
   currentSequenceId: string | null;
-  set_sequences?: React.Dispatch<
-    React.SetStateAction<Sequence[] | PageSequence[]>
-  >;
+  set_sequences?: React.Dispatch<React.SetStateAction<Sequence[]>>;
   options: string[];
   on_create_sequence?: () => void;
   layers: Layer[];
