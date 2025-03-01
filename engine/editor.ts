@@ -669,6 +669,223 @@ export class Editor {
     return prompt;
   }
 
+  private processLayoutPrmoptItem(
+    item: StImage | Polygon | TextRenderer,
+    total: number
+  ): [string, number] {
+    if (item.hidden) {
+      return ["", total];
+    }
+
+    let object_type = 1;
+    if (item.objectType === ObjectType.Polygon && item.isCircle) {
+      object_type = 4;
+    } else if (item.objectType === ObjectType.TextItem && item.isCircle) {
+      object_type = 2;
+    } else if (item.objectType === ObjectType.ImageItem && item.isCircle) {
+      object_type = 6;
+    } else if (item.objectType === ObjectType.Polygon) {
+      object_type = 3;
+    } else if (item.objectType === ObjectType.TextItem) {
+      object_type = 1;
+    } else if (item.objectType === ObjectType.ImageItem) {
+      object_type = 5;
+    }
+
+    // Build the prompt string for this item
+    const promptLine = [
+      total.toString(),
+      object_type,
+      getRandomNumber(1, 8),
+      "\n",
+    ].join(",");
+
+    return [promptLine, total + 1];
+  }
+
+  createLayoutInferencePrompt(): string {
+    let prompt = "";
+    let total = 0;
+
+    // Process each type of item
+    for (const itemArrays of [
+      this.polygons,
+      this.textItems,
+      this.imageItems,
+      // this.videoItems,
+    ]) {
+      for (const item of itemArrays) {
+        if (total > 8) break;
+
+        const [promptLine, newTotal] = this.processLayoutPrmoptItem(
+          item,
+          total
+        );
+        prompt += promptLine;
+        total = newTotal;
+      }
+
+      if (total > 8) break;
+    }
+
+    console.log("prompt", prompt);
+
+    return prompt;
+  }
+
+  updateLayoutFromPredictions(
+    predictions: number[],
+    curerntSequenceId: string,
+    sequences: Sequence[]
+  ): Sequence[] {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+
+    if (!gpuResources || !camera || !this.modelBindGroupLayout) {
+      return sequences;
+    }
+
+    let values_per_prediction = 7;
+    let total = 0;
+
+    for (const itemArrays of [
+      this.polygons,
+      this.textItems,
+      this.imageItems,
+      // this.videoItems,
+    ]) {
+      for (const item of itemArrays) {
+        if (total > 8) break;
+
+        const itemId = this.getItemId(total);
+        const objectType = this.getObjectType(total);
+
+        if (!itemId || !objectType) continue; // Skip if ID or type is not found
+
+        // TODO: what is baseIdx value? how to calculate?
+        const baseIdx = total * values_per_prediction;
+
+        let new_width = Math.round(predictions[baseIdx + 3] * 0.01 * 900.0);
+        let new_height = Math.round(predictions[baseIdx + 4] * 0.01 * 1100.0);
+        let new_x = Math.round(predictions[baseIdx + 5] * 0.01 * 900.0);
+        let new_y = Math.round(predictions[baseIdx + 6] * 0.01 * 1100.0);
+
+        if (objectType === ObjectType.Polygon) {
+          let polygon = this.polygons.find((p) => p.id === itemId);
+
+          if (!polygon || !this.modelBindGroupLayout) continue;
+
+          // polygon.dimensions = [new_width, new_height];
+          polygon.updateDataFromDimensions(
+            camera.windowSize,
+            gpuResources.device,
+            gpuResources.queue,
+            this.modelBindGroupLayout,
+            [new_width, new_height],
+            camera
+          );
+          polygon.transform.updatePosition([new_x, new_y], camera.windowSize);
+          polygon.transform.updateUniformBuffer(
+            gpuResources.queue,
+            camera.windowSize
+          );
+
+          sequences.forEach((s) => {
+            if (s.id === curerntSequenceId) {
+              let activePolygon = s.activePolygons.find((p) => p.id === itemId);
+
+              if (activePolygon) {
+                activePolygon.dimensions = [new_width, new_height];
+                activePolygon.position = {
+                  x: new_x,
+                  y: new_y,
+                };
+              }
+            }
+          });
+        } else if (objectType === ObjectType.TextItem) {
+          let text = this.textItems.find((p) => p.id === itemId);
+
+          if (!text || !this.modelBindGroupLayout) continue;
+
+          // text.dimensions = [new_width, new_height];
+          text.updateDataFromDimensions(
+            camera.windowSize,
+            gpuResources.device,
+            gpuResources.queue,
+            this.modelBindGroupLayout,
+            [new_width, new_height],
+            camera
+          );
+          text.transform.updatePosition([new_x, new_y], camera.windowSize);
+          text.backgroundPolygon.transform.updatePosition(
+            [new_x, new_y],
+            camera.windowSize
+          );
+          text.transform.updateUniformBuffer(
+            gpuResources.queue,
+            camera.windowSize
+          );
+          text.backgroundPolygon.transform.updateUniformBuffer(
+            gpuResources.queue,
+            camera.windowSize
+          );
+
+          sequences.forEach((s) => {
+            if (s.id === curerntSequenceId) {
+              let activeText = s.activeTextItems.find((p) => p.id === itemId);
+
+              if (activeText) {
+                activeText.dimensions = [new_width, new_height];
+                activeText.position = {
+                  x: new_x,
+                  y: new_y,
+                };
+              }
+            }
+          });
+        } else if (objectType === ObjectType.ImageItem) {
+          let image = this.imageItems.find((p) => p.id === itemId);
+
+          if (!image || !this.modelBindGroupLayout) continue;
+
+          // image.dimensions = [new_width, new_height];
+          image.updateDataFromDimensions(
+            camera.windowSize,
+            gpuResources.device,
+            gpuResources.queue,
+            this.modelBindGroupLayout,
+            [new_width, new_height]
+            // camera
+          );
+          image.transform.updatePosition([new_x, new_y], camera.windowSize);
+          image.transform.updateUniformBuffer(
+            gpuResources.queue,
+            camera.windowSize
+          );
+
+          sequences.forEach((s) => {
+            if (s.id === curerntSequenceId) {
+              let activeImage = s.activeImageItems.find((p) => p.id === itemId);
+
+              if (activeImage) {
+                activeImage.dimensions = [new_width, new_height];
+                activeImage.position = {
+                  x: new_x,
+                  y: new_y,
+                };
+              }
+            }
+          });
+        }
+
+        total++;
+      }
+    }
+
+    return sequences;
+  }
+
   async restore_sequence_objects(saved_sequence: Sequence, hidden: boolean) {
     const camera = this.camera!; // Non-null assertion, assuming camera is initialized
     const windowSize = camera.windowSize;
@@ -1009,92 +1226,6 @@ export class Editor {
 
     this.currentSequenceData = null;
   }
-
-  // run_motion_inference(): AnimationData[] {
-  //   let prompt = "";
-  //   let total = 0;
-
-  //   for (const polygon of this.polygons) {
-  //     if (!polygon.hidden) {
-  //       let x = polygon.transform.position[0] - CANVAS_HORIZ_OFFSET;
-  //       x = (x / 800.0) * 100.0;
-  //       let y = polygon.transform.position[1] - CANVAS_VERT_OFFSET;
-  //       y = (y / 450.0) * 100.0;
-
-  //       prompt += `${total}, 5, ${polygon.dimensions[0]}, ${
-  //         polygon.dimensions[1]
-  //       }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
-  //       total++;
-
-  //       if (total > 6) {
-  //         break;
-  //       }
-  //     }
-  //   }
-
-  //   for (const text of this.textItems) {
-  //     if (!text.hidden) {
-  //       let x = text.transform.position[0] - CANVAS_HORIZ_OFFSET;
-  //       x = (x / 800.0) * 100.0;
-  //       let y = text.transform.position[1] - CANVAS_VERT_OFFSET;
-  //       y = (y / 450.0) * 100.0;
-
-  //       prompt += `${total}, 5, ${text.dimensions[0]}, ${
-  //         text.dimensions[1]
-  //       }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
-  //       total++;
-
-  //       if (total > 6) {
-  //         break;
-  //       }
-  //     }
-  //   }
-
-  //   // for (const image of this.imageItems) {
-  //   //   if (!image.hidden) {
-  //   //     let x = image.transform.position[0] - CANVAS_HORIZ_OFFSET;
-  //   //     x = (x / 800.0) * 100.0;
-  //   //     let y = image.transform.position[1] - CANVAS_VERT_OFFSET;
-  //   //     y = (y / 450.0) * 100.0;
-
-  //   //     prompt += `${total}, 5, ${image.dimensions.x}, ${
-  //   //       image.dimensions.y
-  //   //     }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
-  //   //     total++;
-
-  //   //     if (total > 6) {
-  //   //       break;
-  //   //     }
-  //   //   }
-  //   // }
-
-  //   // for (const video of this.videoItems) {
-  //   //   if (!video.hidden) {
-  //   //     let x = video.transform.position[0] - CANVAS_HORIZ_OFFSET;
-  //   //     x = (x / 800.0) * 100.0;
-  //   //     let y = video.transform.position[1] - CANVAS_VERT_OFFSET;
-  //   //     y = (y / 450.0) * 100.0;
-
-  //   //     prompt += `${total}, 5, ${video.dimensions.x}, ${
-  //   //       video.dimensions.y
-  //   //     }, ${Math.round(x)}, ${Math.round(y)}, 0.000,\n`;
-  //   //     total++;
-
-  //   //     if (total > 6) {
-  //   //       break;
-  //   //     }
-  //   //   }
-  //   // }
-
-  //   console.log("prompt", prompt);
-
-  //   return this.call_motion_inference(prompt);
-  // }
-
-  // call_motion_inference(prompt: string): AnimationData[] {
-  //   // TODO: will call API.  Return a Promise<AnimationData[]> and use async/await
-  //   return []; // Placeholder
-  // }
 
   createMotionPathsFromPredictions(predictions: number[]): AnimationData[] {
     const animation_data_vec: AnimationData[] = [];

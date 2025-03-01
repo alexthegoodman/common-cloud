@@ -35,6 +35,7 @@ import {
   PolygonProperties,
   TextProperties,
 } from "./Properties";
+import { callLayoutInference } from "@/fetchers/inference";
 
 let docCanvasSize: WindowSize = {
   width: 900,
@@ -688,6 +689,34 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     set_loading(false);
   };
 
+  let on_generate_layout = async () => {
+    let editor = editorRef.current;
+    let editor_state = editorStateRef.current;
+
+    if (!editor || !editor_state || !current_sequence_id) {
+      return;
+    }
+
+    set_loading(true);
+
+    console.info("create prompt");
+
+    let prompt = editor.createLayoutInferencePrompt();
+    let predictions = await callLayoutInference(prompt);
+
+    console.info("predictions", predictions);
+
+    let sequences = editor.updateLayoutFromPredictions(
+      predictions,
+      current_sequence_id,
+      editor_state.savedState.sequences
+    );
+
+    saveSequencesData(sequences, SaveTarget.Docs);
+
+    set_loading(false);
+  };
+
   useEffect(() => {
     if (editorIsSet) {
       console.info("Fetch data...");
@@ -788,7 +817,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                     className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={generateLoading}
                     onClick={() => {
-                      // on_generate_animation();
+                      on_generate_layout();
                     }}
                   >
                     {generateLoading ? "Generating..." : "Generate Layout"}
