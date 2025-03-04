@@ -1468,12 +1468,14 @@ export const KeyframeProperties = ({
   currentSequenceId,
   selectedKeyframe,
   setRefreshTimeline,
+  handleGoBack,
 }: {
   editorRef: React.RefObject<Editor | null>;
   editorStateRef: React.RefObject<EditorState | null>;
   currentSequenceId: string;
   selectedKeyframe: string;
   setRefreshTimeline: Dispatch<SetStateAction<number>>;
+  handleGoBack: () => void;
 }) => {
   const [defaultsSet, setDefaultsSet] = useState(false);
   const [time, setTime] = useState(0);
@@ -1524,7 +1526,7 @@ export const KeyframeProperties = ({
           <button
             className="flex flex-col justify-center items-center text-xs w-[35px] h-[35px] text-center rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors mr-2"
             // disabled={loading}
-            // onClick={() => handleGoBack()}
+            onClick={() => handleGoBack()}
           >
             <CreateIcon icon="arrow-left" size="24px" />
           </button>

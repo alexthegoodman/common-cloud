@@ -236,7 +236,7 @@ export class TextRenderer {
       // -1.0,
       // 1, // positive to use INTERNAL_LAYER_SPACE
       1.0,
-      textConfig.layer - 1.0 - INTERNAL_LAYER_SPACE,
+      textConfig.layer - 0.5,
       textConfig.name,
       this.id,
       currentSequenceId,
@@ -948,8 +948,8 @@ export class TextRenderer {
     const adjustedLayerIndex = layerIndex - INTERNAL_LAYER_SPACE;
     this.layer = adjustedLayerIndex;
     this.transform.layer = adjustedLayerIndex;
-    this.backgroundPolygon.layer = adjustedLayerIndex - 1;
-    this.backgroundPolygon.transform.layer = adjustedLayerIndex - 1;
+    this.backgroundPolygon.layer = adjustedLayerIndex - 0.5;
+    this.backgroundPolygon.transform.layer = adjustedLayerIndex - 0.5;
   }
 
   updateText(device: GPUDevice, queue: GPUQueue, text: string) {

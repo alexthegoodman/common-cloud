@@ -434,23 +434,40 @@ export const ToolGrid = ({
         layer: -layers.length,
       };
 
-      editor.add_video_item(video_config, blob, new_id, sequence_id, [], null);
+      await editor.add_video_item(
+        video_config,
+        blob,
+        new_id,
+        sequence_id,
+        [],
+        null
+      );
 
       console.info("Adding video: {:?}", new_id);
 
-      editor_state.add_saved_video_item(sequence_id, {
-        id: video_config.id,
-        name: video_config.name,
-        // path: new_path.clone(),
-        path: url,
-        dimensions: [video_config.dimensions[0], video_config.dimensions[1]],
-        position: {
-          x: position.x,
-          y: position.y,
+      let new_video_item = editor.videoItems.find((v) => v.id === new_id);
+
+      if (!new_video_item || !new_video_item.sourceDurationMs) {
+        return;
+      }
+
+      editor_state.add_saved_video_item(
+        sequence_id,
+        {
+          id: video_config.id,
+          name: video_config.name,
+          // path: new_path.clone(),
+          path: url,
+          dimensions: [video_config.dimensions[0], video_config.dimensions[1]],
+          position: {
+            x: position.x,
+            y: position.y,
+          },
+          layer: video_config.layer,
+          // mousePath: video_config.mousePath,
         },
-        layer: video_config.layer,
-        // mousePath: video_config.mousePath,
-      });
+        new_video_item.sourceDurationMs
+      );
 
       console.info("Saved video!");
 

@@ -602,7 +602,8 @@ export default class EditorState {
   save_default_keyframes(
     savable_item_id: string,
     object_type: ObjectType,
-    object_position: SavedPoint
+    object_position: SavedPoint,
+    durationMs: number
   ): AnimationData {
     let properties: AnimationProperty[] = [];
 
@@ -647,7 +648,7 @@ export default class EditorState {
     });
     position_keyframes.push({
       id: uuidv4().toString(),
-      time: 15000,
+      time: durationMs - 5000,
       value: {
         type: "Position",
         value: [object_position.x, object_position.y + 50],
@@ -659,7 +660,7 @@ export default class EditorState {
     });
     position_keyframes.push({
       id: uuidv4().toString(),
-      time: 17500,
+      time: durationMs - 2500,
       value: {
         type: "Position",
         value: [object_position.x, object_position.y + 100],
@@ -671,7 +672,7 @@ export default class EditorState {
     });
     position_keyframes.push({
       id: uuidv4().toString(),
-      time: 20000,
+      time: durationMs,
       value: {
         type: "Position",
         value: [object_position.x, object_position.y + 150],
@@ -722,7 +723,7 @@ export default class EditorState {
     });
     rotation_keyframes.push({
       id: uuidv4().toString(),
-      time: 15000,
+      time: durationMs - 5000,
       value: { type: "Rotation", value: 0 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
@@ -731,7 +732,7 @@ export default class EditorState {
     });
     rotation_keyframes.push({
       id: uuidv4().toString(),
-      time: 17500,
+      time: durationMs - 2500,
       value: { type: "Rotation", value: 0 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
@@ -740,7 +741,7 @@ export default class EditorState {
     });
     rotation_keyframes.push({
       id: uuidv4().toString(),
-      time: 20000,
+      time: durationMs,
       value: { type: "Rotation", value: 0 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
@@ -787,7 +788,7 @@ export default class EditorState {
     });
     scale_keyframes.push({
       id: uuidv4().toString(),
-      time: 15000,
+      time: durationMs - 5000,
       value: { type: "Scale", value: 100 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
@@ -796,7 +797,7 @@ export default class EditorState {
     });
     scale_keyframes.push({
       id: uuidv4().toString(),
-      time: 17500,
+      time: durationMs - 2500,
       value: { type: "Scale", value: 100 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
@@ -805,7 +806,7 @@ export default class EditorState {
     });
     scale_keyframes.push({
       id: uuidv4().toString(),
-      time: 20000,
+      time: durationMs,
       value: { type: "Scale", value: 100 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
@@ -852,7 +853,7 @@ export default class EditorState {
     });
     opacity_keyframes.push({
       id: uuidv4().toString(),
-      time: 15000,
+      time: durationMs - 5000,
       value: { type: "Opacity", value: 100 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
@@ -861,7 +862,7 @@ export default class EditorState {
     });
     opacity_keyframes.push({
       id: uuidv4().toString(),
-      time: 17500,
+      time: durationMs - 2500,
       value: { type: "Opacity", value: 100 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
@@ -870,7 +871,7 @@ export default class EditorState {
     });
     opacity_keyframes.push({
       id: uuidv4().toString(),
-      time: 20000,
+      time: durationMs,
       value: { type: "Opacity", value: 100 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
@@ -936,7 +937,7 @@ export default class EditorState {
       });
       zoom_keyframes.push({
         id: uuidv4().toString(),
-        time: 15000,
+        time: durationMs - 5000,
         value: {
           type: "Zoom",
           value: {
@@ -959,7 +960,7 @@ export default class EditorState {
       // });
       zoom_keyframes.push({
         id: uuidv4().toString(),
-        time: 20000,
+        time: durationMs,
         value: {
           type: "Zoom",
           value: {
@@ -988,7 +989,7 @@ export default class EditorState {
       id: uuidv4().toString(),
       objectType: object_type,
       polygonId: savable_item_id,
-      duration: 20000,
+      duration: durationMs,
       startTimeMs: 0,
       position: [0, 0],
       properties: properties,
@@ -1279,7 +1280,8 @@ export default class EditorState {
     let new_motion_path = this.save_default_keyframes(
       savable_polygon.id,
       ObjectType.Polygon,
-      savable_polygon.position
+      savable_polygon.position,
+      20000
     );
 
     let saved_state = this.savedState;
@@ -1307,8 +1309,9 @@ export default class EditorState {
   ) {
     let new_motion_path = this.save_default_keyframes(
       savable_text.id,
-      ObjectType.Polygon,
-      savable_text.position
+      ObjectType.TextItem,
+      savable_text.position,
+      20000
     );
 
     let saved_state = this.savedState;
@@ -1337,7 +1340,8 @@ export default class EditorState {
     let new_motion_path = this.save_default_keyframes(
       savable_text.id,
       ObjectType.ImageItem,
-      savable_text.position
+      savable_text.position,
+      20000
     );
 
     let saved_state = this.savedState;
@@ -1361,12 +1365,14 @@ export default class EditorState {
 
   async add_saved_video_item(
     selected_sequence_id: string,
-    savable_text: SavedStVideoConfig
+    savable_text: SavedStVideoConfig,
+    sourceDurationMs: number
   ) {
     let new_motion_path = this.save_default_keyframes(
       savable_text.id,
       ObjectType.VideoItem,
-      savable_text.position
+      savable_text.position,
+      sourceDurationMs
     );
 
     let saved_state = this.savedState;

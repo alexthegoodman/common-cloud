@@ -1354,6 +1354,21 @@ export class Editor {
         hidden
       );
 
+      await restored_video.initialize(
+        device,
+        queue,
+        blob,
+        video_config,
+        windowSize,
+        this.modelBindGroupLayout!,
+        this.groupBindGroupLayout!,
+        // this.gradientBindGroupLayout!,
+        -2.0,
+        // i.id,
+        saved_sequence.id,
+        hidden
+      );
+
       // restored_video.hidden = hidden;
       // restored_video.source_data = stored_source_data;
       // restored_video.mouse_positions = stored_mouse_positions;
@@ -2988,7 +3003,7 @@ export class Editor {
     this.imageItems.push(image_item);
   }
 
-  add_video_item(
+  async add_video_item(
     // windowSize: WindowSize,
     // device: GPUDevice,
     // queue: GPUQueue,
@@ -3032,7 +3047,20 @@ export class Editor {
       selected_sequence_id,
       false
     );
-    // .expect("Couldn't create video item");
+
+    await video_item.initialize(
+      device,
+      queue,
+      blob,
+      video_config,
+      windowSize,
+      this.modelBindGroupLayout,
+      this.groupBindGroupLayout,
+      // this.gradientBindGroupLayout,
+      0.0,
+      selected_sequence_id,
+      false
+    );
 
     // set mouse capture source data if it exists
     // video_item.sourceData = stored_source_data;

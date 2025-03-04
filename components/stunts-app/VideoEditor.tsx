@@ -1040,6 +1040,9 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 currentSequenceId={current_sequence_id}
                 selectedKeyframe={selected_keyframes[0]}
                 setRefreshTimeline={setRefreshTimeline}
+                handleGoBack={() => {
+                  set_selected_keyframes(null);
+                }}
               />
             </>
           ) : (
