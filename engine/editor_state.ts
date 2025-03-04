@@ -1379,6 +1379,14 @@ export default class EditorState {
 
     saved_state.sequences.forEach((s) => {
       if (s.id == selected_sequence_id) {
+        if (!s.durationMs) {
+          return;
+        }
+
+        if (s.durationMs < sourceDurationMs) {
+          s.durationMs = sourceDurationMs;
+        }
+
         s.activeVideoItems.push(savable_text);
 
         if (this.supportsMotionPaths && s.polygonMotionPaths) {
