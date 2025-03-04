@@ -208,7 +208,7 @@ export class CanvasPipeline {
       code: FragShader,
     });
 
-    let format: GPUTextureFormat = "bgra8unorm";
+    let format: GPUTextureFormat = "rgba8unorm";
 
     // Create render pipeline
     const renderPipeline = gpuResources.device.createRenderPipeline({
@@ -301,7 +301,7 @@ export class CanvasPipeline {
   }
 
   recreateDepthView(window_width: number, window_height: number) {
-    const textureFormat: GPUTextureFormat = "bgra8unorm";
+    const textureFormat: GPUTextureFormat = "rgba8unorm";
 
     if (!this.gpuResources || !this.gpuResources.surface) {
       throw new Error("Surface not initialized");
