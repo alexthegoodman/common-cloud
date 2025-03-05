@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 
-export default function Footer({ subset = "" }) {
+export default function Footer({ color = "black", subset = "" }) {
   return (
-    <section className="container mx-auto px-4 py-16">
+    <section className={`container mx-auto px-4 py-16 text-${color}`}>
       <div className="flex flex-row justify-between">
         <div>
           <ul className="flex flex-row gap-5 mb-5">

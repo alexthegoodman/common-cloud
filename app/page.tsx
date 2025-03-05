@@ -21,6 +21,10 @@ const HomePage = () => {
     router.push("/stunts/");
   };
 
+  const clickSecondary = () => {
+    router.push("/midpoint/");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-slate-900">
       {/* Hero Section */}
@@ -31,7 +35,7 @@ const HomePage = () => {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-6xl font-bold mb-6">Common</h1>
+            <h1 className="text-6xl font-bold mb-6 text-white">Common</h1>
           </motion.div>
           <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-green-500 to-yellow-500 text-transparent bg-clip-text">
             Valuable Products for Regular People
@@ -47,6 +51,12 @@ const HomePage = () => {
             >
               Try Stunts <ShieldChevron className="ml-2" />
             </button>
+            <button
+              className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full flex items-center"
+              onClick={clickSecondary}
+            >
+              Try Midpoint <ShieldChevron className="ml-2" />
+            </button>
             <a
               href="https://www.youtube.com/@madebycommon"
               target="_blank"
@@ -57,50 +67,6 @@ const HomePage = () => {
           </div>
         </div>
       </header>
-
-      {/* Features Section */}
-      {/* <section className="container mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="bg-slate-800/50 p-6 rounded-xl">
-            <div className="bg-green-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <MagicWand className="text-green-500" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2 text-white">
-              Smart Path Generation
-            </h3>
-            <p className="text-gray-400">
-              Automatically generate smooth motion paths with our intelligent
-              keyframe system.
-            </p>
-          </div>
-
-          <div className="bg-slate-800/50 p-6 rounded-xl">
-            <div className="bg-green-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <Lightning className="text-green-500" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2 text-white">
-              Lightning Fast
-            </h3>
-            <p className="text-gray-400">
-              Create professional animations in minutes instead of hours with
-              our streamlined workflow.
-            </p>
-          </div>
-
-          <div className="bg-slate-800/50 p-6 rounded-xl">
-            <div className="bg-green-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-              <Video className="text-green-500" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2 text-white">
-              Your Content
-            </h3>
-            <p className="text-gray-400">
-              Import your own media and transform it with our powerful animation
-              tools.
-            </p>
-          </div>
-        </div>
-      </section> */}
 
       {/* Call to Action */}
       <section className="container mx-auto px-4 py-16">
@@ -123,7 +89,7 @@ const HomePage = () => {
 
       {/* Footer */}
 
-      <Footer />
+      <Footer color="white" />
     </div>
   );
 };
