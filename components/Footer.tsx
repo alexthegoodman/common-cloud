@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-export default function Footer() {
+export default function Footer({ subset = "" }) {
   return (
     <section className="container mx-auto px-4 py-16">
       <div className="flex flex-row justify-between">
@@ -21,20 +21,25 @@ export default function Footer() {
               <Link href="/account-deletion/">Account Deletion</Link>
             </li>
           </ul>
-          <ul className="flex flex-row gap-5">
-            <li>
-              <Link href="/stunts/after-effects-alternative/">
-                After Effects Alternative
-              </Link>
-            </li>
-            <li>
-              <Link href="/stunts/canva-alternative/">Canva Alternative</Link>
-            </li>
-            <li>
-              <Link href="/stunts/capcut-alternative/">CapCut Alternative</Link>
-            </li>
-          </ul>
+          {subset === "stunts" && (
+            <ul className="flex flex-row gap-5">
+              <li>
+                <Link href="/stunts/after-effects-alternative/">
+                  After Effects Alternative
+                </Link>
+              </li>
+              <li>
+                <Link href="/stunts/canva-alternative/">Canva Alternative</Link>
+              </li>
+              <li>
+                <Link href="/stunts/capcut-alternative/">
+                  CapCut Alternative
+                </Link>
+              </li>
+            </ul>
+          )}
         </div>
+
         <span>&copy; {new Date().getFullYear()} Common</span>
       </div>
     </section>

@@ -14,7 +14,7 @@ export default function StuntsLayout({ children = null }) {
       <div className="min-h-screen bg-gradient-to-b from-black to-slate-900">
         {children}
 
-        <Footer />
+        <Footer subset="stunts" />
       </div>
     </>
   );
