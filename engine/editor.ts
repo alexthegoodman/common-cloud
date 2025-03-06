@@ -424,6 +424,7 @@ export class Editor {
   handleTextClick: TextItemClickHandler | null;
   handleImageClick: ImageItemClickHandler | null;
   handleVideoClick: VideoItemClickHandler | null;
+  scaleMultiplier: number = 1.0;
 
   // WebGPU resources
   gpuResources: WebGpuResources | null;
@@ -1156,8 +1157,14 @@ export class Editor {
           { x: 0.0, y: 1.0 },
         ],
         // { x: p.dimensions[0], y: p.dimensions[1] },
-        [p.dimensions[0], p.dimensions[1]],
-        { x: p.position.x, y: p.position.y },
+        [
+          p.dimensions[0] * this.scaleMultiplier,
+          p.dimensions[1] * this.scaleMultiplier,
+        ],
+        {
+          x: p.position.x * this.scaleMultiplier,
+          y: p.position.y * this.scaleMultiplier,
+        },
         0.0,
         p.borderRadius,
         // [p.fill[0], p.fill[1], p.fill[2], p.fill[3]],
@@ -1189,8 +1196,8 @@ export class Editor {
     // saved_sequence.activeTextItems.forEach(async (t) => {
     for (let t of saved_sequence.activeTextItems) {
       const position = {
-        x: CANVAS_HORIZ_OFFSET + t.position.x,
-        y: CANVAS_VERT_OFFSET + t.position.y,
+        x: CANVAS_HORIZ_OFFSET + t.position.x * this.scaleMultiplier,
+        y: CANVAS_VERT_OFFSET + t.position.y * this.scaleMultiplier,
       };
 
       let fontData = await this.fontManager.loadFontByName(t.fontFamily);
@@ -1204,7 +1211,10 @@ export class Editor {
         name: t.name,
         text: t.text,
         fontFamily: t.fontFamily,
-        dimensions: [t.dimensions[0], t.dimensions[1]],
+        dimensions: [
+          t.dimensions[0] * this.scaleMultiplier,
+          t.dimensions[1] * this.scaleMultiplier,
+        ],
         position,
         layer: t.layer,
         // color: rgbToWgpu(t.color[0], t.color[1], t.color[2], t.color[3]),
@@ -1250,14 +1260,17 @@ export class Editor {
     // saved_sequence.activeImageItems.forEach((i) => {
     for (let i of saved_sequence.activeImageItems) {
       const position = {
-        x: CANVAS_HORIZ_OFFSET + i.position.x,
-        y: CANVAS_VERT_OFFSET + i.position.y,
+        x: CANVAS_HORIZ_OFFSET + i.position.x * this.scaleMultiplier,
+        y: CANVAS_VERT_OFFSET + i.position.y * this.scaleMultiplier,
       };
 
       const image_config: StImageConfig = {
         id: i.id,
         name: i.name,
-        dimensions: i.dimensions,
+        dimensions: [
+          i.dimensions[0] * this.scaleMultiplier,
+          i.dimensions[1] * this.scaleMultiplier,
+        ],
         url: i.url,
         position,
         layer: i.layer,
@@ -1323,14 +1336,17 @@ export class Editor {
       // }
 
       const position = {
-        x: CANVAS_HORIZ_OFFSET + i.position.x,
-        y: CANVAS_VERT_OFFSET + i.position.y,
+        x: CANVAS_HORIZ_OFFSET + i.position.x * this.scaleMultiplier,
+        y: CANVAS_VERT_OFFSET + i.position.y * this.scaleMultiplier,
       };
 
       const video_config: StVideoConfig = {
         id: i.id,
         name: i.name,
-        dimensions: i.dimensions,
+        dimensions: [
+          i.dimensions[0] * this.scaleMultiplier,
+          i.dimensions[1] * this.scaleMultiplier,
+        ],
         path: i.path,
         position,
         layer: i.layer,
@@ -1391,8 +1407,10 @@ export class Editor {
           throw new Error("Couldn't find polygon");
         }
 
-        polygon.transform.position[0] = p.position.x + CANVAS_HORIZ_OFFSET;
-        polygon.transform.position[1] = p.position.y + CANVAS_VERT_OFFSET;
+        polygon.transform.position[0] =
+          p.position.x + CANVAS_HORIZ_OFFSET * this.scaleMultiplier;
+        polygon.transform.position[1] =
+          p.position.y + CANVAS_VERT_OFFSET * this.scaleMultiplier;
         polygon.transform.rotation = 0.0;
         polygon.transform.updateScale([1.0, 1.0]);
 
@@ -1409,8 +1427,10 @@ export class Editor {
           throw new Error("Couldn't find text");
         }
 
-        text.transform.position[0] = t.position.x + CANVAS_HORIZ_OFFSET;
-        text.transform.position[1] = t.position.y + CANVAS_VERT_OFFSET;
+        text.transform.position[0] =
+          t.position.x + CANVAS_HORIZ_OFFSET * this.scaleMultiplier;
+        text.transform.position[1] =
+          t.position.y + CANVAS_VERT_OFFSET * this.scaleMultiplier;
         text.transform.rotation = 0.0;
 
         text.transform.updateUniformBuffer(
@@ -1438,8 +1458,10 @@ export class Editor {
           throw new Error("Couldn't find image");
         }
 
-        image.transform.position[0] = i.position.x + CANVAS_HORIZ_OFFSET;
-        image.transform.position[1] = i.position.y + CANVAS_VERT_OFFSET;
+        image.transform.position[0] =
+          i.position.x + CANVAS_HORIZ_OFFSET * this.scaleMultiplier;
+        image.transform.position[1] =
+          i.position.y + CANVAS_VERT_OFFSET * this.scaleMultiplier;
         image.transform.rotation = 0.0;
 
         image.transform.updateUniformBuffer(
@@ -1464,8 +1486,10 @@ export class Editor {
         //   camera.windowSize
         // );
 
-        video.groupTransform.position[0] = i.position.x + CANVAS_HORIZ_OFFSET;
-        video.groupTransform.position[1] = i.position.y + CANVAS_VERT_OFFSET;
+        video.groupTransform.position[0] =
+          i.position.x + CANVAS_HORIZ_OFFSET * this.scaleMultiplier;
+        video.groupTransform.position[1] =
+          i.position.y + CANVAS_VERT_OFFSET * this.scaleMultiplier;
         video.groupTransform.rotation = 0.0;
 
         video.groupTransform.updateUniformBuffer(
@@ -2018,8 +2042,8 @@ export class Editor {
       }
 
       let backgroundSize: WindowSize = {
-        width: 800,
-        height: 450,
+        width: 800 * this.scaleMultiplier,
+        height: 450 * this.scaleMultiplier,
       };
 
       this.replace_background(
@@ -2223,7 +2247,10 @@ export class Editor {
             };
 
             // const positionVec: vec2 = vec2.fromValues(position.x, position.y);
-            let positionVec = [position.x, position.y] as [number, number];
+            let positionVec = [
+              position.x * this.scaleMultiplier,
+              position.y * this.scaleMultiplier,
+            ] as [number, number];
             // const windowSizeVec: vec2 = vec2.fromValues(
             //   camera.windowSize.width,
             //   camera.windowSize.height
@@ -2582,14 +2609,19 @@ export class Editor {
                       y: interpolatedY,
                     };
 
+                const scaledCenterPoint = {
+                  x: blendedCenterPoint.x * this.scaleMultiplier,
+                  y: blendedCenterPoint.y * this.scaleMultiplier,
+                };
+
                 // console.info("blendedCenterPoint", blendedCenterPoint);
 
                 videoItem.updateZoom(
                   gpuResources.queue,
                   zoom,
-                  blendedCenterPoint
+                  scaledCenterPoint
                 );
-                videoItem.lastCenterPoint = blendedCenterPoint;
+                videoItem.lastCenterPoint = scaledCenterPoint;
 
                 // this.updateVideoItemPopout(
                 //   videoItem,

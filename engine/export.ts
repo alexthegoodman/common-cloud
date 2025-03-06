@@ -105,8 +105,8 @@ class WebGPUVideoEncoder {
 
     // Initialize encoder with configuration
     let config: VideoEncoderConfig = {
-      codec: "avc1.42001f", // H.264 baseline profile
-      // codec: "avc1.4D0032",
+      // codec: "avc1.42001f", // H.264 baseline profile
+      codec: "avc1.4D0032", // Much heigher resolution support
       width: this.width,
       height: this.height,
       bitrate: 5_000_000, // 5 Mbps
@@ -366,13 +366,20 @@ export class FullExporter {
     ) => void
   ) {
     let windowSize: WindowSize = {
-      width: 800,
-      height: 450,
+      // 1x
+      // width: 800,
+      // height: 450,
+      // 2x
+      width: 1600,
+      height: 900,
     };
 
     this.viewport = new Viewport(windowSize.width, windowSize.height);
 
     this.editor = new Editor(this.viewport);
+
+    this.editor.scaleMultiplier = 2.0; // 2x WindowSize
+
     this.editorState = new EditorState(savedState);
 
     let pipeline = new CanvasPipeline();
@@ -389,8 +396,6 @@ export class FullExporter {
       return;
     }
 
-    this.editor.camera.position = vec2.fromValues(50.0, 50.0);
-
     if (!windowSize?.width || !windowSize?.height) {
       return;
     }
@@ -399,6 +404,13 @@ export class FullExporter {
       console.warn("No gpu resources");
       return;
     }
+
+    // this.editor.camera.position = vec2.fromValues(100.0, 100.0);
+    // // this.editor.camera.zoom = 2.0;
+    // this.editor.cameraBinding?.update(
+    //   this.editor.gpuResources?.queue,
+    //   this.editor.camera
+    // );
 
     let targetFrameRate = 60;
 
