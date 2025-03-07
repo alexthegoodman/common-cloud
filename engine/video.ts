@@ -191,6 +191,8 @@ export class StVideo {
     currentSequenceId: string,
     loadedHidden: boolean
   ) {
+    this.dimensions = videoConfig.dimensions;
+
     const identityMatrix = mat4.create();
     let uniformBuffer = device.createBuffer({
       size: 64,
@@ -297,28 +299,32 @@ export class StVideo {
         label: "Video Bind Group",
       });
 
+      // // 20x20 grid
       const rows = this.gridResolution[0];
       const cols = this.gridResolution[1];
 
-      // Calculate cover texture coordinates once
+      // Calculate cover texture coordinates
       const { u0, u1, v0, v1 } = this.calculateCoverTextureCoordinates(
         this.dimensions[0],
         this.dimensions[1],
-        this.sourceDimensions[0], // You'll need to have these values available
-        this.sourceDimensions[1] // from your video source
+        this.sourceDimensions[0],
+        this.sourceDimensions[1]
       );
 
       this.vertices = [];
       for (let y = 0; y <= rows; y++) {
         for (let x = 0; x <= cols; x++) {
+          // Keep your original position calculation
           const posX = -0.5 + x / cols;
           const posY = -0.5 + y / rows;
 
-          // Map texture coordinates to the cover calculation
-          // Instead of using x/cols directly, interpolate between u0 and u1
-          const texX = u0 + (u1 - u0) * (x / cols);
-          // Instead of using y/rows directly, interpolate between v0 and v1
-          const texY = v0 + (v1 - v0) * (y / rows);
+          // Map texture coordinates to properly implement cover
+          const percentX = x / cols; // 0 to 1 across the grid
+          const percentY = y / rows; // 0 to 1 across the grid
+
+          // Apply the cover bounds to the texture coordinates
+          const texX = u0 + (u1 - u0) * percentX;
+          const texY = v0 + (v1 - v0) * percentY;
 
           const normalizedX =
             (posX - this.transform.position[0]) / this.dimensions[0];
@@ -334,6 +340,34 @@ export class StVideo {
           });
         }
       }
+
+      // this.implementCoverEffect(
+      //   this.sourceDimensions[0],
+      //   this.sourceDimensions[1]
+      // );
+
+      // this.vertices = [];
+      // for (let y = 0; y <= rows; y++) {
+      //   for (let x = 0; x <= cols; x++) {
+      //     const posX = -0.5 + x / cols;
+      //     const posY = -0.5 + y / rows;
+      //     const texX = x / cols;
+      //     const texY = y / rows;
+
+      //     const normalizedX =
+      //       (posX - this.transform.position[0]) / this.dimensions[0];
+      //     const normalizedY =
+      //       (posY - this.transform.position[1]) / this.dimensions[1];
+
+      //     this.vertices.push({
+      //       position: [posX, posY, 0.0],
+      //       tex_coords: [texX, texY],
+      //       color: [1.0, 1.0, 1.0, 1.0],
+      //       gradient_coords: [normalizedX, normalizedY],
+      //       object_type: 3, // OBJECT_TYPE_VIDEO
+      //     });
+      //   }
+      // }
 
       // // console.info("vertices", this.vertices);
 
@@ -389,8 +423,6 @@ export class StVideo {
 
       queue.writeBuffer(this.indexBuffer, 0, this.indices);
 
-      this.dimensions = videoConfig.dimensions;
-
       this.initializeDecoder().then(() => {
         // draw initial preview frame
         this.drawVideoFrame(device, queue).catch(console.error); // Handle potential errors
@@ -403,12 +435,12 @@ export class StVideo {
   calculateCoverTextureCoordinates(
     containerWidth: number,
     containerHeight: number,
-    videoWidth: number,
-    videoHeight: number
+    imageWidth: number,
+    imageHeight: number
   ) {
     // Calculate aspect ratios
     const containerAspect = containerWidth / containerHeight;
-    const videoAspect = videoWidth / videoHeight;
+    const imageAspect = imageWidth / imageHeight;
 
     // Initialize texture coordinate variables
     let u0 = 0,
@@ -417,18 +449,18 @@ export class StVideo {
       v1 = 1;
 
     // If image is wider than container (relative to their heights)
-    if (videoAspect > containerAspect) {
+    if (imageAspect > containerAspect) {
       // We need to crop the sides
-      const scaleFactor = containerAspect / videoAspect;
+      const scaleFactor = containerAspect / imageAspect;
       const cropAmount = (1 - scaleFactor) / 2;
 
       u0 = cropAmount;
       u1 = 1 - cropAmount;
     }
     // If image is taller than container (relative to their widths)
-    else if (videoAspect < containerAspect) {
+    else if (imageAspect < containerAspect) {
       // We need to crop top and bottom
-      const scaleFactor = videoAspect / containerAspect;
+      const scaleFactor = imageAspect / containerAspect;
       const cropAmount = (1 - scaleFactor) / 2;
 
       v0 = cropAmount;
@@ -437,6 +469,66 @@ export class StVideo {
 
     return { u0, u1, v0, v1 };
   }
+
+  // implementCoverEffect(videoWidth: number, videoHeight: number) {
+  //   const rows = this.gridResolution[0];
+  //   const cols = this.gridResolution[1];
+
+  //   // Calculate aspect ratios
+  //   const videoAspect = videoWidth / videoHeight;
+  //   const gridAspect = this.dimensions[0] / this.dimensions[1];
+
+  //   // Determine scaling factor to cover the grid
+  //   let scaleX, scaleY;
+  //   if (videoAspect > gridAspect) {
+  //     // Video is wider than grid - scale based on height
+  //     scaleY = 1.0;
+  //     scaleX = videoAspect / gridAspect;
+  //   } else {
+  //     // Video is taller than grid - scale based on width
+  //     scaleX = 1.0;
+  //     scaleY = gridAspect / videoAspect;
+  //   }
+
+  //   console.info(
+  //     "scales",
+  //     scaleX,
+  //     scaleY,
+  //     gridAspect,
+  //     videoAspect,
+  //     this.dimensions[0],
+  //     this.dimensions[1]
+  //   );
+
+  //   this.vertices = [];
+  //   for (let y = 0; y <= rows; y++) {
+  //     for (let x = 0; x <= cols; x++) {
+  //       // Position coordinates remain the same
+  //       const posX = -0.5 + x / cols;
+  //       const posY = -0.5 + y / rows;
+
+  //       // Modified texture coordinates for cover effect
+  //       // Center the texture and apply scaling
+  //       const texX = (x / cols - 0.5) * scaleX + 0.5;
+  //       const texY = (y / rows - 0.5) * scaleY + 0.5;
+
+  //       // console.info("tex coords", texX, texY);
+
+  //       const normalizedX =
+  //         (posX - this.transform.position[0]) / this.dimensions[0];
+  //       const normalizedY =
+  //         (posY - this.transform.position[1]) / this.dimensions[1];
+
+  //       this.vertices.push({
+  //         position: [posX, posY, 0.0],
+  //         tex_coords: [texX, texY],
+  //         color: [1.0, 1.0, 1.0, 1.0],
+  //         gradient_coords: [normalizedX, normalizedY],
+  //         object_type: 3, // OBJECT_TYPE_VIDEO
+  //       });
+  //     }
+  //   }
+  // }
 
   private avcDecoderConfig?: Uint8Array;
 
@@ -848,37 +940,50 @@ export class StVideo {
     bindGroupLayout: GPUBindGroupLayout,
     dimensions: [number, number]
   ): void {
+    console.info("updateDataFromDimensions", dimensions);
     this.dimensions = [dimensions[0], dimensions[1]];
     this.transform.updateScale([dimensions[0], dimensions[1]]);
     this.transform.updateUniformBuffer(queue, windowSize);
 
-    // Calculate the texture coordinates
+    const rows = this.gridResolution[0];
+    const cols = this.gridResolution[1];
+
+    // Calculate cover texture coordinates
     const { u0, u1, v0, v1 } = this.calculateCoverTextureCoordinates(
-      dimensions[0],
-      dimensions[1],
+      this.dimensions[0],
+      this.dimensions[1],
       this.sourceDimensions[0],
       this.sourceDimensions[1]
     );
 
-    this.vertices.forEach((v, i) => {
-      if (i === 0) {
-        v.tex_coords = [u0, v0];
+    let n = 0;
+    for (let y = 0; y <= rows; y++) {
+      for (let x = 0; x <= cols; x++) {
+        // Map texture coordinates to properly implement cover
+        const percentX = x / cols; // 0 to 1 across the grid
+        const percentY = y / rows; // 0 to 1 across the grid
+        // Apply the cover bounds to the texture coordinates
+        const texX = u0 + (u1 - u0) * percentX;
+        const texY = v0 + (v1 - v0) * percentY;
+
+        this.vertices[n].tex_coords = [texX, texY];
+
+        n++;
       }
-      if (i === 1) {
-        v.tex_coords = [u1, v0];
-      }
-      if (i === 2) {
-        v.tex_coords = [u1, v1];
-      }
-      if (i === 3) {
-        v.tex_coords = [u0, v1];
-      }
-    });
+    }
 
     queue.writeBuffer(
       this.vertexBuffer,
       0,
-      new Float32Array(this.vertices.flat() as unknown as ArrayBuffer)
+      new Float32Array(
+        this.vertices.flatMap((v) => [
+          ...v.position,
+          ...v.tex_coords,
+          ...v.color,
+          ...v.gradient_coords,
+          v.object_type,
+        ])
+      )
     );
   }
 
