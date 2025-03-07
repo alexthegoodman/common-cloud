@@ -300,13 +300,25 @@ export class StVideo {
       const rows = this.gridResolution[0];
       const cols = this.gridResolution[1];
 
+      // Calculate cover texture coordinates once
+      const { u0, u1, v0, v1 } = this.calculateCoverTextureCoordinates(
+        this.dimensions[0],
+        this.dimensions[1],
+        this.sourceDimensions[0], // You'll need to have these values available
+        this.sourceDimensions[1] // from your video source
+      );
+
       this.vertices = [];
       for (let y = 0; y <= rows; y++) {
         for (let x = 0; x <= cols; x++) {
           const posX = -0.5 + x / cols;
           const posY = -0.5 + y / rows;
-          const texX = x / cols;
-          const texY = y / rows;
+
+          // Map texture coordinates to the cover calculation
+          // Instead of using x/cols directly, interpolate between u0 and u1
+          const texX = u0 + (u1 - u0) * (x / cols);
+          // Instead of using y/rows directly, interpolate between v0 and v1
+          const texY = v0 + (v1 - v0) * (y / rows);
 
           const normalizedX =
             (posX - this.transform.position[0]) / this.dimensions[0];
@@ -386,6 +398,44 @@ export class StVideo {
 
       this.hidden = loadedHidden;
     }
+  }
+
+  calculateCoverTextureCoordinates(
+    containerWidth: number,
+    containerHeight: number,
+    videoWidth: number,
+    videoHeight: number
+  ) {
+    // Calculate aspect ratios
+    const containerAspect = containerWidth / containerHeight;
+    const videoAspect = videoWidth / videoHeight;
+
+    // Initialize texture coordinate variables
+    let u0 = 0,
+      u1 = 1,
+      v0 = 0,
+      v1 = 1;
+
+    // If image is wider than container (relative to their heights)
+    if (videoAspect > containerAspect) {
+      // We need to crop the sides
+      const scaleFactor = containerAspect / videoAspect;
+      const cropAmount = (1 - scaleFactor) / 2;
+
+      u0 = cropAmount;
+      u1 = 1 - cropAmount;
+    }
+    // If image is taller than container (relative to their widths)
+    else if (videoAspect < containerAspect) {
+      // We need to crop top and bottom
+      const scaleFactor = videoAspect / containerAspect;
+      const cropAmount = (1 - scaleFactor) / 2;
+
+      v0 = cropAmount;
+      v1 = 1 - cropAmount;
+    }
+
+    return { u0, u1, v0, v1 };
   }
 
   private avcDecoderConfig?: Uint8Array;
@@ -798,10 +848,38 @@ export class StVideo {
     bindGroupLayout: GPUBindGroupLayout,
     dimensions: [number, number]
   ): void {
-    console.info("updateDataFromDimensions", dimensions);
     this.dimensions = [dimensions[0], dimensions[1]];
     this.transform.updateScale([dimensions[0], dimensions[1]]);
     this.transform.updateUniformBuffer(queue, windowSize);
+
+    // Calculate the texture coordinates
+    const { u0, u1, v0, v1 } = this.calculateCoverTextureCoordinates(
+      dimensions[0],
+      dimensions[1],
+      this.sourceDimensions[0],
+      this.sourceDimensions[1]
+    );
+
+    this.vertices.forEach((v, i) => {
+      if (i === 0) {
+        v.tex_coords = [u0, v0];
+      }
+      if (i === 1) {
+        v.tex_coords = [u1, v0];
+      }
+      if (i === 2) {
+        v.tex_coords = [u1, v1];
+      }
+      if (i === 3) {
+        v.tex_coords = [u0, v1];
+      }
+    });
+
+    queue.writeBuffer(
+      this.vertexBuffer,
+      0,
+      new Float32Array(this.vertices.flat() as unknown as ArrayBuffer)
+    );
   }
 
   updateLayer(layerIndex: number): void {
