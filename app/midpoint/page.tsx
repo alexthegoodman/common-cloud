@@ -50,6 +50,16 @@ git clone https://github.com/alexthegoodman/midpoint-editor.git
 cd midpoint-editor
 cargo run --release`}
           </pre>
+          <div className="leading-8 mb-8">
+            <p>For generative assets, it is recommended to explore:</p>
+            <ul>
+              <li>Sound Effects: https://elevenlabs.io/sound-effects</li>
+              <li>Local 3D: https://github.com/Tencent/Hunyuan3D-2</li>
+              <li>Local 3D: https://github.com/Stability-AI/stable-fast-3d</li>
+              <li>Cloud 3D: https://replicate.com/firtoz/trellis</li>
+              <li>Cloud Images: https://replicate.com/google/imagen-3-fast</li>
+            </ul>
+          </div>
           <div className="flex justify-center gap-4">
             <a
               className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full flex items-center"
