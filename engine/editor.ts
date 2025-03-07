@@ -2571,13 +2571,15 @@ export class Editor {
                 // );
 
                 const interpolatedX =
-                  videoItem.lastStartPoint[0] +
-                  (videoItem.lastEndPoint[0] - videoItem.lastStartPoint[0]) *
-                    timeProgress;
+                  (videoItem.lastStartPoint[0] +
+                    (videoItem.lastEndPoint[0] - videoItem.lastStartPoint[0]) *
+                      timeProgress) *
+                  this.scaleMultiplier;
                 const interpolatedY =
-                  videoItem.lastStartPoint[1] +
-                  (videoItem.lastEndPoint[1] - videoItem.lastStartPoint[1]) *
-                    timeProgress;
+                  (videoItem.lastStartPoint[1] +
+                    (videoItem.lastEndPoint[1] - videoItem.lastStartPoint[1]) *
+                      timeProgress) *
+                  this.scaleMultiplier;
 
                 // console.info("interpolated", interpolatedX, interpolatedY);
 
@@ -2609,19 +2611,19 @@ export class Editor {
                       y: interpolatedY,
                     };
 
-                const scaledCenterPoint = {
-                  x: blendedCenterPoint.x * this.scaleMultiplier,
-                  y: blendedCenterPoint.y * this.scaleMultiplier,
-                };
+                // const scaledCenterPoint = {
+                //   x: blendedCenterPoint.x * this.scaleMultiplier,
+                //   y: blendedCenterPoint.y * this.scaleMultiplier,
+                // };
 
                 // console.info("blendedCenterPoint", blendedCenterPoint);
 
                 videoItem.updateZoom(
                   gpuResources.queue,
                   zoom,
-                  scaledCenterPoint
+                  blendedCenterPoint
                 );
-                videoItem.lastCenterPoint = scaledCenterPoint;
+                videoItem.lastCenterPoint = blendedCenterPoint;
 
                 // this.updateVideoItemPopout(
                 //   videoItem,
