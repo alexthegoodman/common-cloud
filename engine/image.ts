@@ -45,6 +45,7 @@ export class StImage {
   indexBuffer!: GPUBuffer;
   dimensions: [number, number];
   bindGroup!: GPUBindGroup;
+  originalDimensions: [number, number] = [0, 0];
   vertices: Vertex[];
   indices: number[];
   hidden: boolean;
@@ -123,7 +124,13 @@ export class StImage {
 
     const imageBitmap = await createImageBitmap(blob);
 
-    const originalDimensions = [imageBitmap.width, imageBitmap.height];
+    const originalDimensions = [imageBitmap.width, imageBitmap.height] as [
+      number,
+      number
+    ];
+
+    this.originalDimensions = originalDimensions;
+
     const dimensions = imageConfig.dimensions;
 
     console.info("imgBitmap", originalDimensions);
@@ -494,6 +501,37 @@ export class StImage {
     this.dimensions = [dimensions[0], dimensions[1]];
     this.transform.updateScale([dimensions[0], dimensions[1]]);
     this.transform.updateUniformBuffer(queue, windowSize);
+
+    if (!this.isCircle) {
+      // Calculate the texture coordinates
+      const { u0, u1, v0, v1 } = this.calculateCoverTextureCoordinates(
+        dimensions[0],
+        dimensions[1],
+        this.originalDimensions[0],
+        this.originalDimensions[1]
+      );
+
+      this.vertices.forEach((v, i) => {
+        if (i === 0) {
+          v.tex_coords = [u0, v0];
+        }
+        if (i === 1) {
+          v.tex_coords = [u1, v0];
+        }
+        if (i === 2) {
+          v.tex_coords = [u1, v1];
+        }
+        if (i === 3) {
+          v.tex_coords = [u0, v1];
+        }
+      });
+
+      queue.writeBuffer(
+        this.vertexBuffer,
+        0,
+        new Float32Array(this.vertices.flat() as unknown as ArrayBuffer)
+      );
+    }
   }
 
   updateLayer(layerIndex: number): void {
