@@ -91,7 +91,7 @@
 //   );
 // };
 
-import React from "react";
+import React, { useState } from "react";
 import {
   DndContext,
   useDraggable,
@@ -119,6 +119,8 @@ interface SequenceProps {
   animation: AnimationData;
   pixelsPerMs: number;
   sequenceColor: string;
+  localLeft: number;
+  localWidth: number;
 }
 
 // Draggable Sequence Component
@@ -126,15 +128,14 @@ const DraggableSequence: React.FC<SequenceProps> = ({
   animation,
   pixelsPerMs,
   sequenceColor,
+  localLeft,
+  localWidth,
 }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id: animation.id,
       data: animation,
     });
-
-  const left = animation.startTimeMs * pixelsPerMs;
-  const width = animation.duration * pixelsPerMs;
 
   return (
     <div
@@ -144,8 +145,8 @@ const DraggableSequence: React.FC<SequenceProps> = ({
         flex items-center px-2 select-none ${isDragging ? "opacity-50" : ""}`}
       style={{
         transform: CSS.Translate.toString(transform),
-        left: `${left}px`,
-        width: `${width}px`,
+        left: `${localLeft}px`,
+        width: `${localWidth}px`,
       }}
       {...listeners}
       {...attributes}
@@ -162,6 +163,14 @@ export const ObjectTrack: React.FC<TrackProps> = ({
   onSequenceDragEnd,
 }) => {
   const pixelsPerMs = pixelsPerSecond / 1000;
+
+  const [localLeft, setLocalLeft] = useState(
+    objectData.startTimeMs * pixelsPerMs
+  );
+  const [localWidth, setLocalWidth] = useState(
+    objectData.duration * pixelsPerMs
+  );
+
   const trackColor = type === TrackType.Audio ? "bg-blue-300" : "bg-orange-200";
   const sequenceColor =
     type === TrackType.Audio ? "bg-red-400" : "bg-green-400";
@@ -177,14 +186,10 @@ export const ObjectTrack: React.FC<TrackProps> = ({
   );
 
   // Handle drag start
-  const handleDragStart = (event: DragStartEvent) => {
-    console.info("handleDragStart");
-    // You can add any additional drag start logic here
-  };
+  const handleDragStart = (event: DragStartEvent) => {};
 
   // Handle drag end
   const handleDragEnd = (event: DragEndEvent) => {
-    console.info("handleDragEnd");
     const { active, delta, over } = event;
 
     if (active) {
@@ -194,6 +199,7 @@ export const ObjectTrack: React.FC<TrackProps> = ({
       const deltaXInMs = Math.round(delta.x / pixelsPerMs);
       const newStartTimeMs = Math.max(0, animation.startTimeMs + deltaXInMs);
 
+      setLocalLeft(newStartTimeMs * pixelsPerMs);
       onSequenceDragEnd(animation, newStartTimeMs);
     }
   };
@@ -216,6 +222,8 @@ export const ObjectTrack: React.FC<TrackProps> = ({
               animation={objectData}
               pixelsPerMs={pixelsPerMs}
               sequenceColor={sequenceColor}
+              localLeft={localLeft}
+              localWidth={localWidth}
             />
           )}
         </div>

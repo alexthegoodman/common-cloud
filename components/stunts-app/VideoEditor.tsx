@@ -929,7 +929,26 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     animation: AnimationData,
     newStartTimeMs: number
   ) => {
+    let editor = editorRef.current;
+    let editor_state = editorStateRef.current;
+
+    if (!editor || !editor_state) {
+      return;
+    }
+
+    editor_state.savedState.sequences.forEach((s) => {
+      if (s.id === current_sequence_id) {
+        s.polygonMotionPaths?.forEach((pm) => {
+          if (pm.id === animation.id) {
+            pm.startTimeMs = newStartTimeMs;
+          }
+        });
+      }
+    });
+
     console.info("animation updated", animation, newStartTimeMs);
+
+    saveSequencesData(editor_state.savedState.sequences, SaveTarget.Videos);
   };
 
   let [background_red, set_background_red] = useState(0);
