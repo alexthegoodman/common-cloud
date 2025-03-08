@@ -556,11 +556,13 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
         <div
           style={{
             position: "absolute",
-            top: `${Math.min(y1, y2)}px`,
+            top: `${Math.min(y1, y2) - 8}px`,
             left: `${Math.min(adjustedX1, adjustedX2)}px`,
             width: `${Math.abs(adjustedX2 - adjustedX1 + propertyWidth)}px`,
-            height: "2px",
-            backgroundColor: "darkgray",
+            height: "15px",
+            padding: "8px 0",
+            // backgroundColor: "darkgray",
+            // borderBottom: "1px solid darkgray inset",
           }}
           onMouseMove={(e) => {
             setLineHoverPosition(e.clientX);
@@ -568,7 +570,9 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
           onMouseLeave={() => {
             setLineHoverPosition(0);
           }}
-        />
+        >
+          <div className="w-full bg-gray-400 h-[1px]"></div>
+        </div>
         {lineHoverPosition && (
           <div
             style={{
