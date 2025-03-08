@@ -962,344 +962,359 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
   return (
     <div className="flex flex-row w-full">
-      {section === "SequenceList" ? (
-        <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-          <div className="flex flex-col w-full">
-            <ExportVideoButton
-              editorRef={editorRef}
-              editorStateRef={editorStateRef}
-            />
-            <div className="flex flex-row justify-between align-center w-full mt-2">
-              <h5>Sequences</h5>
-              <button
-                className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-                disabled={loading}
-                onClick={on_create_sequence}
-              >
-                New Sequence
-              </button>
-            </div>
-            <div className="flex flex-col w-full mt-2">
-              {(sequences as Sequence[]).map((sequence: Sequence) => (
-                <div className="flex flex-row" key={sequence.id}>
+      <div className="relative w-[315px]">
+        <div className="fixed top-4 left-[100px] w-[315px]">
+          {section === "SequenceList" ? (
+            <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+              <div className="flex flex-col w-full">
+                <ExportVideoButton
+                  editorRef={editorRef}
+                  editorStateRef={editorStateRef}
+                />
+                <div className="flex flex-row justify-between align-center w-full mt-2">
+                  <h5>Sequences</h5>
                   <button
-                    className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
+                    className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
                     disabled={loading}
-                    onClick={() => on_open_sequence(sequence.id)}
+                    onClick={on_create_sequence}
                   >
-                    Open {sequence.name}
+                    New Sequence
                   </button>
-                  {/* <button
+                </div>
+                <div className="flex flex-col w-full mt-2">
+                  {(sequences as Sequence[]).map((sequence: Sequence) => (
+                    <div className="flex flex-row" key={sequence.id}>
+                      <button
+                        className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
+                        disabled={loading}
+                        onClick={() => on_open_sequence(sequence.id)}
+                      >
+                        Open {sequence.name}
+                      </button>
+                      {/* <button
                         className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
                         disabled={loading}
                         onClick={() => {}}
                       >
                         Duplicate
                       </button> */}
-                  <button
-                    className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
-                    disabled={loading}
-                    onClick={async () => {
-                      let editor_state = editorStateRef.current;
+                      <button
+                        className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
+                        disabled={loading}
+                        onClick={async () => {
+                          let editor_state = editorStateRef.current;
 
-                      if (
-                        !editor_state ||
-                        !editor_state.savedState.timeline_state
-                      ) {
-                        return;
-                      }
+                          if (
+                            !editor_state ||
+                            !editor_state.savedState.timeline_state
+                          ) {
+                            return;
+                          }
 
-                      let existing_timeline =
-                        editor_state.savedState.timeline_state
-                          .timeline_sequences;
+                          let existing_timeline =
+                            editor_state.savedState.timeline_state
+                              .timeline_sequences;
 
-                      // Find the sequence that ends at the latest point in time
-                      let startTime = 0;
-                      if (existing_timeline.length > 0) {
-                        let test = existing_timeline.map((seq) => {
-                          let duration_ms = sequenceDurations[seq.sequenceId];
-                          return seq.startTimeMs + duration_ms;
-                        });
+                          // Find the sequence that ends at the latest point in time
+                          let startTime = 0;
+                          if (existing_timeline.length > 0) {
+                            let test = existing_timeline.map((seq) => {
+                              let duration_ms =
+                                sequenceDurations[seq.sequenceId];
+                              return seq.startTimeMs + duration_ms;
+                            });
 
-                        startTime = Math.max(...test);
-                      }
+                            startTime = Math.max(...test);
+                          }
 
-                      existing_timeline.push({
-                        id: uuidv4(),
-                        sequenceId: sequence.id,
-                        trackType: TrackType.Video,
-                        startTimeMs: startTime,
-                        // duration_ms: 20000,
-                      });
+                          existing_timeline.push({
+                            id: uuidv4(),
+                            sequenceId: sequence.id,
+                            trackType: TrackType.Video,
+                            startTimeMs: startTime,
+                            // duration_ms: 20000,
+                          });
 
-                      await saveTimelineData(
-                        editor_state.savedState.timeline_state
-                      );
+                          await saveTimelineData(
+                            editor_state.savedState.timeline_state
+                          );
 
-                      setTSequences(
-                        editor_state.savedState.timeline_state
-                          .timeline_sequences
-                      );
+                          setTSequences(
+                            editor_state.savedState.timeline_state
+                              .timeline_sequences
+                          );
 
-                      console.info("Sequence added!");
-                    }}
-                  >
-                    Add to Timeline
-                  </button>
+                          console.info("Sequence added!");
+                        }}
+                      >
+                        Add to Timeline
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-        </div>
-      ) : (
-        <></>
-      )}
-      {section === "SequenceView" && current_sequence_id ? (
-        <div className="flex flex-col gap-4 w-full max-w-[315px]">
-          {selected_keyframes && selected_keyframes?.length > 0 ? (
-            <>
-              <KeyframeProperties
-                key={"props" + selected_keyframes[0]}
-                editorRef={editorRef}
-                editorStateRef={editorStateRef}
-                currentSequenceId={current_sequence_id}
-                selectedKeyframe={selected_keyframes[0]}
-                setRefreshTimeline={setRefreshTimeline}
-                handleGoBack={() => {
-                  set_selected_keyframes(null);
-                }}
-              />
-            </>
           ) : (
-            <>
-              {selected_polygon_id && (
-                <PolygonProperties
-                  key={"props" + selected_polygon_id}
-                  editorRef={editorRef}
-                  editorStateRef={editorStateRef}
-                  currentSequenceId={current_sequence_id}
-                  currentPolygonId={selected_polygon_id}
-                  handleGoBack={() => {
-                    set_selected_polygon_id(null);
-                  }}
-                />
-              )}
-
-              {selected_image_id && (
+            <></>
+          )}
+          {section === "SequenceView" && current_sequence_id ? (
+            <div className="flex flex-col gap-4 w-full max-w-[315px]">
+              {selected_keyframes && selected_keyframes?.length > 0 ? (
                 <>
-                  <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                    <ImageProperties
-                      key={"props" + selected_image_id}
+                  <KeyframeProperties
+                    key={"props" + selected_keyframes[0]}
+                    editorRef={editorRef}
+                    editorStateRef={editorStateRef}
+                    currentSequenceId={current_sequence_id}
+                    selectedKeyframe={selected_keyframes[0]}
+                    setRefreshTimeline={setRefreshTimeline}
+                    handleGoBack={() => {
+                      set_selected_keyframes(null);
+                    }}
+                  />
+                </>
+              ) : (
+                <>
+                  {selected_polygon_id && (
+                    <PolygonProperties
+                      key={"props" + selected_polygon_id}
                       editorRef={editorRef}
                       editorStateRef={editorStateRef}
                       currentSequenceId={current_sequence_id}
-                      currentImageId={selected_image_id}
+                      currentPolygonId={selected_polygon_id}
                       handleGoBack={() => {
-                        set_selected_image_id(null);
+                        set_selected_polygon_id(null);
                       }}
                     />
-                  </div>
-                </>
-              )}
+                  )}
 
-              {selected_text_id && (
-                <>
-                  <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                    <TextProperties
-                      key={"props" + selected_text_id}
-                      editorRef={editorRef}
-                      editorStateRef={editorStateRef}
-                      currentSequenceId={current_sequence_id}
-                      currentTextId={selected_text_id}
-                      handleGoBack={() => {
-                        set_selected_text_id(null);
-                      }}
-                    />
-                  </div>
-                </>
-              )}
-
-              {selected_video_id && (
-                <>
-                  <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                    <VideoProperties
-                      key={"props" + selected_video_id}
-                      editorRef={editorRef}
-                      editorStateRef={editorStateRef}
-                      currentSequenceId={current_sequence_id}
-                      currentVideoId={selected_video_id}
-                      handleGoBack={() => {
-                        set_selected_video_id(null);
-                      }}
-                    />
-                  </div>
-                </>
-              )}
-
-              {!selected_polygon_id &&
-                !selected_image_id &&
-                !selected_text_id &&
-                !selected_video_id && (
-                  <>
-                    <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                      <div className="flex flex-col w-full gap-4 mb-4">
-                        <div className="flex flex-row items-center">
-                          <button
-                            className="flex flex-col justify-center items-center text-xs w-[35px] h-[35px] text-center rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors mr-2"
-                            disabled={loading}
-                            onClick={() => {
-                              let editor = editorRef.current;
-
-                              if (!editor) {
-                                return;
-                              }
-
-                              editor.clearCanvas();
-
-                              set_current_sequence_id(null);
-                              set_section("SequenceList");
-                            }}
-                          >
-                            <CreateIcon icon="arrow-left" size="24px" />
-                          </button>
-                          <h5>Update Sequence</h5>
-                        </div>
-                        <div className="flex flex-row gap-2">
-                          <label htmlFor="keyframe_count" className="text-xs">
-                            Choose keyframe count
-                          </label>
-                          <select
-                            id="keyframe_count"
-                            name="keyframe_count"
-                            className="text-xs"
-                            value={keyframe_count}
-                            onChange={(ev) =>
-                              set_keyframe_count(parseInt(ev.target.value))
-                            }
-                          >
-                            <option value="4">4</option>
-                            <option value="6">6</option>
-                          </select>
-                          <input
-                            type="checkbox"
-                            id="is_curved"
-                            name="is_curved"
-                            checked={is_curved}
-                            onChange={(ev) => set_is_curved(ev.target.checked)}
-                          />
-                          <label htmlFor="is_curved" className="text-xs">
-                            Is Curved
-                          </label>
-                        </div>
-                        <div className="flex flex-row gap-2">
-                          <input
-                            type="checkbox"
-                            id="auto_choreograph"
-                            name="auto_choreograph"
-                            checked={auto_choreograph}
-                            onChange={(ev) =>
-                              set_auto_choreograph(ev.target.checked)
-                            }
-                          />
-                          <label htmlFor="auto_choreograph" className="text-xs">
-                            Auto-Choreograph
-                          </label>
-                          <input
-                            type="checkbox"
-                            id="auto_fade"
-                            name="auto_fade"
-                            checked={auto_fade}
-                            onChange={(ev) => set_auto_fade(ev.target.checked)}
-                          />
-                          <label htmlFor="auto_fade" className="text-xs">
-                            Auto-Fade
-                          </label>
-                        </div>
-                        <button
-                          type="submit"
-                          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                          disabled={loading}
-                          onClick={() => {
-                            on_generate_animation();
+                  {selected_image_id && (
+                    <>
+                      <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                        <ImageProperties
+                          key={"props" + selected_image_id}
+                          editorRef={editorRef}
+                          editorStateRef={editorStateRef}
+                          currentSequenceId={current_sequence_id}
+                          currentImageId={selected_image_id}
+                          handleGoBack={() => {
+                            set_selected_image_id(null);
                           }}
-                        >
-                          {loading ? "Generating..." : "Generate Animation"}
-                        </button>
-
-                        <ToolGrid
-                          editorRef={editorRef}
-                          editorStateRef={editorStateRef}
-                          webCaptureRef={webCaptureRef}
-                          currentSequenceId={current_sequence_id}
-                          set_sequences={set_sequences}
-                          options={[
-                            "square",
-                            "text",
-                            "image",
-                            "video",
-                            "capture",
-                            "imageGeneration",
-                          ]}
-                          layers={layers}
-                          setLayers={set_layers}
                         />
+                      </div>
+                    </>
+                  )}
 
-                        <ThemePicker
+                  {selected_text_id && (
+                    <>
+                      <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                        <TextProperties
+                          key={"props" + selected_text_id}
                           editorRef={editorRef}
                           editorStateRef={editorStateRef}
                           currentSequenceId={current_sequence_id}
-                          saveTarget={SaveTarget.Videos}
+                          currentTextId={selected_text_id}
+                          handleGoBack={() => {
+                            set_selected_text_id(null);
+                          }}
                         />
+                      </div>
+                    </>
+                  )}
 
-                        <label className="text-sm">Background Color</label>
-                        <div className="flex flex-row gap-2 mb-4">
-                          <DebouncedInput
-                            id="background_red"
-                            label="Red"
-                            placeholder="Red"
-                            initialValue={background_red.toString()}
-                            onDebounce={(value) => {
-                              set_background_red(parseInt(value));
-                            }}
-                          />
-                          <DebouncedInput
-                            id="background_green"
-                            label="Green"
-                            placeholder="Green"
-                            initialValue={background_green.toString()}
-                            onDebounce={(value) => {
-                              set_background_green(parseInt(value));
-                            }}
-                          />
-                          <DebouncedInput
-                            id="background_blue"
-                            label="Blue"
-                            placeholder="Blue"
-                            initialValue={background_blue.toString()}
-                            onDebounce={(value) => {
-                              set_background_blue(parseInt(value));
-                            }}
+                  {selected_video_id && (
+                    <>
+                      <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                        <VideoProperties
+                          key={"props" + selected_video_id}
+                          editorRef={editorRef}
+                          editorStateRef={editorStateRef}
+                          currentSequenceId={current_sequence_id}
+                          currentVideoId={selected_video_id}
+                          handleGoBack={() => {
+                            set_selected_video_id(null);
+                          }}
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {!selected_polygon_id &&
+                    !selected_image_id &&
+                    !selected_text_id &&
+                    !selected_video_id && (
+                      <>
+                        <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                          <div className="flex flex-col w-full gap-4 mb-4">
+                            <div className="flex flex-row items-center">
+                              <button
+                                className="flex flex-col justify-center items-center text-xs w-[35px] h-[35px] text-center rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors mr-2"
+                                disabled={loading}
+                                onClick={() => {
+                                  let editor = editorRef.current;
+
+                                  if (!editor) {
+                                    return;
+                                  }
+
+                                  editor.clearCanvas();
+
+                                  set_current_sequence_id(null);
+                                  set_section("SequenceList");
+                                }}
+                              >
+                                <CreateIcon icon="arrow-left" size="24px" />
+                              </button>
+                              <h5>Update Sequence</h5>
+                            </div>
+                            <div className="flex flex-row gap-2">
+                              <label
+                                htmlFor="keyframe_count"
+                                className="text-xs"
+                              >
+                                Choose keyframe count
+                              </label>
+                              <select
+                                id="keyframe_count"
+                                name="keyframe_count"
+                                className="text-xs"
+                                value={keyframe_count}
+                                onChange={(ev) =>
+                                  set_keyframe_count(parseInt(ev.target.value))
+                                }
+                              >
+                                <option value="4">4</option>
+                                <option value="6">6</option>
+                              </select>
+                              <input
+                                type="checkbox"
+                                id="is_curved"
+                                name="is_curved"
+                                checked={is_curved}
+                                onChange={(ev) =>
+                                  set_is_curved(ev.target.checked)
+                                }
+                              />
+                              <label htmlFor="is_curved" className="text-xs">
+                                Is Curved
+                              </label>
+                            </div>
+                            <div className="flex flex-row gap-2">
+                              <input
+                                type="checkbox"
+                                id="auto_choreograph"
+                                name="auto_choreograph"
+                                checked={auto_choreograph}
+                                onChange={(ev) =>
+                                  set_auto_choreograph(ev.target.checked)
+                                }
+                              />
+                              <label
+                                htmlFor="auto_choreograph"
+                                className="text-xs"
+                              >
+                                Auto-Choreograph
+                              </label>
+                              <input
+                                type="checkbox"
+                                id="auto_fade"
+                                name="auto_fade"
+                                checked={auto_fade}
+                                onChange={(ev) =>
+                                  set_auto_fade(ev.target.checked)
+                                }
+                              />
+                              <label htmlFor="auto_fade" className="text-xs">
+                                Auto-Fade
+                              </label>
+                            </div>
+                            <button
+                              type="submit"
+                              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={loading}
+                              onClick={() => {
+                                on_generate_animation();
+                              }}
+                            >
+                              {loading ? "Generating..." : "Generate Animation"}
+                            </button>
+
+                            <ToolGrid
+                              editorRef={editorRef}
+                              editorStateRef={editorStateRef}
+                              webCaptureRef={webCaptureRef}
+                              currentSequenceId={current_sequence_id}
+                              set_sequences={set_sequences}
+                              options={[
+                                "square",
+                                "text",
+                                "image",
+                                "video",
+                                "capture",
+                                "imageGeneration",
+                              ]}
+                              layers={layers}
+                              setLayers={set_layers}
+                            />
+
+                            <ThemePicker
+                              editorRef={editorRef}
+                              editorStateRef={editorStateRef}
+                              currentSequenceId={current_sequence_id}
+                              saveTarget={SaveTarget.Videos}
+                            />
+
+                            <label className="text-sm">Background Color</label>
+                            <div className="flex flex-row gap-2 mb-4">
+                              <DebouncedInput
+                                id="background_red"
+                                label="Red"
+                                placeholder="Red"
+                                initialValue={background_red.toString()}
+                                onDebounce={(value) => {
+                                  set_background_red(parseInt(value));
+                                }}
+                              />
+                              <DebouncedInput
+                                id="background_green"
+                                label="Green"
+                                placeholder="Green"
+                                initialValue={background_green.toString()}
+                                onDebounce={(value) => {
+                                  set_background_green(parseInt(value));
+                                }}
+                              />
+                              <DebouncedInput
+                                id="background_blue"
+                                label="Blue"
+                                placeholder="Blue"
+                                initialValue={background_blue.toString()}
+                                onDebounce={(value) => {
+                                  set_background_blue(parseInt(value));
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                          <LayerPanel
+                            editorRef={editorRef}
+                            editorStateRef={editorStateRef}
+                            currentSequenceId={current_sequence_id}
+                            layers={layers}
+                            setLayers={set_layers}
                           />
                         </div>
-                      </div>
-                    </div>
-                    <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                      <LayerPanel
-                        editorRef={editorRef}
-                        editorStateRef={editorStateRef}
-                        currentSequenceId={current_sequence_id}
-                        layers={layers}
-                        setLayers={set_layers}
-                      />
-                    </div>
-                  </>
-                )}
-            </>
+                      </>
+                    )}
+                </>
+              )}
+            </div>
+          ) : (
+            <></>
           )}
         </div>
-      ) : (
-        <></>
-      )}
+      </div>
       <div className="flex flex-col justify-start items-center w-[calc(100vw-420px)] gap-2">
         <canvas
           id="scene-canvas"
