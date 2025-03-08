@@ -222,7 +222,7 @@ export class MotionPath {
             // gradientBindGroupLayout,
             camera,
             pathEnd,
-            15.0, // width and height
+            10.0, // width and height
             sequence.id,
             pathFill,
             rotation + arrowOrientationOffset
@@ -426,15 +426,14 @@ function createPathArrow(
     camera,
     [
       // rightside up
+      // { x: 0.0, y: 0.0 },
+      // { x: 0.5, y: 0.6 },
+      // { x: 1.0, y: 0.0 },
+      // { x: 0.5, y: 1.0 },
       { x: 0.0, y: 0.0 },
-      { x: 0.5, y: 0.6 },
       { x: 1.0, y: 0.0 },
       { x: 0.5, y: 1.0 },
-      // upside down
-      // { x: 1.0, y: 1.0 },
-      // { x: 0.5, y: 0.4 },
-      // { x: 0.0, y: 1.0 },
-      // { x: 0.5, y: 0.0 },
+      // { x: 0.0, y: 0.0 },
     ],
     [size, size],
     end,
