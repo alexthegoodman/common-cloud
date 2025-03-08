@@ -11,6 +11,7 @@ import {
 } from "./items";
 import { CreateIcon } from "./icon";
 import {
+  AnimationData,
   BackgroundFill,
   findObjectType,
   GradientStop,
@@ -924,7 +925,12 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     );
   };
 
-  const handleObjectDragEnd = () => {};
+  const handleObjectDragEnd = (
+    animation: AnimationData,
+    newStartTimeMs: number
+  ) => {
+    console.info("animation updated", animation, newStartTimeMs);
+  };
 
   let [background_red, set_background_red] = useState(0);
   let [background_green, set_background_green] = useState(0);
@@ -1295,34 +1301,37 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             editorStateRef={editorStateRef}
           />
         )}
-        {current_sequence_id &&
-          !selected_polygon_id &&
-          !selected_text_id &&
-          !selected_image_id &&
-          !selected_video_id && (
-            <>
-              {sequences
-                .filter((s) => s.id === current_sequence_id)
-                .map((sequence) => {
-                  if (sequence.polygonMotionPaths) {
-                    return (
-                      <>
-                        {sequence.polygonMotionPaths.map((animation) => {
-                          return (
-                            <ObjectTrack
-                              type={TrackType.Video}
-                              objectData={animation}
-                              pixelsPerSecond={25}
-                              onSequenceDragEnd={handleObjectDragEnd}
-                            />
-                          );
-                        })}
-                      </>
-                    );
-                  }
-                })}
-            </>
-          )}
+        <div className="w-full overflow-x-scroll">
+          {current_sequence_id &&
+            !selected_polygon_id &&
+            !selected_text_id &&
+            !selected_image_id &&
+            !selected_video_id && (
+              <>
+                {sequences
+                  .filter((s) => s.id === current_sequence_id)
+                  .map((sequence) => {
+                    if (sequence.polygonMotionPaths) {
+                      return (
+                        <div key={`trackSequence${sequence.id}`}>
+                          {sequence.polygonMotionPaths.map((animation) => {
+                            return (
+                              <ObjectTrack
+                                key={`objectTrack${animation.id}`}
+                                type={TrackType.Video}
+                                objectData={animation}
+                                pixelsPerSecond={15}
+                                onSequenceDragEnd={handleObjectDragEnd}
+                              />
+                            );
+                          })}
+                        </div>
+                      );
+                    }
+                  })}
+              </>
+            )}
+        </div>
         {!current_sequence_id &&
           !selected_polygon_id &&
           !selected_text_id &&

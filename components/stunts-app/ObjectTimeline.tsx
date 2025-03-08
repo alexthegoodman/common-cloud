@@ -1,19 +1,159 @@
+// import {
+//   AnimationData,
+//   TimelineSequence,
+//   TrackType,
+// } from "@/engine/animations";
+// import React, { useState, useCallback } from "react";
+
+// interface TrackProps {
+//   type: TrackType;
+//   objectData: AnimationData;
+//   pixelsPerSecond: number;
+//   onSequenceDragEnd: (animation: AnimationData, newStartTimeMs: number) => void;
+// }
+
+// export const ObjectTrack: React.FC<TrackProps> = ({
+//   type,
+//   objectData,
+//   pixelsPerSecond,
+//   onSequenceDragEnd,
+// }) => {
+//   //   console.info("tSequences", tSequences);
+
+//   const pixelsPerMs = pixelsPerSecond / 1000;
+//   const trackColor = type === TrackType.Audio ? "bg-blue-300" : "bg-orange-200";
+//   const sequenceColor =
+//     type === TrackType.Audio ? "bg-red-400" : "bg-green-400";
+
+//   const handleDragStart = (e: React.DragEvent, animation: AnimationData) => {
+//     console.info("handleDragStart");
+//     e.dataTransfer.setData("text/plain", JSON.stringify(animation));
+//     e.dataTransfer.effectAllowed = "move";
+//   };
+
+//   const handleDragOver = (e: React.DragEvent) => {
+//     console.info("handleDragOver");
+//     e.preventDefault();
+
+//     e.dataTransfer.dropEffect = "move";
+//   };
+
+//   const handleDrop = (e: React.DragEvent) => {
+//     console.info("handleDrop");
+//     e.preventDefault();
+
+//     const animation = JSON.parse(
+//       e.dataTransfer.getData("text/plain")
+//     ) as AnimationData;
+
+//     // Calculate new position based on drop coordinates
+//     const trackRect = (
+//       e.currentTarget as HTMLDivElement
+//     ).getBoundingClientRect();
+//     const newPositionX = e.clientX - trackRect.left;
+//     const newStartTimeMs = Math.max(0, Math.round(newPositionX / pixelsPerMs));
+
+//     onSequenceDragEnd(animation, newStartTimeMs);
+//   };
+
+//   const left = objectData.startTimeMs * pixelsPerMs;
+//   const width = objectData.duration * pixelsPerMs;
+
+//   return (
+//     <div className="relative h-[50px] w-[900px] mb-1">
+//       {/* Track background */}
+//       <div
+//         className={`relative w-[900px] h-[50px] ${trackColor}`}
+//         onDragOver={(e) => handleDragOver(e)}
+//         onDrop={(e) => handleDrop(e)}
+//       />
+
+//       {/* Sequences */}
+//       <div className="relative w-full h-full p-1 top-[-50px] z-10">
+//         {objectData && (
+//           <div
+//             key={objectData.id}
+//             draggable
+//             onDragStart={(e) => handleDragStart(e, objectData)}
+//             className={`relative h-10 rounded cursor-pointer ${sequenceColor}
+//            hover:shadow-lg transition-shadow duration-200
+//            flex items-center px-2 select-none`}
+//             style={{
+//               left: `${left}px`,
+//               width: `${width}px`,
+//             }}
+//           >
+//             {objectData.id}
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// };
+
+import React from "react";
 import {
-  AnimationData,
-  TimelineSequence,
-  TrackType,
-} from "@/engine/animations";
-import React, { useState, useCallback } from "react";
+  DndContext,
+  useDraggable,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  DragEndEvent,
+  DragStartEvent,
+} from "@dnd-kit/core";
+import {
+  restrictToHorizontalAxis,
+  restrictToWindowEdges,
+} from "@dnd-kit/modifiers";
+import { CSS } from "@dnd-kit/utilities";
+import { AnimationData, TrackType } from "@/engine/animations";
 
 interface TrackProps {
   type: TrackType;
   objectData: AnimationData;
   pixelsPerSecond: number;
-  onSequenceDragEnd: (
-    sequence: TimelineSequence,
-    newStartTimeMs: number
-  ) => void;
+  onSequenceDragEnd: (animation: AnimationData, newStartTimeMs: number) => void;
 }
+
+interface SequenceProps {
+  animation: AnimationData;
+  pixelsPerMs: number;
+  sequenceColor: string;
+}
+
+// Draggable Sequence Component
+const DraggableSequence: React.FC<SequenceProps> = ({
+  animation,
+  pixelsPerMs,
+  sequenceColor,
+}) => {
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: animation.id,
+      data: animation,
+    });
+
+  const left = animation.startTimeMs * pixelsPerMs;
+  const width = animation.duration * pixelsPerMs;
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`relative h-10 rounded cursor-pointer ${sequenceColor} 
+        hover:shadow-lg transition-shadow duration-200
+        flex items-center px-2 select-none ${isDragging ? "opacity-50" : ""}`}
+      style={{
+        transform: CSS.Translate.toString(transform),
+        left: `${left}px`,
+        width: `${width}px`,
+      }}
+      {...listeners}
+      {...attributes}
+    >
+      {animation.id}
+    </div>
+  );
+};
 
 export const ObjectTrack: React.FC<TrackProps> = ({
   type,
@@ -21,74 +161,65 @@ export const ObjectTrack: React.FC<TrackProps> = ({
   pixelsPerSecond,
   onSequenceDragEnd,
 }) => {
-  //   console.info("tSequences", tSequences);
-
   const pixelsPerMs = pixelsPerSecond / 1000;
   const trackColor = type === TrackType.Audio ? "bg-blue-300" : "bg-orange-200";
   const sequenceColor =
     type === TrackType.Audio ? "bg-red-400" : "bg-green-400";
 
-  const handleDragStart = (e: React.DragEvent, sequence: TimelineSequence) => {
-    e.dataTransfer.setData("text/plain", JSON.stringify(sequence));
-    e.dataTransfer.effectAllowed = "move";
+  // Set up sensors for drag detection
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      // Adjust activation constraints if needed
+      activationConstraint: {
+        distance: 5, // 5px movement before drag starts
+      },
+    })
+  );
+
+  // Handle drag start
+  const handleDragStart = (event: DragStartEvent) => {
+    console.info("handleDragStart");
+    // You can add any additional drag start logic here
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  };
+  // Handle drag end
+  const handleDragEnd = (event: DragEndEvent) => {
+    console.info("handleDragEnd");
+    const { active, delta, over } = event;
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const sequence = JSON.parse(
-      e.dataTransfer.getData("text/plain")
-    ) as TimelineSequence;
+    if (active) {
+      const animation = active.data.current as AnimationData;
 
-    // Calculate new position based on drop coordinates
-    const trackRect = (
-      e.currentTarget as HTMLDivElement
-    ).getBoundingClientRect();
-    const newPositionX = e.clientX - trackRect.left;
-    const newStartTimeMs = Math.max(0, Math.round(newPositionX / pixelsPerMs));
+      // Calculate new time based on delta
+      const deltaXInMs = Math.round(delta.x / pixelsPerMs);
+      const newStartTimeMs = Math.max(0, animation.startTimeMs + deltaXInMs);
 
-    onSequenceDragEnd(sequence, newStartTimeMs);
+      onSequenceDragEnd(animation, newStartTimeMs);
+    }
   };
 
   return (
-    <div className="relative h-[50px] w-[900px]">
-      {/* Track background */}
-      <div
-        className={`absolute w-[900px] h-[50px] ${trackColor}`}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      />
+    <DndContext
+      sensors={sensors}
+      modifiers={[restrictToHorizontalAxis]}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="relative h-[50px] w-[900px] mb-1">
+        {/* Track background */}
+        <div className={`relative w-[900px] h-[50px] ${trackColor}`} />
 
-      {/* Sequences */}
-      <div className="absolute w-full h-full p-1">
-        {/* {tSequences
-          .filter((seq) => seq.trackType === type)
-          .map((tSequence) => {
-            const left = tSequence.startTimeMs * pixelsPerMs;
-            const width = sequenceDurations[tSequence.sequenceId] * pixelsPerMs;
-
-            return (
-              <div
-                key={tSequence.id}
-                draggable
-                onDragStart={(e) => handleDragStart(e, tSequence)}
-                className={`absolute h-10 rounded cursor-pointer ${sequenceColor} 
-                           hover:shadow-lg transition-shadow duration-200
-                           flex items-center px-2 select-none`}
-                style={{
-                  left: `${left}px`,
-                  width: `${width}px`,
-                }}
-              >
-                {sequenceQuickAccess[tSequence.sequenceId]}
-              </div>
-            );
-          })} */}
+        {/* Sequences */}
+        <div className="relative w-full h-full p-1 top-[-50px] z-10">
+          {objectData && (
+            <DraggableSequence
+              animation={objectData}
+              pixelsPerMs={pixelsPerMs}
+              sequenceColor={sequenceColor}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </DndContext>
   );
 };
