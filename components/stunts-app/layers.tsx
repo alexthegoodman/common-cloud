@@ -9,6 +9,7 @@ import { CreateIcon } from "./icon";
 import { Editor } from "@/engine/editor";
 import EditorState from "@/engine/editor_state";
 import { saveSequencesData } from "@/fetchers/projects";
+import toast from "react-hot-toast";
 
 export interface Layer {
   instance_id: string;
@@ -253,11 +254,185 @@ export const LayerPanel: React.FC<{
         break;
     }
 
+    sequence.polygonMotionPaths = sequence.polygonMotionPaths?.filter(
+      (pm) => pm.polygonId !== id
+    );
+
     await saveSequencesData(editorState.savedState.sequences, editor.target);
 
     update_layer_list();
   };
-  const onItemDuplicated = () => {};
+  const onItemDuplicated = async (id: string, kind: ObjectType) => {
+    let editor = editorRef.current;
+    let editorState = editorStateRef.current;
+    let saved_state = editorState?.savedState;
+
+    if (!editor || !editorState || !saved_state) {
+      return;
+    }
+
+    let camera = editor.camera;
+    let gpuResources = editor.gpuResources;
+
+    if (!camera || !gpuResources) {
+      return;
+    }
+
+    let sequence = editorState.savedState.sequences.find(
+      (s) => s.id === currentSequenceId
+    );
+
+    if (!sequence) {
+      return;
+    }
+
+    let newId = uuidv4();
+
+    switch (kind) {
+      case ObjectType.Polygon:
+        let polygonConfig = editor.polygons
+          .find((p) => p.id === id)
+          ?.toConfig();
+        let savedPolygon = sequence.activePolygons.find((p) => p.id === id);
+
+        if (!polygonConfig || !savedPolygon) {
+          return;
+        }
+
+        polygonConfig.id = newId;
+        polygonConfig.position = {
+          x: polygonConfig.position.x + 50,
+          y: polygonConfig.position.y + 50,
+        };
+
+        editor.add_polygon(
+          polygonConfig,
+          "Duplicated Polygon",
+          newId,
+          currentSequenceId
+        );
+
+        savedPolygon.id = newId;
+        savedPolygon.name = "Duplicated Polygon";
+        savedPolygon.position = {
+          x: polygonConfig.position.x + 50,
+          y: polygonConfig.position.y + 50,
+        };
+
+        saved_state.sequences.forEach((s) => {
+          if (s.id == currentSequenceId) {
+            s.activePolygons.push(savedPolygon);
+          }
+        });
+
+        break;
+      case ObjectType.ImageItem:
+        let imageItem = structuredClone(
+          editor.imageItems.find((i) => i.id === id)
+        );
+        let savedImageItem = sequence.activeImageItems.find((i) => i.id === id);
+
+        if (!imageItem || !savedImageItem) {
+          return;
+        }
+
+        imageItem.id = newId;
+        imageItem.transform.updatePosition(
+          [
+            imageItem.transform.position[0] + 50,
+            imageItem.transform.position[1] + 50,
+          ],
+          camera.windowSize
+        );
+        imageItem.transform.updateUniformBuffer(
+          gpuResources.queue,
+          camera.windowSize
+        );
+
+        savedImageItem.id = newId;
+        savedImageItem.name = "Duplicated Image";
+        savedImageItem.position = {
+          x: savedImageItem.position.x + 50,
+          y: savedImageItem.position.y + 50,
+        };
+
+        saved_state.sequences.forEach((s) => {
+          if (s.id == currentSequenceId) {
+            s.activeImageItems.push(savedImageItem);
+          }
+        });
+
+        break;
+
+      case ObjectType.TextItem:
+        let textItemConfig = editor.textItems
+          .find((t) => t.id === id)
+          ?.toConfig();
+        let savedTextItem = sequence.activeTextItems.find((t) => t.id === id);
+
+        if (!textItemConfig || !savedTextItem) {
+          return;
+        }
+
+        textItemConfig.id = newId;
+        textItemConfig.position = {
+          x: textItemConfig.position.x + 50,
+          y: textItemConfig.position.y + 50,
+        };
+
+        editor.add_text_item(
+          textItemConfig,
+          "Duplicated Text Item",
+          newId,
+          currentSequenceId
+        );
+
+        savedTextItem.id = newId;
+        savedTextItem.position = {
+          x: savedTextItem.position.x + 50,
+          y: savedTextItem.position.y + 50,
+        };
+
+        saved_state.sequences.forEach((s) => {
+          if (s.id == currentSequenceId) {
+            s.activeTextItems.push(savedTextItem);
+          }
+        });
+
+        break;
+
+      case ObjectType.VideoItem:
+        toast.error("Duplciating videos is not yet supported!");
+
+        break;
+
+      default:
+        break;
+    }
+
+    let savedMotionPath = sequence.polygonMotionPaths?.find(
+      (pm) => pm.polygonId === id
+    );
+
+    if (kind !== ObjectType.VideoItem) {
+      if (
+        savedMotionPath?.properties.find((p) => p.propertyPath === "position")
+          ?.keyframes.length
+      ) {
+        savedMotionPath?.properties
+          .find((p) => p.propertyPath === "position")
+          ?.keyframes.forEach((kf) => {
+            if (kf.value.type === "Position") {
+              kf.value.value = [kf.value.value[0] + 50, kf.value.value[1] + 50];
+            }
+          });
+      }
+
+      await saveSequencesData(editorState.savedState.sequences, editor.target);
+
+      update_layer_list();
+    }
+  };
   const onItemsUpdated = async () => {
     // use updated layer list to update the editor
     let editor = editorRef.current;
