@@ -18,7 +18,7 @@ const Competition = () => {
             expressiveness and ease-of-use. Yet it has powerful features that
             make it a strong choice for professionals and amateurs alike.
           </p>
-          <ul className="flex flex-col gap-2 mt-4">
+          <ul className="flex flex-col gap-2 mt-4 text-white">
             <li className="flex flex-row gap-2 items-center">
               <Check />
               <span>Generate draft animations with our in-house AI</span>
@@ -33,7 +33,7 @@ const Competition = () => {
             </li>
             <li className="flex flex-row gap-2 items-center">
               <Check />
-              <span>Available for Windows</span>
+              <span>Available for Web</span>
             </li>
           </ul>
         </div>

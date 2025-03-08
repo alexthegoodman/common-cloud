@@ -16,7 +16,7 @@ export default function Features({ grid = 3, py = 16 }) {
   return (
     <section className={`container mx-auto px-4 py-${py}`}>
       <div className={`grid md:grid-cols-${grid} gap-8`}>
-        <div className="bg-slate-800/50 p-6 rounded-xl">
+        <div className="bg-slate-800 p-6 rounded-xl">
           <div className="bg-red-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
             <MagicWand size={24} className="text-red-500" />
           </div>
@@ -29,20 +29,20 @@ export default function Features({ grid = 3, py = 16 }) {
           </p>
         </div>
 
-        <div className="bg-slate-800/50 p-6 rounded-xl">
+        <div className="bg-slate-800 p-6 rounded-xl">
           <div className="bg-red-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
             <Lightning size={24} className="text-red-500" />
           </div>
           <h3 className="text-xl font-semibold mb-2 text-white">
-            Screen Capture & Mouse Capture
+            Screen Capture & Smooth Zooms
           </h3>
           <p className="text-gray-400">
-            Record your screen and mouse to enable dynamic product showcases
-            with beautiful zooms!
+            Record your screen to enable dynamic product showcases with
+            beautiful zooms!
           </p>
         </div>
 
-        <div className="bg-slate-800/50 p-6 rounded-xl">
+        <div className="bg-slate-800 p-6 rounded-xl">
           <div className="bg-red-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
             <Shapes size={24} className="text-red-500" />
           </div>
@@ -55,7 +55,7 @@ export default function Features({ grid = 3, py = 16 }) {
           </p>
         </div>
 
-        <div className="bg-slate-800/50 p-6 rounded-xl">
+        <div className="bg-slate-800 p-6 rounded-xl">
           <div className="bg-red-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
             <TextAUnderline size={24} className="text-red-500" />
           </div>
@@ -68,7 +68,7 @@ export default function Features({ grid = 3, py = 16 }) {
           </p>
         </div>
 
-        <div className="bg-slate-800/50 p-6 rounded-xl">
+        <div className="bg-slate-800 p-6 rounded-xl">
           <div className="bg-red-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
             <Video size={24} className="text-red-500" />
           </div>
@@ -81,7 +81,7 @@ export default function Features({ grid = 3, py = 16 }) {
           </p>
         </div>
 
-        <div className="bg-slate-800/50 p-6 rounded-xl">
+        <div className="bg-slate-800 p-6 rounded-xl">
           <div className="bg-red-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
             <Layout size={24} className="text-red-500" />
           </div>

@@ -8,11 +8,6 @@ const FAQ = () => {
         "Stunts strikes a perfect balance: it is far more powerful than Canva, enabling complex keyframe-based animations, yet it has a much shorter learning curve compared to After Effects, making it accessible for creators of all skill levels.",
     },
     {
-      question: "Is the editor available for platforms other than Windows?",
-      answer:
-        "Currently, the editor is only available for Windows. Support for other platforms may come in the future.",
-    },
-    {
       question: "Do generative keyframes work perfectly out of the box?",
       answer:
         "Generative keyframes require refinement. You may need to adjust them for the best results.",
