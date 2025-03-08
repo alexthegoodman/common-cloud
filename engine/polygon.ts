@@ -211,7 +211,7 @@ export class Polygon implements PolygonShape {
 
     // -10.0 to provide 10 spots for internal items on top of objects
     this.transformLayer = transformLayer - INTERNAL_LAYER_SPACE;
-    this.layer = transformLayer;
+    this.layer = transformLayer - INTERNAL_LAYER_SPACE;
 
     let [tmp_group_bind_group, tmp_group_transform] = createEmptyGroupTransform(
       device,

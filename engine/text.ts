@@ -235,7 +235,7 @@ export class TextRenderer {
       },
       // -1.0,
       // 1, // positive to use INTERNAL_LAYER_SPACE
-      1.0,
+      0.0,
       textConfig.layer - 0.5,
       textConfig.name,
       this.id,
@@ -823,7 +823,9 @@ export class TextRenderer {
         const key = `${glyph.id}-${this.fontSize}`;
 
         // Ensure the glyph is in the atlas
+        // Glyph cache is reset when new font family chosen
         if (!this.glyphCache.has(key)) {
+          // console.info("dosen't have glyph", key);
           const atlasGlyph = this.addGlyphToAtlas(device, queue, {
             character: String.fromCodePoint(glyph.codePoints[0]), // Convert code point to character
             fontSize: this.fontSize,
@@ -854,7 +856,7 @@ export class TextRenderer {
         const v0 = atlasGlyph.uv_rect[1];
         const v1 = v0 + atlasGlyph.uv_rect[3];
 
-        const z = getZLayer(1.0);
+        // const z = getZLayer(1.0);
 
         const activeColor = rgbToWgpu(
           this.color[0],
@@ -867,28 +869,28 @@ export class TextRenderer {
         const baseVertex = vertices.length;
         vertices.push(
           {
-            position: [x0, y0, z],
+            position: [x0, y0, 0.0],
             tex_coords: [u0, v0],
             color: activeColor,
             gradient_coords: [x0 / this.dimensions[0], y0 / this.dimensions[1]],
             object_type: 1, // OBJECT_TYPE_TEXT
           },
           {
-            position: [x1, y0, z],
+            position: [x1, y0, 0.0],
             tex_coords: [u1, v0],
             color: activeColor,
             gradient_coords: [x1 / this.dimensions[0], y0 / this.dimensions[1]],
             object_type: 1, // OBJECT_TYPE_TEXT
           },
           {
-            position: [x1, y1, z],
+            position: [x1, y1, 0.0],
             tex_coords: [u1, v1],
             color: activeColor,
             gradient_coords: [x1 / this.dimensions[0], y1 / this.dimensions[1]],
             object_type: 1, // OBJECT_TYPE_TEXT
           },
           {
-            position: [x0, y1, z],
+            position: [x0, y1, 0.0],
             tex_coords: [u0, v1],
             color: activeColor,
             gradient_coords: [x0 / this.dimensions[0], y1 / this.dimensions[1]],
