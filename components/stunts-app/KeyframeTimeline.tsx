@@ -538,14 +538,14 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
     );
   };
 
-  const [lineHoverPosition, setLineHoverPosition] = useState(0);
-
   const drawConnectingLine = (
     x1: number,
     y1: number,
     x2: number,
     y2: number
   ) => {
+    const [lineHoverPosition, setLineHoverPosition] = useState(0);
+
     const adjustedWidth =
       getAdjustedPropertyWidth(propertyWidth, zoomLevel) - propertyWidth;
     const adjustedX1 = adjustedWidth + x1;
@@ -565,7 +565,15 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
             // borderBottom: "1px solid darkgray inset",
           }}
           onMouseMove={(e) => {
-            setLineHoverPosition(e.clientX);
+            if (!timelineRef.current) {
+              return;
+            }
+
+            let offsetLeft = timelineRef.current.scrollLeft;
+
+            const relativeX = e.clientX + offsetLeft;
+
+            setLineHoverPosition(relativeX);
           }}
           onMouseLeave={() => {
             setLineHoverPosition(0);
@@ -577,14 +585,18 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
           <div
             style={{
               position: "absolute",
-              top: `${Math.min(y1, y2) - 4}px`,
-              left: `${lineHoverPosition - 300}px`,
-              width: "10px",
-              height: "10px",
+              top: `${Math.min(y1, y2) - 6}px`,
+              left: `${lineHoverPosition - 505}px`,
+              width: "14px",
+              height: "14px",
               backgroundColor: "indigo",
+              color: "white",
+              borderRadius: "50%",
+              padding: "1.5px 2px",
+              zIndex: -1,
             }}
           >
-            <Plus size="9px" />
+            <Plus size="11px" />
           </div>
         )}
       </>
