@@ -544,7 +544,9 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
     x2: number,
     y2: number
   ) => {
-    const [lineHoverPosition, setLineHoverPosition] = useState(0);
+    const [lineHoverPosition, setLineHoverPosition] = useState<number | null>(
+      null
+    );
 
     const adjustedWidth =
       getAdjustedPropertyWidth(propertyWidth, zoomLevel) - propertyWidth;
@@ -576,12 +578,12 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
             setLineHoverPosition(relativeX);
           }}
           onMouseLeave={() => {
-            setLineHoverPosition(0);
+            setLineHoverPosition(null);
           }}
         >
           <div className="w-full bg-gray-400 h-[1px]"></div>
         </div>
-        {lineHoverPosition && (
+        {lineHoverPosition !== null && (
           <div
             style={{
               position: "absolute",
