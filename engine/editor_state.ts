@@ -617,7 +617,7 @@ export default class EditorState {
         type: "Position",
         value: [object_position.x, object_position.y - 100],
       },
-      easing: EasingType.EaseInOut,
+      easing: EasingType.Linear,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
       curveData: null,
@@ -677,7 +677,7 @@ export default class EditorState {
         type: "Position",
         value: [object_position.x, object_position.y + 150],
       },
-      easing: EasingType.EaseInOut,
+      easing: EasingType.Linear,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
       curveData: null,
@@ -698,7 +698,7 @@ export default class EditorState {
       time: 0,
       // value: { type: "Rotation", value: 0 },
       value: { type: "Rotation", value: 0 },
-      easing: EasingType.EaseInOut,
+      easing: EasingType.Linear,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
       curveData: null,
@@ -743,7 +743,7 @@ export default class EditorState {
       id: uuidv4().toString(),
       time: durationMs,
       value: { type: "Rotation", value: 0 },
-      easing: EasingType.EaseInOut,
+      easing: EasingType.Linear,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
       curveData: null,
@@ -763,7 +763,7 @@ export default class EditorState {
       id: uuidv4().toString(),
       time: 0,
       value: { type: "Scale", value: 100 },
-      easing: EasingType.EaseInOut,
+      easing: EasingType.Linear,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
       curveData: null,
@@ -808,7 +808,7 @@ export default class EditorState {
       id: uuidv4().toString(),
       time: durationMs,
       value: { type: "Scale", value: 100 },
-      easing: EasingType.EaseInOut,
+      easing: EasingType.Linear,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
       curveData: null,
@@ -828,7 +828,7 @@ export default class EditorState {
       id: uuidv4().toString(),
       time: 0,
       value: { type: "Opacity", value: 100 },
-      easing: EasingType.EaseInOut,
+      easing: EasingType.Linear,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
       curveData: null,
@@ -873,7 +873,7 @@ export default class EditorState {
       id: uuidv4().toString(),
       time: durationMs,
       value: { type: "Opacity", value: 100 },
-      easing: EasingType.EaseInOut,
+      easing: EasingType.Linear,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
       curveData: null,
@@ -887,11 +887,141 @@ export default class EditorState {
       depth: 0,
     };
 
+    let perspective_x_keyframes: UIKeyframe[] = [];
+
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: 2500,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: 5000,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 5000,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 2500,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let perspective_x_prop = {
+      name: "Perspective X",
+      propertyPath: "perspectiveX",
+      children: [],
+      keyframes: perspective_x_keyframes,
+      depth: 0,
+    };
+
+    let perspective_y_keyframes: UIKeyframe[] = [];
+
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 2500,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 5000,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 5000,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 2500,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let perspective_y_prop = {
+      name: "Perspective Y",
+      propertyPath: "perspectiveY",
+      children: [],
+      keyframes: perspective_y_keyframes,
+      depth: 0,
+    };
+
     properties.push(position_prop);
     properties.push(rotation_prop);
     properties.push(scale_prop);
-    // properties.push(perspective_x_prop);
-    // properties.push(perspective_y_prop);
+    properties.push(perspective_x_prop);
+    properties.push(perspective_y_prop);
     properties.push(opacity_prop);
 
     if (object_type == ObjectType.VideoItem) {
@@ -998,6 +1128,517 @@ export default class EditorState {
     return new_motion_path;
   }
 
+  save_perspective_x_keyframes(
+    savable_item_id: string,
+    object_type: ObjectType,
+    current_keyframes: AnimationData
+  ) {
+    let durationMs = current_keyframes.duration;
+
+    let properties: AnimationProperty[] = [];
+
+    let position_prop = current_keyframes.properties.find(
+      (p) => p.propertyPath === "position"
+    );
+
+    if (position_prop) {
+      properties.push(position_prop);
+    }
+
+    let rotation_prop = current_keyframes.properties.find(
+      (p) => p.propertyPath === "rotation"
+    );
+
+    if (rotation_prop) {
+      properties.push(rotation_prop);
+    }
+
+    let scale_prop = current_keyframes.properties.find(
+      (p) => p.propertyPath === "scale"
+    );
+
+    if (scale_prop) {
+      properties.push(scale_prop);
+    }
+
+    let opacity_keyframes: UIKeyframe[] = [];
+
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "Opacity", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: 2500,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: 5000,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 5000,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 2500,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs,
+      value: { type: "Opacity", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let opacity_prop = {
+      name: "Opacity",
+      propertyPath: "opacity",
+      children: [],
+      keyframes: opacity_keyframes,
+      depth: 0,
+    };
+
+    let perspective_x_keyframes: UIKeyframe[] = [];
+
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "PerspectiveX", value: 20 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: 2500,
+      value: { type: "PerspectiveX", value: 10 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: 5000,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 5000,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 2500,
+      value: { type: "PerspectiveX", value: 10 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs,
+      value: { type: "PerspectiveX", value: 20 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let perspective_x_prop = {
+      name: "Perspective X",
+      propertyPath: "perspectiveX",
+      children: [],
+      keyframes: perspective_x_keyframes,
+      depth: 0,
+    };
+
+    let perspective_y_keyframes: UIKeyframe[] = [];
+
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 2500,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 5000,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 5000,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 2500,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let perspective_y_prop = {
+      name: "Perspective Y",
+      propertyPath: "perspectiveY",
+      children: [],
+      keyframes: perspective_y_keyframes,
+      depth: 0,
+    };
+
+    properties.push(perspective_x_prop);
+    properties.push(perspective_y_prop);
+    properties.push(opacity_prop);
+
+    if (object_type === ObjectType.VideoItem) {
+      let zoom_prop = current_keyframes.properties.find(
+        (p) => p.propertyPath === "zoom"
+      );
+
+      if (zoom_prop) {
+        properties.push(zoom_prop);
+      }
+    }
+
+    let new_motion_path: AnimationData = {
+      id: uuidv4().toString(),
+      objectType: object_type,
+      polygonId: savable_item_id,
+      duration: durationMs,
+      startTimeMs: current_keyframes.startTimeMs,
+      position: current_keyframes.position,
+      properties: properties,
+    };
+
+    return new_motion_path;
+  }
+
+  save_perspective_y_keyframes(
+    savable_item_id: string,
+    object_type: ObjectType,
+    current_keyframes: AnimationData
+  ) {
+    let durationMs = current_keyframes.duration;
+
+    let properties: AnimationProperty[] = [];
+
+    let position_prop = current_keyframes.properties.find(
+      (p) => p.propertyPath === "position"
+    );
+
+    if (position_prop) {
+      properties.push(position_prop);
+    }
+
+    let rotation_prop = current_keyframes.properties.find(
+      (p) => p.propertyPath === "rotation"
+    );
+
+    if (rotation_prop) {
+      properties.push(rotation_prop);
+    }
+
+    let scale_prop = current_keyframes.properties.find(
+      (p) => p.propertyPath === "scale"
+    );
+
+    if (scale_prop) {
+      properties.push(scale_prop);
+    }
+
+    let opacity_keyframes: UIKeyframe[] = [];
+
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "Opacity", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: 2500,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: 5000,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 5000,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 2500,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs,
+      value: { type: "Opacity", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let opacity_prop = {
+      name: "Opacity",
+      propertyPath: "opacity",
+      children: [],
+      keyframes: opacity_keyframes,
+      depth: 0,
+    };
+
+    let perspective_x_keyframes: UIKeyframe[] = [];
+
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: 2500,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: 5000,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 5000,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 2500,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let perspective_x_prop = {
+      name: "Perspective X",
+      propertyPath: "perspectiveX",
+      children: [],
+      keyframes: perspective_x_keyframes,
+      depth: 0,
+    };
+
+    let perspective_y_keyframes: UIKeyframe[] = [];
+
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "PerspectiveY", value: 20 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 2500,
+      value: { type: "PerspectiveY", value: 10 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 5000,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 5000,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 2500,
+      value: { type: "PerspectiveY", value: 10 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs,
+      value: { type: "PerspectiveY", value: 20 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let perspective_y_prop = {
+      name: "Perspective Y",
+      propertyPath: "perspectiveY",
+      children: [],
+      keyframes: perspective_y_keyframes,
+      depth: 0,
+    };
+
+    properties.push(perspective_x_prop);
+    properties.push(perspective_y_prop);
+    properties.push(opacity_prop);
+
+    if (object_type === ObjectType.VideoItem) {
+      let zoom_prop = current_keyframes.properties.find(
+        (p) => p.propertyPath === "zoom"
+      );
+
+      if (zoom_prop) {
+        properties.push(zoom_prop);
+      }
+    }
+
+    let new_motion_path: AnimationData = {
+      id: uuidv4().toString(),
+      objectType: object_type,
+      polygonId: savable_item_id,
+      duration: durationMs,
+      startTimeMs: current_keyframes.startTimeMs,
+      position: current_keyframes.position,
+      properties: properties,
+    };
+
+    return new_motion_path;
+  }
+
+  // TODO: make work with variable duration
   save_pulse_keyframes(
     savable_item_id: string,
     object_type: ObjectType,

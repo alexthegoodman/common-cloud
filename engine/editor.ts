@@ -2292,6 +2292,70 @@ export class Editor {
             break;
           }
 
+          case startFrame.value.type === "PerspectiveX" &&
+            endFrame.value.type === "PerspectiveX": {
+            const start = startFrame.value.value; // Type assertion for clarity
+            const end = endFrame.value.value;
+
+            const x = this.lerp(start, end, progress) * 0.001;
+
+            switch (animation.objectType) {
+              case ObjectType.Polygon:
+                (
+                  this.polygons[objectIdx] as Polygon
+                ).transform.updateRotationXDegrees(x);
+                break;
+              case ObjectType.TextItem:
+                this.textItems[objectIdx].transform.updateRotationXDegrees(x);
+                this.textItems[
+                  objectIdx
+                ].backgroundPolygon.transform.updateRotationXDegrees(x);
+                break;
+              case ObjectType.ImageItem:
+                this.imageItems[objectIdx].transform.updateRotationXDegrees(x);
+                break;
+              case ObjectType.VideoItem:
+                // console.info("update video transform", positionVec);
+                this.videoItems[
+                  objectIdx
+                ].groupTransform.updateRotationXDegrees(x);
+                break;
+            }
+            break;
+          }
+
+          case startFrame.value.type === "PerspectiveY" &&
+            endFrame.value.type === "PerspectiveY": {
+            const start = startFrame.value.value; // Type assertion for clarity
+            const end = endFrame.value.value;
+
+            const y = this.lerp(start, end, progress) * 0.001;
+
+            switch (animation.objectType) {
+              case ObjectType.Polygon:
+                (
+                  this.polygons[objectIdx] as Polygon
+                ).transform.updateRotationYDegrees(y);
+                break;
+              case ObjectType.TextItem:
+                this.textItems[objectIdx].transform.updateRotationYDegrees(y);
+                this.textItems[
+                  objectIdx
+                ].backgroundPolygon.transform.updateRotationYDegrees(y);
+                break;
+              case ObjectType.ImageItem:
+                this.imageItems[objectIdx].transform.updateRotationYDegrees(y);
+                break;
+              case ObjectType.VideoItem:
+                // console.info("update video transform", positionVec);
+                this.videoItems[
+                  objectIdx
+                ].groupTransform.updateRotationYDegrees(y);
+                break;
+            }
+            break;
+          }
+
           case startFrame.value.type === "Rotation" &&
             endFrame.value.type === "Rotation": {
             const start = startFrame.value.value as number;

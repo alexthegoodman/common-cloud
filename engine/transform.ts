@@ -82,10 +82,12 @@ export class Transform {
     this.rotation = degrees * (Math.PI / 180.0);
   }
 
+  // best as 100 * 0.001
   updateRotationXDegrees(degrees: number) {
     this.rotationX = degrees * (Math.PI / 180.0);
   }
 
+  // best as 100 * 0.001
   updateRotationYDegrees(degrees: number) {
     this.rotationY = degrees * (Math.PI / 180.0);
   }

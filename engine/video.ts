@@ -236,7 +236,7 @@ export class StVideo {
       windowSize
     );
 
-    group_transform.updateRotationYDegrees(0.02);
+    // group_transform.updateRotationYDegrees(0.02);
 
     group_transform.updateUniformBuffer(queue, windowSize);
 
