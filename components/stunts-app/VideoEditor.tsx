@@ -792,8 +792,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     }
 
     let backgroundSize: WindowSize = {
-      width: editor.camera?.windowSize.width - 100,
-      height: editor.camera?.windowSize.height - 100,
+      width: editor.camera?.windowSize.width - 50,
+      height: editor.camera?.windowSize.height - 50,
     };
 
     // if (background_fill.type === "Color") {

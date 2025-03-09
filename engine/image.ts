@@ -1,6 +1,6 @@
 import { mat4, vec2 } from "gl-matrix";
 import { v4 as uuidv4 } from "uuid"; // Make sure you have uuid installed
-import { Vertex } from "./vertex";
+import { getZLayer, Vertex } from "./vertex";
 import { createEmptyGroupTransform, Transform } from "./transform";
 import {
   INTERNAL_LAYER_SPACE,
@@ -119,7 +119,9 @@ export class StImage {
     console.info("image spot", imageConfig.position.x, imageConfig.position.y);
 
     // -10.0 to provide 10 spots for internal items on top of objects
-    this.transform.layer = imageConfig.layer - INTERNAL_LAYER_SPACE;
+    let layer_index =
+      -1.0 - getZLayer(imageConfig.layer - INTERNAL_LAYER_SPACE);
+    this.transform.layer = layer_index;
     this.transform.updateUniformBuffer(queue, windowSize);
 
     const imageBitmap = await createImageBitmap(blob);
@@ -543,9 +545,10 @@ export class StImage {
   }
 
   updateLayer(layerIndex: number): void {
-    let layer = layerIndex - INTERNAL_LAYER_SPACE;
-    this.layer = layer;
-    this.transform.layer = layer;
+    // let layer = layerIndex - INTERNAL_LAYER_SPACE;
+    let layer_index = -1.0 - getZLayer(layerIndex - INTERNAL_LAYER_SPACE);
+    this.layer = layer_index;
+    this.transform.layer = layer_index;
   }
 
   //   update(queue: GPUQueue, windowSize: { width: number; height: number }): void {

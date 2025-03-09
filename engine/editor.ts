@@ -2042,8 +2042,8 @@ export class Editor {
       }
 
       let backgroundSize: WindowSize = {
-        width: 800 * this.scaleMultiplier,
-        height: 450 * this.scaleMultiplier,
+        width: 850 * this.scaleMultiplier,
+        height: 500 * this.scaleMultiplier,
       };
 
       this.replace_background(

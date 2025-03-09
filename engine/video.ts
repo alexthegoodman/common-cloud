@@ -2,7 +2,7 @@ import { mat4, vec2 } from "gl-matrix";
 import { v4 as uuidv4 } from "uuid";
 import { Point } from "./editor";
 import { createEmptyGroupTransform, Transform } from "./transform";
-import { Vertex } from "./vertex";
+import { getZLayer, Vertex } from "./vertex";
 import {
   INTERNAL_LAYER_SPACE,
   SavedPoint,
@@ -211,7 +211,10 @@ export class StVideo {
       // window_size,
     );
 
-    this.transform.layer = videoConfig.layer - INTERNAL_LAYER_SPACE;
+    let layer_index =
+      -1.0 - getZLayer(videoConfig.layer - INTERNAL_LAYER_SPACE);
+    this.transform.layer = layer_index;
+
     this.transform.updateUniformBuffer(queue, windowSize);
 
     let [gradient, gradientBuffer] = setupGradientBuffers(
@@ -232,6 +235,8 @@ export class StVideo {
       [videoConfig.position.x, videoConfig.position.y],
       windowSize
     );
+
+    group_transform.updateRotationYDegrees(0.02);
 
     group_transform.updateUniformBuffer(queue, windowSize);
 
@@ -988,9 +993,10 @@ export class StVideo {
   }
 
   updateLayer(layerIndex: number): void {
-    let layer = layerIndex - INTERNAL_LAYER_SPACE;
-    this.layer = layer;
-    this.transform.layer = layer;
+    // let layer = layerIndex - INTERNAL_LAYER_SPACE;
+    let layer_index = -1.0 - getZLayer(layerIndex - INTERNAL_LAYER_SPACE);
+    this.layer = layer_index;
+    this.transform.layer = layer_index;
   }
 
   updateZoom(queue: GPUQueue, newZoom: number, centerPoint: Point): void {

@@ -332,7 +332,8 @@ export class Polygon implements PolygonShape {
 
   updateLayer(layer: number) {
     // -10.0 to provide 10 spots for internal items on top of objects
-    let layer_index = layer - INTERNAL_LAYER_SPACE;
+    // let layer_index = layer - INTERNAL_LAYER_SPACE;
+    let layer_index = -1.0 - getZLayer(layer - INTERNAL_LAYER_SPACE);
     this.layer = layer_index;
     this.transform.layer = layer_index as number;
   }
@@ -1072,7 +1073,13 @@ export function getPolygonData(
     // camera.windowSize // Assuming camera has windowSize
   );
 
-  transform.layer = polygon.layer - INTERNAL_LAYER_SPACE;
+  // console.info(
+  //   "polygon layer",
+  //   polygon.layer - INTERNAL_LAYER_SPACE,
+  //   getZLayer(polygon.layer - INTERNAL_LAYER_SPACE)
+  // );
+
+  transform.layer = -1.0 - getZLayer(polygon.layer - INTERNAL_LAYER_SPACE);
   transform.updateUniformBuffer(queue, camera.windowSize);
 
   return [

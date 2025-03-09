@@ -246,7 +246,8 @@ export class TextRenderer {
     this.backgroundPolygon.hidden = false;
 
     // -10.0 to provide 10 spots for internal items on top of objects
-    this.transform.layer = textConfig.layer - INTERNAL_LAYER_SPACE;
+    let layer_index = -1.0 - getZLayer(textConfig.layer - INTERNAL_LAYER_SPACE);
+    this.transform.layer = layer_index;
     this.transform.updateUniformBuffer(queue, windowSize);
 
     let [tmp_group_bind_group, tmp_group_transform] = createEmptyGroupTransform(
@@ -947,11 +948,12 @@ export class TextRenderer {
 
   updateLayer(layerIndex: number) {
     // -10.0 to provide 10 spots for internal items on top of objects
-    const adjustedLayerIndex = layerIndex - INTERNAL_LAYER_SPACE;
-    this.layer = adjustedLayerIndex;
-    this.transform.layer = adjustedLayerIndex;
-    this.backgroundPolygon.layer = adjustedLayerIndex - 0.5;
-    this.backgroundPolygon.transform.layer = adjustedLayerIndex - 0.5;
+    // const adjustedLayerIndex = layerIndex - INTERNAL_LAYER_SPACE;
+    let layer_index = -1.0 - getZLayer(layerIndex - INTERNAL_LAYER_SPACE);
+    this.layer = layer_index;
+    this.transform.layer = layer_index;
+    this.backgroundPolygon.layer = layer_index - 0.5;
+    this.backgroundPolygon.transform.layer = layer_index - 0.5;
   }
 
   updateText(device: GPUDevice, queue: GPUQueue, text: string) {

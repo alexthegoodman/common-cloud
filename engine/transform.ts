@@ -6,6 +6,8 @@ export class Transform {
   position: vec2;
   startPosition: vec2;
   rotation: number; // Rotation angle in radians
+  rotationX: number;
+  rotationY: number;
   scale: vec2;
   uniformBuffer: GPUBuffer;
   layer: number;
@@ -20,6 +22,8 @@ export class Transform {
     this.position = position;
     this.startPosition = position;
     this.rotation = rotation;
+    this.rotationX = 0;
+    this.rotationY = 0;
     this.scale = scale;
     this.uniformBuffer = uniformBuffer;
     this.layer = 0.0;
@@ -36,7 +40,12 @@ export class Transform {
     );
     const rotation = mat4.fromQuat(
       mat4.create(),
-      quat.fromEuler(quat.create(), 0, 0, (this.rotation * 180) / Math.PI)
+      quat.fromEuler(
+        quat.create(),
+        (this.rotationX * 180) / Math.PI,
+        (this.rotationY * 180) / Math.PI,
+        (this.rotation * 180) / Math.PI
+      )
     ); // gl-matrix uses degrees for quat euler angles
     const scale = mat4.fromScaling(
       mat4.create(),
@@ -73,6 +82,14 @@ export class Transform {
     this.rotation = degrees * (Math.PI / 180.0);
   }
 
+  updateRotationXDegrees(degrees: number) {
+    this.rotationX = degrees * (Math.PI / 180.0);
+  }
+
+  updateRotationYDegrees(degrees: number) {
+    this.rotationY = degrees * (Math.PI / 180.0);
+  }
+
   updateScale(scale: [number, number]) {
     this.scale = vec2.fromValues(scale[0], scale[1]);
   }
@@ -88,11 +105,6 @@ export class Transform {
   rotateDegrees(degrees: number) {
     this.rotation += degrees * (Math.PI / 180.0);
   }
-
-  //   scaleFunc(scale: vec2) {
-  //     // Renamed to avoid name collision with the scale property
-  //     vec2.scale(this.scale, this.scale, scale);
-  //   }
 }
 
 export function matrix4ToRawArray(matrix: mat4): Float32Array {

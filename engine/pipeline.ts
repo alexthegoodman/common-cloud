@@ -11,6 +11,7 @@ import { RepeatableObject } from "./repeater";
 
 import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
 import { SaveTarget } from "./editor_state";
+import { Camera3D } from "./3dcamera";
 
 interface WindowSize {
   width: number;
@@ -70,7 +71,12 @@ export class CanvasPipeline {
     console.info("Initializing pipeline...");
 
     // Create camera and camera binding
-    const camera = new Camera(windowSize);
+    // const camera = new Camera(windowSize);
+    const camera = new Camera3D(windowSize);
+
+    // Make it look at the origin
+    camera.lookAt(vec3.fromValues(0, 0, 0));
+
     const cameraBinding = new CameraBinding(gpuResources.device);
 
     editor.camera = camera;
