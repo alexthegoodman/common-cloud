@@ -3,13 +3,19 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { DebouncedInput } from "./items";
 import { colorToWgpu, Editor, rgbToWgpu, wgpuToHuman } from "@/engine/editor";
-import EditorState from "@/engine/editor_state";
-import { BackgroundFill, GradientStop, ObjectType } from "@/engine/animations";
+import EditorState, { SaveTarget } from "@/engine/editor_state";
+import {
+  BackgroundFill,
+  GradientStop,
+  ObjectType,
+  UIKeyframe,
+} from "@/engine/animations";
 import { CreateIcon } from "./icon";
 import { RepeatPattern } from "@/engine/repeater";
 import { saveSequencesData } from "@/fetchers/projects";
 import { ColorPicker } from "./ColorPicker";
 import { ColorService, IColor, useColor } from "react-color-palette";
+import { update_keyframe } from "./VideoEditor";
 
 const RepeatProperties = ({
   editorRef,
@@ -1582,7 +1588,7 @@ export const KeyframeProperties = ({
   handleGoBack: () => void;
 }) => {
   const [defaultsSet, setDefaultsSet] = useState(false);
-  const [time, setTime] = useState(0);
+  const [data, setData] = useState<UIKeyframe | null>(null);
 
   useEffect(() => {
     let editor = editorRef.current;
@@ -1609,7 +1615,9 @@ export const KeyframeProperties = ({
       return;
     }
 
-    setTime(keyframeData.time);
+    setData(keyframeData);
+    // setTime(keyframeData.time);
+    // keyframeData.value.type
 
     setDefaultsSet(true);
   }, [selectedKeyframe]);
@@ -1640,8 +1648,8 @@ export const KeyframeProperties = ({
           id="keyframe_time"
           label="Time"
           placeholder="Time"
-          key={"keyframe_time" + time.toString()}
-          initialValue={time.toString()}
+          key={"keyframe_time" + data?.time.toString()}
+          initialValue={data ? data.time.toString() : ""}
           onDebounce={async (value) => {
             let editor = editorRef.current;
             let editorState = editorStateRef.current;
@@ -1677,6 +1685,381 @@ export const KeyframeProperties = ({
             setRefreshTimeline(Date.now());
           }}
         />
+        {data?.value.type === "Position" && (
+          <div className="flex flex-row gap-2">
+            <DebouncedInput
+              id="keyframe_x"
+              label="X"
+              placeholder="X"
+              initialValue={data?.value.value[0].toString()}
+              onDebounce={(value) => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let sequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
+                );
+
+                if (!sequence) {
+                  return;
+                }
+
+                if (data.value.type === "Position") {
+                  data.value.value[0] = parseInt(value);
+                }
+
+                update_keyframe(editorState, data, sequence, [
+                  selectedKeyframe,
+                ]);
+              }}
+            />
+            <DebouncedInput
+              id="keyframe_y"
+              label="Y"
+              placeholder="Y"
+              initialValue={data?.value.value[1].toString()}
+              onDebounce={(value) => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let sequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
+                );
+
+                if (!sequence) {
+                  return;
+                }
+
+                if (data.value.type === "Position") {
+                  data.value.value[1] = parseInt(value);
+                }
+
+                update_keyframe(editorState, data, sequence, [
+                  selectedKeyframe,
+                ]);
+              }}
+            />
+          </div>
+        )}
+        {data?.value.type === "Rotation" && (
+          <div className="flex flex-row gap-2">
+            <DebouncedInput
+              id="keyframe_rotation"
+              label="Rotation (degrees)"
+              placeholder="Rotation"
+              initialValue={data?.value.value.toString()}
+              onDebounce={(value) => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let sequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
+                );
+
+                if (!sequence) {
+                  return;
+                }
+
+                if (data.value.type === "Rotation") {
+                  data.value.value = parseInt(value);
+                }
+
+                update_keyframe(editorState, data, sequence, [
+                  selectedKeyframe,
+                ]);
+              }}
+            />
+          </div>
+        )}
+        {data?.value.type === "Scale" && (
+          <div className="flex flex-row gap-2">
+            <DebouncedInput
+              id="keyframe_scale"
+              label="Scale (out of 100%)"
+              placeholder="Scale"
+              initialValue={data?.value.value.toString()}
+              onDebounce={(value) => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let sequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
+                );
+
+                if (!sequence) {
+                  return;
+                }
+
+                if (data.value.type === "Scale") {
+                  data.value.value = parseInt(value);
+                }
+
+                update_keyframe(editorState, data, sequence, [
+                  selectedKeyframe,
+                ]);
+              }}
+            />
+          </div>
+        )}
+        {data?.value.type === "Opacity" && (
+          <div className="flex flex-row gap-2">
+            <DebouncedInput
+              id="keyframe_opacity"
+              label="Opacity (out of 100%)"
+              placeholder="Opacity"
+              initialValue={data?.value.value.toString()}
+              onDebounce={(value) => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let sequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
+                );
+
+                if (!sequence) {
+                  return;
+                }
+
+                if (data.value.type === "Opacity") {
+                  data.value.value = parseInt(value);
+                }
+
+                update_keyframe(editorState, data, sequence, [
+                  selectedKeyframe,
+                ]);
+              }}
+            />
+          </div>
+        )}
+        {data?.value.type === "Zoom" && (
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row gap-2">
+              <DebouncedInput
+                id="keyframe_zoom_x"
+                label="Zoom X"
+                placeholder="Zoom X"
+                initialValue={data?.value.value.position[0].toString()}
+                onDebounce={(value) => {
+                  let editor = editorRef.current;
+                  let editorState = editorStateRef.current;
+
+                  if (!editorState || !editor) {
+                    return;
+                  }
+
+                  let sequence = editorState.savedState.sequences.find(
+                    (s) => s.id === currentSequenceId
+                  );
+
+                  if (!sequence) {
+                    return;
+                  }
+
+                  if (data.value.type === "Zoom") {
+                    data.value.value.position[0] = parseInt(value);
+                  }
+
+                  update_keyframe(editorState, data, sequence, [
+                    selectedKeyframe,
+                  ]);
+                }}
+              />
+              <DebouncedInput
+                id="keyframe_zoom_y"
+                label="Zoom Y"
+                placeholder="Zoom Y"
+                initialValue={data?.value.value.position[1].toString()}
+                onDebounce={(value) => {
+                  let editor = editorRef.current;
+                  let editorState = editorStateRef.current;
+
+                  if (!editorState || !editor) {
+                    return;
+                  }
+
+                  let sequence = editorState.savedState.sequences.find(
+                    (s) => s.id === currentSequenceId
+                  );
+
+                  if (!sequence) {
+                    return;
+                  }
+
+                  if (data.value.type === "Zoom") {
+                    data.value.value.position[1] = parseInt(value);
+                  }
+
+                  update_keyframe(editorState, data, sequence, [
+                    selectedKeyframe,
+                  ]);
+                }}
+              />
+            </div>
+            <div className="flex flex-row gap-2">
+              <DebouncedInput
+                id="keyframe_zoom"
+                label="Zoom Level (out of 100%)"
+                placeholder="Zoom Level"
+                initialValue={data?.value.value.toString()}
+                onDebounce={(value) => {
+                  let editor = editorRef.current;
+                  let editorState = editorStateRef.current;
+
+                  if (!editorState || !editor) {
+                    return;
+                  }
+
+                  let sequence = editorState.savedState.sequences.find(
+                    (s) => s.id === currentSequenceId
+                  );
+
+                  if (!sequence) {
+                    return;
+                  }
+
+                  if (data.value.type === "Zoom") {
+                    data.value.value.zoomLevel = parseInt(value);
+                  }
+
+                  update_keyframe(editorState, data, sequence, [
+                    selectedKeyframe,
+                  ]);
+                }}
+              />
+            </div>
+          </div>
+        )}
+        {data?.value.type === "PerspectiveX" && (
+          <div className="flex flex-row gap-2">
+            <DebouncedInput
+              id="keyframe_perspective_x"
+              label="Perspective X (out of 100%)"
+              placeholder="Perspective X"
+              initialValue={data?.value.value.toString()}
+              onDebounce={(value) => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let sequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
+                );
+
+                if (!sequence) {
+                  return;
+                }
+
+                if (data.value.type === "PerspectiveX") {
+                  data.value.value = parseInt(value);
+                }
+
+                update_keyframe(editorState, data, sequence, [
+                  selectedKeyframe,
+                ]);
+              }}
+            />
+          </div>
+        )}
+        {data?.value.type === "PerspectiveY" && (
+          <div className="flex flex-row gap-2">
+            <DebouncedInput
+              id="keyframe_perspective_y"
+              label="Perspective Y (out of 100%)"
+              placeholder="Perspective Y"
+              initialValue={data?.value.value.toString()}
+              onDebounce={(value) => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let sequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
+                );
+
+                if (!sequence) {
+                  return;
+                }
+
+                if (data.value.type === "PerspectiveY") {
+                  data.value.value = parseInt(value);
+                }
+
+                update_keyframe(editorState, data, sequence, [
+                  selectedKeyframe,
+                ]);
+              }}
+            />
+          </div>
+        )}
+        <button
+          className="p-2 bg-red-500 text-white"
+          onClick={async () => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editor || !editorState) {
+              return;
+            }
+
+            let sequence = editorState.savedState.sequences.find(
+              (s) => s.id === currentSequenceId
+            );
+
+            if (!sequence || !sequence.polygonMotionPaths) {
+              return;
+            }
+
+            sequence.polygonMotionPaths.forEach((pm) => {
+              pm.properties.forEach((p) => {
+                let updatedKeyframes: UIKeyframe[] = [];
+                p.keyframes.forEach((kf) => {
+                  if (kf.id !== selectedKeyframe) {
+                    updatedKeyframes.push(kf);
+                  }
+                });
+
+                p.keyframes = updatedKeyframes;
+              });
+            });
+
+            setRefreshTimeline(Date.now());
+
+            await saveSequencesData(
+              editorState.savedState.sequences,
+              editor.target
+            );
+
+            handleGoBack();
+          }}
+        >
+          Delete Keyframe
+        </button>
       </div>
     </>
   );

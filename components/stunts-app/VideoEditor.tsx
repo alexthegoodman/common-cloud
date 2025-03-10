@@ -77,17 +77,17 @@ export function update_keyframe(
   current_keyframe: UIKeyframe,
   current_sequence: Sequence,
   selected_keyframes: string[] | null,
-  set_selected_keyframes: React.Dispatch<React.SetStateAction<string[] | null>>,
+  set_selected_keyframes?: React.Dispatch<React.SetStateAction<string[] | null>>
   // animation_data: RwSignal<Option<AnimationData>>,
   // selected_sequence_data: RwSignal<Sequence>,
-  selected_sequence_id: string
+  // selected_sequence_id: string
   // sequence_selected: RwSignal<bool>,
 ) {
   if (!current_sequence.polygonMotionPaths) {
     return;
   }
 
-  if (selected_keyframes) {
+  if (selected_keyframes && set_selected_keyframes) {
     let selected_keyframe = selected_keyframes[0];
     if (current_keyframe.id != selected_keyframe) {
       let new_keyframes = [];
@@ -95,7 +95,7 @@ export function update_keyframe(
 
       set_selected_keyframes(new_keyframes);
     }
-  } else {
+  } else if (set_selected_keyframes) {
     let new_keyframes = [];
     new_keyframes.push(current_keyframe.id);
 
@@ -467,8 +467,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       currentKf,
       selected_sequence,
       selected_keyframes,
-      set_selected_keyframes,
-      current_sequence_id
+      set_selected_keyframes
+      // current_sequence_id
     );
 
     return [selected_sequence, selected_keyframes] as [Sequence, string[]];
