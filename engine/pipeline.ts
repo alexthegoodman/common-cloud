@@ -385,6 +385,10 @@ export class CanvasPipeline {
       return;
     }
 
+    // Animation steps
+    editor.stepVideoAnimations(editor.camera, currentTimeS);
+    await editor.stepMotionPathAnimations(editor.camera, currentTimeS);
+
     // Get the current texture and create a view
     const currentTexture = surface.getCurrentTexture();
     const view = currentTexture.createView();
@@ -424,10 +428,6 @@ export class CanvasPipeline {
 
     // Set pipeline
     renderPass.setPipeline(renderPipeline);
-
-    // Animation steps
-    editor.stepVideoAnimations(editor.camera, currentTimeS);
-    editor.stepMotionPathAnimations(editor.camera, currentTimeS);
 
     // Set camera bind group
     if (!editor.cameraBinding) {

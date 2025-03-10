@@ -1,6 +1,7 @@
 "use client";
 
 import { WindowSize } from "@/engine/camera";
+import { SaveTarget } from "@/engine/editor_state";
 import { PreviewManager } from "@/engine/preview";
 import { PublicProjectInfo } from "@/fetchers/mosaic";
 import { useDevEffectOnce } from "@/hooks/useDevOnce";
@@ -47,7 +48,8 @@ export default function VideoPreview({
     await previewManagerRef.current.initialize(
       docCanvasSize,
       paperSize,
-      cloned_sequences
+      cloned_sequences,
+      SaveTarget.Videos
     );
 
     if (!previewManagerRef.current.editor) {
@@ -63,12 +65,18 @@ export default function VideoPreview({
     let sequenceId = firstSequence.id;
 
     previewManagerRef.current.preparePreview(sequenceId, firstSequence);
-    previewManagerRef.current.pipeline?.renderFrame(
-      previewManagerRef.current.editor
+
+    await previewManagerRef.current.pipeline?.renderFrame(
+      previewManagerRef.current.editor,
+      (_) => {},
+      10 // 10 seconds in
     );
+
     const previewUrl = await previewManagerRef.current.generatePreview(
       sequenceId
     );
+
+    // console.info("previewCache", previewManagerRef.current.previewCache);
 
     setPreviewCache(previewManagerRef.current.previewCache);
   });

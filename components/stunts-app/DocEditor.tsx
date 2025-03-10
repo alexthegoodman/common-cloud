@@ -632,7 +632,8 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     await previewManagerRef.current.initialize(
       docCanvasSize,
       paperSize,
-      cloned_sequences
+      cloned_sequences,
+      SaveTarget.Docs
     );
 
     set_sequences(cloned_sequences);

@@ -2054,10 +2054,10 @@ export class Editor {
     }
   }
 
-  stepMotionPathAnimations(
+  async stepMotionPathAnimations(
     camera: Camera,
     providedCurrentTimeS?: number
-  ): void {
+  ): Promise<void> {
     if (!this.isPlaying || !this.currentSequenceData) {
       return;
     }
@@ -2070,10 +2070,10 @@ export class Editor {
       providedCurrentTimeS !== undefined ? providedCurrentTimeS : totalDt;
     this.lastFrameTime = now;
 
-    this.stepAnimateSequence(totalDt, camera);
+    await this.stepAnimateSequence(totalDt, camera);
   }
 
-  stepAnimateSequence(totalDt: number, camera: Camera): void {
+  async stepAnimateSequence(totalDt: number, camera: Camera): Promise<void> {
     const gpuResources = this.gpuResources;
     if (!gpuResources) {
       throw new Error("Couldn't get GPU Resources");
@@ -2151,7 +2151,10 @@ export class Editor {
           currentTime < currentFrameTime + frameInterval
         ) {
           if (currentTime * 1000 + 1000 < sourceDurationMs) {
-            videoItem.drawVideoFrame(gpuResources.device, gpuResources.queue);
+            await videoItem.drawVideoFrame(
+              gpuResources.device,
+              gpuResources.queue
+            );
             animateProperties = true;
             videoItem.numFramesDrawn += 1;
           }
@@ -2167,7 +2170,10 @@ export class Editor {
             const framesToDraw = Math.min(catchUpFrames, maxCatchUp);
 
             for (let i = 0; i < framesToDraw; i++) {
-              videoItem.drawVideoFrame(gpuResources.device, gpuResources.queue);
+              await videoItem.drawVideoFrame(
+                gpuResources.device,
+                gpuResources.queue
+              );
               videoItem.numFramesDrawn += 1;
             }
 

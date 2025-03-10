@@ -1,6 +1,7 @@
 import { BackgroundFill, Sequence } from "./animations";
 import { WindowSize } from "./camera";
 import { Editor, Viewport } from "./editor";
+import { SaveTarget } from "./editor_state";
 import { CanvasPipeline } from "./pipeline";
 
 export class PreviewManager {
@@ -16,13 +17,19 @@ export class PreviewManager {
   async initialize(
     docCanvasSize: WindowSize,
     paperSize: WindowSize,
-    sequences: Sequence[]
+    sequences: Sequence[],
+    saveTarget: SaveTarget
   ) {
     this.paperSize = paperSize;
 
     let viewport = new Viewport(docCanvasSize.width, docCanvasSize.height);
 
     this.editor = new Editor(viewport);
+
+    this.editor.target = saveTarget;
+
+    // !this.isPlaying || !this.currentSequenceData
+    this.editor.isPlaying = true; // false is passed on pipeline stepFrame to assure no continiuous rendering on preview
 
     console.info("Initializing pipeline...");
 
@@ -54,7 +61,7 @@ export class PreviewManager {
     // console.info("Restoring objects...");
 
     for (let [sequenceIndex, sequence] of sequences.entries()) {
-      this.editor.restore_sequence_objects(
+      await this.editor.restore_sequence_objects(
         sequence,
         // sequenceIndex === 0 ? false : true
         true
@@ -67,6 +74,8 @@ export class PreviewManager {
     if (!this.editor || !this.pipeline?.canvas) {
       throw Error("No editor or canvas for preview");
     }
+
+    this.editor.currentSequenceData = savedSequence;
 
     for (const polygon of this.editor.polygons) {
       polygon.hidden = polygon.currentSequenceId !== sequenceId;
