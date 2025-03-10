@@ -23,7 +23,7 @@ export default function ProjectSettings({ children = null }) {
             icon="video"
             destination={`/project/${projectId}/videos`}
           />
-          <NavButton
+          {/* <NavButton
             label="Docs"
             icon="file-cloud"
             destination={`/project/${projectId}/documents`}
@@ -37,7 +37,7 @@ export default function ProjectSettings({ children = null }) {
             label="Promos"
             icon="squares"
             destination={`/project/${projectId}/promos`}
-          />
+          /> */}
           <NavButton
             label="Market"
             icon="market"
