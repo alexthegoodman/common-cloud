@@ -75,6 +75,27 @@ export default class EditorState {
     }
   }
 
+  updateFontSize(
+    editor: Editor,
+    objectId: string,
+    objectType: ObjectType,
+    value: number
+  ) {
+    editor.update_text_size(objectId, value);
+
+    this.savedState.sequences.forEach((s) => {
+      // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
+      s.activeTextItems.forEach((p) => {
+        if (p.id == objectId) {
+          p.fontSize = value;
+        }
+      });
+      // }
+    });
+
+    saveSequencesData(this.savedState.sequences, this.saveTarget);
+  }
+
   updateWidth(
     editor: Editor,
     objectId: string,

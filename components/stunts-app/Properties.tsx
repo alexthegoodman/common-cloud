@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { DebouncedInput } from "./items";
+import { DebouncedInput, DebouncedTextarea } from "./items";
 import { colorToWgpu, Editor, rgbToWgpu, wgpuToHuman } from "@/engine/editor";
 import EditorState, { SaveTarget } from "@/engine/editor_state";
 import {
@@ -952,6 +952,7 @@ export const TextProperties = ({
   const [defaultContent, setDefaultContent] = useState("");
   const [is_circle, set_is_circle] = useState(false);
   const [defaultFill, setDefaultFill] = useState<BackgroundFill | null>(null);
+  const [fontSize, setFontSize] = useState(28);
 
   useEffect(() => {
     let editor = editorRef.current;
@@ -973,6 +974,7 @@ export const TextProperties = ({
     let content = currentObject?.text;
     let isCircle = currentObject?.isCircle;
     let backgroundFill = currentObject?.backgroundFill;
+    let fontSize = currentObject?.fontSize;
 
     if (width) {
       setDefaultWidth(width);
@@ -988,6 +990,9 @@ export const TextProperties = ({
     }
     if (backgroundFill) {
       setDefaultFill(backgroundFill);
+    }
+    if (fontSize) {
+      setFontSize(fontSize);
     }
 
     setDefaultsSet(true);
@@ -1016,6 +1021,29 @@ export const TextProperties = ({
           <h5>Update Text</h5>
         </div>
         <DebouncedInput
+          id="text_font_size"
+          label="Font Size"
+          placeholder="Font Size"
+          initialValue={fontSize.toString()}
+          onDebounce={(value) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            console.info("double call?");
+
+            editorState.updateFontSize(
+              editor,
+              currentTextId,
+              ObjectType.TextItem,
+              parseInt(value)
+            );
+          }}
+        />
+        <DebouncedTextarea
           id="text_content"
           label="Content"
           placeholder="Content"

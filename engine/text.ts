@@ -145,12 +145,12 @@ export class TextRenderer {
     // this.gradientBindGroup = gradientBindGroup;
 
     this.vertexBuffer = this.device.createBuffer({
-      size: isTextArea ? 4000000 : 65536, // 4MB to 64kb
+      size: isTextArea ? 4000000 : 131072, // 4MB to 128kb
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
 
     this.indexBuffer = this.device.createBuffer({
-      size: isTextArea ? 1000000 : 65536, // 1mb to 64kb
+      size: isTextArea ? 1000000 : 131072, // 1mb to 128kb
       usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
     });
 

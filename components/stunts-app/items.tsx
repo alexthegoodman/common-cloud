@@ -236,10 +236,51 @@ export const DebouncedInput: React.FC<DebouncedInputProps> = ({
         onChange={handleChange}
         className="border rounded px-2 py-1 w-full min-w-2 text-xs"
       />
-      {/* <div>
-        <p>Current value: {value}</p>
-        <p>Debounced value: {debouncedValue}</p>
-      </div> */}
+    </div>
+  );
+};
+
+export const DebouncedTextarea: React.FC<DebouncedInputProps> = ({
+  id,
+  label,
+  placeholder,
+  initialValue,
+  onDebounce,
+  style,
+}) => {
+  const [value, setValue] = useState(initialValue);
+  const debouncedValue = useDebounce(value, 300);
+  const [debounced, setDebounced] = useState(false);
+
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = event.target.value;
+    setValue(newValue);
+  };
+
+  useEffect(() => {
+    if (debouncedValue && debounced) {
+      console.info("on debounce!");
+      onDebounce(debouncedValue);
+    } else if (debouncedValue) {
+      setDebounced(true);
+    }
+  }, [debouncedValue]);
+
+  return (
+    <div className="space-y-2" style={style}>
+      <label htmlFor={id} className="text-xs">
+        {label}
+      </label>
+      <textarea
+        id={id}
+        name={id}
+        key={id}
+        placeholder={placeholder}
+        value={value}
+        rows={6}
+        onChange={handleChange}
+        className="border rounded px-2 py-1 w-full min-w-2 text-xs"
+      ></textarea>
     </div>
   );
 };
