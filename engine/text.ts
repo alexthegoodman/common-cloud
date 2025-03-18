@@ -764,7 +764,26 @@ export class TextRenderer {
     };
 
     // Split text into words and handle word-wrap
-    const words = text.split(" ");
+    let tokens = text.split(" ");
+    // const words = text.split(/\s+/);
+    let words: string[] = [];
+    tokens.forEach((word) => {
+      let toks = word.split("\n");
+      let newline = word.includes("\n");
+      toks.forEach((tok, i) => {
+        if (newline) {
+          if (i === 0) {
+            words.push(tok);
+            words.push("\n");
+          } else {
+            words.push(tok);
+          }
+        } else {
+          words.push(tok);
+        }
+      });
+    });
+
     for (let i = 0; i < words.length; i++) {
       const word = words[i];
       const wordGlyphRun = this.font.layout(word);
@@ -775,26 +794,33 @@ export class TextRenderer {
 
       // If adding this word would exceed the max line width, start a new line
       if (
-        currentLine.width + wordWidth > maxLineWidth &&
+        (currentLine.width + wordWidth > maxLineWidth || word === "\n") &&
         currentLine.glyphs.length > 0
       ) {
         lines.push(currentLine);
         currentLine = { glyphs: [], positions: [], width: 0 };
       }
 
-      // Add the word to the current line
-      currentLine.glyphs.push(...wordGlyphRun.glyphs);
-      currentLine.positions.push(...wordGlyphRun.positions);
-      currentLine.width += wordWidth;
+      if (word !== "\n") {
+        // Add the word to the current line
+        currentLine.glyphs.push(...wordGlyphRun.glyphs);
+        currentLine.positions.push(...wordGlyphRun.positions);
+        currentLine.width += wordWidth;
 
-      // Add space width (if not the last word)
-      if (i < words.length - 1) {
-        const spaceGlyphRun = this.font.layout(" ");
-        const spaceWidth = spaceGlyphRun.positions[0].xAdvance * scale;
-        currentLine.glyphs.push(...spaceGlyphRun.glyphs);
-        currentLine.positions.push(...spaceGlyphRun.positions);
-        currentLine.width += spaceWidth;
+        // Add space width (if not the last word)
+        if (i < words.length - 1) {
+          const spaceGlyphRun = this.font.layout(" ");
+          const spaceWidth = spaceGlyphRun.positions[0].xAdvance * scale;
+          currentLine.glyphs.push(...spaceGlyphRun.glyphs);
+          currentLine.positions.push(...spaceGlyphRun.positions);
+          currentLine.width += spaceWidth;
+        }
       }
+
+      // if (word === "\n" && currentLine.glyphs.length > 0) {
+      //   lines.push(currentLine);
+      //   currentLine = { glyphs: [], positions: [], width: 0 };
+      // }
     }
 
     // Add the last line
