@@ -13,6 +13,7 @@ import {
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Footer from "@/components/Footer";
+import ProjectShowcase from "@/components/ProjectShowcase";
 
 const HomePage = () => {
   const router = useRouter();
@@ -37,12 +38,12 @@ const HomePage = () => {
           >
             <h1 className="text-6xl font-bold mb-6 text-white">Common</h1>
           </motion.div>
-          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-green-500 to-yellow-500 text-transparent bg-clip-text">
-            Valuable Products for Regular People
+          <h1 className="text-5xl font-bold pb-2 mb-6 bg-gradient-to-r from-green-500 to-yellow-500 text-transparent bg-clip-text">
+            Valuable Products for Serious People
           </h1>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
             Common innovates at the edge of technology to produce affordable
-            products for normal people.
+            products for mid-to-large enterprises.
           </p>
           <div className="flex justify-center gap-4">
             <button
@@ -67,6 +68,8 @@ const HomePage = () => {
           </div>
         </div>
       </header>
+
+      <ProjectShowcase />
 
       {/* Call to Action */}
       <section className="container mx-auto px-4 py-16">
