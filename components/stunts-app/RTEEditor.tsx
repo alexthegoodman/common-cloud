@@ -11,7 +11,7 @@ import { defaultStyle } from "@/engine/rte";
 import { v4 as uuidv4 } from "uuid";
 import { TextRendererConfig } from "@/engine/text";
 
-export const DocEditor: React.FC<any> = ({ projectId }) => {
+export const RTEEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
@@ -363,7 +363,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     canvasPipelineRef.current = await pipeline.new(
       editorRef.current,
       true,
-      "doc-canvas",
+      "rte-canvas",
       {
         width: 900,
         height: 1200,
@@ -397,7 +397,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     //   }
 
     // set handlers
-    const canvas = document.getElementById("doc-canvas") as HTMLCanvasElement;
+    const canvas = document.getElementById("rte-canvas") as HTMLCanvasElement;
     setupCanvasMouseTracking(canvas);
 
     await editorRef.current.initializeRTE();
@@ -492,7 +492,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
     <>
       <div className="flex flex-col justify-center items-center w-[calc(100vw-420px)] gap-2">
         <canvas
-          id="doc-canvas"
+          id="rte-canvas"
           className="w-[900px] h-[1200px] border border-black"
           width="900"
           height="1200"

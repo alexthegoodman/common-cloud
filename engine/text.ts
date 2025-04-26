@@ -308,7 +308,13 @@ export class TextRenderer {
     ctx.textBaseline = "alphabetic"; // Align text to the baseline
     ctx.textAlign = "left"; // Align text to the left
 
-    const baselineY = Math.ceil(charGlyph.charItem.height);
+    // const baselineY = Math.ceil(charGlyph.charItem.height);
+    let DPI_SCALE = 1;
+    const scale = charGlyph.fontSize / this.font.unitsPerEm;
+    const glyphRun = this.font.layout(charGlyph.charItem.char);
+    const glyph = glyphRun.glyphs[0];
+    const boundingBox = glyph.bbox;
+    const baselineY = Math.ceil(boundingBox.maxY * scale * DPI_SCALE);
     ctx.fillText(charGlyph.charItem.char, 0, baselineY);
 
     // Get the image data from the canvas
@@ -378,6 +384,8 @@ export class TextRenderer {
     const vertices: Vertex[] = [];
     const indices: number[] = [];
 
+    const scale = this.fontSize / this.font.unitsPerEm;
+
     // Calculate the total width and height of the text
     const startX = 0;
     const startY = 0;
@@ -428,10 +436,34 @@ export class TextRenderer {
 
         const baselineY = charItem.capHeight - charItem.height;
 
-        let x0 = charItem.x;
-        let x1 = charItem.x + charItem.width;
-        let y0 = charItem.y + baselineY;
-        let y1 = charItem.y + charItem.height + baselineY;
+        // console.info(
+        //   "heights",
+        //   charItem.char,
+        //   charItem.y,
+        //   atlasGlyph.metrics.ymin
+        // );
+
+        let x0 = charItem.x; // topleft, bottomleft
+        let x1 = charItem.x + charItem.width; // topright, bottomright
+        let y0 = charItem.y + baselineY; // topleft, topright
+        let y1 = charItem.y + charItem.height + baselineY; // bottomleft, bottomright
+
+        // // Calculate vertex positions using the scaled glyph's position and metrics
+        // const x0 = charItem.x;
+        // const x1 = x0 + atlasGlyph.metrics.width;
+        // // currentX += position.xAdvance * scale; // Update for next character
+
+        // const baselineY =
+        //   charItem.capHeight -
+        //   atlasGlyph.metrics.height -
+        //   atlasGlyph.metrics.ymin;
+
+        // let y0 = charItem.y - charItem.capHeight / 2 + baselineY;
+        // let y1 =
+        //   charItem.y -
+        //   charItem.capHeight / 2 +
+        //   atlasGlyph.metrics.height +
+        //   baselineY; // metrics[1] is already scaled in addGlyphToAtlas
 
         // UV coordinates from atlas
         let u0 = atlasGlyph.uv_rect[0];

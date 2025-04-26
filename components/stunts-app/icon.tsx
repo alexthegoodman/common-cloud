@@ -49,10 +49,14 @@ import {
   Video,
   Windmill,
   X,
+  Book,
 } from "@phosphor-icons/react";
 
 export const CreateIcon = ({ icon, size }: { icon: string; size: string }) => {
   switch (icon) {
+    case "book": {
+      return <Book weight="thin" size={size} />;
+    }
     case "plus": {
       return <Plus weight="thin" size={size} />;
     }
