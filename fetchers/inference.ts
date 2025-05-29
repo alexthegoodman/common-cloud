@@ -3,16 +3,21 @@ export const callMotionInference = async (
   //   fileName: string,
   prompt: string
 ): Promise<number[]> => {
-  const response = await fetch("http://localhost:8000", {
-    method: "POST",
-    headers: {
-      // Remove Content-Type: application/json since we're sending raw binary data
-      // Authorization: `Bearer ${token}`,
-      // "X-File-Name": fileName,
-      "X-Inference-Type": "motion",
-    },
-    body: prompt, // Send the prompt directly as the body
-  });
+  const response = await fetch(
+    process.env.NODE_ENV === "production"
+      ? "http://64.227.97.44:8000"
+      : "http://localhost:8000",
+    {
+      method: "POST",
+      headers: {
+        // Remove Content-Type: application/json since we're sending raw binary data
+        // Authorization: `Bearer ${token}`,
+        // "X-File-Name": fileName,
+        "X-Inference-Type": "motion",
+      },
+      body: prompt, // Send the prompt directly as the body
+    }
+  );
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -31,16 +36,21 @@ export const callLayoutInference = async (
   //   fileName: string,
   prompt: string
 ): Promise<number[]> => {
-  const response = await fetch("http://localhost:8000", {
-    method: "POST",
-    headers: {
-      // Remove Content-Type: application/json since we're sending raw binary data
-      // Authorization: `Bearer ${token}`,
-      // "X-File-Name": fileName,
-      "X-Inference-Type": "layout",
-    },
-    body: prompt, // Send the prompt directly as the body
-  });
+  const response = await fetch(
+    process.env.NODE_ENV === "production"
+      ? "http://64.227.97.44:8000"
+      : "http://localhost:8000",
+    {
+      method: "POST",
+      headers: {
+        // Remove Content-Type: application/json since we're sending raw binary data
+        // Authorization: `Bearer ${token}`,
+        // "X-File-Name": fileName,
+        "X-Inference-Type": "layout",
+      },
+      body: prompt, // Send the prompt directly as the body
+    }
+  );
 
   if (!response.ok) {
     const errorText = await response.text();
