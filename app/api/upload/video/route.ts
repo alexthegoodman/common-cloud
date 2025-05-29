@@ -4,15 +4,17 @@ import prisma from "@/lib/prisma";
 import fs from "fs/promises";
 import path from "path";
 
+export const maxDuration = 300; // 5 minutes (300 seconds)
+
 // Constants
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB in bytes
-const ALLOWED_MIME_TYPES = [
-  "video/mp4",
-  "video/quicktime",
-  "video/x-msvideo",
-  "video/x-matroska",
-];
+const ALLOWED_MIME_TYPES = ["video/mp4"];
 const UPLOAD_DIR = path.join(process.cwd(), "public", "video-uploads");
+
+// Bunny.net configuration
+const BUNNY_STORAGE_URL = process.env.BUNNY_STORAGE_URL; // e.g., https://storage.bunnycdn.com/your-storage-zone
+const BUNNY_API_KEY = process.env.BUNNY_API_KEY;
+const BUNNY_CDN_URL = process.env.BUNNY_CDN_URL; // e.g., https://your-pull-zone.b-cdn.net
 
 // Helper function to validate file type from raw bytes
 function getMimeTypeFromBuffer(buffer: Buffer): string | null {
@@ -28,29 +30,57 @@ function getMimeTypeFromBuffer(buffer: Buffer): string | null {
     return "video/mp4";
   }
 
-  // // Check for AVI (starts with RIFF)
-  // if (
-  //   buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46
-  // ) {
-  //   return "video/x-msvideo";
-  // }
-
-  // // Check for MOV (starts with ftypqt)
-  // if (
-  //   buffer[4] === 0x66 && buffer[5] === 0x74 && buffer[6] === 0x79 && buffer[7] === 0x70 &&
-  //   buffer[8] === 0x71 && buffer[9] === 0x74
-  // ) {
-  //   return "video/quicktime";
-  // }
-
-  // // Check for MKV (starts with 1A 45 DF A3)
-  // if (
-  //   buffer[0] === 0x1a && buffer[1] === 0x45 && buffer[2] === 0xdf && buffer[3] === 0xa3
-  // ) {
-  //   return "video/x-matroska";
-  // }
-
   return null;
+}
+
+// Helper function to upload to Bunny.net
+async function uploadToBunny(
+  buffer: Buffer,
+  fileName: string,
+  mimeType: string
+): Promise<string> {
+  if (!BUNNY_STORAGE_URL || !BUNNY_API_KEY || !BUNNY_CDN_URL) {
+    throw new Error("Bunny.net configuration missing");
+  }
+
+  const uploadUrl = `${BUNNY_STORAGE_URL}/${fileName}`;
+
+  const response = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: {
+      AccessKey: BUNNY_API_KEY,
+      "Content-Type": "application/octet-stream",
+      accept: "application/json",
+    },
+    body: buffer,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Bunny.net upload failed: ${response.status} ${errorText}`);
+  }
+
+  // Return the CDN URL
+  return `${BUNNY_CDN_URL}/${fileName}`;
+}
+
+// Helper function to save file locally
+async function saveFileLocally(
+  buffer: Buffer,
+  fileName: string
+): Promise<string> {
+  // Create uploads directory if it doesn't exist
+  try {
+    await fs.access(UPLOAD_DIR);
+  } catch {
+    await fs.mkdir(UPLOAD_DIR, { recursive: true });
+  }
+
+  const filePath = path.join(UPLOAD_DIR, fileName);
+  await fs.writeFile(filePath, buffer);
+
+  // Return the public URL
+  return `/video-uploads/${fileName}`;
 }
 
 export const config = {
@@ -116,25 +146,38 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create uploads directory if it doesn't exist
-    try {
-      await fs.access(UPLOAD_DIR);
-    } catch {
-      await fs.mkdir(UPLOAD_DIR, { recursive: true });
-    }
-
     // Sanitize filename and add timestamp
     const fileName = req.headers.get("X-File-Name") || "uploaded_file";
     const timestamp = Date.now();
     const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const uniqueFileName = `${timestamp}-${sanitizedFileName}`;
-    const filePath = path.join(UPLOAD_DIR, uniqueFileName);
+    const uniqueFileName = `${timestamp}-${sanitizedFileName}.mp4`;
 
-    // Save the file locally
-    await fs.writeFile(filePath, buffer);
+    let publicUrl: string;
 
-    // Generate the public URL
-    const publicUrl = `/video-uploads/${uniqueFileName}`;
+    // Choose storage method based on environment
+    if (process.env.NODE_ENV === "production") {
+      // Upload to Bunny.net in production
+      try {
+        publicUrl = await uploadToBunny(buffer, uniqueFileName, mimeType);
+      } catch (error) {
+        console.error("Bunny.net upload error:", error);
+        return NextResponse.json(
+          { error: "Failed to upload file to storage" },
+          { status: 500 }
+        );
+      }
+    } else {
+      // Save locally in development
+      try {
+        publicUrl = await saveFileLocally(buffer, uniqueFileName);
+      } catch (error) {
+        console.error("Local file save error:", error);
+        return NextResponse.json(
+          { error: "Failed to save file locally" },
+          { status: 500 }
+        );
+      }
+    }
 
     return NextResponse.json({
       url: publicUrl,

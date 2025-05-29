@@ -6,3 +6,8 @@ BLOB_READ_WRITE_TOKEN=""
 
 NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID=""
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=""
+
+# Bunny.net Configuration (only needed in production)
+BUNNY_STORAGE_URL=https://storage.bunnycdn.com/your-storage-zone-name
+BUNNY_API_KEY=your-bunny-storage-api-key
+BUNNY_CDN_URL=https://your-pull-zone.b-cdn.net
