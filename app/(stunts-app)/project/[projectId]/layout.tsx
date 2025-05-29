@@ -43,11 +43,11 @@ export default function ProjectSettings({ children = null }) {
             icon="market"
             destination={`/project/${projectId}/market`}
           /> */}
-          <NavButton
+          {/* <NavButton
             label="Books"
             icon="book"
             destination={`/project/${projectId}/books`}
-          />
+          /> */}
           <NavButton
             label="Settings"
             icon="gear"
