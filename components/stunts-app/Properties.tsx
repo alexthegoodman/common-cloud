@@ -1468,6 +1468,68 @@ export const VideoProperties = ({
                 return;
               }
 
+              let newAnimationData = editorState.remove_position_keyframes(
+                currentVideoId,
+                ObjectType.VideoItem,
+                current_animation_data
+              );
+
+              let sequence_cloned = null;
+
+              editorState.savedState.sequences.forEach((s) => {
+                if (s.id == currentSequenceId) {
+                  sequence_cloned = s;
+
+                  if (s.polygonMotionPaths) {
+                    let currentIndex = s.polygonMotionPaths.findIndex(
+                      (p) => p.id === current_animation_data.id
+                    );
+                    s.polygonMotionPaths[currentIndex] = newAnimationData;
+                  }
+                }
+              });
+
+              if (!sequence_cloned) {
+                return;
+              }
+
+              let sequences = editorState.savedState.sequences;
+
+              await saveSequencesData(sequences, editorState.saveTarget);
+
+              // update motion path preview
+              editor.updateMotionPaths(sequence_cloned);
+            }}
+          >
+            Remove Position Keyframes
+          </button>
+          <button
+            className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+            onClick={async () => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+
+              if (!editorState || !editor) {
+                return;
+              }
+
+              let currentSequence = editorState.savedState.sequences.find(
+                (s) => s.id === currentSequenceId
+              );
+
+              if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+                return;
+              }
+
+              let current_animation_data =
+                currentSequence?.polygonMotionPaths.find(
+                  (p) => p.polygonId === currentVideoId
+                );
+
+              if (!current_animation_data) {
+                return;
+              }
+
               let newAnimationData = editorState.save_perspective_x_keyframes(
                 currentVideoId,
                 ObjectType.VideoItem,
