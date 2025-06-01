@@ -99,8 +99,8 @@ export const ToolGrid = ({
     // let mut rng = rand::thread_rng();
     // let random_number_800 = rng.gen_range(0..=800);
     // let random_number_450 = rng.gen_range(0..=450);
-    let random_number_800 = getRandomNumber(0, 800);
-    let random_number_450 = getRandomNumber(0, 450);
+    let random_number_800 = getRandomNumber(100, 700);
+    let random_number_450 = getRandomNumber(100, 350);
 
     let new_id = uuidv4();
 
@@ -221,8 +221,8 @@ export const ToolGrid = ({
       // let random_number_800 = rng.gen_range(0..=800);
       // let random_number_450 = rng.gen_range(0..=450);
 
-      let random_number_800 = getRandomNumber(0, 800);
-      let random_number_450 = getRandomNumber(0, 450);
+      let random_number_800 = getRandomNumber(100, 700);
+      let random_number_450 = getRandomNumber(100, 350);
 
       let new_id = uuidv4();
 
@@ -305,8 +305,8 @@ export const ToolGrid = ({
     // let mut rng = rand::thread_rng();
     // let random_number_800 = rng.gen_range(0..=800);
     // let random_number_450 = rng.gen_range(0..=450);
-    let random_number_800 = getRandomNumber(0, 800);
-    let random_number_450 = getRandomNumber(0, 450);
+    let random_number_800 = getRandomNumber(100, 700);
+    let random_number_450 = getRandomNumber(100, 350);
 
     let new_id = uuidv4();
     let new_text = "New text";
@@ -413,8 +413,8 @@ export const ToolGrid = ({
       // let random_number_800 = rng.gen_range(0..=800);
       // let random_number_450 = rng.gen_range(0..=450);
 
-      let random_number_800 = getRandomNumber(0, 800);
-      let random_number_450 = getRandomNumber(0, 450);
+      let random_number_800 = getRandomNumber(100, 700);
+      let random_number_450 = getRandomNumber(100, 350);
 
       let new_id = uuidv4();
 
