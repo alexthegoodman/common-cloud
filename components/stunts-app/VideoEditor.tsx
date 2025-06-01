@@ -1349,10 +1349,36 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                       return (
                         <div key={`trackSequence${sequence.id}`}>
                           {sequence.polygonMotionPaths.map((animation) => {
+                            let objectName = null;
+                            if (animation.objectType === ObjectType.Polygon) {
+                              objectName = sequence.activePolygons.find(
+                                (pol) => pol.id === animation.polygonId
+                              )?.name;
+                            } else if (
+                              animation.objectType === ObjectType.ImageItem
+                            ) {
+                              objectName = sequence.activeImageItems.find(
+                                (pol) => pol.id === animation.polygonId
+                              )?.name;
+                            } else if (
+                              animation.objectType === ObjectType.TextItem
+                            ) {
+                              objectName = sequence.activeTextItems.find(
+                                (pol) => pol.id === animation.polygonId
+                              )?.name;
+                            } else if (
+                              animation.objectType === ObjectType.VideoItem
+                            ) {
+                              objectName = sequence.activeVideoItems.find(
+                                (pol) => pol.id === animation.polygonId
+                              )?.name;
+                            }
+
                             return (
                               <ObjectTrack
                                 key={`objectTrack${animation.id}`}
                                 type={TrackType.Video}
+                                objectName={objectName}
                                 objectData={animation}
                                 pixelsPerSecond={15}
                                 onSequenceDragEnd={handleObjectDragEnd}

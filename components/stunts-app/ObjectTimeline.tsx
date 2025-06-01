@@ -110,12 +110,14 @@ import { AnimationData, TrackType } from "@/engine/animations";
 
 interface TrackProps {
   type: TrackType;
+  objectName: string | null | undefined;
   objectData: AnimationData;
   pixelsPerSecond: number;
   onSequenceDragEnd: (animation: AnimationData, newStartTimeMs: number) => void;
 }
 
 interface SequenceProps {
+  objectName: string | null | undefined;
   animation: AnimationData;
   pixelsPerMs: number;
   sequenceColor: string;
@@ -125,6 +127,7 @@ interface SequenceProps {
 
 // Draggable Sequence Component
 const DraggableSequence: React.FC<SequenceProps> = ({
+  objectName,
   animation,
   pixelsPerMs,
   sequenceColor,
@@ -151,13 +154,14 @@ const DraggableSequence: React.FC<SequenceProps> = ({
       {...listeners}
       {...attributes}
     >
-      {animation.id}
+      {objectName}
     </div>
   );
 };
 
 export const ObjectTrack: React.FC<TrackProps> = ({
   type,
+  objectName,
   objectData,
   pixelsPerSecond,
   onSequenceDragEnd,
@@ -219,6 +223,7 @@ export const ObjectTrack: React.FC<TrackProps> = ({
         <div className="relative w-full h-full p-1 top-[-50px] z-10">
           {objectData && (
             <DraggableSequence
+              objectName={objectName}
               animation={objectData}
               pixelsPerMs={pixelsPerMs}
               sequenceColor={sequenceColor}
