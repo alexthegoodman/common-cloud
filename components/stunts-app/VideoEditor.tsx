@@ -69,6 +69,7 @@ import { PageSequence } from "@/engine/data";
 import { WindowSize } from "@/engine/camera";
 import { ThemePicker } from "./ThemePicker";
 import { ObjectTrack } from "./ObjectTimeline";
+import toast from "react-hot-toast";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -604,10 +605,14 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     let editorState = editorStateRef.current;
 
     if (!editor || !editorState) {
+      toast.error("Your editor or editor state failed to initialize");
+
       return;
     }
 
     if (!authToken) {
+      toast.error("You must have an auth token");
+
       return;
     }
 
