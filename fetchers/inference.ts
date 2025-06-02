@@ -5,7 +5,7 @@ export const callMotionInference = async (
 ): Promise<number[]> => {
   const response = await fetch(
     process.env.NODE_ENV === "production"
-      ? "http://64.227.97.44:8000"
+      ? "https://stunts-inf-api.madebycommon.com"
       : "http://localhost:8000",
     {
       method: "POST",
@@ -38,7 +38,7 @@ export const callLayoutInference = async (
 ): Promise<number[]> => {
   const response = await fetch(
     process.env.NODE_ENV === "production"
-      ? "http://64.227.97.44:8000"
+      ? "https://stunts-inf-api.madebycommon.com"
       : "http://localhost:8000",
     {
       method: "POST",
