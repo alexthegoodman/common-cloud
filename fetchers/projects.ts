@@ -74,7 +74,11 @@ export const getSingleProject = async (
   //   };
   // }
 
-  const url = new URL("/api/projects/single");
+  const url = new URL(
+    process.env.NODE_ENV === "production"
+      ? "https://madebycommon.com/api/projects/single"
+      : "http://localhost:3000/api/projects/single"
+  );
   url.searchParams.set("projectId", project_id);
 
   const response = await fetch(url.toString(), {
