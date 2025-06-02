@@ -1,6 +1,6 @@
 # Common Cloud
 
-The Account Management application for Common users, such as users of Stunts.
+The home of Stunts, the video / motion graphics editor for web with generative keyframes, zoom, and perspective effects.
 
 ## Getting Started
 
