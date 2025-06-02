@@ -74,7 +74,7 @@ export const getSingleProject = async (
   //   };
   // }
 
-  const url = new URL("http://localhost:3000/api/projects/single");
+  const url = new URL("/api/projects/single");
   url.searchParams.set("projectId", project_id);
 
   const response = await fetch(url.toString(), {
@@ -102,7 +102,7 @@ export const getProjects = async (
     return [];
   }
 
-  const response = await fetch("http://localhost:3000/api/projects/all", {
+  const response = await fetch("/api/projects/all", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -136,7 +136,7 @@ export const createProject = async (
   emptyDocData: SavedState,
   emptyPresData: SavedState
 ): Promise<CreateProjectResponse> => {
-  const response = await fetch("http://localhost:3000/api/projects/create", {
+  const response = await fetch("/api/projects/create", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -195,17 +195,14 @@ export const updateSequences = async (
   sequences: Sequence[],
   saveTarget: SaveTarget
 ): Promise<UpdateSequencesResponse> => {
-  const response = await fetch(
-    "http://localhost:3000/api/projects/update-sequences",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ projectId, saveTarget, sequences }),
-    }
-  );
+  const response = await fetch("/api/projects/update-sequences", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ projectId, saveTarget, sequences }),
+  });
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -222,17 +219,14 @@ export const updateTimeline = async (
   projectId: string,
   timelineState: SavedTimelineStateConfig
 ): Promise<UpdateTimelineResponse> => {
-  const response = await fetch(
-    "http://localhost:3000/api/projects/update-timeline",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ projectId, timelineState }),
-    }
-  );
+  const response = await fetch("/api/projects/update-timeline", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ projectId, timelineState }),
+  });
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -281,7 +275,7 @@ export const saveImage = async (
   fileName: string,
   data: Blob
 ): Promise<UploadResponse> => {
-  const response = await fetch("http://localhost:3000/api/upload/image", {
+  const response = await fetch("/api/upload/image", {
     method: "POST",
     headers: {
       // Remove Content-Type: application/json since we're sending raw binary data
@@ -310,7 +304,7 @@ export const getUploadedImage = async (
     //   filename
     // )}`,
     // for now or forever, just fetch directly from url
-    `http://localhost:3000${filename}`,
+    `${filename}`,
     {
       method: "GET",
       headers: {
@@ -369,7 +363,7 @@ export const saveVideo = async (
   fileName: string,
   data: Blob
 ): Promise<UploadResponse> => {
-  const response = await fetch("http://localhost:3000/api/upload/video", {
+  const response = await fetch("/api/upload/video", {
     method: "POST",
     headers: {
       // Remove Content-Type: application/json since we're sending raw binary data
@@ -398,7 +392,7 @@ export const getUploadedVideo = async (
     //   filename
     // )}`,
     // for now or forever, just fetch directly from url
-    `http://localhost:3000${filename}`,
+    `${filename}`,
     {
       method: "GET",
       headers: {

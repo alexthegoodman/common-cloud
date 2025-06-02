@@ -23,7 +23,7 @@ export interface PublicProjectInfo {
 }
 
 export const getPublicProjects = async (): Promise<PublicProjectInfo[]> => {
-  const response = await fetch("http://localhost:3000/api/projects/public", {
+  const response = await fetch("/api/projects/public", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

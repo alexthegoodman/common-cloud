@@ -23,7 +23,7 @@ export const createFlow = async (
   const emptyContent = {};
   const emptyQuestions = {};
 
-  const response = await fetch("http://localhost:3000/api/flows/create", {
+  const response = await fetch("/api/flows/create", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -56,7 +56,7 @@ export const scrapeLink = async (
   const emptyContent = {};
   const emptyQuestions = {};
 
-  const response = await fetch("http://localhost:3000/api/flows/scrape-link", {
+  const response = await fetch("/api/flows/scrape-link", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
