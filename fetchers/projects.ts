@@ -311,9 +311,9 @@ export const getUploadedImage = async (
     `${filename}`,
     {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      // headers: {
+      //   Authorization: `Bearer ${token}`,
+      // },
     }
   );
 
@@ -399,9 +399,9 @@ export const getUploadedVideo = async (
     `${filename}`,
     {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      // headers: {
+      //   Authorization: `Bearer ${token}`,
+      // },
     }
   );
 
