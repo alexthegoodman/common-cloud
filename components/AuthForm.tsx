@@ -2,6 +2,7 @@
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import * as fbq from "../lib/fpixel";
 
 interface AuthFormData {
   email: string;
@@ -37,6 +38,8 @@ export default function AuthForm({ type = "login" }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: "Default Name", ...data }),
         });
+
+        fbq.event("SignUp", { email: data.email });
       }
 
       const json = await res.json();
