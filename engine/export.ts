@@ -405,12 +405,13 @@ export class FullExporter {
       return;
     }
 
-    this.editor.camera.position = vec2.fromValues(100.0, 100.0);
-    // this.editor.camera.zoom = 2.0;
-    this.editor.cameraBinding?.update(
-      this.editor.gpuResources?.queue,
-      this.editor.camera
-    );
+    // // this.editor.camera.position = vec2.fromValues(100.0, 100.0);
+    // this.editor.camera.setPosition(0.1, 0.1, 0);
+    // // this.editor.camera.zoom = 2.0;
+    // this.editor.cameraBinding?.update(
+    //   this.editor.gpuResources?.queue,
+    //   this.editor.camera
+    // );
 
     let targetFrameRate = 60;
 

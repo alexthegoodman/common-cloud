@@ -389,6 +389,7 @@ import {
   RenderItem,
 } from "./rte";
 import { SaveTarget } from "./editor_state";
+import { Camera3D } from "./3dcamera";
 // import * as fontkit from "fontkit";
 
 export class Editor {
@@ -430,7 +431,7 @@ export class Editor {
   gpuResources: WebGpuResources | null;
 
   window: Window | null;
-  camera: Camera | null;
+  camera: Camera3D | null;
   cameraBinding: CameraBinding | null;
   modelBindGroupLayout: GPUBindGroupLayout | null;
   groupBindGroupLayout: GPUBindGroupLayout | null;
@@ -2308,10 +2309,15 @@ export class Editor {
               y: CANVAS_VERT_OFFSET + y + pathGroupPosition[1],
             };
 
+            let posBufferAdjustment = 0;
+            if (this.scaleMultiplier > 1) {
+              posBufferAdjustment = 100;
+            }
+
             // const positionVec: vec2 = vec2.fromValues(position.x, position.y);
             let positionVec = [
-              position.x * this.scaleMultiplier,
-              position.y * this.scaleMultiplier,
+              position.x * this.scaleMultiplier - posBufferAdjustment,
+              position.y * this.scaleMultiplier - posBufferAdjustment,
             ] as [number, number];
             // const windowSizeVec: vec2 = vec2.fromValues(
             //   camera.windowSize.width,
