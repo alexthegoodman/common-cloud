@@ -518,7 +518,7 @@ export class FullExporter {
 
       // console.info("Sleep now");
 
-      await sleep(frameTimeMs); // delay
+      await sleep(frameTimeMs + 25); // delay
     }
 
     // Final progress update
