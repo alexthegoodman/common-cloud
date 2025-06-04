@@ -1340,7 +1340,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             editorStateRef={editorStateRef}
           />
         )}
-        <div className="w-full overflow-x-scroll">
+        <div className="w-[900px] mx-auto overflow-x-scroll">
           {current_sequence_id &&
             !selected_polygon_id &&
             !selected_text_id &&
