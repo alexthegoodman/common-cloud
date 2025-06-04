@@ -373,6 +373,7 @@ export class CanvasPipeline {
     currentTimeS?: number
   ): Promise<void> {
     if (!editor.camera || !editor.gpuResources) {
+      console.error("Editor or camera not initialized");
       return;
     }
 
@@ -382,12 +383,21 @@ export class CanvasPipeline {
     const renderPipeline = editor.renderPipeline;
 
     if (!surface || !renderPipeline) {
+      console.error("Surface or render pipeline not initialized");
       return;
     }
+
+    // if (frameEncoder) {
+    //   console.info("Rendering frame with custom encoder...");
+    // }
 
     // Animation steps
     editor.stepVideoAnimations(editor.camera, currentTimeS);
     await editor.stepMotionPathAnimations(editor.camera, currentTimeS);
+
+    // if (frameEncoder) {
+    //   console.info("Rendering frame 2...");
+    // }
 
     // Get the current texture and create a view
     const currentTexture = surface.getCurrentTexture();
@@ -442,6 +452,10 @@ export class CanvasPipeline {
       return;
     }
     renderPass.setBindGroup(2, editor.windowSizeBindGroup);
+
+    // if (frameEncoder) {
+    //   console.info("Rendering frame 3...");
+    // }
 
     // Draw static polygons
     for (const polygon of editor.staticPolygons || []) {
@@ -709,6 +723,8 @@ export class CanvasPipeline {
     }
     // }
 
+    // console.info("Drawing objects...");
+
     // Update camera binding if panning
     if (editor.controlMode === ControlMode.Pan && editor.isPanning) {
       editor.updateCameraBinding();
@@ -721,6 +737,7 @@ export class CanvasPipeline {
     queue.submit([encoder.finish()]);
 
     if (frameEncoder) {
+      // console.info("Running frame encoder...");
       await frameEncoder(currentTexture);
     }
   }

@@ -2070,10 +2070,31 @@ export class Editor {
       providedCurrentTimeS !== undefined ? providedCurrentTimeS : totalDt;
     this.lastFrameTime = now;
 
-    await this.stepAnimateSequence(totalDt, camera);
+    // if (providedCurrentTimeS !== undefined) {
+    //   console.info("step animations");
+    // }
+
+    try {
+      await this.stepAnimateSequence(
+        totalDt,
+        camera,
+        providedCurrentTimeS !== undefined
+      );
+    } catch (error) {
+      console.error("Error during stepAnimateSequence:", error);
+      throw error; // Re-throw the error to be handled by the caller
+    }
+
+    // if (providedCurrentTimeS !== undefined) {
+    //   console.info("finished step animations");
+    // }
   }
 
-  async stepAnimateSequence(totalDt: number, camera: Camera): Promise<void> {
+  async stepAnimateSequence(
+    totalDt: number,
+    camera: Camera,
+    isExport: boolean
+  ): Promise<void> {
     const gpuResources = this.gpuResources;
     if (!gpuResources) {
       throw new Error("Couldn't get GPU Resources");
@@ -2083,6 +2104,13 @@ export class Editor {
     if (!sequence || !sequence.polygonMotionPaths || !sequence.durationMs) {
       throw new Error("Couldn't get sequence");
     }
+
+    // if (isExport) {
+    //   console.info(
+    //     "Exporting sequence animations...",
+    //     sequence.polygonMotionPaths
+    //   );
+    // }
 
     // Update each animation path
     for (const animation of sequence.polygonMotionPaths) {
@@ -2100,6 +2128,11 @@ export class Editor {
         currentTimeMs < startTimeMs ||
         currentTimeMs > startTimeMs + animation.duration
       ) {
+        // if (isExport) {
+        //   console.warn(
+        //     `Skipping animation for ${animation.objectType} with ID ${animation.polygonId} at time ${currentTimeMs} (start: ${startTimeMs}, duration: ${animation.duration})`
+        //   );
+        // }
         continue;
       }
 
@@ -2129,8 +2162,19 @@ export class Editor {
       }
 
       if (objectIdx === undefined || objectIdx === -1) {
+        // if (isExport) {
+        //   console.warn(
+        //     `Object with ID ${animation.polygonId} not found for animation type ${animation.objectType}`
+        //   );
+        // }
         continue;
       }
+
+      // if (isExport) {
+      //   console.info(
+      //     `Processing animation for ${animation.objectType} with ID ${animation.polygonId} at time ${currentTimeMs} (start: ${startTimeMs}, duration: ${animation.duration})`
+      //   );
+      // }
 
       // Determine whether to draw the video frame based on the frame rate and current time
       let animateProperties = false;
@@ -2151,10 +2195,14 @@ export class Editor {
           currentTime < currentFrameTime + frameInterval
         ) {
           if (currentTime * 1000 + 1000 < sourceDurationMs) {
+            // console.info(
+            //   `Drawing video frame for ${videoItem.id} at time ${currentTimeMs} (start: ${startTimeMs}, duration: ${animation.duration})`
+            // );
             await videoItem.drawVideoFrame(
               gpuResources.device,
               gpuResources.queue
             );
+            // console.info("drew frame");
             animateProperties = true;
             videoItem.numFramesDrawn += 1;
           }
@@ -2168,6 +2216,8 @@ export class Editor {
             // Limit the maximum number of frames to catch up to avoid excessive CPU usage
             const maxCatchUp = 5;
             const framesToDraw = Math.min(catchUpFrames, maxCatchUp);
+
+            // console.info("Catching up video frames:", framesToDraw);
 
             for (let i = 0; i < framesToDraw; i++) {
               await videoItem.drawVideoFrame(
@@ -2183,6 +2233,12 @@ export class Editor {
       } else {
         animateProperties = true;
       }
+
+      // if (isExport) {
+      //   console.info(
+      //     `Processing animation for ${animation.objectType} with ID ${animation.polygonId} at time ${currentTimeMs} (start: ${startTimeMs}, duration: ${animation.duration})`
+      //   );
+      // }
 
       if (!animateProperties) {
         continue;
@@ -2439,7 +2495,7 @@ export class Editor {
                 //   originalScaleVideo[0] * new_scale,
                 //   originalScaleVideo[1] * new_scale,
                 // ] as [number, number];
-                console.info("scaling", originalScaleVideo, new_scale);
+                // console.info("scaling", originalScaleVideo, new_scale);
                 this.videoItems[objectIdx].groupTransform.updateScale(
                   scaleVec // only scaleVec needed for group
                 );
@@ -2611,7 +2667,7 @@ export class Editor {
 
                     videoItem.dynamicAlpha = dynamicAlpha;
 
-                    console.info("update shift points", dynamicAlpha);
+                    // console.info("update shift points", dynamicAlpha);
                   }
                 }
               }

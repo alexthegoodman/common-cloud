@@ -428,10 +428,14 @@ export class StVideo {
 
       queue.writeBuffer(this.indexBuffer, 0, this.indices);
 
-      this.initializeDecoder().then(() => {
-        // draw initial preview frame
-        this.drawVideoFrame(device, queue).catch(console.error); // Handle potential errors
-      });
+      // this.initializeDecoder().then(() => {
+      //   // draw initial preview frame
+      //   this.drawVideoFrame(device, queue).catch(console.error); // Handle potential errors
+      // });
+
+      // async/await
+      await this.initializeDecoder();
+      await this.drawVideoFrame(device, queue);
 
       this.hidden = loadedHidden;
     }
@@ -779,14 +783,18 @@ export class StVideo {
   }
 
   async decodeNextFrame(): Promise<DecodedFrameInfo> {
-    // console.info("decodeNextFrame");
+    // console.info("decodeNextFrame 1");
 
     if (!this.isInitialized || this.currentSampleIndex >= this.samples.length) {
       throw new Error("No more frames to decode");
     }
 
     return new Promise((resolve, reject) => {
+      // console.info("decodeNextFrame 2");
+
       this.frameCallback = (frameInfo: DecodedFrameInfo) => {
+        // console.info("decodeNextFrame 3");
+
         this.frameCallback = undefined;
         resolve(frameInfo);
       };
@@ -828,6 +836,8 @@ export class StVideo {
     if (timeMs !== undefined) {
       await this.seekToTime(timeMs);
     }
+
+    // console.info("calling decodeNextFrame", this.currentSampleIndex);
 
     const frameInfo = await this.decodeNextFrame();
 
@@ -1016,15 +1026,15 @@ export class StVideo {
     let uvMinY = uvCenterY - halfHeight;
     let uvMaxY = uvCenterY + halfHeight;
 
-    console.info(
-      "pre clamp uv",
-      uvCenterX,
-      uvCenterY,
-      uvMinX,
-      uvMinY,
-      uvMaxX,
-      uvMaxY
-    );
+    // console.info(
+    //   "pre clamp uv",
+    //   uvCenterX,
+    //   uvCenterY,
+    //   uvMinX,
+    //   uvMinY,
+    //   uvMaxX,
+    //   uvMaxY
+    // );
 
     // Check for clamping and adjust other UVs accordingly to prevent warping
     if (uvMinX < 0.0) {

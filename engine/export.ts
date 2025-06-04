@@ -73,14 +73,14 @@ class WebGPUVideoEncoder {
         // Add encoded data to MP4 file
         const dts = chunk.timestamp;
 
-        console.info(
-          "chunk length",
-          this.frameRate,
-          chunk.type,
-          chunk.byteLength,
-          chunk.duration,
-          dts
-        );
+        // console.info(
+        //   "chunk length",
+        //   this.frameRate,
+        //   chunk.type,
+        //   chunk.byteLength,
+        //   chunk.duration,
+        //   dts
+        // );
         const buffer = new ArrayBuffer(chunk.byteLength) as MP4ArrayBuffer;
 
         chunk.copyTo(buffer);
@@ -249,7 +249,7 @@ class WebGPUVideoEncoder {
       );
       const frameDuration = Math.floor(1_000_000 / this.frameRate / 10);
 
-      console.info("pre timestamp", timestamp, frameDuration);
+      // console.info("pre timestamp", timestamp, frameDuration);
 
       const videoFrame = new VideoFrame(canvas, {
         timestamp: timestamp,
@@ -441,7 +441,11 @@ export class FullExporter {
         return;
       }
 
+      // console.info("Encoding frame...");
+
       await this.webExport.encodeFrame(renderTexture);
+
+      // console.info("Frame encoded.");
     };
 
     // Calculate total duration from sequences (in milliseconds)
@@ -480,13 +484,22 @@ export class FullExporter {
     let lastProgressUpdateMs = 0;
 
     while (currentTimeMs <= totalDurationMs) {
+      // console.info("Current time", currentTimeMs, totalDurationMs);
       // while (currentTimeMs <= this.webExport.encoder.totalDurationMs) {
       // Render the current frame
-      await this.pipeline.renderFrame(
-        this.editor,
-        frameEncoder,
-        currentTimeMs / 1000
-      );
+
+      try {
+        await this.pipeline.renderFrame(
+          this.editor,
+          frameEncoder,
+          currentTimeMs / 1000
+        );
+      } catch (error) {
+        console.error("Error during frame rendering:", error);
+        break; // Exit the loop on error
+      }
+
+      // console.info("Frame rendered at", currentTimeMs, "ms");
 
       // Advance time to next frame
       currentTimeMs += frameTimeMs;
@@ -501,6 +514,8 @@ export class FullExporter {
         onProgress?.(progress, currentTimeMs / 1000, totalDurationS); // Convert currentTime to seconds for progress callback
         lastProgressUpdateMs = currentTimeMs;
       }
+
+      // console.info("Sleep now");
 
       await sleep(frameTimeMs); // delay
     }
