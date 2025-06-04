@@ -92,7 +92,7 @@ const PricingTable = () => {
 
           <div className="text-center mb-6">
             <h3 className="text-xl font-semibold text-white mb-2">Standard</h3>
-            <div className="text-3xl font-bold text-white mb-1">$6.99</div>
+            <div className="text-3xl font-bold text-white mb-1">$2.99</div>
             <div className="text-gray-400">per month</div>
           </div>
 
