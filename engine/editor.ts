@@ -2553,8 +2553,10 @@ export class Editor {
 
             if (animation.objectType === ObjectType.VideoItem) {
               const videoItem = this.videoItems[objectIdx];
-              let halfVideoWidth = videoItem.dimensions[0] / 2.0;
-              let halfVideoHeight = videoItem.dimensions[1] / 2.0;
+              let halfVideoWidth =
+                videoItem.dimensions[0] / 2.0 / this.scaleMultiplier;
+              let halfVideoHeight =
+                videoItem.dimensions[1] / 2.0 / this.scaleMultiplier;
               const elapsedMs = currentTimeMs;
 
               const autoFollowDelay = 150;
