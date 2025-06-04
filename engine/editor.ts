@@ -1220,7 +1220,7 @@ export class Editor {
         layer: t.layer,
         // color: rgbToWgpu(t.color[0], t.color[1], t.color[2], t.color[3]),
         color: t.color,
-        fontSize: t.fontSize,
+        fontSize: t.fontSize * this.scaleMultiplier,
         // backgroundFill: t.backgroundFill
         //   ? rgbToWgpu(
         //       t.backgroundFill[0],
