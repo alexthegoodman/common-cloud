@@ -2,14 +2,20 @@
 
 export const FlowSteps = ({ step = 1 }: { step: number }) => {
   return (
-    <div className="flex flex-row gap-4 mb-12">
+    <div className="flex flex-row gap-4 mb-6 md:mb-12 text-sm md:text-base">
       <div
         className={`flex flex-row gap-1 ${
           step === 1 ? "text-black" : "text-gray-400"
         }`}
       >
         <span>1.</span>
-        <span className={step === 1 ? "underline underline-offset-8" : ""}>
+        <span
+          className={
+            step === 1
+              ? "underline underline-offset-4 md:underline-offset-8"
+              : ""
+          }
+        >
           Your Prompt
         </span>
       </div>
@@ -19,7 +25,13 @@ export const FlowSteps = ({ step = 1 }: { step: number }) => {
         }`}
       >
         <span>2.</span>
-        <span className={step === 2 ? "underline underline-offset-8" : ""}>
+        <span
+          className={
+            step === 2
+              ? "underline underline-offset-4 md:underline-offset-8"
+              : ""
+          }
+        >
           Your Content
         </span>
       </div>
@@ -29,7 +41,13 @@ export const FlowSteps = ({ step = 1 }: { step: number }) => {
         }`}
       >
         <span>3.</span>
-        <span className={step === 3 ? "underline underline-offset-8" : ""}>
+        <span
+          className={
+            step === 3
+              ? "underline underline-offset-4 md:underline-offset-8"
+              : ""
+          }
+        >
           Intelligent Questions
         </span>
       </div>
