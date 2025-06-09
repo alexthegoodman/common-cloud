@@ -7,7 +7,7 @@ import Link from "next/link";
 const LoginPage = () => {
   return (
     <>
-      <section className="container mx-auto px-4 pt-16 pb-16 flex flex-row gap-8">
+      <section className="container mx-auto px-4 pt-16 pb-16 flex flex-col md:flex-row gap-8">
         <div>
           <img
             src="/stunts_logo_nobg.png"

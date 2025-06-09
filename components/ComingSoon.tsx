@@ -16,7 +16,7 @@ const ComingSoonSection = () => {
         Coming Soon
       </h2>
       <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 mb-8">
-        <div className="bg-slate-800/50 p-6 rounded-xl relative overflow-hidden">
+        {/* <div className="bg-slate-800/50 p-6 rounded-xl relative overflow-hidden">
           <div className="absolute top-2 right-2 bg-amber-500/20 text-amber-500 text-xs font-semibold px-2 py-1 rounded-full">
             Coming Soon
           </div>
@@ -30,9 +30,9 @@ const ComingSoonSection = () => {
             Bring all the power of motion paths and mouse capture to your
             vertical videos!
           </p>
-        </div>
+        </div> */}
 
-        <div className="bg-slate-800/50 p-6 rounded-xl relative overflow-hidden">
+        {/* <div className="bg-slate-800/50 p-6 rounded-xl relative overflow-hidden">
           <div className="absolute top-2 right-2 bg-amber-500/20 text-amber-500 text-xs font-semibold px-2 py-1 rounded-full">
             Coming Soon
           </div>
@@ -46,7 +46,7 @@ const ComingSoonSection = () => {
             Enjoy the upcoming version of our AI which will help generate
             rotation, opacity, and scale properties in addition to position!
           </p>
-        </div>
+        </div> */}
       </div>
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
         <div className="bg-slate-800/50 p-6 rounded-xl relative overflow-hidden">

@@ -14,7 +14,7 @@ const Competition = () => {
             What makes Stunts special?
           </h3>
           <p className="text-gray-400">
-            Stunts is for everybody, brining a fresh perspective on
+            Stunts is for everybody, bringing a fresh perspective on
             expressiveness and ease-of-use. Yet it has powerful features that
             make it a strong choice for professionals and amateurs alike.
           </p>

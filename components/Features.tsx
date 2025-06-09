@@ -90,7 +90,7 @@ export default function Features({ grid = 3, py = 16 }) {
           </h3>
           <p className="text-gray-400">
             Import your existing video content with desktop-class performance on
-            Windows
+            the web
           </p>
         </div>
       </div>
