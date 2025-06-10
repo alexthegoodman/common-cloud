@@ -716,189 +716,205 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   };
 
   let on_open_sequence = (sequence_id: string) => {
-    set_section("SequenceView");
+    try {
+      set_section("SequenceView");
 
-    console.info("Open Sequence...");
+      console.info("Open Sequence...");
 
-    let editor = editorRef.current;
-    let editor_state = editorStateRef.current;
+      let editor = editorRef.current;
+      let editor_state = editorStateRef.current;
 
-    if (!editor || !editor_state) {
-      return;
-    }
-
-    let saved_state = editor_state?.savedState;
-
-    if (!saved_state) {
-      return;
-    }
-
-    let saved_sequence = saved_state.sequences.find((s) => s.id == sequence_id);
-
-    if (!saved_sequence) {
-      return;
-    }
-
-    let background_fill = {
-      type: "Color",
-      value: [
-        wgpuToHuman(0.8) as number,
-        wgpuToHuman(0.8) as number,
-        wgpuToHuman(0.8) as number,
-        255,
-      ],
-    } as BackgroundFill;
-
-    if (saved_sequence?.backgroundFill) {
-      background_fill = saved_sequence.backgroundFill;
-    }
-
-    // for the background polygon and its signal
-    editor_state.selected_polygon_id = saved_sequence.id;
-
-    // drop(editor_state);
-
-    console.info("Opening Sequence...");
-
-    // let mut editor = editor.lock().unwrap();
-
-    // let camera = editor.camera.expect("Couldn't get camera");
-    // let viewport = editor.viewport.lock().unwrap();
-
-    // let window_size = WindowSize {
-    //     width: viewport.width as u32,
-    //     height: viewport.height as u32,
-    // };
-
-    // drop(viewport);
-
-    // let mut rng = rand::thread_rng();
-
-    // set hidden to false based on sequence
-    // also reset all objects to hidden=true beforehand
-    editor.polygons.forEach((p) => {
-      p.hidden = true;
-    });
-    editor?.imageItems.forEach((i) => {
-      i.hidden = true;
-    });
-    editor?.textItems.forEach((t) => {
-      t.hidden = true;
-    });
-    editor?.videoItems.forEach((t) => {
-      t.hidden = true;
-    });
-
-    saved_sequence.activePolygons.forEach((ap) => {
-      let polygon = editor.polygons.find((p) => p.id == ap.id);
-
-      if (!polygon) {
+      if (!editor || !editor_state) {
+        toast.error("Your editor or editor state failed to initialize");
         return;
       }
 
-      polygon.hidden = false;
-    });
-    saved_sequence.activeImageItems.forEach((si) => {
-      let image = editor.imageItems.find((i) => i.id == si.id);
+      let saved_state = editor_state?.savedState;
 
-      if (!image) {
+      if (!saved_state) {
+        toast.error("No saved state found");
         return;
       }
 
-      image.hidden = false;
-    });
-    saved_sequence.activeTextItems.forEach((tr) => {
-      let text = editor.textItems.find((t) => t.id == tr.id);
+      let saved_sequence = saved_state.sequences.find(
+        (s) => s.id == sequence_id
+      );
 
-      if (!text) {
+      if (!saved_sequence) {
+        toast.error("Sequence not found");
         return;
       }
 
-      text.hidden = false;
-    });
-    saved_sequence.activeVideoItems.forEach((tr) => {
-      let video = editor.videoItems.find((t) => t.id == tr.id);
+      let background_fill = {
+        type: "Color",
+        value: [
+          wgpuToHuman(0.8) as number,
+          wgpuToHuman(0.8) as number,
+          wgpuToHuman(0.8) as number,
+          255,
+        ],
+      } as BackgroundFill;
 
-      if (!video) {
+      if (saved_sequence?.backgroundFill) {
+        background_fill = saved_sequence.backgroundFill;
+      }
+
+      // for the background polygon and its signal
+      editor_state.selected_polygon_id = saved_sequence.id;
+
+      // drop(editor_state);
+
+      console.info("Opening Sequence...");
+
+      // let mut editor = editor.lock().unwrap();
+
+      // let camera = editor.camera.expect("Couldn't get camera");
+      // let viewport = editor.viewport.lock().unwrap();
+
+      // let window_size = WindowSize {
+      //     width: viewport.width as u32,
+      //     height: viewport.height as u32,
+      // };
+
+      // drop(viewport);
+
+      // let mut rng = rand::thread_rng();
+
+      // set hidden to false based on sequence
+      // also reset all objects to hidden=true beforehand
+      editor.polygons.forEach((p) => {
+        p.hidden = true;
+      });
+      editor?.imageItems.forEach((i) => {
+        i.hidden = true;
+      });
+      editor?.textItems.forEach((t) => {
+        t.hidden = true;
+      });
+      editor?.videoItems.forEach((t) => {
+        t.hidden = true;
+      });
+
+      saved_sequence.activePolygons.forEach((ap) => {
+        let polygon = editor.polygons.find((p) => p.id == ap.id);
+
+        if (!polygon) {
+          return;
+        }
+
+        polygon.hidden = false;
+      });
+      saved_sequence.activeImageItems.forEach((si) => {
+        let image = editor.imageItems.find((i) => i.id == si.id);
+
+        if (!image) {
+          return;
+        }
+
+        image.hidden = false;
+      });
+      saved_sequence.activeTextItems.forEach((tr) => {
+        let text = editor.textItems.find((t) => t.id == tr.id);
+
+        if (!text) {
+          return;
+        }
+
+        text.hidden = false;
+      });
+      saved_sequence.activeVideoItems.forEach((tr) => {
+        let video = editor.videoItems.find((t) => t.id == tr.id);
+
+        if (!video) {
+          return;
+        }
+
+        video.hidden = false;
+
+        console.info("Video restored!");
+      });
+
+      if (!editor.camera) {
+        toast.error("No camera found in editor");
         return;
       }
 
-      video.hidden = false;
+      let backgroundSize: WindowSize = {
+        width: editor.camera?.windowSize.width - 50,
+        height: editor.camera?.windowSize.height - 50,
+      };
 
-      console.info("Video restored!");
-    });
+      // if (background_fill.type === "Color") {
+      editor.replace_background(
+        saved_sequence.id,
+        // rgbToWgpu(
+        //   background_fill.value[0],
+        //   background_fill.value[1],
+        //   background_fill.value[2],
+        //   background_fill.value[3]
+        // )
+        background_fill,
+        backgroundSize
+      );
+      // }
 
-    if (!editor.camera) {
+      console.info("Objects restored!", saved_sequence.id);
+
+      editor?.updateMotionPaths(saved_sequence);
+
+      console.info("Motion Paths restored!");
+
+      console.info("Restoring layers...");
+
+      let new_layers: Layer[] = [];
+      editor.polygons.forEach((polygon) => {
+        if (!polygon.hidden) {
+          let polygon_config: PolygonConfig = polygon.toConfig();
+          let new_layer: Layer =
+            LayerFromConfig.fromPolygonConfig(polygon_config);
+          new_layers.push(new_layer);
+        }
+      });
+      editor.textItems.forEach((text) => {
+        if (!text.hidden) {
+          let text_config: TextRendererConfig = text.toConfig();
+          let new_layer: Layer = LayerFromConfig.fromTextConfig(text_config);
+          new_layers.push(new_layer);
+        }
+      });
+      editor.imageItems.forEach((image) => {
+        if (!image.hidden) {
+          let image_config: StImageConfig = image.toConfig();
+          let new_layer: Layer = LayerFromConfig.fromImageConfig(image_config);
+          new_layers.push(new_layer);
+        }
+      });
+      editor.videoItems.forEach((video) => {
+        if (!video.hidden) {
+          let video_config: StVideoConfig = video.toConfig();
+          let new_layer: Layer = LayerFromConfig.fromVideoConfig(video_config);
+          new_layers.push(new_layer);
+        }
+      });
+
+      // console.info("new_layers", new_layers);
+
+      // sort layers by layer_index property, lower values should come first in the list
+      // but reverse the order because the UI outputs the first one first, thus it displays last
+      new_layers.sort((a, b) => b.initial_layer_index - a.initial_layer_index);
+
+      set_layers(new_layers);
+      console.info("set current", sequence_id);
+      set_current_sequence_id(sequence_id);
+
+      toast.success(`Opened sequence ${saved_sequence.name}`);
+    } catch (error: any) {
+      console.error("Error opening sequence:", error);
+      toast.error("Failed to open sequence");
+      set_loading(false);
+      set_error(error.message || "Unknown error");
       return;
     }
-
-    let backgroundSize: WindowSize = {
-      width: editor.camera?.windowSize.width - 50,
-      height: editor.camera?.windowSize.height - 50,
-    };
-
-    // if (background_fill.type === "Color") {
-    editor.replace_background(
-      saved_sequence.id,
-      // rgbToWgpu(
-      //   background_fill.value[0],
-      //   background_fill.value[1],
-      //   background_fill.value[2],
-      //   background_fill.value[3]
-      // )
-      background_fill,
-      backgroundSize
-    );
-    // }
-
-    console.info("Objects restored!", saved_sequence.id);
-
-    editor?.updateMotionPaths(saved_sequence);
-
-    console.info("Motion Paths restored!");
-
-    console.info("Restoring layers...");
-
-    let new_layers: Layer[] = [];
-    editor.polygons.forEach((polygon) => {
-      if (!polygon.hidden) {
-        let polygon_config: PolygonConfig = polygon.toConfig();
-        let new_layer: Layer =
-          LayerFromConfig.fromPolygonConfig(polygon_config);
-        new_layers.push(new_layer);
-      }
-    });
-    editor.textItems.forEach((text) => {
-      if (!text.hidden) {
-        let text_config: TextRendererConfig = text.toConfig();
-        let new_layer: Layer = LayerFromConfig.fromTextConfig(text_config);
-        new_layers.push(new_layer);
-      }
-    });
-    editor.imageItems.forEach((image) => {
-      if (!image.hidden) {
-        let image_config: StImageConfig = image.toConfig();
-        let new_layer: Layer = LayerFromConfig.fromImageConfig(image_config);
-        new_layers.push(new_layer);
-      }
-    });
-    editor.videoItems.forEach((video) => {
-      if (!video.hidden) {
-        let video_config: StVideoConfig = video.toConfig();
-        let new_layer: Layer = LayerFromConfig.fromVideoConfig(video_config);
-        new_layers.push(new_layer);
-      }
-    });
-
-    // console.info("new_layers", new_layers);
-
-    // sort layers by layer_index property, lower values should come first in the list
-    // but reverse the order because the UI outputs the first one first, thus it displays last
-    new_layers.sort((a, b) => b.initial_layer_index - a.initial_layer_index);
-
-    set_layers(new_layers);
-    console.info("set current", sequence_id);
-    set_current_sequence_id(sequence_id);
 
     // set_quick_access();
 
@@ -1025,6 +1041,13 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           }`}
         >
           <div className="relative md:fixed top-4 left-[0px] md:left-[100px] w-[315px]">
+            {error ? (
+              <div>
+                <span>Error: {error}</span>
+              </div>
+            ) : (
+              <></>
+            )}
             {loading ? (
               <div>
                 <span>Loading...</span>

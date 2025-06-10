@@ -10,7 +10,7 @@ export default function ProjectSettings({ children = null }) {
 
   return (
     <>
-      <Toaster position="bottom-right" reverseOrder={false} />
+      <Toaster position="top-left" reverseOrder={false} />
       <div className="flex flex-row p-4">
         <div className="flex flex-col gap-4 mr-4">
           <NavButton
