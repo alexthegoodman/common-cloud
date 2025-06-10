@@ -44,7 +44,7 @@ const getCurrentUser = async (token: string) => {
   return json;
 };
 
-type JwtData = {
+export type JwtData = {
   token: string;
   expiry: number;
 };

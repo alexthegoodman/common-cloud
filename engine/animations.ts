@@ -7,6 +7,14 @@ import { SavedStVideoConfig } from "./video";
 export interface SavedState {
   sequences: Sequence[];
   timeline_state: SavedTimelineStateConfig | null;
+  settings?: ProjectSettings;
+}
+
+export interface ProjectSettings {
+  dimensions: {
+    width: number; // in pixels
+    height: number; // in pixels
+  };
 }
 
 export interface ProjectData {
