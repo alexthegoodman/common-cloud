@@ -1018,7 +1018,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                   <div className="flex flex-row justify-between align-center w-full mt-2">
                     <h5>Sequences</h5>
                     <button
-                      className="text-xs rounded-md text-white stunts-gradient px-2 py-1 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      className="text-xs rounded-md text-white stunts-gradient px-2 py-1 cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
                       disabled={loading}
                       onClick={on_create_sequence}
                     >
