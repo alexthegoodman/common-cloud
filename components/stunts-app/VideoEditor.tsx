@@ -169,6 +169,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     null
   );
   let [sequences, set_sequences] = useState<Sequence[]>([]);
+  let [error, set_error] = useState<string | null>(null);
   let [loading, set_loading] = useState(false);
   let [section, set_section] = useState("SequenceList");
   let [keyframe_count, set_keyframe_count] = useState(0);
@@ -501,96 +502,112 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   }, []);
 
   let fetch_data = async () => {
-    if (!authToken || !editorRef.current) {
-      return;
-    }
+    try {
+      if (!authToken || !editorRef.current) {
+        toast.error(
+          "You must have an auth token or matching device to access this project"
+        );
 
-    set_loading(true);
+        return;
+      }
 
-    let response = await getSingleProject(authToken.token, projectId);
+      set_loading(true);
 
-    let fileData = response.project?.fileData;
+      let response = await getSingleProject(authToken.token, projectId);
 
-    console.info("savedState", fileData);
+      let fileData = response.project?.fileData;
 
-    if (!fileData) {
-      return;
-    }
+      console.info("savedState", fileData);
 
-    editorStateRef.current = new EditorState(fileData);
+      if (!fileData) {
+        toast.error("No file data");
 
-    let cloned_sequences = fileData?.sequences;
-    let cloned_settings = fileData?.settings;
+        return;
+      }
 
-    if (!cloned_settings) {
-      cloned_settings = {
-        dimensions: {
-          width: 900,
-          height: 550,
-        },
-      };
-    }
+      editorStateRef.current = new EditorState(fileData);
 
-    if (!cloned_sequences) {
-      return;
-    }
+      let cloned_sequences = fileData?.sequences;
+      let cloned_settings = fileData?.settings;
 
-    set_settings(cloned_settings);
-    set_sequences(cloned_sequences);
-    // set_timeline_state(response.project?.fileData.timeline_state);
+      if (!cloned_settings) {
+        cloned_settings = {
+          dimensions: {
+            width: 900,
+            height: 550,
+          },
+        };
+      }
 
-    // drop(editor_state);
+      if (!cloned_sequences) {
+        return;
+      }
 
-    editorRef.current.settings = cloned_settings;
+      set_settings(cloned_settings);
+      set_sequences(cloned_sequences);
+      // set_timeline_state(response.project?.fileData.timeline_state);
 
-    console.info("Initializing pipeline...");
+      // drop(editor_state);
 
-    let pipeline = new CanvasPipeline();
+      editorRef.current.settings = cloned_settings;
 
-    canvasPipelineRef.current = await pipeline.new(
-      editorRef.current,
-      true,
-      "scene-canvas",
-      // {
-      //   width: 900,
-      //   height: 550,
-      // },
-      cloned_settings.dimensions,
-      true
-    );
+      console.info("Initializing pipeline...");
 
-    let windowSize = editorRef.current.camera?.windowSize;
+      let pipeline = new CanvasPipeline();
 
-    if (!windowSize?.width || !windowSize?.height) {
-      return;
-    }
-
-    canvasPipelineRef.current.recreateDepthView(
-      windowSize?.width,
-      windowSize?.height
-    );
-
-    console.info("Beginning rendering...");
-
-    await canvasPipelineRef.current.beginRendering(editorRef.current);
-
-    // console.info("Restoring objects...");
-
-    for (let sequence of cloned_sequences) {
-      editorRef.current.restore_sequence_objects(
-        sequence,
+      canvasPipelineRef.current = await pipeline.new(
+        editorRef.current,
+        true,
+        "scene-canvas",
+        // {
+        //   width: 900,
+        //   height: 550,
+        // },
+        cloned_settings.dimensions,
         true
-        // authToken.token,
       );
+
+      let windowSize = editorRef.current.camera?.windowSize;
+
+      if (!windowSize?.width || !windowSize?.height) {
+        return;
+      }
+
+      canvasPipelineRef.current.recreateDepthView(
+        windowSize?.width,
+        windowSize?.height
+      );
+
+      console.info("Beginning rendering...");
+
+      await canvasPipelineRef.current.beginRendering(editorRef.current);
+
+      // console.info("Restoring objects...");
+
+      for (let sequence of cloned_sequences) {
+        editorRef.current.restore_sequence_objects(
+          sequence,
+          true
+          // authToken.token,
+        );
+      }
+
+      // set handlers
+      const canvas = document.getElementById(
+        "scene-canvas"
+      ) as HTMLCanvasElement;
+      setupCanvasMouseTracking(canvas);
+
+      set_quick_access();
+
+      set_loading(false);
+    } catch (error: any) {
+      console.error("Error fetching data:", error);
+      toast.error("Failed to fetch project data");
+      set_loading(false);
+      set_error(error.message || "Unknown error");
+      return;
     }
-
-    // set handlers
-    const canvas = document.getElementById("scene-canvas") as HTMLCanvasElement;
-    setupCanvasMouseTracking(canvas);
-
-    set_quick_access();
-
-    set_loading(false);
   };
 
   useEffect(() => {
