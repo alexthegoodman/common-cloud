@@ -1003,11 +1003,11 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
       <div className="flex flex-row w-full">
         <div
-          className={`relative w-[315px] ${
+          className={`z-10 relative w-[315px] ${
             showSidebar ? "block" : "hidden md:block"
           }`}
         >
-          <div className="z-10 relative md:fixed top-4 left-[0px] md:left-[100px] w-[315px]">
+          <div className="relative md:fixed top-4 left-[0px] md:left-[100px] w-[315px]">
             {section === "SequenceList" ? (
               <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
                 <div className="flex flex-col w-full">
