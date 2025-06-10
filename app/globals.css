@@ -27,6 +27,9 @@ body {
 .stunts-gradient {
   background: linear-gradient(145deg, #ff6b6b 60%, #feca57 100%);
 }
+.stunts-gradient:disabled {
+  background-color: gray;
+}
 
 /** Color Picker **/
 div.rcp-root,

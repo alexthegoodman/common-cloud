@@ -1007,7 +1007,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             showSidebar ? "block" : "hidden md:block"
           }`}
         >
-          <div className="md:fixed top-4 left-[75px] md:left-[100px] w-[315px]">
+          <div className="z-10 relative md:fixed top-4 left-[0px] md:left-[100px] w-[315px]">
             {section === "SequenceList" ? (
               <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
                 <div className="flex flex-col w-full">
@@ -1018,7 +1018,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                   <div className="flex flex-row justify-between align-center w-full mt-2">
                     <h5>Sequences</h5>
                     <button
-                      className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+                      className="text-xs rounded-md text-white stunts-gradient px-2 py-1 disabled:bg-gray-300 disabled:cursor-not-allowed"
                       disabled={loading}
                       onClick={on_create_sequence}
                     >
