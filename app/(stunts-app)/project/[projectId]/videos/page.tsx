@@ -32,7 +32,9 @@ export default function Videos() {
   );
 
   let fetch_data = async () => {
-    if (!authToken) {
+    if (!authToken || fileData) {
+      // If we already have fileData or no authToken, skip fetching
+      console.info("No authToken or fileData already set, skipping fetch.");
       return;
     }
 
@@ -40,24 +42,21 @@ export default function Videos() {
 
     let response = await getSingleProject(authToken.token, projectId as string);
 
-    let fileData = response.project?.fileData;
+    let data = response.project?.fileData;
 
-    console.info("savedState", fileData);
+    console.info("savedState", data);
 
-    if (!fileData) {
+    if (!data) {
       return;
     }
 
     console.info("response.project", response.project);
 
-    setFIleData(fileData);
+    setFIleData(data);
 
-    if (
-      fileData.settings?.dimensions.height &&
-      fileData.settings?.dimensions.width
-    ) {
+    if (data.settings?.dimensions.height && data.settings?.dimensions.width) {
       // dimensions already set
-      console.info("dimensions already set", fileData.settings.dimensions);
+      console.info("dimensions already set", data.settings.dimensions);
 
       setStartupScreen(false);
       setLoading(false);

@@ -3,6 +3,7 @@ import React, { useState, useCallback } from "react";
 
 interface TrackProps {
   type: TrackType;
+  trackWidth?: number; // Optional width for the track
   tSequences: TimelineSequence[];
   pixelsPerSecond: number;
   sequenceQuickAccess: Record<string, string>;
@@ -15,6 +16,7 @@ interface TrackProps {
 
 export const TimelineTrack: React.FC<TrackProps> = ({
   type,
+  trackWidth = 900, // Default width if not provided
   tSequences,
   pixelsPerSecond,
   sequenceQuickAccess,
@@ -55,10 +57,16 @@ export const TimelineTrack: React.FC<TrackProps> = ({
   };
 
   return (
-    <div className="relative h-[50px] w-[900px]">
+    <div
+      className={`relative h-[50px] ${
+        trackWidth === 550 ? "w-[550px]" : "w-[900px]"
+      }`}
+    >
       {/* Track background */}
       <div
-        className={`absolute w-[900px] h-[50px] ${trackColor}`}
+        className={`absolute ${
+          trackWidth === 550 ? "w-[550px]" : "w-[900px]"
+        } h-[50px] ${trackColor}`}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       />

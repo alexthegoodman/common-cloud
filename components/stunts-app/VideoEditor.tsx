@@ -16,6 +16,7 @@ import {
   findObjectType,
   GradientStop,
   ObjectType,
+  ProjectSettings,
   SavedState,
   Sequence,
   TimelineSequence,
@@ -70,6 +71,7 @@ import { WindowSize } from "@/engine/camera";
 import { ThemePicker } from "./ThemePicker";
 import { ObjectTrack } from "./ObjectTimeline";
 import toast from "react-hot-toast";
+import { Hamburger, Stack } from "@phosphor-icons/react";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -163,6 +165,9 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
+  let [settings, set_settings] = useState<ProjectSettings | undefined | null>(
+    null
+  );
   let [sequences, set_sequences] = useState<Sequence[]>([]);
   let [loading, set_loading] = useState(false);
   let [section, set_section] = useState("SequenceList");
@@ -515,11 +520,22 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     editorStateRef.current = new EditorState(fileData);
 
     let cloned_sequences = fileData?.sequences;
+    let cloned_settings = fileData?.settings;
+
+    if (!cloned_settings) {
+      cloned_settings = {
+        dimensions: {
+          width: 900,
+          height: 550,
+        },
+      };
+    }
 
     if (!cloned_sequences) {
       return;
     }
 
+    set_settings(cloned_settings);
     set_sequences(cloned_sequences);
     // set_timeline_state(response.project?.fileData.timeline_state);
 
@@ -533,10 +549,11 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       editorRef.current,
       true,
       "scene-canvas",
-      {
-        width: 900,
-        height: 550,
-      },
+      // {
+      //   width: 900,
+      //   height: 550,
+      // },
+      cloned_settings.dimensions,
       true
     );
 
@@ -965,10 +982,29 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   let thirds = aside_width / 3.0 + 5.0 * 3.0;
   let halfs = aside_width / 2.0 + 5.0 * 2.0;
 
+  // need hamburger menu for mobile to toggle sidebar
+  let [showSidebar, setShowSidebar] = useState(false);
+  let toggleSidebar = () => {
+    setShowSidebar((prev) => !prev);
+  };
+
   return (
     <div className="flex flex-row w-full">
-      <div className="relative w-[315px]">
-        <div className="fixed top-4 left-[100px] w-[315px]">
+      <div>
+        <button
+          className="md:hidden text-xs rounded-md text-white stunts-gradient px-2 py-1 h-50 w-50 flex items-center justify-center z-10 fixed top-4 left-18"
+          onClick={toggleSidebar}
+        >
+          <Stack size={"20px"} /> Actions
+        </button>
+      </div>
+
+      <div
+        className={`relative w-[315px] ${
+          showSidebar ? "block" : "hidden md:block"
+        }`}
+      >
+        <div className="fixed top-4 left-[75px] md:left-[100px] w-[315px]">
           {section === "SequenceList" ? (
             <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
               <div className="flex flex-col w-full">
@@ -1063,7 +1099,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             <></>
           )}
           {section === "SequenceView" && current_sequence_id ? (
-            <div className="flex flex-col gap-4 w-full max-w-[315px]">
+            <div className="flex flex-col gap-4 w-full md:max-w-[315px]">
               {selected_keyframes && selected_keyframes?.length > 0 ? (
                 <>
                   <KeyframeProperties
@@ -1320,12 +1356,13 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           )}
         </div>
       </div>
-      <div className="flex flex-col justify-start items-center w-[calc(100vw-420px)] gap-2">
+
+      <div className="flex flex-col justify-start items-center w-[calc(100vw-175px)] ml-[175px] md:ml-0 md:w-[calc(100vw-420px)] gap-2">
         <canvas
           id="scene-canvas"
-          className="w-[900px] h-[550px] border border-black"
-          width="900"
-          height="550"
+          className={`w-[${settings?.dimensions.width}px] h-[${settings?.dimensions.height}px] border border-black`}
+          width={settings?.dimensions.width}
+          height={settings?.dimensions.height}
         />
         {current_sequence_id && (
           <PlaySequenceButton
@@ -1340,7 +1377,9 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             editorStateRef={editorStateRef}
           />
         )}
-        <div className="w-[900px] mx-auto overflow-x-scroll">
+        <div
+          className={`w-[${settings?.dimensions.width}px] md:mx-auto overflow-x-scroll`}
+        >
           {current_sequence_id &&
             !selected_polygon_id &&
             !selected_text_id &&
@@ -1383,6 +1422,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                               <ObjectTrack
                                 key={`objectTrack${animation.id}`}
                                 type={TrackType.Video}
+                                trackWidth={settings?.dimensions.width || 900}
                                 objectName={objectName}
                                 objectData={animation}
                                 pixelsPerSecond={15}
@@ -1404,6 +1444,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           !selected_video_id && (
             <TimelineTrack
               type={TrackType.Video}
+              trackWidth={settings?.dimensions.width || 900}
               pixelsPerSecond={25}
               tSequences={tSequences}
               sequenceDurations={sequenceDurations}
@@ -1418,7 +1459,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             objectId={selected_polygon_id}
             objectType={ObjectType.Polygon}
             sequenceId={current_sequence_id}
-            width={900}
+            width={settings?.dimensions.width || 900}
             height={400}
             headerHeight={40}
             propertyWidth={50}
@@ -1436,7 +1477,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             objectId={selected_text_id}
             objectType={ObjectType.TextItem}
             sequenceId={current_sequence_id}
-            width={900}
+            width={settings?.dimensions.width || 900}
             height={400}
             headerHeight={40}
             propertyWidth={50}
@@ -1454,7 +1495,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             objectId={selected_image_id}
             objectType={ObjectType.ImageItem}
             sequenceId={current_sequence_id}
-            width={900}
+            width={settings?.dimensions.width || 900}
             height={400}
             headerHeight={40}
             propertyWidth={50}
@@ -1472,7 +1513,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             objectId={selected_video_id}
             objectType={ObjectType.VideoItem}
             sequenceId={current_sequence_id}
-            width={900}
+            width={settings?.dimensions.width || 900}
             height={400}
             headerHeight={40}
             propertyWidth={50}

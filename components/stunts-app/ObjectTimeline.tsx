@@ -110,6 +110,7 @@ import { AnimationData, TrackType } from "@/engine/animations";
 
 interface TrackProps {
   type: TrackType;
+  trackWidth?: number; // Optional width for the track
   objectName: string | null | undefined;
   objectData: AnimationData;
   pixelsPerSecond: number;
@@ -161,6 +162,7 @@ const DraggableSequence: React.FC<SequenceProps> = ({
 
 export const ObjectTrack: React.FC<TrackProps> = ({
   type,
+  trackWidth = 900,
   objectName,
   objectData,
   pixelsPerSecond,
@@ -215,9 +217,17 @@ export const ObjectTrack: React.FC<TrackProps> = ({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="relative h-[50px] w-[900px] mb-1">
+      <div
+        className={`relative h-[50px] ${
+          trackWidth === 550 ? "w-[550px]" : "w-[900px]"
+        } mb-1`}
+      >
         {/* Track background */}
-        <div className={`relative w-[900px] h-[50px] ${trackColor}`} />
+        <div
+          className={`relative ${
+            trackWidth === 550 ? "w-[550px]" : "w-[900px]"
+          } h-[50px] ${trackColor}`}
+        />
 
         {/* Sequences */}
         <div className="relative w-full h-full p-1 top-[-50px] z-10">
