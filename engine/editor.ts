@@ -304,9 +304,10 @@ export class WebGpuResources {
     }
 
     // Get WebGPU adapter
-    const adapter = await navigator.gpu.requestAdapter({
-      powerPreference: "high-performance",
-    });
+    // const adapter = await navigator.gpu.requestAdapter({
+    //   powerPreference: "high-performance",
+    // });
+    const adapter = await navigator.gpu.requestAdapter();
 
     if (!adapter) {
       throw new GpuResourceError("AdapterNotFoundError");
