@@ -96,11 +96,22 @@ export const ToolGrid = ({
       return;
     }
 
+    if (!editor.settings) {
+      console.error("Editor settings are not defined.");
+      return;
+    }
+
     // let mut rng = rand::thread_rng();
     // let random_number_800 = rng.gen_range(0..=800);
     // let random_number_450 = rng.gen_range(0..=450);
-    let random_number_800 = getRandomNumber(100, 700);
-    let random_number_450 = getRandomNumber(100, 350);
+    let random_number_800 = getRandomNumber(
+      100,
+      editor.settings?.dimensions.width
+    );
+    let random_number_450 = getRandomNumber(
+      100,
+      editor.settings?.dimensions.height
+    );
 
     let new_id = uuidv4();
 
@@ -221,8 +232,19 @@ export const ToolGrid = ({
       // let random_number_800 = rng.gen_range(0..=800);
       // let random_number_450 = rng.gen_range(0..=450);
 
-      let random_number_800 = getRandomNumber(100, 700);
-      let random_number_450 = getRandomNumber(100, 350);
+      if (!editor.settings) {
+        console.error("Editor settings are not defined.");
+        return;
+      }
+
+      let random_number_800 = getRandomNumber(
+        100,
+        editor.settings?.dimensions.width
+      );
+      let random_number_450 = getRandomNumber(
+        100,
+        editor.settings?.dimensions.height
+      );
 
       let new_id = uuidv4();
 
@@ -302,11 +324,22 @@ export const ToolGrid = ({
       return;
     }
 
+    if (!editor.settings) {
+      console.error("Editor settings are not defined.");
+      return;
+    }
+
     // let mut rng = rand::thread_rng();
     // let random_number_800 = rng.gen_range(0..=800);
     // let random_number_450 = rng.gen_range(0..=450);
-    let random_number_800 = getRandomNumber(100, 700);
-    let random_number_450 = getRandomNumber(100, 350);
+    let random_number_800 = getRandomNumber(
+      100,
+      editor.settings?.dimensions.width
+    );
+    let random_number_450 = getRandomNumber(
+      100,
+      editor.settings?.dimensions.height
+    );
 
     let new_id = uuidv4();
     let new_text = "New text";
@@ -409,12 +442,23 @@ export const ToolGrid = ({
 
       console.info("File url:", url);
 
+      if (!editor.settings) {
+        console.error("Editor settings are not defined.");
+        return;
+      }
+
       // let mut rng = rand::thread_rng();
       // let random_number_800 = rng.gen_range(0..=800);
       // let random_number_450 = rng.gen_range(0..=450);
 
-      let random_number_800 = getRandomNumber(100, 700);
-      let random_number_450 = getRandomNumber(100, 350);
+      let random_number_800 = getRandomNumber(
+        100,
+        editor.settings?.dimensions.width
+      );
+      let random_number_450 = getRandomNumber(
+        100,
+        editor.settings?.dimensions.height
+      );
 
       let new_id = uuidv4();
 

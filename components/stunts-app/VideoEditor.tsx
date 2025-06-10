@@ -541,6 +541,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
     // drop(editor_state);
 
+    editorRef.current.settings = cloned_settings;
+
     console.info("Initializing pipeline...");
 
     let pipeline = new CanvasPipeline();

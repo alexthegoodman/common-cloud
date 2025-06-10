@@ -207,6 +207,7 @@ import {
   EasingType,
   ObjectType,
   PathType,
+  ProjectSettings,
   RangeData,
   SavedTimelineStateConfig,
   Sequence,
@@ -475,6 +476,8 @@ export class Editor {
   generationCurved: boolean;
   generationChoreographed: boolean;
   generationFade: boolean;
+
+  settings: ProjectSettings | null = null;
 
   constructor(viewport: Viewport) {
     const windowSize = {
