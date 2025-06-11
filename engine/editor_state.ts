@@ -514,7 +514,7 @@ export default class EditorState {
           return;
         }
 
-        image.setIsCircle(gpuResources.queue, value);
+        image.setIsCircle(gpuResources.queue!, value);
 
         this.savedState.sequences.forEach((s) => {
           // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
@@ -545,8 +545,8 @@ export default class EditorState {
         text.isCircle = value;
         text.backgroundPolygon.setIsCircle(
           editor.camera?.windowSize,
-          gpuResources.device,
-          gpuResources.queue,
+          gpuResources.device!,
+          gpuResources.queue!,
           editor.modelBindGroupLayout,
           value,
           editor.camera
@@ -581,8 +581,8 @@ export default class EditorState {
         polygon.isCircle = value;
         polygon.setIsCircle(
           editor.camera?.windowSize,
-          gpuResources.device,
-          gpuResources.queue,
+          gpuResources.device!,
+          gpuResources.queue!,
           editor.modelBindGroupLayout,
           value,
           editor.camera

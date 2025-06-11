@@ -3,8 +3,10 @@ import { createVertexBufferLayout } from "./vertex";
 import { Camera, CameraBinding } from "./camera";
 import { ControlMode, Editor } from "./editor";
 
-import FragShader from "./shaders/frag_primary.wgsl?raw";
-import VertShader from "./shaders/vert_primary.wgsl?raw";
+// import FragShader from "./shaders/frag_primary.wgsl?raw";
+// import VertShader from "./shaders/vert_primary.wgsl?raw";
+import FragShader from "./shaders/frag_webgl.glsl?raw";
+import VertShader from "./shaders/vert_webgl.glsl?raw";
 import { ObjectType } from "./animations";
 import { TextRenderer } from "./text";
 import { RepeatableObject } from "./repeater";
@@ -12,7 +14,15 @@ import { RepeatableObject } from "./repeater";
 import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
 import { SaveTarget } from "./editor_state";
 import { Camera3D } from "./3dcamera";
-import { WebGpuResources } from "./polyfill";
+import {
+  GPUPolyfill,
+  PolyfillBindGroup,
+  PolyfillBuffer,
+  PolyfillDevice,
+  PolyfillQueue,
+  PolyfillTexture,
+  WebGpuResources,
+} from "./polyfill";
 
 interface WindowSize {
   width: number;
@@ -25,9 +35,8 @@ interface WindowSizeShader {
 }
 
 export class CanvasPipeline {
-  //   editor: Editor | null = null;
-  //   renderPipeline: GPURenderPipeline | null = null;
-  gpuResources: WebGpuResources | null = null;
+  // gpuResources: WebGpuResources | null = null;
+  gpuResources: GPUPolyfill | null = null;
   depthView: GPUTextureView | null = null;
   multisampledView: GPUTextureView | null = null;
   private animationFrameId: number | null = null;
@@ -67,7 +76,11 @@ export class CanvasPipeline {
     // const windowSize: WindowSize = { width, height };
 
     // Initialize WebGPU
-    const gpuResources = await WebGpuResources.request(this.canvas, windowSize);
+    // const gpuResources = await WebGpuResources.request(this.canvas, windowSize);
+
+    // Intiialize Polyfill
+    const gpuResources = new GPUPolyfill("webgl", this.canvas, windowSize);
+    await gpuResources.initializeResources();
 
     console.info("Initializing pipeline...");
 
@@ -78,7 +91,7 @@ export class CanvasPipeline {
     // Make it look at the origin
     camera.lookAt(vec3.fromValues(0, 0, 0));
 
-    const cameraBinding = new CameraBinding(gpuResources.device);
+    const cameraBinding = new CameraBinding(gpuResources.device!);
 
     editor.camera = camera;
     editor.cameraBinding = cameraBinding;
@@ -91,7 +104,7 @@ export class CanvasPipeline {
     };
 
     // Create bind group layouts
-    const modelBindGroupLayout = gpuResources.device.createBindGroupLayout({
+    const modelBindGroupLayout = gpuResources.device!.createBindGroupLayout({
       entries: [
         {
           binding: 0,
@@ -105,7 +118,7 @@ export class CanvasPipeline {
           visibility: GPUShaderStage.FRAGMENT,
           texture: {
             sampleType: "float",
-            viewDimension: "2d",
+            // viewDimension: "2d",
           },
         },
         {
@@ -123,7 +136,7 @@ export class CanvasPipeline {
           },
         },
       ],
-      label: "model_bind_group_layout",
+      // label: "model_bind_group_layout",
     });
 
     // const gradientBindGroupLayout = gpuResources.device.createBindGroupLayout({
@@ -139,7 +152,7 @@ export class CanvasPipeline {
     //   label: "gradient_bind_group_layout",
     // });
 
-    const groupBindGroupLayout = gpuResources.device.createBindGroupLayout({
+    const groupBindGroupLayout = gpuResources.device!.createBindGroupLayout({
       entries: [
         {
           binding: 0,
@@ -149,11 +162,11 @@ export class CanvasPipeline {
           },
         },
       ],
-      label: "group_bind_group_layout",
+      // label: "group_bind_group_layout",
     });
 
     // Create window size buffer and bind group
-    const windowSizeBuffer = gpuResources.device.createBuffer({
+    const windowSizeBuffer = gpuResources.device!.createBuffer({
       label: "Window Size Buffer",
       size: 8, // 2 floats, 4 bytes each
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -164,10 +177,10 @@ export class CanvasPipeline {
       windowSize.width,
       windowSize.height,
     ]);
-    gpuResources.queue.writeBuffer(windowSizeBuffer, 0, windowSizeData);
+    gpuResources.queue!.writeBuffer(windowSizeBuffer, 0, windowSizeData);
 
-    const windowSizeBindGroupLayout = gpuResources.device.createBindGroupLayout(
-      {
+    const windowSizeBindGroupLayout =
+      gpuResources.device!.createBindGroupLayout({
         entries: [
           {
             binding: 0,
@@ -177,23 +190,22 @@ export class CanvasPipeline {
             },
           },
         ],
-      }
-    );
+      });
 
-    const windowSizeBindGroup = gpuResources.device.createBindGroup({
+    const windowSizeBindGroup = gpuResources.device!.createBindGroup({
       layout: windowSizeBindGroupLayout,
       entries: [
         {
           binding: 0,
           resource: {
-            buffer: windowSizeBuffer,
+            pbuffer: windowSizeBuffer,
           },
         },
       ],
     });
 
     // Create pipeline layout
-    const pipelineLayout = gpuResources.device.createPipelineLayout({
+    const pipelineLayout = gpuResources.device!.createPipelineLayout({
       label: "Pipeline Layout",
       bindGroupLayouts: [
         cameraBinding.bindGroupLayout,
@@ -205,12 +217,12 @@ export class CanvasPipeline {
     });
 
     // Load shaders
-    const vertexShaderModule = gpuResources.device.createShaderModule({
+    const vertexShaderModule = gpuResources.device!.createShaderModule({
       label: "Vertex Shader",
       code: VertShader,
     });
 
-    const fragmentShaderModule = gpuResources.device.createShaderModule({
+    const fragmentShaderModule = gpuResources.device!.createShaderModule({
       label: "Fragment Shader",
       code: FragShader,
     });
@@ -218,7 +230,7 @@ export class CanvasPipeline {
     let format: GPUTextureFormat = "rgba8unorm";
 
     // Create render pipeline
-    const renderPipeline = gpuResources.device.createRenderPipeline({
+    const renderPipeline = gpuResources.device!.createRenderPipeline({
       label: "Common Vector Primary Render Pipeline",
       layout: pipelineLayout,
       vertex: {
@@ -294,7 +306,7 @@ export class CanvasPipeline {
     if (this.stepFrames) {
       // Start the animation loop
       const renderLoop = async () => {
-        await this.renderFrame(editor);
+        await this.renderWebglFrame(editor);
 
         // Schedule the next frame
         this.animationFrameId = window.requestAnimationFrame(renderLoop);
@@ -303,74 +315,440 @@ export class CanvasPipeline {
       // Start the first frame
       this.animationFrameId = window.requestAnimationFrame(renderLoop);
     } else {
-      await this.renderFrame(editor);
+      await this.renderWebglFrame(editor);
     }
   }
 
   recreateDepthView(window_width: number, window_height: number) {
-    const textureFormat: GPUTextureFormat = "rgba8unorm";
-
-    if (!this.gpuResources || !this.gpuResources.surface) {
-      throw new Error("Surface not initialized");
-    }
-
-    const context = this.gpuResources.surface;
-
-    const config: GPUCanvasConfiguration = {
-      device: this.gpuResources.device,
-      format: textureFormat,
-      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
-      //   size: {
-      //     width: window_width,
-      //     height: window_height,
-      //   },
-    };
-
-    context.configure(config);
-
-    const multisampledTexture = this.gpuResources.device.createTexture({
-      size: {
-        width: window_width,
-        height: window_height,
-        depthOrArrayLayers: 1,
-      },
-      mipLevelCount: 1,
-      sampleCount: 4,
-      dimension: "2d",
-      format: textureFormat,
-      usage: GPUTextureUsage.RENDER_ATTACHMENT,
-      label: "Multisampled render texture",
-    });
-
-    const multisampledView = multisampledTexture.createView();
-
-    const depthTexture = this.gpuResources.device.createTexture({
-      size: {
-        width: window_width,
-        height: window_height,
-        depthOrArrayLayers: 1,
-      },
-      mipLevelCount: 1,
-      sampleCount: 4,
-      dimension: "2d",
-      format: "depth24plus-stencil8", // Use depth24plus-stencil8 for depth and stencil
-      usage:
-        GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-      label: "Depth Texture",
-    });
-
-    const depthView = depthTexture.createView();
-
-    this.depthView = depthView;
-    this.multisampledView = multisampledView;
+    // const textureFormat: GPUTextureFormat = "rgba8unorm";
+    // if (!this.gpuResources || !this.gpuResources.surface) {
+    //   throw new Error("Surface not initialized");
+    // }
+    // const context = this.gpuResources.surface;
+    // const config: GPUCanvasConfiguration = {
+    //   device: this.gpuResources.device,
+    //   format: textureFormat,
+    //   usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
+    //   //   size: {
+    //   //     width: window_width,
+    //   //     height: window_height,
+    //   //   },
+    // };
+    // context.configure(config);
+    // const multisampledTexture = this.gpuResources.device.createTexture({
+    //   size: {
+    //     width: window_width,
+    //     height: window_height,
+    //     depthOrArrayLayers: 1,
+    //   },
+    //   mipLevelCount: 1,
+    //   sampleCount: 4,
+    //   dimension: "2d",
+    //   format: textureFormat,
+    //   usage: GPUTextureUsage.RENDER_ATTACHMENT,
+    //   label: "Multisampled render texture",
+    // });
+    // const multisampledView = multisampledTexture.createView();
+    // const depthTexture = this.gpuResources.device.createTexture({
+    //   size: {
+    //     width: window_width,
+    //     height: window_height,
+    //     depthOrArrayLayers: 1,
+    //   },
+    //   mipLevelCount: 1,
+    //   sampleCount: 4,
+    //   dimension: "2d",
+    //   format: "depth24plus-stencil8", // Use depth24plus-stencil8 for depth and stencil
+    //   usage:
+    //     GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+    //   label: "Depth Texture",
+    // });
+    // const depthView = depthTexture.createView();
+    // this.depthView = depthView;
+    // this.multisampledView = multisampledView;
   }
 
-  async renderFrame(
+  // async renderWgpuFrame(
+  //   editor: Editor,
+  //   frameEncoder?: (
+  //     // commandEncoder: GPUCommandEncoder,
+  //     renderTexture: GPUTexture
+  //   ) => void,
+  //   currentTimeS?: number
+  // ): Promise<void> {
+  //   if (!editor.camera || !editor.gpuResources) {
+  //     console.error("Editor or camera not initialized");
+  //     return;
+  //   }
+
+  //   const device = editor.gpuResources.webgpuResources!.device;
+  //   const surface = editor.gpuResources.webgpuResources!.surface;
+  //   const queue = editor.gpuResources.webgpuResources!.queue;
+  //   const renderPipeline = editor.renderPipeline;
+
+  //   if (!surface || !renderPipeline) {
+  //     console.error("Surface or render pipeline not initialized");
+  //     return;
+  //   }
+
+  //   // if (frameEncoder) {
+  //   //   console.info("Rendering frame with custom encoder...");
+  //   // }
+
+  //   // Animation steps
+  //   editor.stepVideoAnimations(editor.camera, currentTimeS);
+  //   await editor.stepMotionPathAnimations(editor.camera, currentTimeS);
+
+  //   // if (frameEncoder) {
+  //   //   console.info("Rendering frame 2...");
+  //   // }
+
+  //   // Get the current texture and create a view
+  //   const currentTexture = surface.getCurrentTexture();
+  //   const view = currentTexture.createView();
+
+  //   // Create command encoder
+  //   const encoder = device.createCommandEncoder({
+  //     label: "Render Encoder",
+  //   });
+
+  //   if (!this.depthView || !this.multisampledView) {
+  //     console.error("Missing depth or multisampled view");
+  //     return;
+  //   }
+
+  //   // Begin render pass
+  //   const renderPass = encoder.beginRenderPass({
+  //     label: "Main Render Pass",
+  //     colorAttachments: [
+  //       {
+  //         view: this.multisampledView,
+  //         resolveTarget: view,
+  //         clearValue: { r: 1.0, g: 1.0, b: 1.0, a: 1.0 }, // WHITE
+  //         loadOp: "clear",
+  //         storeOp: "discard",
+  //       },
+  //     ],
+  //     depthStencilAttachment: {
+  //       view: this.depthView,
+  //       depthClearValue: 1.0,
+  //       depthLoadOp: "clear",
+  //       depthStoreOp: "store",
+  //       stencilLoadOp: "clear", // Clear the stencil buffer at the start of the render pass
+  //       stencilStoreOp: "store", // Store the stencil buffer after the render pass
+  //       stencilClearValue: 0, // Clear value for stencil (typically 0)
+  //     },
+  //   });
+
+  //   // Set pipeline
+  //   renderPass.setPipeline(renderPipeline);
+
+  //   // Set camera bind group
+  //   if (!editor.cameraBinding) {
+  //     console.error("Couldn't get camera binding");
+  //     return;
+  //   }
+  //   renderPass.setBindGroup(0, editor.cameraBinding.bindGroup);
+
+  //   // Set window size bind group
+  //   if (!editor.windowSizeBindGroup) {
+  //     console.error("Couldn't get window size group");
+  //     return;
+  //   }
+  //   renderPass.setBindGroup(2, editor.windowSizeBindGroup);
+
+  //   // if (frameEncoder) {
+  //   //   console.info("Rendering frame 3...");
+  //   // }
+
+  //   // Draw static polygons
+  //   for (const polygon of editor.staticPolygons || []) {
+  //     // Update uniform buffer if this polygon is being dragged
+  //     if (editor.draggingPathHandle === polygon.id) {
+  //       polygon.transform.updateUniformBuffer(queue, editor.camera.windowSize);
+  //     }
+
+  //     if (
+  //       polygon.name === "canvas_background" &&
+  //       editor.target === SaveTarget.Videos &&
+  //       editor.isPlaying
+  //     ) {
+  //       polygon.updateGradientAnimation(device, 0.001);
+  //     }
+
+  //     renderPass.setBindGroup(1, polygon.bindGroup);
+  //     renderPass.setBindGroup(3, polygon.groupBindGroup);
+  //     renderPass.setVertexBuffer(0, polygon.vertexBuffer);
+  //     renderPass.setIndexBuffer(polygon.indexBuffer, "uint32");
+  //     renderPass.drawIndexed(polygon.indices.length);
+  //   }
+
+  //   // Draw motion paths
+  //   for (const path of editor.motionPaths || []) {
+  //     // Update path transform if being dragged
+  //     if (editor.draggingPath === path.id) {
+  //       path.transform.updateUniformBuffer(queue, editor.camera.windowSize);
+  //     }
+
+  //     renderPass.setBindGroup(3, path.bindGroup);
+
+  //     // Draw static polygons in this path
+  //     for (const polygon of path.staticPolygons || []) {
+  //       if (editor.draggingPathHandle === polygon.id) {
+  //         polygon.transform.updateUniformBuffer(
+  //           queue,
+  //           editor.camera.windowSize
+  //         );
+  //       }
+
+  //       renderPass.setBindGroup(1, polygon.bindGroup);
+  //       renderPass.setVertexBuffer(0, polygon.vertexBuffer);
+  //       renderPass.setIndexBuffer(polygon.indexBuffer, "uint32");
+  //       renderPass.drawIndexed(polygon.indices.length);
+  //     }
+  //   }
+
+  //   // Draw regular polygons
+  //   for (const polygon of editor.polygons || []) {
+  //     if (!polygon.hidden) {
+  //       // Update if dragging or during playback
+  //       if (editor.draggingPolygon === polygon.id || editor.isPlaying) {
+  //         polygon.transform.updateUniformBuffer(
+  //           queue,
+  //           editor.camera.windowSize
+  //         );
+  //       }
+
+  //       renderPass.setBindGroup(1, polygon.bindGroup);
+  //       renderPass.setBindGroup(3, polygon.groupBindGroup);
+  //       renderPass.setVertexBuffer(0, polygon.vertexBuffer);
+  //       renderPass.setIndexBuffer(polygon.indexBuffer, "uint32");
+  //       renderPass.drawIndexed(polygon.indices.length);
+  //     }
+  //   }
+
+  //   // Draw text items
+  //   for (const textItem of editor.textItems || []) {
+  //     if (!textItem.hidden && textItem.indices) {
+  //       // Draw background polygon if not hidden
+  //       if (!textItem.backgroundPolygon.hidden) {
+  //         if (
+  //           editor.draggingText === textItem.backgroundPolygon.id ||
+  //           editor.isPlaying
+  //         ) {
+  //           textItem.backgroundPolygon.transform.updateUniformBuffer(
+  //             queue,
+  //             editor.camera.windowSize
+  //           );
+  //         }
+
+  //         renderPass.setBindGroup(1, textItem.backgroundPolygon.bindGroup);
+  //         renderPass.setBindGroup(3, textItem.backgroundPolygon.groupBindGroup);
+  //         renderPass.setVertexBuffer(
+  //           0,
+  //           textItem.backgroundPolygon.vertexBuffer
+  //         );
+  //         renderPass.setIndexBuffer(
+  //           textItem.backgroundPolygon.indexBuffer,
+  //           "uint32"
+  //         );
+  //         renderPass.drawIndexed(textItem.backgroundPolygon.indices.length);
+  //       }
+
+  //       // Draw the text itself
+  //       if (editor.draggingText === textItem.id || editor.isPlaying) {
+  //         // console.info(
+  //         //   "text log",
+  //         //   textItem.vertices ? textItem.vertices[0] : null
+  //         // );
+  //         textItem.transform.updateUniformBuffer(
+  //           queue,
+  //           editor.camera.windowSize
+  //         );
+  //       }
+
+  //       renderPass.setBindGroup(1, textItem.bindGroup);
+  //       renderPass.setBindGroup(3, textItem.groupBindGroup);
+  //       renderPass.setVertexBuffer(0, textItem.vertexBuffer);
+  //       renderPass.setIndexBuffer(textItem.indexBuffer, "uint32");
+  //       renderPass.drawIndexed(textItem.indices.length);
+  //     }
+  //   }
+
+  //   // Draw image items
+  //   for (const image of editor.imageItems || []) {
+  //     if (!image.hidden) {
+  //       if (editor.draggingImage === image.id || editor.isPlaying) {
+  //         image.transform.updateUniformBuffer(queue, editor.camera.windowSize);
+  //       }
+
+  //       renderPass.setBindGroup(1, image.bindGroup);
+  //       renderPass.setBindGroup(3, image.groupBindGroup);
+  //       renderPass.setVertexBuffer(0, image.vertexBuffer);
+  //       renderPass.setIndexBuffer(image.indexBuffer, "uint32");
+  //       renderPass.drawIndexed(image.indices.length);
+  //     }
+  //   }
+
+  //   // Draw video items
+  //   for (const video of editor.videoItems || []) {
+  //     if (!video.hidden) {
+  //       renderPass.setBindGroup(3, video.groupBindGroup);
+
+  //       if (video.mousePath) {
+  //         // Update path transform if being dragged
+  //         if (editor.draggingPath === video.mousePath.id) {
+  //           video.mousePath.transform.updateUniformBuffer(
+  //             queue,
+  //             editor.camera.windowSize
+  //           );
+  //         }
+
+  //         // Draw static polygons in this path
+  //         for (const polygon of video.mousePath.staticPolygons || []) {
+  //           if (editor.draggingPathHandle === polygon.id) {
+  //             polygon.transform.updateUniformBuffer(
+  //               queue,
+  //               editor.camera.windowSize
+  //             );
+  //           }
+
+  //           renderPass.setBindGroup(1, polygon.bindGroup);
+  //           renderPass.setVertexBuffer(0, polygon.vertexBuffer);
+  //           renderPass.setIndexBuffer(polygon.indexBuffer, "uint32");
+  //           renderPass.drawIndexed(polygon.indices.length);
+  //         }
+  //       }
+
+  //       if (editor.draggingVideo === video.id || editor.isPlaying) {
+  //         // console.info("temp log", video.vertices[0]);
+  //         // video.transform.updateUniformBuffer(queue, editor.camera.windowSize);
+  //         video.groupTransform.updateUniformBuffer(
+  //           queue,
+  //           editor.camera.windowSize
+  //         );
+  //       }
+
+  //       renderPass.setBindGroup(1, video.bindGroup);
+  //       renderPass.setVertexBuffer(0, video.vertexBuffer);
+  //       renderPass.setIndexBuffer(video.indexBuffer, "uint32");
+  //       renderPass.drawIndexed(video.indices.length);
+  //     }
+  //   }
+
+  //   let repeatObjects = editor.repeatManager.getAllRepeatObjects();
+  //   if (repeatObjects.length > 0) {
+  //     // Draw repeat objects
+  //     for (const repeatObject of repeatObjects || []) {
+  //       if (
+  //         !repeatObject.hidden &&
+  //         repeatObject.indices &&
+  //         repeatObject.indexBuffer
+  //       ) {
+  //         let sourceObject = repeatObject.sourceObject;
+  //         let instances = repeatObject.instances;
+
+  //         for (let instance of instances) {
+  //           if (isTextRenderer(sourceObject)) {
+  //             if (
+  //               sourceObject.objectType === ObjectType.TextItem &&
+  //               sourceObject?.backgroundPolygon // TODO: backgroundPolygon is not available on other object types, getting type error
+  //             ) {
+  //               // Draw background polygon if not hidden
+  //               if (
+  //                 sourceObject?.backgroundPolygon &&
+  //                 !sourceObject.backgroundPolygon.hidden
+  //               ) {
+  //                 if (
+  //                   // editor.draggingText === sourceObject.backgroundPolygon.id ||
+  //                   editor.isPlaying
+  //                 ) {
+  //                   sourceObject.backgroundPolygon.transform.updateUniformBuffer(
+  //                     queue,
+  //                     editor.camera.windowSize
+  //                   );
+  //                 }
+
+  //                 renderPass.setBindGroup(
+  //                   1,
+  //                   sourceObject.backgroundPolygon.bindGroup
+  //                 );
+  //                 renderPass.setBindGroup(
+  //                   3,
+  //                   sourceObject.backgroundPolygon.groupBindGroup
+  //                 );
+  //                 renderPass.setVertexBuffer(
+  //                   0,
+  //                   sourceObject.backgroundPolygon.vertexBuffer
+  //                 );
+  //                 renderPass.setIndexBuffer(
+  //                   sourceObject.backgroundPolygon.indexBuffer,
+  //                   "uint32"
+  //                 );
+  //                 renderPass.drawIndexed(
+  //                   sourceObject.backgroundPolygon.indices.length
+  //                 );
+  //               }
+  //             }
+  //           }
+
+  //           // Allow for animations
+  //           if (instance.transform && editor.isPlaying) {
+  //             instance.transform.updateUniformBuffer(
+  //               queue,
+  //               editor.camera.windowSize
+  //             );
+  //           }
+
+  //           renderPass.setBindGroup(1, instance.bindGroup);
+  //           renderPass.setBindGroup(3, sourceObject.groupBindGroup);
+  //           renderPass.setVertexBuffer(0, repeatObject.vertexBuffer);
+  //           renderPass.setIndexBuffer(repeatObject.indexBuffer, "uint32");
+  //           renderPass.drawIndexed(repeatObject.indices.length);
+  //         }
+  //       }
+  //     }
+  //   }
+
+  //   // Draw text areas
+  //   // for (const image of editor.textArea || []) {
+  //   if (editor.textArea) {
+  //     if (!editor.textArea.hidden && editor.textArea.indices) {
+  //       // if (editor.draggingImage === image.id || editor.isPlaying) {
+  //       //   image.transform.updateUniformBuffer(queue, editor.camera.windowSize);
+  //       // }
+
+  //       renderPass.setBindGroup(1, editor.textArea.bindGroup);
+  //       renderPass.setBindGroup(3, editor.textArea.groupBindGroup);
+  //       renderPass.setVertexBuffer(0, editor.textArea.vertexBuffer);
+  //       renderPass.setIndexBuffer(editor.textArea.indexBuffer, "uint32");
+  //       renderPass.drawIndexed(editor.textArea.indices.length);
+  //     }
+  //   }
+  //   // }
+
+  //   // console.info("Drawing objects...");
+
+  //   // Update camera binding if panning
+  //   if (editor.controlMode === ControlMode.Pan && editor.isPanning) {
+  //     editor.updateCameraBinding();
+  //   }
+
+  //   // End the render pass
+  //   renderPass.end();
+
+  //   // Submit command buffer and present
+  //   queue.submit([encoder.finish()]);
+
+  //   if (frameEncoder) {
+  //     // console.info("Running frame encoder...");
+  //     await frameEncoder(currentTexture);
+  //   }
+  // }
+
+  async renderWebglFrame(
     editor: Editor,
-    frameEncoder?: (
-      // commandEncoder: GPUCommandEncoder,
-      renderTexture: GPUTexture
-    ) => void,
+    frameEncoder?: (renderTexture: PolyfillTexture) => Promise<void>,
     currentTimeS?: number
   ): Promise<void> {
     if (!editor.camera || !editor.gpuResources) {
@@ -378,85 +756,89 @@ export class CanvasPipeline {
       return;
     }
 
-    const device = editor.gpuResources.device;
-    const surface = editor.gpuResources.surface;
-    const queue = editor.gpuResources.queue;
+    // Get WebGL resources through polyfill
+    const device = editor.gpuResources.getDevice() as PolyfillDevice;
+    const queue = editor.gpuResources.getQueue() as PolyfillQueue;
+    const gl = editor.gpuResources.getContext() as WebGL2RenderingContext;
     const renderPipeline = editor.renderPipeline;
 
-    if (!surface || !renderPipeline) {
-      console.error("Surface or render pipeline not initialized");
+    if (!gl || !renderPipeline) {
+      console.error("WebGL context or render pipeline not initialized");
       return;
     }
 
-    // if (frameEncoder) {
-    //   console.info("Rendering frame with custom encoder...");
-    // }
-
-    // Animation steps
+    // Animation steps (same as WebGPU)
     editor.stepVideoAnimations(editor.camera, currentTimeS);
     await editor.stepMotionPathAnimations(editor.camera, currentTimeS);
 
-    // if (frameEncoder) {
-    //   console.info("Rendering frame 2...");
-    // }
+    // Set up WebGL render state
+    gl.viewport(
+      0,
+      0,
+      editor.camera.windowSize.width,
+      editor.camera.windowSize.height
+    );
 
-    // Get the current texture and create a view
-    const currentTexture = surface.getCurrentTexture();
-    const view = currentTexture.createView();
+    // Clear the framebuffer
+    gl.clearColor(1.0, 1.0, 1.0, 1.0); // White background
+    gl.clearDepth(1.0);
+    gl.clearStencil(0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
-    // Create command encoder
-    const encoder = device.createCommandEncoder({
-      label: "Render Encoder",
-    });
+    // Enable depth testing and culling (similar to WebGPU setup)
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+    gl.frontFace(gl.CCW);
 
-    if (!this.depthView || !this.multisampledView) {
-      console.error("Missing depth or multisampled view");
-      return;
+    // Set up blending for transparency
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    // Bind render pipeline (in WebGL this means using the shader program)
+    if (renderPipeline.program) {
+      gl.useProgram(renderPipeline.program);
     }
 
-    // Begin render pass
-    const renderPass = encoder.beginRenderPass({
-      label: "Main Render Pass",
-      colorAttachments: [
-        {
-          view: this.multisampledView,
-          resolveTarget: view,
-          clearValue: { r: 1.0, g: 1.0, b: 1.0, a: 1.0 }, // WHITE
-          loadOp: "clear",
-          storeOp: "discard",
-        },
-      ],
-      depthStencilAttachment: {
-        view: this.depthView,
-        depthClearValue: 1.0,
-        depthLoadOp: "clear",
-        depthStoreOp: "store",
-        stencilLoadOp: "clear", // Clear the stencil buffer at the start of the render pass
-        stencilStoreOp: "store", // Store the stencil buffer after the render pass
-        stencilClearValue: 0, // Clear value for stencil (typically 0)
-      },
-    });
-
-    // Set pipeline
-    renderPass.setPipeline(renderPipeline);
-
-    // Set camera bind group
-    if (!editor.cameraBinding) {
+    // Bind camera uniform buffer (bind group 0)
+    if (editor.cameraBinding) {
+      this.bindWebGLBindGroup(gl, editor.cameraBinding.bindGroup, 0);
+    } else {
       console.error("Couldn't get camera binding");
       return;
     }
-    renderPass.setBindGroup(0, editor.cameraBinding.bindGroup);
 
-    // Set window size bind group
-    if (!editor.windowSizeBindGroup) {
+    // Bind window size uniform buffer (bind group 2)
+    if (editor.windowSizeBindGroup) {
+      this.bindWebGLBindGroup(gl, editor.windowSizeBindGroup, 2);
+    } else {
       console.error("Couldn't get window size group");
       return;
     }
-    renderPass.setBindGroup(2, editor.windowSizeBindGroup);
 
-    // if (frameEncoder) {
-    //   console.info("Rendering frame 3...");
-    // }
+    // Helper function to draw indexed geometry
+    const drawIndexedGeometry = (
+      vertexBuffer: PolyfillBuffer,
+      indexBuffer: PolyfillBuffer,
+      indexCount: number
+    ) => {
+      // Bind vertex buffer
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer.buffer);
+
+      // Set up vertex attributes (you'll need to define these based on your shader)
+      // This is a simplified example - adjust based on your vertex layout
+      const stride = 8 * 4; // 8 floats per vertex (position + texcoord + normal + color)
+      gl.vertexAttribPointer(0, 3, gl.FLOAT, false, stride, 0); // position
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(1, 2, gl.FLOAT, false, stride, 12); // texcoord
+      gl.enableVertexAttribArray(1);
+      gl.vertexAttribPointer(2, 3, gl.FLOAT, false, stride, 20); // normal
+      gl.enableVertexAttribArray(2);
+
+      // Bind index buffer and draw
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer.buffer);
+      gl.drawElements(gl.TRIANGLES, indexCount, gl.UNSIGNED_INT, 0);
+    };
 
     // Draw static polygons
     for (const polygon of editor.staticPolygons || []) {
@@ -473,11 +855,15 @@ export class CanvasPipeline {
         polygon.updateGradientAnimation(device, 0.001);
       }
 
-      renderPass.setBindGroup(1, polygon.bindGroup);
-      renderPass.setBindGroup(3, polygon.groupBindGroup);
-      renderPass.setVertexBuffer(0, polygon.vertexBuffer);
-      renderPass.setIndexBuffer(polygon.indexBuffer, "uint32");
-      renderPass.drawIndexed(polygon.indices.length);
+      // Bind polygon-specific resources (bind groups 1 and 3)
+      this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
+      this.bindWebGLBindGroup(gl, polygon.groupBindGroup, 3);
+
+      drawIndexedGeometry(
+        polygon.vertexBuffer as PolyfillBuffer,
+        polygon.indexBuffer as PolyfillBuffer,
+        polygon.indices.length
+      );
     }
 
     // Draw motion paths
@@ -487,7 +873,7 @@ export class CanvasPipeline {
         path.transform.updateUniformBuffer(queue, editor.camera.windowSize);
       }
 
-      renderPass.setBindGroup(3, path.bindGroup);
+      this.bindWebGLBindGroup(gl, path.bindGroup, 3);
 
       // Draw static polygons in this path
       for (const polygon of path.staticPolygons || []) {
@@ -498,10 +884,13 @@ export class CanvasPipeline {
           );
         }
 
-        renderPass.setBindGroup(1, polygon.bindGroup);
-        renderPass.setVertexBuffer(0, polygon.vertexBuffer);
-        renderPass.setIndexBuffer(polygon.indexBuffer, "uint32");
-        renderPass.drawIndexed(polygon.indices.length);
+        this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
+
+        drawIndexedGeometry(
+          polygon.vertexBuffer as PolyfillBuffer,
+          polygon.indexBuffer as PolyfillBuffer,
+          polygon.indices.length
+        );
       }
     }
 
@@ -516,11 +905,14 @@ export class CanvasPipeline {
           );
         }
 
-        renderPass.setBindGroup(1, polygon.bindGroup);
-        renderPass.setBindGroup(3, polygon.groupBindGroup);
-        renderPass.setVertexBuffer(0, polygon.vertexBuffer);
-        renderPass.setIndexBuffer(polygon.indexBuffer, "uint32");
-        renderPass.drawIndexed(polygon.indices.length);
+        this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
+        this.bindWebGLBindGroup(gl, polygon.groupBindGroup, 3);
+
+        drawIndexedGeometry(
+          polygon.vertexBuffer as PolyfillBuffer,
+          polygon.indexBuffer as PolyfillBuffer,
+          polygon.indices.length
+        );
       }
     }
 
@@ -539,36 +931,36 @@ export class CanvasPipeline {
             );
           }
 
-          renderPass.setBindGroup(1, textItem.backgroundPolygon.bindGroup);
-          renderPass.setBindGroup(3, textItem.backgroundPolygon.groupBindGroup);
-          renderPass.setVertexBuffer(
-            0,
-            textItem.backgroundPolygon.vertexBuffer
+          this.bindWebGLBindGroup(gl, textItem.backgroundPolygon.bindGroup, 1);
+          this.bindWebGLBindGroup(
+            gl,
+            textItem.backgroundPolygon.groupBindGroup,
+            3
           );
-          renderPass.setIndexBuffer(
-            textItem.backgroundPolygon.indexBuffer,
-            "uint32"
+
+          drawIndexedGeometry(
+            textItem.backgroundPolygon.vertexBuffer as PolyfillBuffer,
+            textItem.backgroundPolygon.indexBuffer as PolyfillBuffer,
+            textItem.backgroundPolygon.indices.length
           );
-          renderPass.drawIndexed(textItem.backgroundPolygon.indices.length);
         }
 
         // Draw the text itself
         if (editor.draggingText === textItem.id || editor.isPlaying) {
-          // console.info(
-          //   "text log",
-          //   textItem.vertices ? textItem.vertices[0] : null
-          // );
           textItem.transform.updateUniformBuffer(
             queue,
             editor.camera.windowSize
           );
         }
 
-        renderPass.setBindGroup(1, textItem.bindGroup);
-        renderPass.setBindGroup(3, textItem.groupBindGroup);
-        renderPass.setVertexBuffer(0, textItem.vertexBuffer);
-        renderPass.setIndexBuffer(textItem.indexBuffer, "uint32");
-        renderPass.drawIndexed(textItem.indices.length);
+        this.bindWebGLBindGroup(gl, textItem.bindGroup, 1);
+        this.bindWebGLBindGroup(gl, textItem.groupBindGroup, 3);
+
+        drawIndexedGeometry(
+          textItem.vertexBuffer as PolyfillBuffer,
+          textItem.indexBuffer as PolyfillBuffer,
+          textItem.indices.length
+        );
       }
     }
 
@@ -579,18 +971,21 @@ export class CanvasPipeline {
           image.transform.updateUniformBuffer(queue, editor.camera.windowSize);
         }
 
-        renderPass.setBindGroup(1, image.bindGroup);
-        renderPass.setBindGroup(3, image.groupBindGroup);
-        renderPass.setVertexBuffer(0, image.vertexBuffer);
-        renderPass.setIndexBuffer(image.indexBuffer, "uint32");
-        renderPass.drawIndexed(image.indices.length);
+        this.bindWebGLBindGroup(gl, image.bindGroup, 1);
+        this.bindWebGLBindGroup(gl, image.groupBindGroup, 3);
+
+        drawIndexedGeometry(
+          image.vertexBuffer as PolyfillBuffer,
+          image.indexBuffer as PolyfillBuffer,
+          image.indices.length
+        );
       }
     }
 
     // Draw video items
     for (const video of editor.videoItems || []) {
       if (!video.hidden) {
-        renderPass.setBindGroup(3, video.groupBindGroup);
+        this.bindWebGLBindGroup(gl, video.groupBindGroup, 3);
 
         if (video.mousePath) {
           // Update path transform if being dragged
@@ -610,32 +1005,36 @@ export class CanvasPipeline {
               );
             }
 
-            renderPass.setBindGroup(1, polygon.bindGroup);
-            renderPass.setVertexBuffer(0, polygon.vertexBuffer);
-            renderPass.setIndexBuffer(polygon.indexBuffer, "uint32");
-            renderPass.drawIndexed(polygon.indices.length);
+            this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
+
+            drawIndexedGeometry(
+              polygon.vertexBuffer as PolyfillBuffer,
+              polygon.indexBuffer as PolyfillBuffer,
+              polygon.indices.length
+            );
           }
         }
 
         if (editor.draggingVideo === video.id || editor.isPlaying) {
-          // console.info("temp log", video.vertices[0]);
-          // video.transform.updateUniformBuffer(queue, editor.camera.windowSize);
           video.groupTransform.updateUniformBuffer(
             queue,
             editor.camera.windowSize
           );
         }
 
-        renderPass.setBindGroup(1, video.bindGroup);
-        renderPass.setVertexBuffer(0, video.vertexBuffer);
-        renderPass.setIndexBuffer(video.indexBuffer, "uint32");
-        renderPass.drawIndexed(video.indices.length);
+        this.bindWebGLBindGroup(gl, video.bindGroup, 1);
+
+        drawIndexedGeometry(
+          video.vertexBuffer as PolyfillBuffer,
+          video.indexBuffer as PolyfillBuffer,
+          video.indices.length
+        );
       }
     }
 
+    // Draw repeat objects
     let repeatObjects = editor.repeatManager.getAllRepeatObjects();
     if (repeatObjects.length > 0) {
-      // Draw repeat objects
       for (const repeatObject of repeatObjects || []) {
         if (
           !repeatObject.hidden &&
@@ -649,40 +1048,36 @@ export class CanvasPipeline {
             if (isTextRenderer(sourceObject)) {
               if (
                 sourceObject.objectType === ObjectType.TextItem &&
-                sourceObject?.backgroundPolygon // TODO: backgroundPolygon is not available on other object types, getting type error
+                sourceObject?.backgroundPolygon
               ) {
                 // Draw background polygon if not hidden
                 if (
                   sourceObject?.backgroundPolygon &&
                   !sourceObject.backgroundPolygon.hidden
                 ) {
-                  if (
-                    // editor.draggingText === sourceObject.backgroundPolygon.id ||
-                    editor.isPlaying
-                  ) {
+                  if (editor.isPlaying) {
                     sourceObject.backgroundPolygon.transform.updateUniformBuffer(
                       queue,
                       editor.camera.windowSize
                     );
                   }
 
-                  renderPass.setBindGroup(
-                    1,
-                    sourceObject.backgroundPolygon.bindGroup
+                  this.bindWebGLBindGroup(
+                    gl,
+                    sourceObject.backgroundPolygon.bindGroup,
+                    1
                   );
-                  renderPass.setBindGroup(
-                    3,
-                    sourceObject.backgroundPolygon.groupBindGroup
+                  this.bindWebGLBindGroup(
+                    gl,
+                    sourceObject.backgroundPolygon.groupBindGroup,
+                    3
                   );
-                  renderPass.setVertexBuffer(
-                    0,
-                    sourceObject.backgroundPolygon.vertexBuffer
-                  );
-                  renderPass.setIndexBuffer(
-                    sourceObject.backgroundPolygon.indexBuffer,
-                    "uint32"
-                  );
-                  renderPass.drawIndexed(
+
+                  drawIndexedGeometry(
+                    sourceObject.backgroundPolygon
+                      .vertexBuffer as PolyfillBuffer,
+                    sourceObject.backgroundPolygon
+                      .indexBuffer as PolyfillBuffer,
                     sourceObject.backgroundPolygon.indices.length
                   );
                 }
@@ -697,50 +1092,94 @@ export class CanvasPipeline {
               );
             }
 
-            renderPass.setBindGroup(1, instance.bindGroup);
-            renderPass.setBindGroup(3, sourceObject.groupBindGroup);
-            renderPass.setVertexBuffer(0, repeatObject.vertexBuffer);
-            renderPass.setIndexBuffer(repeatObject.indexBuffer, "uint32");
-            renderPass.drawIndexed(repeatObject.indices.length);
+            this.bindWebGLBindGroup(gl, instance.bindGroup!, 1);
+            this.bindWebGLBindGroup(gl, sourceObject.groupBindGroup, 3);
+
+            drawIndexedGeometry(
+              repeatObject.vertexBuffer as PolyfillBuffer,
+              repeatObject.indexBuffer as PolyfillBuffer,
+              repeatObject.indices.length
+            );
           }
         }
       }
     }
 
     // Draw text areas
-    // for (const image of editor.textArea || []) {
     if (editor.textArea) {
       if (!editor.textArea.hidden && editor.textArea.indices) {
-        // if (editor.draggingImage === image.id || editor.isPlaying) {
-        //   image.transform.updateUniformBuffer(queue, editor.camera.windowSize);
-        // }
+        this.bindWebGLBindGroup(gl, editor.textArea.bindGroup, 1);
+        this.bindWebGLBindGroup(gl, editor.textArea.groupBindGroup, 3);
 
-        renderPass.setBindGroup(1, editor.textArea.bindGroup);
-        renderPass.setBindGroup(3, editor.textArea.groupBindGroup);
-        renderPass.setVertexBuffer(0, editor.textArea.vertexBuffer);
-        renderPass.setIndexBuffer(editor.textArea.indexBuffer, "uint32");
-        renderPass.drawIndexed(editor.textArea.indices.length);
+        drawIndexedGeometry(
+          editor.textArea.vertexBuffer as PolyfillBuffer,
+          editor.textArea.indexBuffer as PolyfillBuffer,
+          editor.textArea.indices.length
+        );
       }
     }
-    // }
-
-    // console.info("Drawing objects...");
 
     // Update camera binding if panning
     if (editor.controlMode === ControlMode.Pan && editor.isPanning) {
       editor.updateCameraBinding();
     }
 
-    // End the render pass
-    renderPass.end();
+    // Flush WebGL commands (equivalent to queue.submit())
+    gl.flush();
 
-    // Submit command buffer and present
-    queue.submit([encoder.finish()]);
-
+    // Call frame encoder if provided
     if (frameEncoder) {
-      // console.info("Running frame encoder...");
-      await frameEncoder(currentTexture);
+      // Create a dummy texture for the frame encoder
+      const dummyTexture = device.createTexture({
+        size: {
+          width: editor.camera.windowSize.width,
+          height: editor.camera.windowSize.height,
+        },
+        format: "rgba8unorm",
+        usage: 0x10, // RENDER_ATTACHMENT
+      });
+
+      await frameEncoder(dummyTexture);
     }
+  }
+
+  // Helper method to bind WebGL bind groups
+  private bindWebGLBindGroup(
+    gl: WebGL2RenderingContext,
+    bindGroup: PolyfillBindGroup,
+    groupIndex: number
+  ): void {
+    // Iterate through the bind group resources and bind them appropriately
+    bindGroup.resources.forEach((resource, binding) => {
+      if (resource instanceof PolyfillBuffer) {
+        // Bind uniform buffer
+        const uniformBlockIndex = gl.getUniformBlockIndex(
+          gl.getParameter(gl.CURRENT_PROGRAM),
+          `bindGroup${groupIndex}_${binding}`
+        );
+        if (uniformBlockIndex !== gl.INVALID_INDEX) {
+          gl.uniformBlockBinding(
+            gl.getParameter(gl.CURRENT_PROGRAM),
+            uniformBlockIndex,
+            binding
+          );
+          gl.bindBufferBase(gl.UNIFORM_BUFFER, binding, resource.buffer);
+        }
+      } else if (resource instanceof PolyfillTexture) {
+        // Bind texture
+        gl.activeTexture(gl.TEXTURE0 + binding);
+        gl.bindTexture(gl.TEXTURE_2D, resource.texture);
+
+        // Set the uniform sampler
+        const samplerLocation = gl.getUniformLocation(
+          gl.getParameter(gl.CURRENT_PROGRAM),
+          `bindGroup${groupIndex}_${binding}`
+        );
+        if (samplerLocation) {
+          gl.uniform1i(samplerLocation, binding);
+        }
+      }
+    });
   }
 }
 

@@ -1,6 +1,13 @@
 import { mat4, vec2, vec3, quat } from "gl-matrix";
 import { WindowSize } from "./camera";
 import { Point } from "./editor";
+import {
+  PolyfillBindGroup,
+  PolyfillBindGroupLayout,
+  PolyfillBuffer,
+  PolyfillDevice,
+  PolyfillQueue,
+} from "./polyfill";
 
 export class Transform {
   position: vec2;
@@ -9,14 +16,14 @@ export class Transform {
   rotationX: number;
   rotationY: number;
   scale: vec2;
-  uniformBuffer: GPUBuffer;
+  uniformBuffer: PolyfillBuffer;
   layer: number;
 
   constructor(
     position: vec2,
     rotation: number, // Accepts angle in radians
     scale: vec2,
-    uniformBuffer: GPUBuffer
+    uniformBuffer: PolyfillBuffer
     // windowSize: WindowSize
   ) {
     this.position = position;
@@ -60,7 +67,7 @@ export class Transform {
     return combined;
   }
 
-  updateUniformBuffer(queue: GPUQueue, windowSize: WindowSize) {
+  updateUniformBuffer(queue: PolyfillQueue, windowSize: WindowSize) {
     const transformMatrix = this.updateTransform(windowSize);
     const rawMatrix = matrix4ToRawArray(transformMatrix);
     queue.writeBuffer(
@@ -135,10 +142,10 @@ export function degreesBetweenPoints(p1: Point, p2: Point): number {
 /// For creating temporary group bind groups
 /// Later, when real groups are introduced, this will be replaced
 export function createEmptyGroupTransform(
-  device: GPUDevice,
-  groupBindGroupLayout: GPUBindGroupLayout,
+  device: PolyfillDevice,
+  groupBindGroupLayout: PolyfillBindGroupLayout,
   windowSize: WindowSize
-): [GPUBindGroup, Transform] {
+): [PolyfillBindGroup, Transform] {
   const emptyBuffer = mat4.create();
   const rawMatrix = matrix4ToRawArray(emptyBuffer);
 
@@ -158,11 +165,11 @@ export function createEmptyGroupTransform(
       {
         binding: 0,
         resource: {
-          buffer: uniformBuffer,
+          pbuffer: uniformBuffer,
         },
       },
     ],
-    label: "Transform Bind Group",
+    // label: "Transform Bind Group",
   });
 
   const groupTransform = new Transform(

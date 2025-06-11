@@ -13,6 +13,14 @@ import {
 import { INTERNAL_LAYER_SPACE, Polygon, setupGradientBuffers } from "./polygon";
 import { BackgroundFill, ObjectType } from "./animations";
 import { FormattedPage, RenderItem } from "./rte";
+import {
+  PolyfillBindGroup,
+  PolyfillBindGroupLayout,
+  PolyfillBuffer,
+  PolyfillDevice,
+  PolyfillQueue,
+  PolyfillTexture,
+} from "./polyfill";
 
 export interface TextRendererConfig {
   id: string;
@@ -72,9 +80,9 @@ export class TextRenderer {
   text: string;
   font: fontkit.Font;
   transform: Transform;
-  vertexBuffer: GPUBuffer;
-  indexBuffer: GPUBuffer;
-  atlasTexture: GPUTexture;
+  vertexBuffer: PolyfillBuffer;
+  indexBuffer: PolyfillBuffer;
+  atlasTexture: PolyfillTexture;
   atlasSize: [number, number];
   nextAtlasPosition: [number, number];
   currentRowHeight: number;
@@ -83,12 +91,12 @@ export class TextRenderer {
   layer: number;
   color: [number, number, number, number];
   fontSize: number;
-  device: GPUDevice;
-  sampler: GPUSampler;
+  device: PolyfillDevice;
+  // sampler: GPUSampler;
   backgroundPolygon: Polygon;
-  uniformBuffer: GPUBuffer;
-  bindGroup: GPUBindGroup;
-  groupBindGroup: GPUBindGroup;
+  uniformBuffer: PolyfillBuffer;
+  bindGroup: PolyfillBindGroup;
+  groupBindGroup: PolyfillBindGroup;
   vertices?: Vertex[];
   indices?: number[];
   dimensions: [number, number];
@@ -96,16 +104,16 @@ export class TextRenderer {
   fontFamily: string;
   currentSequenceId: string;
   objectType: ObjectType;
-  textureView: GPUTextureView;
+  // textureView: GPUTextureView;
   isCircle: boolean;
-  // gradientBindGroup: GPUBindGroup;
+  // gradientBindGroup: PolyfillBindGroup;
 
   constructor(
-    device: GPUDevice,
-    queue: GPUQueue,
-    bindGroupLayout: GPUBindGroupLayout,
-    groupBindGroupLayout: GPUBindGroupLayout,
-    // gradientBindGroupLayout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    bindGroupLayout: PolyfillBindGroupLayout,
+    groupBindGroupLayout: PolyfillBindGroupLayout,
+    // gradientBindGroupLayout: PolyfillBindGroupLayout,
     textConfig: TextRendererConfig,
     fontData: Buffer,
     windowSize: WindowSize,
@@ -164,13 +172,13 @@ export class TextRenderer {
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
     });
 
-    this.sampler = this.device.createSampler({
-      addressModeU: "clamp-to-edge",
-      addressModeV: "clamp-to-edge",
-      magFilter: "linear",
-      minFilter: "linear",
-      mipmapFilter: "linear",
-    });
+    // this.sampler = this.device.createSampler({
+    //   addressModeU: "clamp-to-edge",
+    //   addressModeV: "clamp-to-edge",
+    //   magFilter: "linear",
+    //   minFilter: "linear",
+    //   mipmapFilter: "linear",
+    // });
 
     const identityMatrix = mat4.create();
     this.uniformBuffer = this.device.createBuffer({
@@ -181,15 +189,15 @@ export class TextRenderer {
     new Float32Array(this.uniformBuffer.getMappedRange()).set(identityMatrix);
     this.uniformBuffer.unmap();
 
-    this.textureView = this.atlasTexture.createView();
+    // this.textureView = this.atlasTexture.createView();
 
     this.bindGroup = this.device.createBindGroup({
       layout: bindGroupLayout,
       entries: [
-        { binding: 0, resource: { buffer: this.uniformBuffer } },
-        { binding: 1, resource: this.textureView },
-        { binding: 2, resource: this.sampler },
-        { binding: 3, resource: { buffer: gradientBuffer } },
+        { binding: 0, resource: { pbuffer: this.uniformBuffer } },
+        // { binding: 1, resource: this.textureView },
+        // { binding: 2, resource: this.sampler },
+        { binding: 3, resource: { pbuffer: gradientBuffer } },
       ],
     });
 
@@ -260,8 +268,8 @@ export class TextRenderer {
   }
 
   addAreaGlyphToAtlas(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     charGlyph: CharRasterConfig
   ): AtlasGlyph {
     const metrics = {
@@ -376,8 +384,8 @@ export class TextRenderer {
   }
 
   renderAreaText(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     // docByPage: { [key: number]: RenderItem[] }
     renderPages: FormattedPage[]
   ) {
@@ -586,8 +594,8 @@ export class TextRenderer {
   }
 
   addGlyphToAtlas(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     rasterConfig: GlyphRasterConfig
   ): AtlasGlyph {
     // Get the glyph layout for the given character (using fontkit for metrics)
@@ -761,7 +769,7 @@ export class TextRenderer {
     };
   }
 
-  renderText(device: GPUDevice, queue: GPUQueue) {
+  renderText(device: PolyfillDevice, queue: PolyfillQueue) {
     const vertices: Vertex[] = [];
     const indices: number[] = [];
 
@@ -994,8 +1002,8 @@ export class TextRenderer {
   }
 
   update(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     text: string,
     dimensions: [number, number]
   ) {
@@ -1014,7 +1022,7 @@ export class TextRenderer {
     this.backgroundPolygon.transform.layer = layer_index - 0.5;
   }
 
-  updateText(device: GPUDevice, queue: GPUQueue, text: string) {
+  updateText(device: PolyfillDevice, queue: PolyfillQueue, text: string) {
     this.text = text;
     this.renderText(device, queue);
   }
@@ -1025,7 +1033,7 @@ export class TextRenderer {
     this.glyphCache = new Map(); // Clear the glyph cache
   }
 
-  updateOpacity(queue: GPUQueue, opacity: number) {
+  updateOpacity(queue: PolyfillQueue, opacity: number) {
     this.backgroundPolygon.updateOpacity(queue, opacity);
 
     const newColor = rgbToWgpu(
@@ -1062,9 +1070,9 @@ export class TextRenderer {
 
   updateDataFromDimensions(
     windowSize: WindowSize,
-    device: GPUDevice,
-    queue: GPUQueue,
-    bindGroupLayout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    bindGroupLayout: PolyfillBindGroupLayout,
     dimensions: [number, number],
     camera: Camera
   ) {
@@ -1215,11 +1223,11 @@ export class TextRenderer {
   static fromConfig(
     config: TextRendererConfig,
     windowSize: WindowSize,
-    device: GPUDevice,
-    queue: GPUQueue,
-    modelBindGroupLayout: GPUBindGroupLayout,
-    groupBindGroupLayout: GPUBindGroupLayout,
-    // gradientBindGroupLayout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    modelBindGroupLayout: PolyfillBindGroupLayout,
+    groupBindGroupLayout: PolyfillBindGroupLayout,
+    // gradientBindGroupLayout: PolyfillBindGroupLayout,
     camera: Camera,
     selectedSequenceId: string,
     fontData: Buffer,

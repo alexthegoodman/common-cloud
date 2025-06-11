@@ -22,6 +22,13 @@ import {
   ObjectType,
 } from "./animations";
 import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
+import {
+  PolyfillBindGroup,
+  PolyfillBindGroupLayout,
+  PolyfillBuffer,
+  PolyfillDevice,
+  PolyfillQueue,
+} from "./polyfill";
 
 export const INTERNAL_LAYER_SPACE = 10;
 
@@ -101,30 +108,30 @@ export class Polygon implements PolygonShape {
   sourceKeyframeId: string | null = null;
   sourcePathId: string | null = null;
   activeGroupPosition: [number, number];
-  groupBindGroup: GPUBindGroup;
+  groupBindGroup: PolyfillBindGroup;
   hidden: boolean;
   vertices: Vertex[];
   indices: number[];
-  vertexBuffer: GPUBuffer;
-  indexBuffer: GPUBuffer;
-  bindGroup: GPUBindGroup;
+  vertexBuffer: PolyfillBuffer;
+  indexBuffer: PolyfillBuffer;
+  bindGroup: PolyfillBindGroup;
   transform: Transform;
   layer: number;
   objectType: ObjectType;
-  textureView: GPUTextureView;
+  // textureView: GPUTextureView;
   isCircle: boolean;
 
   gradient?: GradientDefinition;
-  gradientBuffer?: GPUBuffer;
-  gradientBindGroup?: GPUBindGroup;
+  gradientBuffer?: PolyfillBuffer;
+  gradientBindGroup?: PolyfillBindGroup;
 
   constructor(
     window_size: WindowSize,
-    device: GPUDevice,
-    queue: GPUQueue,
-    bindGroupLayout: GPUBindGroupLayout,
-    groupBindGroupLayout: GPUBindGroupLayout,
-    // gradientBindGroupLayout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    bindGroupLayout: PolyfillBindGroupLayout,
+    groupBindGroupLayout: PolyfillBindGroupLayout,
+    // gradientBindGroupLayout: PolyfillBindGroupLayout,
     camera: Camera,
     points: Point[],
     dimensions: [number, number],
@@ -192,8 +199,8 @@ export class Polygon implements PolygonShape {
       index_buffer,
       bind_group,
       transform,
-      textureView,
-      sampler,
+      // textureView,
+      // sampler,
       gradientBuffer,
       gradient,
     ] = getPolygonData(
@@ -205,7 +212,7 @@ export class Polygon implements PolygonShape {
       config
     );
 
-    this.textureView = textureView;
+    // this.textureView = textureView;
     this.gradient = gradient;
     this.gradientBuffer = gradientBuffer;
 
@@ -229,7 +236,7 @@ export class Polygon implements PolygonShape {
     this.transform = transform;
   }
 
-  updateGradientAnimation(device: GPUDevice, deltaTime: number) {
+  updateGradientAnimation(device: PolyfillDevice, deltaTime: number) {
     if (!this.gradient || !this.gradientBuffer) return;
 
     // Update the timeOffset
@@ -237,7 +244,7 @@ export class Polygon implements PolygonShape {
 
     // Update just the time value in the buffer (offset 49 = 40 + 9)
     const timeOffset = 49;
-    device.queue.writeBuffer(
+    device.queue!.writeBuffer(
       this.gradientBuffer,
       timeOffset * 4, // Multiply by 4 because offset is in bytes
       new Float32Array([this.gradient.timeOffset])
@@ -285,7 +292,7 @@ export class Polygon implements PolygonShape {
     return inside;
   }
 
-  updateOpacity(queue: GPUQueue, opacity: number) {
+  updateOpacity(queue: PolyfillQueue, opacity: number) {
     // let new_color = [this.fill[0], this.fill[1], this.fill[2], opacity] as [
     //   number,
     //   number,
@@ -375,9 +382,9 @@ export class Polygon implements PolygonShape {
 
   setIsCircle(
     window_size: WindowSize,
-    device: GPUDevice,
-    queue: GPUQueue,
-    bind_group_layout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    bind_group_layout: PolyfillBindGroupLayout,
     isCircle: boolean,
     camera: Camera
   ) {
@@ -428,9 +435,9 @@ export class Polygon implements PolygonShape {
 
   updateDataFromDimensions(
     window_size: WindowSize,
-    device: GPUDevice,
-    queue: GPUQueue,
-    bind_group_layout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    bind_group_layout: PolyfillBindGroupLayout,
     dimensions: [number, number],
     camera: Camera
   ) {
@@ -481,8 +488,8 @@ export class Polygon implements PolygonShape {
 
   updateDataFromPosition(
     window_size: WindowSize,
-    device: GPUDevice,
-    bind_group_layout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    bind_group_layout: PolyfillBindGroupLayout,
     position: Point,
     camera: Camera
   ) {
@@ -491,9 +498,9 @@ export class Polygon implements PolygonShape {
 
   updateDataFromBorderRadius(
     window_size: WindowSize,
-    device: GPUDevice,
-    queue: GPUQueue,
-    bind_group_layout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    bind_group_layout: PolyfillBindGroupLayout,
     borderRadius: number,
     camera: Camera
   ) {
@@ -555,9 +562,9 @@ export class Polygon implements PolygonShape {
 
   updateDataFromStroke(
     window_size: WindowSize,
-    device: GPUDevice,
-    queue: GPUQueue,
-    bind_group_layout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    bind_group_layout: PolyfillBindGroupLayout,
     stroke: Stroke,
     camera: Camera
   ) {
@@ -619,9 +626,9 @@ export class Polygon implements PolygonShape {
 
   updateDataFromFill(
     window_size: WindowSize,
-    device: GPUDevice,
-    queue: GPUQueue,
-    bind_group_layout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    bind_group_layout: PolyfillBindGroupLayout,
     // fill: [number, number, number, number],
     backgroundFill: BackgroundFill,
     camera: Camera
@@ -729,10 +736,10 @@ export class Polygon implements PolygonShape {
   // fromConfig(
   //     config: PolygonConfig,
   //     window_size: WindowSize,
-  //     device: GPUDevice,
-  //     queue:GPUQueue,
-  //     model_bind_group_layout: GPUBindGroupLayout,
-  //     group_bind_group_layout: GPUBindGroupLayout,
+  //     device: PolyfillDevice,
+  //     queue:PolyfillQueue,
+  //     model_bind_group_layout: PolyfillBindGroupLayout,
+  //     group_bind_group_layout: PolyfillBindGroupLayout,
   //     camera: Camera,
   //     selected_sequence_id: String,
   // ) -> Polygon {
@@ -818,21 +825,21 @@ function generateCircleIndices(): number[] {
 
 export function getPolygonData(
   windowSize: WindowSize,
-  device: GPUDevice,
-  queue: GPUQueue,
-  bindGroupLayout: GPUBindGroupLayout,
+  device: PolyfillDevice,
+  queue: PolyfillQueue,
+  bindGroupLayout: PolyfillBindGroupLayout,
   camera: Camera,
   polygon: PolygonConfig
 ): [
   Vertex[],
   number[],
-  GPUBuffer,
-  GPUBuffer,
-  GPUBindGroup,
+  PolyfillBuffer,
+  PolyfillBuffer,
+  PolyfillBindGroup,
   Transform,
-  GPUTextureView,
-  GPUSampler,
-  GPUBuffer,
+  // GPUTextureView,
+  // GPUSampler,
+  PolyfillBuffer,
   GradientDefinition
 ] {
   const vertices: Vertex[] = [];
@@ -927,13 +934,13 @@ export function getPolygonData(
       return [
         [],
         [],
-        null as unknown as GPUBuffer,
-        null as unknown as GPUBuffer,
-        null as unknown as GPUBindGroup,
+        null as unknown as PolyfillBuffer,
+        null as unknown as PolyfillBuffer,
+        null as unknown as PolyfillBindGroup,
         null as unknown as Transform,
-        null as unknown as GPUTextureView,
-        null as unknown as GPUSampler,
-        null as unknown as GPUBuffer,
+        // null as unknown as GPUTextureView,
+        // null as unknown as GPUSampler,
+        null as unknown as PolyfillBuffer,
         null as unknown as GradientDefinition,
       ];
     }
@@ -1007,31 +1014,35 @@ export function getPolygonData(
   const texture = device.createTexture({
     label: "Default White Texture",
     size: textureSize,
-    mipLevelCount: 1,
-    sampleCount: 1,
-    dimension: "2d",
+    // mipLevelCount: 1,
+    // sampleCount: 1,
+    // dimension: "2d",
     format: "rgba8unorm",
     usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
   });
 
   const whitePixel = new Uint8Array([255, 255, 255, 255]);
   queue.writeTexture(
-    { texture, mipLevel: 0, origin: { x: 0, y: 0, z: 0 }, aspect: "all" },
+    {
+      texture,
+      mipLevel: 0,
+      origin: { x: 0, y: 0, z: 0 }, //aspect: "all"
+    },
     whitePixel,
     { offset: 0, bytesPerRow: 4, rowsPerImage: undefined },
     textureSize
   );
 
-  const textureView = texture.createView();
+  // const textureView = texture.createView();
 
-  const sampler = device.createSampler({
-    addressModeU: "clamp-to-edge",
-    addressModeV: "clamp-to-edge",
-    addressModeW: "clamp-to-edge",
-    magFilter: "nearest",
-    minFilter: "nearest",
-    mipmapFilter: "nearest",
-  });
+  // const sampler = device.createSampler({
+  //   addressModeU: "clamp-to-edge",
+  //   addressModeV: "clamp-to-edge",
+  //   addressModeW: "clamp-to-edge",
+  //   magFilter: "nearest",
+  //   minFilter: "nearest",
+  //   mipmapFilter: "nearest",
+  // });
 
   let gradientDef = null;
   if (polygon.backgroundFill.type === "Gradient") {
@@ -1050,15 +1061,15 @@ export function getPolygonData(
       {
         binding: 0,
         resource: {
-          buffer: uniformBuffer,
+          pbuffer: uniformBuffer,
         },
       },
-      { binding: 1, resource: textureView },
-      { binding: 2, resource: sampler },
+      // { binding: 1, resource: textureView },
+      // { binding: 2, resource: sampler },
       {
         binding: 3,
         resource: {
-          buffer: gradientBuffer,
+          pbuffer: gradientBuffer,
         },
       },
     ],
@@ -1089,8 +1100,8 @@ export function getPolygonData(
     indexBuffer,
     bindGroup,
     transform,
-    textureView,
-    sampler,
+    // textureView,
+    // sampler,
     gradientBuffer,
     gradient,
   ];
@@ -1266,11 +1277,11 @@ function createRoundedPolygonPath(
 }
 
 export function setupGradientBuffers(
-  device: GPUDevice,
-  queue: GPUQueue,
-  // gradientBindGroupLayout: GPUBindGroupLayout,
+  device: PolyfillDevice,
+  queue: PolyfillQueue,
+  // gradientBindGroupLayout: PolyfillBindGroupLayout,
   gradient?: GradientDefinition | null
-): [GradientDefinition, GPUBuffer] {
+): [GradientDefinition, PolyfillBuffer] {
   let defaultStops: GradientStop[] = [
     { offset: 0, color: [1, 0, 0, 1] }, // Red
     { offset: 1, color: [0, 0, 1, 1] }, // Blue

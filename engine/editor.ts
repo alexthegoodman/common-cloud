@@ -294,7 +294,15 @@ import {
 } from "./rte";
 import { SaveTarget } from "./editor_state";
 import { Camera3D } from "./3dcamera";
-import { WebGpuResources } from "./polyfill";
+import {
+  GPUPolyfill,
+  PolyfillBindGroup,
+  PolyfillBindGroupLayout,
+  PolyfillBuffer,
+  PolyfillDevice,
+  PolyfillRenderPipeline,
+  WebGpuResources,
+} from "./polyfill";
 // import * as fontkit from "fontkit";
 
 export class Editor {
@@ -332,19 +340,27 @@ export class Editor {
   handleVideoClick: VideoItemClickHandler | null;
   scaleMultiplier: number = 1.0;
 
-  // WebGPU resources
-  gpuResources: WebGpuResources | null;
-
   window: Window | null;
   camera: Camera3D | null;
   cameraBinding: CameraBinding | null;
-  modelBindGroupLayout: GPUBindGroupLayout | null;
-  groupBindGroupLayout: GPUBindGroupLayout | null;
-  // gradientBindGroupLayout: GPUBindGroupLayout | null;
-  windowSizeBindGroupLayout: GPUBindGroupLayout | null;
-  windowSizeBindGroup: GPUBindGroup | null;
-  windowSizeBuffer: GPUBuffer | null;
-  renderPipeline: GPURenderPipeline | null;
+
+  // WebGPU resources
+  // gpuResources: WebGpuResources | null;
+  // modelBindGroupLayout: PolyfillBindGroupLayout | null;
+  // groupBindGroupLayout: PolyfillBindGroupLayout | null;
+  // windowSizeBindGroupLayout: PolyfillBindGroupLayout | null;
+  // windowSizeBindGroup: PolyfillBindGroup | null;
+  // windowSizeBuffer: GPUBuffer | null;
+  // renderPipeline: GPURenderPipeline | null;
+  gpuResources: GPUPolyfill | null = null;
+  modelBindGroupLayout: PolyfillBindGroupLayout | null = null;
+  groupBindGroupLayout: PolyfillBindGroupLayout | null = null;
+  windowSizeBindGroupLayout: PolyfillBindGroupLayout | null = null;
+  windowSizeBindGroup: PolyfillBindGroup | null = null;
+  windowSizeBuffer: PolyfillBuffer | null = null;
+  renderPipeline: PolyfillRenderPipeline | null = null;
+
+  // Events
   onMouseUp: OnMouseUp | null;
   onHandleMouseUp: OnHandleMouseUp | null;
   onPathMouseUp: OnPathMouseUp | null;
@@ -526,8 +542,8 @@ export class Editor {
     }
 
     let textArea = new TextRenderer(
-      device,
-      queue,
+      device!,
+      queue!,
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
       // this.gradientBindGroupLayout,
@@ -539,7 +555,7 @@ export class Editor {
       true
     );
 
-    // text_item.renderText(device, queue);
+    // text_item.renderText(device!, queue);
 
     console.info("Set textarea");
     this.textArea = textArea;
@@ -583,8 +599,8 @@ export class Editor {
     }
 
     this.textArea?.renderAreaText(
-      gpuResources.device,
-      gpuResources.queue,
+      gpuResources.device!,
+      gpuResources.queue!,
       // docByPage
       renderPages
     );
@@ -793,15 +809,15 @@ export class Editor {
         // polygon.dimensions = [new_width, new_height];
         polygon.updateDataFromDimensions(
           camera.windowSize,
-          gpuResources.device,
-          gpuResources.queue,
+          gpuResources.device!,
+          gpuResources.queue!,
           this.modelBindGroupLayout,
           [new_width, new_height],
           camera
         );
         polygon.transform.updatePosition([new_x, new_y], camera.windowSize);
         polygon.transform.updateUniformBuffer(
-          gpuResources.queue,
+          gpuResources.queue!,
           camera.windowSize
         );
 
@@ -826,8 +842,8 @@ export class Editor {
         // text.dimensions = [new_width, new_height];
         text.updateDataFromDimensions(
           camera.windowSize,
-          gpuResources.device,
-          gpuResources.queue,
+          gpuResources.device!,
+          gpuResources.queue!,
           this.modelBindGroupLayout,
           [new_width, new_height],
           camera
@@ -838,11 +854,11 @@ export class Editor {
           camera.windowSize
         );
         text.transform.updateUniformBuffer(
-          gpuResources.queue,
+          gpuResources.queue!,
           camera.windowSize
         );
         text.backgroundPolygon.transform.updateUniformBuffer(
-          gpuResources.queue,
+          gpuResources.queue!,
           camera.windowSize
         );
 
@@ -867,15 +883,15 @@ export class Editor {
         // image.dimensions = [new_width, new_height];
         image.updateDataFromDimensions(
           camera.windowSize,
-          gpuResources.device,
-          gpuResources.queue,
+          gpuResources.device!,
+          gpuResources.queue!,
           this.modelBindGroupLayout,
           [new_width, new_height]
           // camera
         );
         image.transform.updatePosition([new_x, new_y], camera.windowSize);
         image.transform.updateUniformBuffer(
-          gpuResources.queue,
+          gpuResources.queue!,
           camera.windowSize
         );
 
@@ -932,15 +948,15 @@ export class Editor {
     //       // polygon.dimensions = [new_width, new_height];
     //       polygon.updateDataFromDimensions(
     //         camera.windowSize,
-    //         gpuResources.device,
-    //         gpuResources.queue,
+    //         gpuResources.device!,
+    //         gpuResources.queue!,
     //         this.modelBindGroupLayout,
     //         [new_width, new_height],
     //         camera
     //       );
     //       polygon.transform.updatePosition([new_x, new_y], camera.windowSize);
     //       polygon.transform.updateUniformBuffer(
-    //         gpuResources.queue,
+    //         gpuResources.queue!,
     //         camera.windowSize
     //       );
 
@@ -965,8 +981,8 @@ export class Editor {
     //       // text.dimensions = [new_width, new_height];
     //       text.updateDataFromDimensions(
     //         camera.windowSize,
-    //         gpuResources.device,
-    //         gpuResources.queue,
+    //         gpuResources.device!,
+    //         gpuResources.queue!,
     //         this.modelBindGroupLayout,
     //         [new_width, new_height],
     //         camera
@@ -977,11 +993,11 @@ export class Editor {
     //         camera.windowSize
     //       );
     //       text.transform.updateUniformBuffer(
-    //         gpuResources.queue,
+    //         gpuResources.queue!,
     //         camera.windowSize
     //       );
     //       text.backgroundPolygon.transform.updateUniformBuffer(
-    //         gpuResources.queue,
+    //         gpuResources.queue!,
     //         camera.windowSize
     //       );
 
@@ -1006,15 +1022,15 @@ export class Editor {
     //       // image.dimensions = [new_width, new_height];
     //       image.updateDataFromDimensions(
     //         camera.windowSize,
-    //         gpuResources.device,
-    //         gpuResources.queue,
+    //         gpuResources.device!,
+    //         gpuResources.queue!,
     //         this.modelBindGroupLayout,
     //         [new_width, new_height]
     //         // camera
     //       );
     //       image.transform.updatePosition([new_x, new_y], camera.windowSize);
     //       image.transform.updateUniformBuffer(
-    //         gpuResources.queue,
+    //         gpuResources.queue!,
     //         camera.windowSize
     //       );
 
@@ -1052,8 +1068,8 @@ export class Editor {
     saved_sequence.activePolygons.forEach((p) => {
       const restored_polygon = new Polygon(
         windowSize,
-        device,
-        queue,
+        device!,
+        queue!,
         this.modelBindGroupLayout!,
         this.groupBindGroupLayout!,
         // this.gradientBindGroupLayout!,
@@ -1141,8 +1157,8 @@ export class Editor {
       };
 
       const restored_text = new TextRenderer(
-        device,
-        queue,
+        device!,
+        queue!,
         this.modelBindGroupLayout!,
         this.groupBindGroupLayout!,
         // this.gradientBindGroupLayout!,
@@ -1158,7 +1174,7 @@ export class Editor {
       );
 
       restored_text.hidden = hidden;
-      restored_text.renderText(device, queue);
+      restored_text.renderText(device!, queue!);
 
       this.textItems.push(restored_text);
 
@@ -1188,8 +1204,8 @@ export class Editor {
       let blob = await getUploadedImageData(i.url);
 
       const restored_image = new StImage(
-        device,
-        queue,
+        device!,
+        queue!,
         i.url,
         blob, // load of image data
         image_config,
@@ -1203,8 +1219,8 @@ export class Editor {
       );
 
       await restored_image.initialize(
-        device,
-        queue,
+        device!,
+        queue!,
         i.url,
         blob, // load of image data
         image_config,
@@ -1264,8 +1280,8 @@ export class Editor {
       let blob = await getUploadedVideoData(i.path);
 
       const restored_video = new StVideo(
-        device,
-        queue,
+        device!,
+        queue!,
         blob,
         video_config,
         windowSize,
@@ -1279,8 +1295,8 @@ export class Editor {
       );
 
       await restored_video.initialize(
-        device,
-        queue,
+        device!,
+        queue!,
         blob,
         video_config,
         windowSize,
@@ -1297,7 +1313,7 @@ export class Editor {
       // restored_video.source_data = stored_source_data;
       // restored_video.mouse_positions = stored_mouse_positions;
 
-      // restored_video.drawVideoFrame(device, queue).catch(console.error); // Handle potential errors
+      // restored_video.drawVideoFrame(device!, queue).catch(console.error); // Handle potential errors
 
       this.videoItems.push(restored_video);
       console.log("Video restored...");
@@ -1323,10 +1339,10 @@ export class Editor {
         polygon.transform.updateScale([1.0, 1.0]);
 
         polygon.transform.updateUniformBuffer(
-          gpu_resources.queue,
+          gpu_resources.queue!,
           camera.windowSize
         );
-        polygon.updateOpacity(gpu_resources.queue, 1.0);
+        polygon.updateOpacity(gpu_resources.queue!, 1.0);
       });
 
       this.currentSequenceData.activeTextItems.forEach((t) => {
@@ -1342,10 +1358,10 @@ export class Editor {
         text.transform.rotation = 0.0;
 
         text.transform.updateUniformBuffer(
-          gpu_resources.queue,
+          gpu_resources.queue!,
           camera.windowSize
         );
-        text.updateOpacity(gpu_resources.queue, 1.0);
+        text.updateOpacity(gpu_resources.queue!, 1.0);
 
         text.backgroundPolygon.transform.position[0] =
           t.position.x + CANVAS_HORIZ_OFFSET;
@@ -1354,10 +1370,10 @@ export class Editor {
         text.backgroundPolygon.transform.rotation = 0.0;
 
         text.backgroundPolygon.transform.updateUniformBuffer(
-          gpu_resources.queue,
+          gpu_resources.queue!,
           camera.windowSize
         );
-        text.backgroundPolygon.updateOpacity(gpu_resources.queue, 1.0);
+        text.backgroundPolygon.updateOpacity(gpu_resources.queue!, 1.0);
       });
 
       this.currentSequenceData.activeImageItems.forEach((i) => {
@@ -1373,10 +1389,10 @@ export class Editor {
         image.transform.rotation = 0.0;
 
         image.transform.updateUniformBuffer(
-          gpu_resources.queue,
+          gpu_resources.queue!,
           camera.windowSize
         );
-        image.updateOpacity(gpu_resources.queue, 1.0);
+        image.updateOpacity(gpu_resources.queue!, 1.0);
       });
 
       this.currentSequenceData.activeVideoItems.forEach((i) => {
@@ -1390,7 +1406,7 @@ export class Editor {
         // video.transform.rotation = 0.0;
 
         // video.transform.updateUniformBuffer(
-        //   gpu_resources.queue,
+        //   gpu_resources.queue!,
         //   camera.windowSize
         // );
 
@@ -1401,11 +1417,11 @@ export class Editor {
         video.groupTransform.rotation = 0.0;
 
         video.groupTransform.updateUniformBuffer(
-          gpu_resources.queue,
+          gpu_resources.queue!,
           camera.windowSize
         );
 
-        video.updateOpacity(gpu_resources.queue, 1.0);
+        video.updateOpacity(gpu_resources.queue!, 1.0);
 
         video.resetPlayback();
       });
@@ -2107,8 +2123,8 @@ export class Editor {
             //   `Drawing video frame for ${videoItem.id} at time ${currentTimeMs} (start: ${startTimeMs}, duration: ${animation.duration})`
             // );
             await videoItem.drawVideoFrame(
-              gpuResources.device,
-              gpuResources.queue
+              gpuResources.device!,
+              gpuResources.queue!
             );
             // console.info("drew frame");
             animateProperties = true;
@@ -2129,8 +2145,8 @@ export class Editor {
 
             for (let i = 0; i < framesToDraw; i++) {
               await videoItem.drawVideoFrame(
-                gpuResources.device,
-                gpuResources.queue
+                gpuResources.device!,
+                gpuResources.queue!
               );
               videoItem.numFramesDrawn += 1;
             }
@@ -2429,20 +2445,20 @@ export class Editor {
               const queue = gpuResources.queue;
               switch (animation.objectType) {
                 case ObjectType.Polygon:
-                  this.polygons[objectIdx].updateOpacity(queue, opacity);
+                  this.polygons[objectIdx].updateOpacity(queue!, opacity);
                   break;
                 case ObjectType.TextItem:
-                  this.textItems[objectIdx].updateOpacity(queue, opacity);
+                  this.textItems[objectIdx].updateOpacity(queue!, opacity);
                   this.textItems[objectIdx].backgroundPolygon.updateOpacity(
-                    queue,
+                    queue!,
                     opacity
                   );
                   break;
                 case ObjectType.ImageItem:
-                  this.imageItems[objectIdx].updateOpacity(queue, opacity);
+                  this.imageItems[objectIdx].updateOpacity(queue!, opacity);
                   break;
                 case ObjectType.VideoItem:
-                  this.videoItems[objectIdx].updateOpacity(queue, opacity);
+                  this.videoItems[objectIdx].updateOpacity(queue!, opacity);
                   break;
               }
             } else {
@@ -2662,7 +2678,7 @@ export class Editor {
                 // console.info("blendedCenterPoint", blendedCenterPoint);
 
                 videoItem.updateZoom(
-                  gpuResources.queue,
+                  gpuResources.queue!,
                   zoom,
                   scaledCenterPoint
                 );
@@ -2808,8 +2824,8 @@ export class Editor {
     }
 
     const motionPath = new MotionPath(
-      this.gpuResources.device,
-      this.gpuResources.queue,
+      this.gpuResources.device!,
+      this.gpuResources.queue!,
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
       // this.gradientBindGroupLayout,
@@ -2849,8 +2865,8 @@ export class Editor {
     console.info("creating new zoom path", initialZoomPosition);
 
     const zoomPath = new MotionPath(
-      this.gpuResources.device,
-      this.gpuResources.queue,
+      this.gpuResources.device!,
+      this.gpuResources.queue!,
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
       // this.gradientBindGroupLayout,
@@ -2890,7 +2906,7 @@ export class Editor {
 
   updateCameraBinding() {
     if (this.cameraBinding && this.camera && this.gpuResources) {
-      this.cameraBinding.update(this.gpuResources.queue, this.camera);
+      this.cameraBinding.update(this.gpuResources.queue!, this.camera);
     }
   }
 
@@ -2935,8 +2951,8 @@ export class Editor {
 
     let polygon = new Polygon(
       windowSize,
-      gpuResources.device,
-      gpuResources.queue,
+      gpuResources.device!,
+      gpuResources.queue!,
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
       // this.gradientBindGroupLayout,
@@ -2998,8 +3014,8 @@ export class Editor {
     }
 
     let text_item = new TextRenderer(
-      device,
-      queue,
+      device!,
+      queue!,
       this.modelBindGroupLayout,
       this.groupBindGroupLayout,
       // this.gradientBindGroupLayout,
@@ -3011,15 +3027,15 @@ export class Editor {
       false
     );
 
-    text_item.renderText(device, queue);
+    text_item.renderText(device!, queue!);
 
     this.textItems.push(text_item);
   }
 
   async add_image_item(
     // windowSize: WindowSize,
-    // device: GPUDevice,
-    // queue: GPUQueue,
+    // device: Polyfilldevice!,
+    // queue: PolyfillQueue,
     image_config: StImageConfig,
     // path: Path,
     url: string,
@@ -3047,8 +3063,8 @@ export class Editor {
     }
 
     let image_item = new StImage(
-      device,
-      queue,
+      device!,
+      queue!,
       // path,
       url,
       blob,
@@ -3063,8 +3079,8 @@ export class Editor {
     );
 
     await image_item.initialize(
-      device,
-      queue,
+      device!,
+      queue!,
       url,
       blob, // load of image data
       image_config,
@@ -3082,8 +3098,8 @@ export class Editor {
 
   async add_video_item(
     // windowSize: WindowSize,
-    // device: GPUDevice,
-    // queue: GPUQueue,
+    // device: Polyfilldevice!,
+    // queue: PolyfillQueue,
     video_config: StVideoConfig,
     blob: Blob,
     new_id: string,
@@ -3112,8 +3128,8 @@ export class Editor {
     }
 
     let video_item = new StVideo(
-      device,
-      queue,
+      device!,
+      queue!,
       blob,
       video_config,
       windowSize,
@@ -3126,8 +3142,8 @@ export class Editor {
     );
 
     await video_item.initialize(
-      device,
-      queue,
+      device!,
+      queue!,
       blob,
       video_config,
       windowSize,
@@ -3146,7 +3162,7 @@ export class Editor {
     // video_item.mousePositions = mouse_positions;
 
     // render 1 frame to provide preview image
-    // video_item.drawVideoFrame(device, queue);
+    // video_item.drawVideoFrame(device!, queue);
 
     this.videoItems.push(video_item);
   }
@@ -3185,8 +3201,8 @@ export class Editor {
 
     let canvas_polygon = new Polygon(
       windowSize,
-      gpuResources.device,
-      gpuResources.queue,
+      gpuResources.device!,
+      gpuResources.queue!,
       modelBindGroupLayout,
       groupBindGroupLayout,
       // gradientBindGroupLayout,
@@ -3220,7 +3236,7 @@ export class Editor {
 
     console.info("bg poly", canvas_polygon);
 
-    canvas_polygon.updateGradientAnimation(gpuResources.device, 0.01);
+    canvas_polygon.updateGradientAnimation(gpuResources.device!, 0.01);
 
     this.staticPolygons.push(canvas_polygon);
   }
@@ -3266,8 +3282,8 @@ export class Editor {
 
         selected_polygon.updateDataFromFill(
           windowSize,
-          device,
-          queue,
+          device!,
+          queue!,
           this.modelBindGroupLayout,
           newFill,
           camera
@@ -3279,8 +3295,8 @@ export class Editor {
         //       case "red": {
         //         selected_polygon.updateDataFromFill(
         //           windowSize,
-        //           device,
-        //           queue,
+        //           device!,
+        //           queue!,
         //           this.modelBindGroupLayout,
         //           [
         //             colorToWgpu(new_value),
@@ -3294,8 +3310,8 @@ export class Editor {
         //       case "green": {
         //         selected_polygon.updateDataFromFill(
         //           windowSize,
-        //           device,
-        //           queue,
+        //           device!,
+        //           queue!,
         //           this.modelBindGroupLayout,
         //           [
         //             selected_polygon.fill[0],
@@ -3309,8 +3325,8 @@ export class Editor {
         //       case "blue": {
         //         selected_polygon.updateDataFromFill(
         //           windowSize,
-        //           device,
-        //           queue,
+        //           device!,
+        //           queue!,
         //           this.modelBindGroupLayout,
         //           [
         //             selected_polygon.fill[0],
@@ -3358,8 +3374,8 @@ export class Editor {
 
       polygon.updateDataFromFill(
         windowSize,
-        device,
-        queue,
+        device!,
+        queue!,
         this.modelBindGroupLayout,
         new_value,
         camera
@@ -3378,8 +3394,8 @@ export class Editor {
 
       text.backgroundPolygon.updateDataFromFill(
         windowSize,
-        device,
-        queue,
+        device!,
+        queue!,
         this.modelBindGroupLayout,
         new_value,
         camera
@@ -3423,8 +3439,8 @@ export class Editor {
               case "width": {
                 selected_polygon.updateDataFromDimensions(
                   windowSize,
-                  device,
-                  queue,
+                  device!,
+                  queue!,
                   this.modelBindGroupLayout,
                   [new_value, selected_polygon.dimensions[1]],
                   camera
@@ -3434,8 +3450,8 @@ export class Editor {
               case "height": {
                 selected_polygon.updateDataFromDimensions(
                   windowSize,
-                  device,
-                  queue,
+                  device!,
+                  queue!,
                   this.modelBindGroupLayout,
                   [selected_polygon.dimensions[0], new_value],
                   camera
@@ -3445,8 +3461,8 @@ export class Editor {
               case "borderRadius": {
                 selected_polygon.updateDataFromBorderRadius(
                   windowSize,
-                  device,
-                  queue,
+                  device!,
+                  queue!,
                   this.modelBindGroupLayout,
                   new_value,
                   camera
@@ -3457,8 +3473,8 @@ export class Editor {
                 if (selected_polygon.backgroundFill.type === "Color") {
                   selected_polygon.updateDataFromFill(
                     windowSize,
-                    device,
-                    queue,
+                    device!,
+                    queue!,
                     this.modelBindGroupLayout,
                     {
                       type: "Color",
@@ -3478,8 +3494,8 @@ export class Editor {
                 if (selected_polygon.backgroundFill.type === "Color") {
                   selected_polygon.updateDataFromFill(
                     windowSize,
-                    device,
-                    queue,
+                    device!,
+                    queue!,
                     this.modelBindGroupLayout,
                     {
                       type: "Color",
@@ -3499,8 +3515,8 @@ export class Editor {
                 if (selected_polygon.backgroundFill.type === "Color") {
                   selected_polygon.updateDataFromFill(
                     windowSize,
-                    device,
-                    queue,
+                    device!,
+                    queue!,
                     this.modelBindGroupLayout,
                     {
                       type: "Color",
@@ -3519,8 +3535,8 @@ export class Editor {
               case "stroke_thickness": {
                 selected_polygon.updateDataFromStroke(
                   windowSize,
-                  device,
-                  queue,
+                  device!,
+                  queue!,
                   this.modelBindGroupLayout,
                   {
                     thickness: new_value,
@@ -3533,8 +3549,8 @@ export class Editor {
               case "stroke_red": {
                 selected_polygon.updateDataFromStroke(
                   windowSize,
-                  device,
-                  queue,
+                  device!,
+                  queue!,
                   this.modelBindGroupLayout,
                   {
                     thickness: selected_polygon.stroke.thickness,
@@ -3552,8 +3568,8 @@ export class Editor {
               case "stroke_green": {
                 selected_polygon.updateDataFromStroke(
                   windowSize,
-                  device,
-                  queue,
+                  device!,
+                  queue!,
                   this.modelBindGroupLayout,
                   {
                     thickness: selected_polygon.stroke.thickness,
@@ -3571,8 +3587,8 @@ export class Editor {
               case "stroke_blue": {
                 selected_polygon.updateDataFromStroke(
                   windowSize,
-                  device,
-                  queue,
+                  device!,
+                  queue!,
                   this.modelBindGroupLayout,
                   {
                     thickness: selected_polygon.stroke.thickness,
@@ -3590,8 +3606,8 @@ export class Editor {
               case "positionX": {
                 selected_polygon.updateDataFromPosition(
                   windowSize,
-                  device,
-                  // queue,
+                  device!,
+                  // queue!,
                   this.modelBindGroupLayout,
                   {
                     x: new_value,
@@ -3600,7 +3616,7 @@ export class Editor {
                   camera
                 );
                 selected_polygon.transform.updateUniformBuffer(
-                  gpuResources.queue,
+                  gpuResources.queue!,
                   camera.windowSize
                 );
                 break;
@@ -3608,8 +3624,8 @@ export class Editor {
               case "positionY": {
                 selected_polygon.updateDataFromPosition(
                   windowSize,
-                  device,
-                  // queue,
+                  device!,
+                  // queue!,
                   this.modelBindGroupLayout,
                   {
                     x: selected_polygon.position.x,
@@ -3618,7 +3634,7 @@ export class Editor {
                   camera
                 );
                 selected_polygon.transform.updateUniformBuffer(
-                  gpuResources.queue,
+                  gpuResources.queue!,
                   camera.windowSize
                 );
                 break;
@@ -3671,8 +3687,8 @@ export class Editor {
                 console.info("update the width");
                 selected_text.updateDataFromDimensions(
                   windowSize,
-                  device,
-                  queue,
+                  device!,
+                  queue!,
                   this.modelBindGroupLayout,
                   [new_value, selected_text.dimensions[1]],
                   camera
@@ -3683,8 +3699,8 @@ export class Editor {
                 console.info("update the height");
                 selected_text.updateDataFromDimensions(
                   windowSize,
-                  device,
-                  queue,
+                  device!,
+                  queue!,
                   this.modelBindGroupLayout,
                   [selected_text.dimensions[0], new_value],
                   camera
@@ -3698,8 +3714,8 @@ export class Editor {
                 ) {
                   selected_text.backgroundPolygon.updateDataFromFill(
                     windowSize,
-                    device,
-                    queue,
+                    device!,
+                    queue!,
                     this.modelBindGroupLayout,
                     {
                       type: "Color",
@@ -3722,8 +3738,8 @@ export class Editor {
                 ) {
                   selected_text.backgroundPolygon.updateDataFromFill(
                     windowSize,
-                    device,
-                    queue,
+                    device!,
+                    queue!,
                     this.modelBindGroupLayout,
                     {
                       type: "Color",
@@ -3746,8 +3762,8 @@ export class Editor {
                 ) {
                   selected_text.backgroundPolygon.updateDataFromFill(
                     windowSize,
-                    device,
-                    queue,
+                    device!,
+                    queue!,
                     this.modelBindGroupLayout,
                     {
                       type: "Color",
@@ -3808,8 +3824,8 @@ export class Editor {
               case "width": {
                 selected_image.updateDataFromDimensions(
                   windowSize,
-                  device,
-                  queue,
+                  device!,
+                  queue!,
                   this.modelBindGroupLayout,
                   [new_value as number, selected_image.dimensions[1] as number]
                   //   camera
@@ -3819,8 +3835,8 @@ export class Editor {
               case "height": {
                 selected_image.updateDataFromDimensions(
                   windowSize,
-                  device,
-                  queue,
+                  device!,
+                  queue!,
                   this.modelBindGroupLayout,
                   [selected_image.dimensions[0] as number, new_value as number]
                   //   camera
@@ -3872,8 +3888,8 @@ export class Editor {
               case "width": {
                 selected_video.updateDataFromDimensions(
                   windowSize,
-                  device,
-                  queue,
+                  device!,
+                  queue!,
                   this.modelBindGroupLayout,
                   [new_value as number, selected_video.dimensions[1] as number]
                   //   camera
@@ -3883,8 +3899,8 @@ export class Editor {
               case "height": {
                 selected_video.updateDataFromDimensions(
                   windowSize,
-                  device,
-                  queue,
+                  device!,
+                  queue!,
                   this.modelBindGroupLayout,
                   [selected_video.dimensions[0] as number, new_value as number]
                   //   camera
@@ -4267,7 +4283,7 @@ export class Editor {
 
     text_item.fontFamily = font_id;
     text_item.updateFontFamily(new_fontFamily);
-    text_item.renderText(gpuResources.device, gpuResources.queue);
+    text_item.renderText(gpuResources.device!, gpuResources.queue!);
   }
 
   update_text_color(
@@ -4284,7 +4300,7 @@ export class Editor {
     console.info("Updating text color...");
 
     text_item.color = color;
-    text_item.renderText(gpuResources.device, gpuResources.queue);
+    text_item.renderText(gpuResources.device!, gpuResources.queue!);
   }
 
   update_text_size(selected_text_id: string, size: number) {
@@ -4296,7 +4312,7 @@ export class Editor {
     }
 
     text_item.fontSize = size;
-    text_item.renderText(gpuResources.device, gpuResources.queue);
+    text_item.renderText(gpuResources.device!, gpuResources.queue!);
   }
 
   update_text_content(selected_text_id: string, content: string) {
@@ -4308,7 +4324,7 @@ export class Editor {
     }
 
     text_item.text = content;
-    text_item.renderText(gpuResources.device, gpuResources.queue);
+    text_item.renderText(gpuResources.device!, gpuResources.queue!);
   }
 
   // handlers
@@ -4697,8 +4713,8 @@ export class Editor {
 
   handle_mouse_move(
     // windowSize: WindowSize,
-    // device: GPUDevice,
-    // queue: GPUQueue,
+    // device: Polyfilldevice!,
+    // queue: PolyfillQueue,
     x: number,
     y: number
   ) {
@@ -5141,7 +5157,7 @@ export class Editor {
     start: Point,
     poly_id: string,
     windowSize: WindowSize,
-    device: GPUDevice
+    device: PolyfillDevice
   ) {
     let camera = this.camera;
 
@@ -5190,7 +5206,7 @@ export class Editor {
 
     polygon.updateDataFromPosition(
       windowSize,
-      device,
+      device!,
       this.modelBindGroupLayout,
       new_position,
       camera
@@ -5205,7 +5221,7 @@ export class Editor {
     start: Point,
     poly_id: string,
     windowSize: WindowSize,
-    device: GPUDevice
+    device: PolyfillDevice
   ) {
     let camera = this.camera;
 
@@ -5232,7 +5248,7 @@ export class Editor {
 
     polygon.updateDataFromPosition(
       windowSize,
-      device,
+      device!,
       this.modelBindGroupLayout,
       new_position,
       camera
@@ -5248,7 +5264,7 @@ export class Editor {
     poly_id: string,
     path_id: string,
     windowSize: WindowSize,
-    device: GPUDevice
+    device: PolyfillDevice
   ) {
     let camera = this.camera;
 
@@ -5291,7 +5307,7 @@ export class Editor {
 
     polygon.updateDataFromPosition(
       windowSize,
-      device,
+      device!,
       this.modelBindGroupLayout,
       new_position,
       camera
@@ -5306,7 +5322,7 @@ export class Editor {
     start: Point,
     poly_id: string,
     windowSize: WindowSize,
-    device: GPUDevice
+    device: PolyfillDevice
   ) {
     let camera = this.camera;
 
@@ -5333,7 +5349,7 @@ export class Editor {
 
     path.updateDataFromPosition(
       windowSize,
-      device,
+      device!,
       this.modelBindGroupLayout,
       new_position,
       camera
@@ -5348,7 +5364,7 @@ export class Editor {
     start: Point,
     text_id: string,
     windowSize: WindowSize,
-    device: GPUDevice
+    device: PolyfillDevice
   ) {
     let camera = this.camera;
 
@@ -5408,7 +5424,7 @@ export class Editor {
     start: Point,
     image_id: string,
     windowSize: WindowSize,
-    device: GPUDevice
+    device: PolyfillDevice
   ) {
     let camera = this.camera;
 
@@ -5474,7 +5490,7 @@ export class Editor {
     start: Point,
     video_id: string,
     windowSize: WindowSize,
-    device: GPUDevice
+    device: PolyfillDevice
   ) {
     let camera = this.camera;
 

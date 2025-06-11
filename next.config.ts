@@ -13,7 +13,7 @@ import { headers } from "next/headers";
 const nextConfig = {
   webpack: (config: any, options: any) => {
     config.module.rules.push({
-      test: /\.(wgsl|vs|fs|vert|frag)$/,
+      test: /\.(wgsl|glsl|vs|fs|vert|frag)$/,
       use: ["shader-loader"],
     });
 

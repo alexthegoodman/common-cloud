@@ -260,11 +260,13 @@ export class PolyfillBuffer {
 export class PolyfillDevice {
   webgpuDevice: GPUDevice | null = null;
   webglContext: WebGLRenderingContext | null = null;
+  queue: PolyfillQueue | null = null;
   private textureCache = new Map<string, PolyfillTexture>();
   private bufferCache = new Map<string, PolyfillBuffer>();
 
-  constructor(webglContext: WebGLRenderingContext) {
+  constructor(webglContext: WebGLRenderingContext, queue: PolyfillQueue) {
     this.webglContext = webglContext;
+    this.queue = queue;
   }
 
   createBindGroupLayout(descriptor: {
@@ -394,6 +396,144 @@ export class PolyfillDevice {
       label: descriptor.label,
     };
   }
+
+  createPipelineLayout(descriptor: {
+    label?: string;
+    bindGroupLayouts: PolyfillBindGroupLayout[];
+  }): PolyfillPipelineLayout {
+    return new PolyfillPipelineLayout(descriptor.bindGroupLayouts);
+  }
+
+  createRenderPipeline(descriptor: any): PolyfillRenderPipeline {
+    if (!this.webglContext) {
+      throw new Error("WebGL context not available");
+    }
+
+    const gl = this.webglContext;
+
+    // Assume the shader module contains raw GLSL or preprocessed code.
+    const vertexShader = compileShader(
+      gl,
+      gl.VERTEX_SHADER,
+      descriptor.vertex.module.code
+    );
+    const fragmentShader = compileShader(
+      gl,
+      gl.FRAGMENT_SHADER,
+      descriptor.fragment.module.code
+    );
+
+    const program = gl.createProgram();
+    if (!program || !vertexShader || !fragmentShader) {
+      throw new Error("Failed to create program or shaders");
+    }
+
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      const log = gl.getProgramInfoLog(program);
+      gl.deleteProgram(program);
+      throw new Error(`Program link error: ${log}`);
+    }
+
+    return new PolyfillRenderPipeline({
+      gl,
+      program,
+      descriptor,
+    });
+  }
+
+  copyTextureToBuffer(
+    { texture }: any,
+    { buffer, bytesPerRow, rowsPerImage }: any,
+    { width, height }: any
+  ): Uint8Array {
+    const gl = this.webglContext;
+
+    if (!gl) {
+      throw new Error("WebGL context not available");
+    }
+
+    const framebuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+    gl.framebufferTexture2D(
+      gl.FRAMEBUFFER,
+      gl.COLOR_ATTACHMENT0,
+      gl.TEXTURE_2D,
+      texture,
+      0
+    );
+
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+      throw new Error("Framebuffer is not complete");
+    }
+
+    const rawData = new Uint8Array(width * height * 4);
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, rawData);
+
+    const padded = new Uint8Array(bytesPerRow * height);
+    for (let row = 0; row < height; row++) {
+      const src = row * width * 4;
+      const dst = row * bytesPerRow;
+      padded.set(rawData.subarray(src, src + width * 4), dst);
+    }
+
+    // Simulate the buffer mapping
+    buffer.data = padded; // or use getMappedRange() later
+
+    return padded;
+  }
+}
+
+export class PolyfillRenderPipeline {
+  gl: WebGLRenderingContext;
+  program: WebGLProgram;
+  descriptor: any;
+
+  constructor({
+    gl,
+    program,
+    descriptor,
+  }: {
+    gl: WebGLRenderingContext;
+    program: WebGLProgram;
+    descriptor: any;
+  }) {
+    this.gl = gl;
+    this.program = program;
+    this.descriptor = descriptor;
+  }
+
+  use() {
+    this.gl.useProgram(this.program);
+    // Bind attributes, uniforms, depth, blend, etc. here
+  }
+}
+
+function compileShader(
+  gl: WebGLRenderingContext,
+  type: number,
+  source: string
+): WebGLShader {
+  const shader = gl.createShader(type);
+  if (!shader) throw new Error("Unable to create shader");
+
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    const log = gl.getShaderInfoLog(shader);
+    gl.deleteShader(shader);
+    throw new Error(`Shader compile error: ${log}`);
+  }
+
+  return shader;
+}
+
+export class PolyfillPipelineLayout {
+  constructor(public bindGroupLayouts: PolyfillBindGroupLayout[]) {}
 }
 
 export class PolyfillQueue {
@@ -493,13 +633,13 @@ export class GPUPolyfill {
   device: PolyfillDevice | null = null;
   queue: PolyfillQueue | null = null;
   webgpuResources: WebGpuResources | null = null;
-  canvas: HTMLCanvasElement | null = null;
+  canvas: HTMLCanvasElement | OffscreenCanvas | null = null;
   windowSize: { width: number; height: number } = { width: 900, height: 550 };
   webglContext: WebGLRenderingContext | null = null;
 
   constructor(
     chosenBackend: "webgl" | "webgpu" = "webgl",
-    canvas: HTMLCanvasElement | null = null,
+    canvas: HTMLCanvasElement | OffscreenCanvas | null = null,
     windowSize: { width: number; height: number } = { width: 900, height: 550 }
   ) {
     this.chosenBackend = chosenBackend;
@@ -515,7 +655,8 @@ export class GPUPolyfill {
 
       // Get WebGL context
       const gl =
-        this.canvas.getContext("webgl2") || this.canvas.getContext("webgl");
+        (this.canvas.getContext("webgl2") as WebGLRenderingContext) ||
+        (this.canvas.getContext("webgl") as WebGLRenderingContext);
       if (!gl) {
         throw new Error("Failed to get WebGL context");
       }
@@ -530,8 +671,8 @@ export class GPUPolyfill {
       gl.enable(gl.CULL_FACE);
 
       // Create polyfill device and queue
-      this.device = new PolyfillDevice(gl);
       this.queue = new PolyfillQueue(gl);
+      this.device = new PolyfillDevice(gl, this.queue);
     } else if (this.chosenBackend === "webgpu") {
       // Includes Surface, Adapter, Device, and Queue
       const gpuResources = await WebGpuResources.request(

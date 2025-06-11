@@ -5,9 +5,10 @@ import { CanvasPipeline } from "./pipeline";
 import { SavedState } from "./animations";
 import { WindowSize } from "./camera";
 import { vec2 } from "gl-matrix";
+import { PolyfillDevice, PolyfillTexture } from "./polyfill";
 
 class WebGPUVideoEncoder {
-  private device: GPUDevice;
+  private device: PolyfillDevice;
   private videoEncoder: VideoEncoder | null = null;
   private mp4File: any; // MP4Box.js type
   private frameCounter: number = 0;
@@ -22,7 +23,7 @@ class WebGPUVideoEncoder {
   totalDurationMs: number = 2000; // ms
 
   constructor(
-    device: GPUDevice,
+    device: PolyfillDevice,
     width: number,
     height: number,
     frameRate: number = 60
@@ -148,7 +149,7 @@ class WebGPUVideoEncoder {
     });
   }
 
-  async captureFrame(texture: GPUTexture): Promise<void> {
+  async captureFrame(texture: PolyfillTexture): Promise<void> {
     if (!this.videoEncoder) {
       return;
     }
@@ -163,8 +164,9 @@ class WebGPUVideoEncoder {
     });
 
     // Create command encoder and copy texture to buffer
-    const commandEncoder = this.device.createCommandEncoder();
-    commandEncoder.copyTextureToBuffer(
+    // const commandEncoder = this.device.createCommandEncoder();
+    // commandEncoder.copyTextureToBuffer(
+    const paddedData = this.device.copyTextureToBuffer(
       {
         texture: texture,
         mipLevel: 0,
@@ -183,12 +185,12 @@ class WebGPUVideoEncoder {
     );
 
     // Submit copy commands
-    this.device.queue.submit([commandEncoder.finish()]);
+    // this.device.queue.submit([commandEncoder.finish()]);
 
     try {
-      await outputBuffer.mapAsync(GPUMapMode.READ);
-      const mappedData = outputBuffer.getMappedRange();
-      const paddedData = new Uint8Array(mappedData);
+      // await outputBuffer.mapAsync(GPUMapMode.READ);
+      // const mappedData = outputBuffer.getMappedRange();
+      // const paddedData = new Uint8Array(mappedData);
 
       // Calculate the actual and padded bytes per row
       const minimumBytesPerRow = this.width * 4;
@@ -314,7 +316,7 @@ export class WebExport {
   encoder: WebGPUVideoEncoder;
 
   constructor(
-    device: GPUDevice,
+    device: PolyfillDevice,
     width: number,
     height: number,
     frameRate: number
@@ -328,7 +330,7 @@ export class WebExport {
     await this.encoder.initializeEncoder();
   }
 
-  async encodeFrame(renderTexture: GPUTexture) {
+  async encodeFrame(renderTexture: PolyfillTexture) {
     await this.encoder.captureFrame(renderTexture);
   }
 
@@ -416,7 +418,7 @@ export class FullExporter {
     let targetFrameRate = 60;
 
     this.webExport = new WebExport(
-      this.editor.gpuResources?.device,
+      this.editor.gpuResources?.device!,
       windowSize?.width,
       windowSize?.height,
       targetFrameRate
@@ -437,7 +439,7 @@ export class FullExporter {
       );
     }
 
-    const frameEncoder = async (renderTexture: GPUTexture) => {
+    const frameEncoder = async (renderTexture: PolyfillTexture) => {
       if (!this.webExport) {
         return;
       }
@@ -490,7 +492,7 @@ export class FullExporter {
       // Render the current frame
 
       try {
-        await this.pipeline.renderFrame(
+        await this.pipeline.renderWebglFrame(
           this.editor,
           frameEncoder,
           currentTimeMs / 1000

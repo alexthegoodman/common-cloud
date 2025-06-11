@@ -13,6 +13,13 @@ import { getFullColor, interpolatePosition, rgbToWgpu, Point } from "./editor"; 
 import { Polygon, SavedPoint, Stroke, INTERNAL_LAYER_SPACE } from "./polygon"; // Import your polygon types
 import { matrix4ToRawArray, Transform } from "./transform"; // Import your transform functions and types
 import { getZLayer, Vertex } from "./vertex"; // Import your vertex functions and types
+import {
+  PolyfillBindGroup,
+  PolyfillBindGroupLayout,
+  PolyfillBuffer,
+  PolyfillDevice,
+  PolyfillQueue,
+} from "./polyfill";
 
 // maybe unnecessary for MotionPath
 export interface MotionPathConfig {
@@ -24,15 +31,15 @@ export interface MotionPathConfig {
 export class MotionPath {
   public id: string;
   public transform: Transform;
-  public bindGroup: GPUBindGroup;
+  public bindGroup: PolyfillBindGroup;
   public staticPolygons: Polygon[];
 
   constructor(
-    device: GPUDevice,
-    queue: GPUQueue,
-    modelBindGroupLayout: GPUBindGroupLayout,
-    groupBindGroupLayout: GPUBindGroupLayout,
-    // gradientBindGroupLayout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    modelBindGroupLayout: PolyfillBindGroupLayout,
+    groupBindGroupLayout: PolyfillBindGroupLayout,
+    // gradientBindGroupLayout: PolyfillBindGroupLayout,
     newId: string,
     windowSize: WindowSize,
     keyframes: UIKeyframe[],
@@ -258,11 +265,11 @@ export class MotionPath {
         {
           binding: 0,
           resource: {
-            buffer: uniformBuffer,
+            pbuffer: uniformBuffer,
           },
         },
       ],
-      label: "Motion Path Bind Group",
+      // label: "Motion Path Bind Group",
     });
 
     const groupTransform = new Transform(
@@ -282,8 +289,8 @@ export class MotionPath {
 
   public updateDataFromPosition(
     windowSize: WindowSize,
-    device: GPUDevice,
-    bindGroupLayout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    bindGroupLayout: PolyfillBindGroupLayout,
     position: Point,
     camera: Camera
   ) {
@@ -298,11 +305,11 @@ export class MotionPath {
 /// Creates a path segment using a rotated square
 function createPathSegment(
   windowSize: WindowSize,
-  device: GPUDevice,
-  queue: GPUQueue,
-  modelBindGroupLayout: GPUBindGroupLayout,
-  groupBindGroupLayout: GPUBindGroupLayout,
-  // gradientBindGroupLayout: GPUBindGroupLayout,
+  device: PolyfillDevice,
+  queue: PolyfillQueue,
+  modelBindGroupLayout: PolyfillBindGroupLayout,
+  groupBindGroupLayout: PolyfillBindGroupLayout,
+  // gradientBindGroupLayout: PolyfillBindGroupLayout,
   camera: Camera,
   start: Point,
   end: Point,
@@ -356,11 +363,11 @@ function createPathSegment(
 /// Creates a path handle for dragging and showing direction
 function createPathHandle(
   windowSize: WindowSize,
-  device: GPUDevice,
-  queue: GPUQueue,
-  modelBindGroupLayout: GPUBindGroupLayout,
-  groupBindGroupLayout: GPUBindGroupLayout,
-  // gradientBindGroupLayout: GPUBindGroupLayout,
+  device: PolyfillDevice,
+  queue: PolyfillQueue,
+  modelBindGroupLayout: PolyfillBindGroupLayout,
+  groupBindGroupLayout: PolyfillBindGroupLayout,
+  // gradientBindGroupLayout: PolyfillBindGroupLayout,
   camera: Camera,
   end: Point,
   size: number,
@@ -404,11 +411,11 @@ function createPathHandle(
 /// Creates arrow for showing direction
 function createPathArrow(
   windowSize: WindowSize,
-  device: GPUDevice,
-  queue: GPUQueue,
-  modelBindGroupLayout: GPUBindGroupLayout,
-  groupBindGroupLayout: GPUBindGroupLayout,
-  // gradientBindGroupLayout: GPUBindGroupLayout,
+  device: PolyfillDevice,
+  queue: PolyfillQueue,
+  modelBindGroupLayout: PolyfillBindGroupLayout,
+  groupBindGroupLayout: PolyfillBindGroupLayout,
+  // gradientBindGroupLayout: PolyfillBindGroupLayout,
   camera: Camera,
   end: Point,
   size: number,

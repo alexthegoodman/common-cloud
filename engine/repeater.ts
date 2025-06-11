@@ -6,6 +6,13 @@ import { Transform } from "./transform";
 import { Vertex } from "./vertex";
 import { v4 as uuidv4 } from "uuid";
 import { WindowSize } from "./camera";
+import {
+  PolyfillBindGroup,
+  PolyfillBindGroupLayout,
+  PolyfillBuffer,
+  PolyfillDevice,
+  PolyfillQueue,
+} from "./polyfill";
 
 // Types for repeat patterns
 export type RepeatPattern = {
@@ -21,7 +28,7 @@ export type RepeatableObject = Polygon | TextRenderer | StImage;
 
 export class RepeatInstance {
   transform: Transform | null = null;
-  bindGroup: GPUBindGroup | null = null;
+  bindGroup: PolyfillBindGroup | null = null;
 }
 
 export class RepeatObject {
@@ -29,18 +36,18 @@ export class RepeatObject {
   sourceObject: RepeatableObject;
   pattern: RepeatPattern;
   instances: RepeatInstance[];
-  vertexBuffer: GPUBuffer | null = null;
-  indexBuffer: GPUBuffer | null = null;
+  vertexBuffer: PolyfillBuffer | null = null;
+  indexBuffer: PolyfillBuffer | null = null;
   hidden: boolean;
   layer: number;
   vertices: Vertex[] = [];
   indices: number[] = [];
 
   constructor(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     windowSize: WindowSize,
-    bindGroupLayout: GPUBindGroupLayout,
+    bindGroupLayout: PolyfillBindGroupLayout,
     sourceObject: RepeatableObject,
     pattern: RepeatPattern
   ) {
@@ -95,10 +102,10 @@ export class RepeatObject {
   }
 
   private generateInstances(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     windowSize: WindowSize,
-    bindGroupLayout: GPUBindGroupLayout
+    bindGroupLayout: PolyfillBindGroupLayout
   ) {
     this.instances = [];
     const baseTransform = this.sourceObject.transform;
@@ -144,10 +151,10 @@ export class RepeatObject {
   }
 
   private createBindGroup(
-    device: GPUDevice,
-    bindGroupLayout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    bindGroupLayout: PolyfillBindGroupLayout,
     instance: RepeatInstance
-  ): GPUBuffer {
+  ): PolyfillBuffer {
     const identityMatrix = mat4.create();
     let uniformBuffer = device.createBuffer({
       size: 64,
@@ -157,20 +164,20 @@ export class RepeatObject {
     new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
     uniformBuffer.unmap();
 
-    let sampler = device.createSampler({
-      addressModeU: "clamp-to-edge",
-      addressModeV: "clamp-to-edge",
-      magFilter: "linear",
-      minFilter: "linear",
-      mipmapFilter: "linear",
-    });
+    // let sampler = device.createSampler({
+    //   addressModeU: "clamp-to-edge",
+    //   addressModeV: "clamp-to-edge",
+    //   magFilter: "linear",
+    //   minFilter: "linear",
+    //   mipmapFilter: "linear",
+    // });
 
     instance.bindGroup = device.createBindGroup({
       layout: bindGroupLayout,
       entries: [
-        { binding: 0, resource: { buffer: uniformBuffer } },
-        { binding: 1, resource: this.sourceObject.textureView },
-        { binding: 2, resource: sampler },
+        { binding: 0, resource: { pbuffer: uniformBuffer } },
+        // { binding: 1, resource: this.sourceObject.textureView },
+        // { binding: 2, resource: sampler },
       ],
     });
 
@@ -178,10 +185,10 @@ export class RepeatObject {
   }
 
   private generateHorizontalInstances(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     windowSize: WindowSize,
-    bindGroupLayout: GPUBindGroupLayout,
+    bindGroupLayout: PolyfillBindGroupLayout,
     baseTransform: Transform
   ) {
     for (let i = 0; i < this.pattern.count; i++) {
@@ -217,10 +224,10 @@ export class RepeatObject {
   }
 
   private generateVerticalInstances(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     windowSize: WindowSize,
-    bindGroupLayout: GPUBindGroupLayout,
+    bindGroupLayout: PolyfillBindGroupLayout,
     baseTransform: Transform
   ) {
     for (let i = 0; i < this.pattern.count; i++) {
@@ -256,10 +263,10 @@ export class RepeatObject {
   }
 
   private generateCircularInstances(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     windowSize: WindowSize,
-    bindGroupLayout: GPUBindGroupLayout,
+    bindGroupLayout: PolyfillBindGroupLayout,
     baseTransform: Transform
   ) {
     const radius = this.pattern.spacing;
@@ -301,10 +308,10 @@ export class RepeatObject {
   }
 
   private generateGridInstances(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     windowSize: WindowSize,
-    bindGroupLayout: GPUBindGroupLayout,
+    bindGroupLayout: PolyfillBindGroupLayout,
     baseTransform: Transform
   ) {
     const gridSize = Math.ceil(Math.sqrt(this.pattern.count));
@@ -353,10 +360,10 @@ export class RepeatObject {
   }
 
   updatePattern(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     windowSize: WindowSize,
-    bindGroupLayout: GPUBindGroupLayout,
+    bindGroupLayout: PolyfillBindGroupLayout,
     newPattern: Partial<RepeatPattern>
   ) {
     this.pattern = { ...this.pattern, ...newPattern };
@@ -372,10 +379,10 @@ export class RepeatManager {
   }
 
   createRepeatObject(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     windowSize: WindowSize,
-    bindGroupLayout: GPUBindGroupLayout,
+    bindGroupLayout: PolyfillBindGroupLayout,
     sourceObject: RepeatableObject,
     pattern: RepeatPattern
   ): RepeatObject {
@@ -392,10 +399,10 @@ export class RepeatManager {
   }
 
   updateRepeatObject(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     windowSize: WindowSize,
-    bindGroupLayout: GPUBindGroupLayout,
+    bindGroupLayout: PolyfillBindGroupLayout,
     id: string,
     newPattern: Partial<RepeatPattern>
   ): RepeatObject | null {

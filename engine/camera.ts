@@ -1,6 +1,13 @@
 // Import necessary libraries - you'll need to install gl-matrix or a similar library
 import { mat4, vec2, vec3, vec4 } from "gl-matrix";
 import { Point } from "./editor";
+import {
+  PolyfillBindGroup,
+  PolyfillBindGroupLayout,
+  PolyfillBuffer,
+  PolyfillDevice,
+  PolyfillQueue,
+} from "./polyfill";
 
 // Types
 export interface WindowSize {
@@ -153,12 +160,12 @@ export class CameraUniform {
 }
 
 export class CameraBinding {
-  buffer: GPUBuffer;
-  bindGroup: GPUBindGroup;
-  bindGroupLayout: GPUBindGroupLayout;
+  buffer: PolyfillBuffer;
+  bindGroup: PolyfillBindGroup;
+  bindGroupLayout: PolyfillBindGroupLayout;
   uniform: CameraUniform;
 
-  constructor(device: GPUDevice) {
+  constructor(device: PolyfillDevice) {
     this.uniform = new CameraUniform();
 
     // Create the uniform buffer
@@ -170,15 +177,15 @@ export class CameraBinding {
 
     // Create bind group layout
     this.bindGroupLayout = device.createBindGroupLayout({
-      label: "Camera Bind Group Layout",
+      // label: "Camera Bind Group Layout",
       entries: [
         {
           binding: 0,
           visibility: GPUShaderStage.VERTEX,
           buffer: {
             type: "uniform",
-            hasDynamicOffset: false,
-            minBindingSize: 16 * 4,
+            // hasDynamicOffset: false,
+            // minBindingSize: 16 * 4,
           },
         },
       ],
@@ -186,20 +193,20 @@ export class CameraBinding {
 
     // Create bind group
     this.bindGroup = device.createBindGroup({
-      label: "Camera Bind Group",
+      // label: "Camera Bind Group",
       layout: this.bindGroupLayout,
       entries: [
         {
           binding: 0,
           resource: {
-            buffer: this.buffer,
+            pbuffer: this.buffer,
           },
         },
       ],
     });
   }
 
-  update(queue: GPUQueue, camera: Camera): void {
+  update(queue: PolyfillQueue, camera: Camera): void {
     this.uniform.updateViewProj(camera);
     queue.writeBuffer(this.buffer, 0, this.uniform.getBuffer());
   }

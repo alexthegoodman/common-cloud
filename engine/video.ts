@@ -12,6 +12,14 @@ import MP4Box, { DataStream, MP4ArrayBuffer, MP4VideoTrack } from "mp4box";
 import { WindowSize } from "./camera";
 import { MotionPath } from "./motionpath";
 import { ObjectType } from "./animations";
+import {
+  PolyfillBindGroup,
+  PolyfillBindGroupLayout,
+  PolyfillBuffer,
+  PolyfillDevice,
+  PolyfillQueue,
+  PolyfillTexture,
+} from "./polyfill";
 
 export interface RectInfo {
   left: number;
@@ -100,18 +108,19 @@ export class StVideo {
   sourceDurationMs: number;
   sourceDimensions: [number, number];
   sourceFrameRate: number;
-  texture!: GPUTexture;
-  textureView!: GPUTextureView;
+  // texture!: GPUTexture;
+  // textureView!: GPUTextureView;
+  texture!: PolyfillTexture;
   transform!: Transform;
-  vertexBuffer!: GPUBuffer;
-  indexBuffer!: GPUBuffer;
+  vertexBuffer!: PolyfillBuffer;
+  indexBuffer!: PolyfillBuffer;
   dimensions: [number, number];
-  bindGroup!: GPUBindGroup;
+  bindGroup!: PolyfillBindGroup;
   vertices: Vertex[];
   indices: Uint32Array;
   hidden: boolean;
   layer: number;
-  groupBindGroup!: GPUBindGroup;
+  groupBindGroup!: PolyfillBindGroup;
   groupTransform!: Transform;
   objectType: ObjectType;
   currentZoom: number;
@@ -139,17 +148,17 @@ export class StVideo {
   private codecString?: string;
 
   bytesPerFrame: number | null = null;
-  // gradientBindGroup: GPUBindGroup;
+  // gradientBindGroup: PolyfillBindGroup;
 
   constructor(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     blob: Blob,
     videoConfig: StVideoConfig,
     windowSize: { width: number; height: number },
-    bindGroupLayout: GPUBindGroupLayout,
-    groupBindGroupLayout: GPUBindGroupLayout,
-    // gradientBindGroupLayout: GPUBindGroupLayout,
+    bindGroupLayout: PolyfillBindGroupLayout,
+    groupBindGroupLayout: PolyfillBindGroupLayout,
+    // gradientBindGroupLayout: PolyfillBindGroupLayout,
     zIndex: number,
     currentSequenceId: string,
     loadedHidden: boolean
@@ -179,14 +188,14 @@ export class StVideo {
   }
 
   async initialize(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     blob: Blob,
     videoConfig: StVideoConfig,
     windowSize: { width: number; height: number },
-    bindGroupLayout: GPUBindGroupLayout,
-    groupBindGroupLayout: GPUBindGroupLayout,
-    // gradientBindGroupLayout: GPUBindGroupLayout,
+    bindGroupLayout: PolyfillBindGroupLayout,
+    groupBindGroupLayout: PolyfillBindGroupLayout,
+    // gradientBindGroupLayout: PolyfillBindGroupLayout,
     zIndex: number,
     currentSequenceId: string,
     loadedHidden: boolean
@@ -256,7 +265,8 @@ export class StVideo {
       this.sourceFrameRate = frameRate;
       this.bytesPerFrame = width * 4 * height;
 
-      const textureSize: GPUExtent3DStrict = {
+      // const textureSize: GPUExtent3DStrict = {
+      const textureSize = {
         width: width,
         height: height,
         depthOrArrayLayers: 1,
@@ -265,23 +275,23 @@ export class StVideo {
       this.texture = device.createTexture({
         label: "Video Texture",
         size: textureSize,
-        mipLevelCount: 1,
-        sampleCount: 1,
-        dimension: "2d",
+        // mipLevelCount: 1,
+        // sampleCount: 1,
+        // dimension: "2d",
         // format: "bgra8unorm", // Or appropriate format
         format: "rgba8unorm",
         usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
       });
-      this.textureView = this.texture.createView();
+      // this.textureView = this.texture.createView();
 
-      const sampler = device.createSampler({
-        addressModeU: "clamp-to-edge",
-        addressModeV: "clamp-to-edge",
-        addressModeW: "clamp-to-edge",
-        magFilter: "linear",
-        minFilter: "linear",
-        mipmapFilter: "linear",
-      });
+      // const sampler = device.createSampler({
+      //   addressModeU: "clamp-to-edge",
+      //   addressModeV: "clamp-to-edge",
+      //   addressModeW: "clamp-to-edge",
+      //   magFilter: "linear",
+      //   minFilter: "linear",
+      //   mipmapFilter: "linear",
+      // });
 
       this.bindGroup = device.createBindGroup({
         layout: bindGroupLayout,
@@ -289,19 +299,19 @@ export class StVideo {
           {
             binding: 0,
             resource: {
-              buffer: uniformBuffer,
+              pbuffer: uniformBuffer,
             },
           },
-          { binding: 1, resource: this.textureView },
-          { binding: 2, resource: sampler },
+          // { binding: 1, resource: this.textureView },
+          // { binding: 2, resource: sampler },
           {
             binding: 3,
             resource: {
-              buffer: gradientBuffer,
+              pbuffer: gradientBuffer,
             },
           },
         ],
-        label: "Video Bind Group",
+        // label: "Video Bind Group",
       });
 
       // // 20x20 grid
@@ -832,7 +842,11 @@ export class StVideo {
     });
   }
 
-  async drawVideoFrame(device: GPUDevice, queue: GPUQueue, timeMs?: number) {
+  async drawVideoFrame(
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    timeMs?: number
+  ) {
     if (timeMs !== undefined) {
       await this.seekToTime(timeMs);
     }
@@ -873,7 +887,7 @@ export class StVideo {
         texture: this.texture,
         mipLevel: 0,
         origin: { x: 0, y: 0, z: 0 },
-        aspect: "all",
+        // aspect: "all",
       },
       frameInfo.frameData,
       {
@@ -918,7 +932,7 @@ export class StVideo {
     this.numFramesDrawn = 0;
   }
 
-  updateOpacity(queue: GPUQueue, opacity: number): void {
+  updateOpacity(queue: PolyfillQueue, opacity: number): void {
     const newColor: [number, number, number, number] = [1.0, 1.0, 1.0, opacity];
 
     this.vertices.forEach((v) => {
@@ -940,7 +954,10 @@ export class StVideo {
     );
   }
 
-  update(queue: GPUQueue, windowSize: { width: number; height: number }): void {
+  update(
+    queue: PolyfillQueue,
+    windowSize: { width: number; height: number }
+  ): void {
     /* ... */
   }
 
@@ -950,9 +967,9 @@ export class StVideo {
 
   updateDataFromDimensions(
     windowSize: WindowSize,
-    device: GPUDevice,
-    queue: GPUQueue,
-    bindGroupLayout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    bindGroupLayout: PolyfillBindGroupLayout,
     dimensions: [number, number]
   ): void {
     console.info("updateDataFromDimensions", dimensions);
@@ -1009,7 +1026,7 @@ export class StVideo {
     this.transform.layer = layer_index;
   }
 
-  updateZoom(queue: GPUQueue, newZoom: number, centerPoint: Point): void {
+  updateZoom(queue: PolyfillQueue, newZoom: number, centerPoint: Point): void {
     // console.info("updateZoom", newZoom, centerPoint);
 
     this.currentZoom = newZoom;
@@ -1089,7 +1106,7 @@ export class StVideo {
   }
 
   updatePopout(
-    queue: GPUQueue,
+    queue: PolyfillQueue,
     mousePoint: Point,
     popoutIntensity: number,
     popoutDimensions: [number, number]

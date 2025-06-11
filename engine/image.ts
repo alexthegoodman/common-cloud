@@ -10,6 +10,14 @@ import {
 import { Point } from "./editor";
 import { WindowSize } from "./camera";
 import { ObjectType } from "./animations";
+import {
+  PolyfillBindGroup,
+  PolyfillBindGroupLayout,
+  PolyfillBuffer,
+  PolyfillDevice,
+  PolyfillQueue,
+  PolyfillTexture,
+} from "./polyfill";
 
 export interface SavedStImageConfig {
   id: string;
@@ -38,31 +46,31 @@ export class StImage {
   currentSequenceId: string;
   name: string;
   url: string;
-  texture!: GPUTexture;
-  textureView!: GPUTextureView;
+  texture!: PolyfillTexture;
+  // textureView!: GPUTextureView;
   transform!: Transform;
-  vertexBuffer!: GPUBuffer;
-  indexBuffer!: GPUBuffer;
+  vertexBuffer!: PolyfillBuffer;
+  indexBuffer!: PolyfillBuffer;
   dimensions: [number, number];
-  bindGroup!: GPUBindGroup;
+  bindGroup!: PolyfillBindGroup;
   originalDimensions: [number, number] = [0, 0];
   vertices: Vertex[];
   indices: number[];
   hidden: boolean;
   layer: number;
-  groupBindGroup!: GPUBindGroup;
+  groupBindGroup!: PolyfillBindGroup;
   objectType: ObjectType;
   isCircle: boolean;
 
   constructor(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     url: string,
     blob: Blob,
     imageConfig: StImageConfig,
     windowSize: { width: number; height: number },
-    bindGroupLayout: GPUBindGroupLayout,
-    groupBindGroupLayout: GPUBindGroupLayout,
+    bindGroupLayout: PolyfillBindGroupLayout,
+    groupBindGroupLayout: PolyfillBindGroupLayout,
     zIndex: number,
     currentSequenceId: string,
     loadedHidden: boolean
@@ -85,14 +93,14 @@ export class StImage {
   }
 
   async initialize(
-    device: GPUDevice,
-    queue: GPUQueue,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
     url: string,
     blob: Blob,
     imageConfig: StImageConfig,
     windowSize: { width: number; height: number },
-    bindGroupLayout: GPUBindGroupLayout,
-    groupBindGroupLayout: GPUBindGroupLayout,
+    bindGroupLayout: PolyfillBindGroupLayout,
+    groupBindGroupLayout: PolyfillBindGroupLayout,
     zIndex: number,
     currentSequenceId: string,
     loadedHidden: boolean
@@ -137,7 +145,8 @@ export class StImage {
 
     console.info("imgBitmap", originalDimensions);
 
-    const textureSize: GPUExtent3DStrict = {
+    // const textureSize: GPUExtent3DStrict = {
+    const textureSize = {
       // width: dimensions[0],
       // height: dimensions[1],
       width: originalDimensions[0],
@@ -149,9 +158,9 @@ export class StImage {
       // Initialize texture
       label: "Image Texture",
       size: textureSize,
-      mipLevelCount: 1,
-      sampleCount: 1,
-      dimension: "2d",
+      // mipLevelCount: 1,
+      // sampleCount: 1,
+      // dimension: "2d",
       format: "rgba8unorm-srgb",
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
     });
@@ -179,7 +188,7 @@ export class StImage {
         texture: this.texture,
         mipLevel: 0,
         origin: { x: 0, y: 0, z: 0 },
-        aspect: "all",
+        // aspect: "all",
       },
       rgba,
       {
@@ -190,16 +199,16 @@ export class StImage {
       textureSize
     );
 
-    this.textureView = this.texture.createView(); // Initialize textureView
+    // this.textureView = this.texture.createView(); // Initialize textureView
 
-    const sampler = device.createSampler({
-      addressModeU: "clamp-to-edge",
-      addressModeV: "clamp-to-edge",
-      addressModeW: "clamp-to-edge",
-      magFilter: "linear",
-      minFilter: "linear",
-      mipmapFilter: "linear",
-    });
+    // const sampler = device.createSampler({
+    //   addressModeU: "clamp-to-edge",
+    //   addressModeV: "clamp-to-edge",
+    //   addressModeW: "clamp-to-edge",
+    //   magFilter: "linear",
+    //   minFilter: "linear",
+    //   mipmapFilter: "linear",
+    // });
 
     this.bindGroup = device.createBindGroup({
       layout: bindGroupLayout,
@@ -207,19 +216,19 @@ export class StImage {
         {
           binding: 0,
           resource: {
-            buffer: uniformBuffer,
+            pbuffer: uniformBuffer,
           },
         },
-        { binding: 1, resource: this.textureView },
-        { binding: 2, resource: sampler },
+        // { binding: 1, resource: this.textureView },
+        // { binding: 2, resource: sampler },
         {
           binding: 3,
           resource: {
-            buffer: gradientBuffer,
+            pbuffer: gradientBuffer,
           },
         },
       ],
-      label: "Image Bind Group",
+      // label: "Image Bind Group",
     });
 
     if (imageConfig.isCircle) {
@@ -362,7 +371,7 @@ export class StImage {
     return { u0, u1, v0, v1 };
   }
 
-  setIsCircle(queue: GPUQueue, isCircle: boolean): void {
+  setIsCircle(queue: PolyfillQueue, isCircle: boolean): void {
     this.isCircle = isCircle;
 
     if (isCircle) {
@@ -479,7 +488,7 @@ export class StImage {
     return indices;
   }
 
-  updateOpacity(queue: GPUQueue, opacity: number): void {
+  updateOpacity(queue: PolyfillQueue, opacity: number): void {
     const newColor: [number, number, number, number] = [1.0, 1.0, 1.0, opacity];
 
     this.vertices.forEach((v) => {
@@ -504,9 +513,9 @@ export class StImage {
 
   updateDataFromDimensions(
     windowSize: WindowSize,
-    device: GPUDevice,
-    queue: GPUQueue,
-    bindGroupLayout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    bindGroupLayout: PolyfillBindGroupLayout,
     dimensions: [number, number]
   ): void {
     this.dimensions = [dimensions[0], dimensions[1]];
@@ -560,7 +569,7 @@ export class StImage {
     this.transform.layer = layer_index;
   }
 
-  //   update(queue: GPUQueue, windowSize: { width: number; height: number }): void {
+  //   update(queue: PolyfillQueue, windowSize: { width: number; height: number }): void {
   //     queue.writeBuffer(
   //       this.vertexBuffer,
   //       0,
@@ -618,11 +627,11 @@ export class StImage {
   static async fromConfig(
     config: StImageConfig,
     windowSize: { width: number; height: number },
-    device: GPUDevice,
-    queue: GPUQueue,
-    bindGroupLayout: GPUBindGroupLayout,
-    groupBindGroupLayout: GPUBindGroupLayout,
-    // gradientBindGroupLayout: GPUBindGroupLayout,
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    bindGroupLayout: PolyfillBindGroupLayout,
+    groupBindGroupLayout: PolyfillBindGroupLayout,
+    // gradientBindGroupLayout: PolyfillBindGroupLayout,
     selectedSequenceId: string
   ): Promise<StImage> {
     const response = await fetch(config.url);
