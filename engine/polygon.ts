@@ -1016,7 +1016,9 @@ export function getPolygonData(
     },
     "uniformMatrix4fv"
   );
-  new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
+
+  // new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
+  uniformBuffer.data = rawMatrix.buffer;
 
   uniformBuffer.unmap();
   queue.writeBuffer(uniformBuffer, 0, rawMatrix);

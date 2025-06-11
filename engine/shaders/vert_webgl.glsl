@@ -21,7 +21,9 @@ uniform mat4 bindGroup3_0; // u_group
 void main() {
     // Apply model transformation first, then add group offset
     // vec4 model_pos = bindGroup1_0 * vec4(a_position, 1.0);
+
     vec4 model_pos = bindGroup1_0 * bindGroup3_0 * vec4(a_position, 1.0);
+    
     // model_pos.xy += bindGroup3_0; // Add group offset to transformed position
 
     vec3 ndc_pos = model_pos.xyz;

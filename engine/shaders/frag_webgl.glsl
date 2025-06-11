@@ -94,5 +94,8 @@ void main() {
         final_color = tex_color * v_color;
     }
 
+    // testing
+    // final_color = tex_color;
+
     fragColor = final_color;
 }

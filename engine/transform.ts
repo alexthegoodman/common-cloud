@@ -116,8 +116,8 @@ export class Transform {
   }
 }
 
-export function matrix4ToRawArray(matrix: mat4): Float32Array {
-  return new Float32Array(matrix); // gl-matrix stores matrices in column-major order, matching WebGPU
+export function matrix4ToRawArray(matrix: mat4): Float32Array<ArrayBuffer> {
+  return new Float32Array(matrix.values()); // gl-matrix stores matrices in column-major order, matching WebGPU
 }
 
 export function angleBetweenPoints(p1: Point, p2: Point): number {
@@ -158,8 +158,11 @@ export function createEmptyGroupTransform(
     },
     "uniformMatrix4fv"
   );
-  new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
-  // uniformBuffer.unmap();
+
+  // new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
+  uniformBuffer.data = rawMatrix.buffer;
+
+  uniformBuffer.unmap();
 
   // Now create your bind group with these defaults
   const bindGroup = device.createBindGroup({
@@ -176,7 +179,7 @@ export function createEmptyGroupTransform(
     // label: "Transform Bind Group",
   });
 
-  uniformBuffer.unmap();
+  // uniformBuffer.unmap();
 
   const groupTransform = new Transform(
     vec2.fromValues(0.0, 0.0),
