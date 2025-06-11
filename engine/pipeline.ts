@@ -298,10 +298,10 @@ export class CanvasPipeline {
     // Create or update depth texture and multisampled texture if needed
     //  this.updateRenderTargets();
 
-    if (!this.depthView || !this.multisampledView) {
-      console.error("Cannot begin rendering: render targets not initialized");
-      return;
-    }
+    // if (!this.depthView || !this.multisampledView) {
+    //   console.error("Cannot begin rendering: render targets not initialized");
+    //   return;
+    // }
 
     if (this.stepFrames) {
       // Start the animation loop
@@ -822,21 +822,35 @@ export class CanvasPipeline {
       indexBuffer: PolyfillBuffer,
       indexCount: number
     ) => {
+      const stride = 12 * Float32Array.BYTES_PER_ELEMENT; // 48 bytes
+
       // Bind vertex buffer
       gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer.buffer);
 
-      // Set up vertex attributes (you'll need to define these based on your shader)
-      // This is a simplified example - adjust based on your vertex layout
-      const stride = 8 * 4; // 8 floats per vertex (position + texcoord + normal + color)
-      gl.vertexAttribPointer(0, 3, gl.FLOAT, false, stride, 0); // position
+      // position: vec3 -> float32 * 3
       gl.enableVertexAttribArray(0);
-      gl.vertexAttribPointer(1, 2, gl.FLOAT, false, stride, 12); // texcoord
-      gl.enableVertexAttribArray(1);
-      gl.vertexAttribPointer(2, 3, gl.FLOAT, false, stride, 20); // normal
-      gl.enableVertexAttribArray(2);
+      gl.vertexAttribPointer(0, 3, gl.FLOAT, false, stride, 0);
 
-      // Bind index buffer and draw
+      // tex_coords: vec2 -> float32 * 2
+      gl.enableVertexAttribArray(1);
+      gl.vertexAttribPointer(1, 2, gl.FLOAT, false, stride, 12);
+
+      // color: vec4 -> float32 * 4
+      gl.enableVertexAttribArray(2);
+      gl.vertexAttribPointer(2, 4, gl.FLOAT, false, stride, 20);
+
+      // gradient_coords: vec2 -> float32 * 2
+      gl.enableVertexAttribArray(3);
+      gl.vertexAttribPointer(3, 2, gl.FLOAT, false, stride, 36);
+
+      // object_type: uint32 -> must use `vertexAttribIPointer`
+      gl.enableVertexAttribArray(4);
+      gl.vertexAttribIPointer(4, 1, gl.UNSIGNED_INT, stride, 44);
+
+      // Bind index buffer
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer.buffer);
+
+      // Draw
       gl.drawElements(gl.TRIANGLES, indexCount, gl.UNSIGNED_INT, 0);
     };
 

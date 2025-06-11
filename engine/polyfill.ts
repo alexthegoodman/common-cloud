@@ -318,11 +318,23 @@ export class PolyfillDevice {
       throw new Error("WebGL context not available");
     }
 
-    // Map WebGPU usage flags to our buffer types
-    let usage: PolyfillBuffer["usage"] = "uniform";
-    if (descriptor.usage & 0x20) usage = "vertex"; // VERTEX
-    if (descriptor.usage & 0x40) usage = "index"; // INDEX
-    if (descriptor.usage & 0x80) usage = "storage"; // STORAGE
+    // // Map WebGPU usage flags to our buffer types
+    // let usage: PolyfillBuffer["usage"] = "uniform";
+    // if (descriptor.usage & 0x20) usage = "vertex"; // VERTEX
+    // if (descriptor.usage & 0x40) usage = "index"; // INDEX
+    // if (descriptor.usage & 0x80) usage = "storage"; // STORAGE
+
+    let usage: PolyfillBuffer["usage"] = "uniform"; // Default
+
+    if (descriptor.usage & GPUBufferUsage.INDEX) {
+      usage = "index";
+    } else if (descriptor.usage & GPUBufferUsage.VERTEX) {
+      usage = "vertex";
+    } else if (descriptor.usage & GPUBufferUsage.STORAGE) {
+      usage = "storage";
+    } else if (descriptor.usage & GPUBufferUsage.UNIFORM) {
+      usage = "uniform";
+    }
 
     const buffer = new PolyfillBuffer(
       this.webglContext,
