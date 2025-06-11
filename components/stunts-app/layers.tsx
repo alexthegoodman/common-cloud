@@ -345,7 +345,7 @@ export const LayerPanel: React.FC<{
           camera.windowSize
         );
         imageItem.transform.updateUniformBuffer(
-          gpuResources.queue,
+          gpuResources.queue!,
           camera.windowSize
         );
 
@@ -464,7 +464,7 @@ export const LayerPanel: React.FC<{
         if (index > -1) {
           polygon.updateLayer(-index);
           polygon.transform.updateUniformBuffer(
-            gpuResources.queue,
+            gpuResources.queue!,
             camera.windowSize
           );
           sequence.activePolygons.find((p) => p.id === polygon.id)!.layer =
@@ -479,7 +479,7 @@ export const LayerPanel: React.FC<{
         if (index > -1) {
           text.updateLayer(-index);
           text.transform.updateUniformBuffer(
-            gpuResources.queue,
+            gpuResources.queue!,
             camera.windowSize
           );
           sequence.activeTextItems.find((t) => t.id === text.id)!.layer =
@@ -494,7 +494,7 @@ export const LayerPanel: React.FC<{
         if (index > -1) {
           image.updateLayer(-index);
           image.transform.updateUniformBuffer(
-            gpuResources.queue,
+            gpuResources.queue!,
             camera.windowSize
           );
           sequence.activeImageItems.find((i) => i.id === image.id)!.layer =
@@ -509,7 +509,7 @@ export const LayerPanel: React.FC<{
         if (index > -1) {
           video.updateLayer(-index);
           video.transform.updateUniformBuffer(
-            gpuResources.queue,
+            gpuResources.queue!,
             camera.windowSize
           );
           sequence.activeVideoItems.find((v) => v.id === video.id)!.layer =

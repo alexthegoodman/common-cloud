@@ -109,13 +109,16 @@ export class StImage {
     let [gradient, gradientBuffer] = setupGradientBuffers(device, queue);
 
     const identityMatrix = mat4.create();
-    let uniformBuffer = device.createBuffer({
-      size: 64,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      mappedAtCreation: true,
-    });
+    let uniformBuffer = device.createBuffer(
+      {
+        size: 64,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true,
+      },
+      "uniformMatrix4fv"
+    );
     new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
-    uniformBuffer.unmap();
+    // uniformBuffer.unmap();
 
     this.transform = new Transform(
       vec2.fromValues(imageConfig.position.x, imageConfig.position.y),
@@ -130,7 +133,7 @@ export class StImage {
     let layer_index =
       -1.0 - getZLayer(imageConfig.layer - INTERNAL_LAYER_SPACE);
     this.transform.layer = layer_index;
-    this.transform.updateUniformBuffer(queue, windowSize);
+    // this.transform.updateUniformBuffer(queue, windowSize);
 
     const imageBitmap = await createImageBitmap(blob);
 
@@ -215,14 +218,17 @@ export class StImage {
       entries: [
         {
           binding: 0,
+          groupIndex: 1,
           resource: {
             pbuffer: uniformBuffer,
           },
         },
         // { binding: 1, resource: this.textureView },
+        { binding: 1, groupIndex: 1, resource: this.texture },
         // { binding: 2, resource: sampler },
         {
-          binding: 3,
+          binding: 0,
+          groupIndex: 2,
           resource: {
             pbuffer: gradientBuffer,
           },
@@ -230,6 +236,9 @@ export class StImage {
       ],
       // label: "Image Bind Group",
     });
+
+    uniformBuffer.unmap();
+    this.transform.updateUniformBuffer(queue, windowSize);
 
     if (imageConfig.isCircle) {
       // Generate circular vertices and UVs
@@ -292,12 +301,15 @@ export class StImage {
       console.info("indices", this.indices);
     }
 
-    this.vertexBuffer = device.createBuffer({
-      // Initialize vertexBuffer
-      label: "Vertex Buffer",
-      size: this.vertices.length * 4 * 100,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
+    this.vertexBuffer = device.createBuffer(
+      {
+        // Initialize vertexBuffer
+        label: "Vertex Buffer",
+        size: this.vertices.length * 4 * 100,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      },
+      ""
+    );
 
     queue.writeBuffer(
       this.vertexBuffer,
@@ -313,11 +325,14 @@ export class StImage {
       )
     );
 
-    this.indexBuffer = device.createBuffer({
-      label: "Index Buffer",
-      size: this.indices.length * Uint32Array.BYTES_PER_ELEMENT * 24, // Correct size calculation
-      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-    });
+    this.indexBuffer = device.createBuffer(
+      {
+        label: "Index Buffer",
+        size: this.indices.length * Uint32Array.BYTES_PER_ELEMENT * 24, // Correct size calculation
+        usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+      },
+      ""
+    );
     queue.writeBuffer(this.indexBuffer, 0, new Uint32Array(this.indices));
 
     this.dimensions = dimensions;

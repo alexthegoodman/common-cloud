@@ -169,11 +169,18 @@ export class CameraBinding {
     this.uniform = new CameraUniform();
 
     // Create the uniform buffer
-    this.buffer = device.createBuffer({
-      label: "Camera Uniform Buffer",
-      size: 16 * 4, // 4x4 matrix of floats
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
+    this.buffer = device.createBuffer(
+      {
+        label: "Camera Uniform Buffer",
+        size: 16 * 4, // 4x4 matrix of floats
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true, // Map the buffer for initialization
+      },
+      "uniformMatrix4fv"
+    );
+
+    // unmap
+    this.buffer.unmap();
 
     // Create bind group layout
     this.bindGroupLayout = device.createBindGroupLayout({
@@ -198,6 +205,7 @@ export class CameraBinding {
       entries: [
         {
           binding: 0,
+          groupIndex: 0,
           resource: {
             pbuffer: this.buffer,
           },

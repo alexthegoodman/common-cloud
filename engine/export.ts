@@ -158,10 +158,13 @@ class WebGPUVideoEncoder {
     const bytesPerRow = Math.ceil(minimumBytesPerRow / 256) * 256;
     const bufferSize = bytesPerRow * this.height;
 
-    const outputBuffer = this.device.createBuffer({
-      size: bufferSize,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-    });
+    const outputBuffer = this.device.createBuffer(
+      {
+        size: bufferSize,
+        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+      },
+      "" // uniformMatrix4fv, uniform1f, UBO, etc
+    );
 
     // Create command encoder and copy texture to buffer
     // const commandEncoder = this.device.createCommandEncoder();

@@ -9,19 +9,24 @@ flat in uint v_object_type;
 
 out vec4 fragColor;
 
-uniform sampler2D u_texture;
+// Bind group 1: Texture sampler
+uniform sampler2D bindGroup1_1;
 
-uniform vec4 u_stop_offsets[2];    // vec4 * 2 = 8 floats
-uniform vec4 u_stop_colors[8];     // 8 color stops
-uniform float u_num_stops;
-uniform float u_gradient_type;     // 0 = linear, 1 = radial
-uniform vec2 u_start_point;
-uniform vec2 u_end_point;
-uniform vec2 u_center;
-uniform float u_radius;
-uniform float u_time;
-uniform float u_animation_speed;
-uniform float u_enabled;
+// Bind group 2: Gradient uniforms
+layout(std140) uniform bindGroup2_0 {
+    vec4 u_stop_offsets[2];      // vec4 * 2 = 8 floats
+    vec4 u_stop_colors[8];       // 8 color stops
+    float u_num_stops;
+    float u_gradient_type;       // 0 = linear, 1 = radial
+    vec2 u_start_point;
+    vec2 u_end_point;
+    vec2 u_center;
+    float u_radius;
+    float u_time;
+    float u_animation_speed;
+    float u_enabled;
+    // float _padding0;
+};
 
 float getOffset(int index) {
     int vec4_index = index / 4;
@@ -72,7 +77,7 @@ vec4 calculateGradientColor(vec2 coords) {
 }
 
 vec4 getTextureColor(vec2 tex_coords) {
-    return texture(u_texture, tex_coords);
+    return texture(bindGroup1_1, tex_coords);
 }
 
 void main() {

@@ -149,14 +149,17 @@ export function createEmptyGroupTransform(
   const emptyBuffer = mat4.create();
   const rawMatrix = matrix4ToRawArray(emptyBuffer);
 
-  const uniformBuffer = device.createBuffer({
-    label: "Group Uniform Buffer",
-    size: rawMatrix.byteLength,
-    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    mappedAtCreation: true,
-  });
+  const uniformBuffer = device.createBuffer(
+    {
+      label: "Group Uniform Buffer",
+      size: rawMatrix.byteLength,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      mappedAtCreation: true,
+    },
+    "uniformMatrix4fv"
+  );
   new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
-  uniformBuffer.unmap();
+  // uniformBuffer.unmap();
 
   // Now create your bind group with these defaults
   const bindGroup = device.createBindGroup({
@@ -164,6 +167,7 @@ export function createEmptyGroupTransform(
     entries: [
       {
         binding: 0,
+        groupIndex: 3,
         resource: {
           pbuffer: uniformBuffer,
         },
@@ -171,6 +175,8 @@ export function createEmptyGroupTransform(
     ],
     // label: "Transform Bind Group",
   });
+
+  uniformBuffer.unmap();
 
   const groupTransform = new Transform(
     vec2.fromValues(0.0, 0.0),

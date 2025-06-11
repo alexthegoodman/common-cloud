@@ -121,6 +121,10 @@ export class PolyfillTexture {
     this.type = type;
 
     const texture = gl.createTexture();
+    let error = gl.getError();
+    if (error !== gl.NO_ERROR) {
+      console.warn("WebGL Error:", error);
+    }
     if (!texture) {
       throw new Error("Failed to create WebGL texture");
     }
@@ -139,10 +143,18 @@ export class PolyfillTexture {
       type,
       null
     );
+    error = gl.getError();
+    if (error !== gl.NO_ERROR) {
+      console.warn("WebGL Error:", error);
+    }
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    error = gl.getError();
+    if (error !== gl.NO_ERROR) {
+      console.warn("WebGL Error:", error);
+    }
   }
 
   destroy() {
@@ -165,45 +177,164 @@ export class PolyfillBindGroupLayout {
 
 export class PolyfillBindGroup {
   layout: PolyfillBindGroupLayout;
-  resources: Map<number, PolyfillBuffer | PolyfillTexture>;
+  // resources: Map<number, PolyfillBuffer | PolyfillTexture>;
+  resources: Array<{
+    binding: number;
+    groupIndex: number; // Added groupIndex for binding
+    resource: PolyfillBuffer | PolyfillTexture;
+  }>;
 
   constructor(
+    gl: WebGL2RenderingContext,
     layout: PolyfillBindGroupLayout,
     resources: Array<{
       binding: number;
+      groupIndex: number; // Added groupIndex for binding
       resource: PolyfillBuffer | PolyfillTexture;
     }>
   ) {
     this.layout = layout;
-    this.resources = new Map();
+    this.resources = resources;
+    // this.resources = new Map();
 
-    resources.forEach(({ binding, resource }) => {
-      this.resources.set(binding, resource);
-    });
+    // resources.forEach(({ binding, resource }) => {
+    //   this.resources.set(binding, resource);
+    // });
+
+    this.bindWebGLBindGroup(
+      gl
+      // 0 // Assuming groupIndex is 0 for simplicity
+    );
   }
 
   getResource(binding: number): PolyfillBuffer | PolyfillTexture | undefined {
-    return this.resources.get(binding);
+    // return this.resources.get(binding);
+    const resource = this.resources.find((r) => r.binding === binding);
+    return resource ? resource.resource : undefined;
+  }
+
+  // Updated bind group method
+  bindWebGLBindGroup(gl: WebGL2RenderingContext): void {
+    const program = gl.getParameter(gl.CURRENT_PROGRAM);
+
+    if (!program) {
+      console.warn("No active WebGL program to bind resources to");
+      return;
+    }
+
+    // console.info("program", program);
+
+    this.resources.forEach((resource) => {
+      const uniformName = `bindGroup${resource.groupIndex}_${resource.binding}`;
+
+      if (resource.resource instanceof PolyfillBuffer) {
+        switch (resource.resource.type) {
+          case "uniformMatrix4fv":
+            // Get uniform location and set matrix data
+            const matrixLocation = gl.getUniformLocation(program, uniformName);
+            if (matrixLocation) {
+              if (!resource.resource.data) {
+                console.warn(`No data found for matrix uniform ${uniformName}`);
+                return;
+              }
+
+              // Assuming the buffer contains Float32Array matrix data
+              const matrixData = new Float32Array(resource.resource.data!);
+              gl.uniformMatrix4fv(matrixLocation, false, matrixData);
+            } else {
+              console.warn(
+                `Matrix uniform ${uniformName} not found in program`
+              );
+            }
+            break;
+
+          case "uniform2f":
+            // Get uniform location and set vec2 data
+            const vec2Location = gl.getUniformLocation(program, uniformName);
+            if (vec2Location) {
+              if (!resource.resource.data) {
+                console.warn(`No data found for matrix uniform ${uniformName}`);
+                return;
+              }
+
+              // Assuming the buffer contains 2 floats (e.g., window size)
+              const vec2Data = new Float32Array(resource.resource.data!);
+              gl.uniform2fv(vec2Location, vec2Data);
+            } else {
+              console.warn(`Vec2 uniform ${uniformName} not found in program`);
+            }
+            break;
+
+          case "UBO":
+            // Bind uniform buffer
+            const uniformBlockIndex = gl.getUniformBlockIndex(
+              program,
+              uniformName
+            );
+            // console.info("uniformBlockIndex", uniformBlockIndex);
+            if (uniformBlockIndex === gl.INVALID_INDEX) {
+              console.warn(
+                `Uniform block ${uniformName} not found in program ${program}`
+              );
+              return;
+            }
+            if (uniformBlockIndex !== gl.INVALID_INDEX) {
+              // Bind the uniform block to a binding point
+              // const bindingPoint = resource.groupIndex * 10 + resource.binding; // Unique binding point
+              const bindingPoint = 0;
+              gl.uniformBlockBinding(program, uniformBlockIndex, bindingPoint);
+              gl.bindBufferBase(
+                gl.UNIFORM_BUFFER,
+                bindingPoint,
+                resource.resource.buffer
+              );
+            }
+            break;
+
+          default:
+            break;
+        }
+      } else if (resource.resource instanceof PolyfillTexture) {
+        // Bind texture
+        // const textureUnit = resource.groupIndex * 10 + resource.binding; // Unique texture unit
+        const textureUnit = 0;
+        gl.activeTexture(gl.TEXTURE0 + textureUnit);
+        gl.bindTexture(gl.TEXTURE_2D, resource.resource.texture);
+
+        // Set the uniform sampler
+        const samplerLocation = gl.getUniformLocation(program, uniformName);
+        if (samplerLocation) {
+          gl.uniform1i(samplerLocation, textureUnit);
+        }
+      }
+    });
   }
 }
 
 export class PolyfillBuffer {
-  gl: WebGLRenderingContext;
+  gl: WebGL2RenderingContext;
   buffer: WebGLBuffer;
   size: number;
   usage: "uniform" | "vertex" | "index" | "storage";
   data: ArrayBuffer | null = null;
+  type: string | null = null; // uniformMatrix4fv, uniform1f, UBO, etc
 
   constructor(
-    gl: WebGLRenderingContext,
+    gl: WebGL2RenderingContext,
     size: number,
-    usage: PolyfillBuffer["usage"] = "uniform"
+    usage: PolyfillBuffer["usage"] = "uniform",
+    type: string | null // uniformMatrix4fv, uniform1f, UBO, etc
   ) {
     this.gl = gl;
     this.size = size;
     this.usage = usage;
+    this.type = type;
 
     const buffer = gl.createBuffer();
+    let error = gl.getError();
+    if (error !== gl.NO_ERROR) {
+      console.warn("WebGL Error:", error);
+    }
     if (!buffer) {
       throw new Error("Failed to create WebGL buffer");
     }
@@ -212,7 +343,15 @@ export class PolyfillBuffer {
     // Bind and allocate buffer
     const target = this.getGLTarget();
     gl.bindBuffer(target, this.buffer);
+    error = gl.getError();
+    if (error !== gl.NO_ERROR) {
+      console.warn("WebGL Error:", error);
+    }
     gl.bufferData(target, size, gl.DYNAMIC_DRAW);
+    error = gl.getError();
+    if (error !== gl.NO_ERROR) {
+      console.warn("WebGL Error:", error);
+    }
   }
 
   private getGLTarget(): number {
@@ -222,10 +361,10 @@ export class PolyfillBuffer {
       case "index":
         return this.gl.ELEMENT_ARRAY_BUFFER;
       case "uniform":
-      //   case "storage":
-      //     return this.gl.UNIFORM_BUFFER || this.gl.ARRAY_BUFFER;
       case "storage":
-        return this.gl.ARRAY_BUFFER;
+        return this.gl.UNIFORM_BUFFER || this.gl.ARRAY_BUFFER;
+      // case "storage":
+      //   return this.gl.ARRAY_BUFFER;
       default:
         return this.gl.ARRAY_BUFFER;
     }
@@ -259,12 +398,12 @@ export class PolyfillBuffer {
 
 export class PolyfillDevice {
   webgpuDevice: GPUDevice | null = null;
-  webglContext: WebGLRenderingContext | null = null;
+  webglContext: WebGL2RenderingContext | null = null;
   queue: PolyfillQueue | null = null;
   private textureCache = new Map<string, PolyfillTexture>();
   private bufferCache = new Map<string, PolyfillBuffer>();
 
-  constructor(webglContext: WebGLRenderingContext, queue: PolyfillQueue) {
+  constructor(webglContext: WebGL2RenderingContext, queue: PolyfillQueue) {
     this.webglContext = webglContext;
     this.queue = queue;
   }
@@ -296,24 +435,33 @@ export class PolyfillDevice {
     layout: PolyfillBindGroupLayout;
     entries: Array<{
       binding: number;
+      groupIndex: number; // Optional group index for binding
       resource: PolyfillBuffer | PolyfillTexture | { pbuffer: PolyfillBuffer };
     }>;
   }): PolyfillBindGroup {
     const resources = descriptor.entries.map((entry) => ({
       binding: entry.binding,
+      groupIndex: entry.groupIndex || 0, // Default to 0 if not provided
       resource:
         "pbuffer" in entry.resource ? entry.resource.pbuffer : entry.resource,
     }));
 
-    return new PolyfillBindGroup(descriptor.layout, resources);
+    return new PolyfillBindGroup(
+      this.webglContext!,
+      descriptor.layout,
+      resources
+    );
   }
 
-  createBuffer(descriptor: {
-    size: number;
-    usage: number;
-    mappedAtCreation?: boolean;
-    label?: string;
-  }): PolyfillBuffer {
+  createBuffer(
+    descriptor: {
+      size: number;
+      usage: number;
+      mappedAtCreation?: boolean;
+      label?: string;
+    },
+    type: string | null // uniformMatrix4fv, uniform1f, UBO, etc
+  ): PolyfillBuffer {
     if (!this.webglContext) {
       throw new Error("WebGL context not available");
     }
@@ -339,7 +487,8 @@ export class PolyfillDevice {
     const buffer = new PolyfillBuffer(
       this.webglContext,
       descriptor.size,
-      usage
+      usage,
+      type
     );
 
     if (descriptor.mappedAtCreation) {
@@ -429,20 +578,60 @@ export class PolyfillDevice {
       gl.VERTEX_SHADER,
       descriptor.vertex.module.code
     );
+    let error = gl.getError();
+    if (error !== gl.NO_ERROR) {
+      console.warn("WebGL Error:", error);
+    }
+
+    if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+      console.error(gl.getShaderInfoLog(vertexShader));
+    }
+
     const fragmentShader = compileShader(
       gl,
       gl.FRAGMENT_SHADER,
       descriptor.fragment.module.code
     );
+    error = gl.getError();
+    if (error !== gl.NO_ERROR) {
+      console.warn("WebGL Error:", error);
+    }
+
+    if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+      console.error(gl.getShaderInfoLog(fragmentShader));
+    }
 
     const program = gl.createProgram();
+    error = gl.getError();
+    if (error !== gl.NO_ERROR) {
+      console.warn("WebGL Error:", error);
+    }
+
+    // if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    //   console.error(gl.getProgramInfoLog(program));
+    // }
+
     if (!program || !vertexShader || !fragmentShader) {
       throw new Error("Failed to create program or shaders");
     }
 
     gl.attachShader(program, vertexShader);
+    error = gl.getError();
+    if (error !== gl.NO_ERROR) {
+      console.warn("WebGL Error:", error);
+    }
+
     gl.attachShader(program, fragmentShader);
+    error = gl.getError();
+    if (error !== gl.NO_ERROR) {
+      console.warn("WebGL Error:", error);
+    }
+
     gl.linkProgram(program);
+    error = gl.getError();
+    if (error !== gl.NO_ERROR) {
+      console.warn("WebGL Error:", error);
+    }
 
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
       const log = gl.getProgramInfoLog(program);
@@ -500,7 +689,7 @@ export class PolyfillDevice {
 }
 
 export class PolyfillRenderPipeline {
-  gl: WebGLRenderingContext;
+  gl: WebGL2RenderingContext;
   program: WebGLProgram;
   descriptor: any;
 
@@ -509,7 +698,7 @@ export class PolyfillRenderPipeline {
     program,
     descriptor,
   }: {
-    gl: WebGLRenderingContext;
+    gl: WebGL2RenderingContext;
     program: WebGLProgram;
     descriptor: any;
   }) {
@@ -520,7 +709,20 @@ export class PolyfillRenderPipeline {
 
   use() {
     this.gl.useProgram(this.program);
-    // Bind attributes, uniforms, depth, blend, etc. here
+
+    // this is all done in renderWebglFrame()
+    // Set viewport to match canvas size
+    // this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+
+    // // Set clear color and clear
+    // this.gl.clearColor(1.0, 0.0, 0.0, 1.0);
+    // this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+    // error checking
+    const error = this.gl.getError();
+    if (error !== this.gl.NO_ERROR) {
+      console.warn("WebGL Error:", error);
+    }
   }
 }
 
@@ -532,8 +734,19 @@ function compileShader(
   const shader = gl.createShader(type);
   if (!shader) throw new Error("Unable to create shader");
 
+  // console.info(`Compiling shader of type ${type} with source:`, source);
+
   gl.shaderSource(shader, source);
+  let error = gl.getError();
+  if (error !== gl.NO_ERROR) {
+    console.warn("WebGL Error:", error);
+  }
+
   gl.compileShader(shader);
+  error = gl.getError();
+  if (error !== gl.NO_ERROR) {
+    console.warn("WebGL Error:", error);
+  }
 
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     const log = gl.getShaderInfoLog(shader);
@@ -647,7 +860,7 @@ export class GPUPolyfill {
   webgpuResources: WebGpuResources | null = null;
   canvas: HTMLCanvasElement | OffscreenCanvas | null = null;
   windowSize: { width: number; height: number } = { width: 900, height: 550 };
-  webglContext: WebGLRenderingContext | null = null;
+  webglContext: WebGL2RenderingContext | null = null;
 
   constructor(
     chosenBackend: "webgl" | "webgpu" = "webgl",
@@ -667,7 +880,7 @@ export class GPUPolyfill {
 
       // Get WebGL context
       const gl =
-        (this.canvas.getContext("webgl2") as WebGLRenderingContext) ||
+        (this.canvas.getContext("webgl2") as WebGL2RenderingContext) ||
         (this.canvas.getContext("webgl") as WebGLRenderingContext);
       if (!gl) {
         throw new Error("Failed to get WebGL context");

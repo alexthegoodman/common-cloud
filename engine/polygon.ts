@@ -946,11 +946,14 @@ export function getPolygonData(
     }
   }
 
-  const vertexBuffer = device.createBuffer({
-    label: "Vertex Buffer",
-    size: vertices.length * vertexByteSize, // Use the helper function
-    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-  });
+  const vertexBuffer = device.createBuffer(
+    {
+      label: "Vertex Buffer",
+      size: vertices.length * vertexByteSize, // Use the helper function
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    },
+    ""
+  );
 
   const vertexData = new Float32Array(vertices.length * (3 + 2 + 4 + 2 + 1));
 
@@ -973,11 +976,14 @@ export function getPolygonData(
 
   queue.writeBuffer(vertexBuffer, 0, vertexData.buffer);
 
-  const indexBuffer = device.createBuffer({
-    label: "Index Buffer",
-    size: indices.length * Uint32Array.BYTES_PER_ELEMENT, // Correct size calculation
-    usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-  });
+  const indexBuffer = device.createBuffer(
+    {
+      label: "Index Buffer",
+      size: indices.length * Uint32Array.BYTES_PER_ELEMENT, // Correct size calculation
+      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+    },
+    ""
+  );
   queue.writeBuffer(indexBuffer, 0, new Uint32Array(indices).buffer);
 
   //   if (polygon.stroke.thickness > 0.0) {
@@ -1000,14 +1006,19 @@ export function getPolygonData(
   const emptyMatrix = mat4.create();
   const rawMatrix = matrix4ToRawArray(emptyMatrix);
 
-  const uniformBuffer = device.createBuffer({
-    label: "Polygon Uniform Buffer",
-    size: rawMatrix.byteLength,
-    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    // mappedAtCreation: true,
-  });
-  // new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
-  // uniformBuffer.unmap();
+  // createBuffer calls createBuffer, bindBuffer, and bufferData
+  const uniformBuffer = device.createBuffer(
+    {
+      label: "Polygon Uniform Buffer",
+      size: rawMatrix.byteLength,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      mappedAtCreation: true,
+    },
+    "uniformMatrix4fv"
+  );
+  new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
+
+  uniformBuffer.unmap();
   queue.writeBuffer(uniformBuffer, 0, rawMatrix);
 
   const textureSize = { width: 1, height: 1, depthOrArrayLayers: 1 };
@@ -1055,25 +1066,34 @@ export function getPolygonData(
     gradientDef
   );
 
+  gradientBuffer.unmap();
+
+  // createBindGroup calls uniformBlockBinding and bindBufferBase
   const bindGroup = device.createBindGroup({
     layout: bindGroupLayout,
     entries: [
       {
         binding: 0,
+        groupIndex: 1,
         resource: {
           pbuffer: uniformBuffer,
         },
       },
       // { binding: 1, resource: textureView },
+      { binding: 1, groupIndex: 1, resource: texture },
       // { binding: 2, resource: sampler },
       {
-        binding: 3,
+        binding: 0,
+        groupIndex: 2,
         resource: {
           pbuffer: gradientBuffer,
         },
       },
     ],
   });
+
+  // unmap calls bindBuffer and bufferSubData
+  // gradientBuffer.unmap();
 
   const transform = new Transform(
     vec2.fromValues(polygon.position.x, polygon.position.y),
@@ -1091,6 +1111,9 @@ export function getPolygonData(
   // );
 
   transform.layer = -1.0 - getZLayer(polygon.layer - INTERNAL_LAYER_SPACE);
+  // queue.writeBuffer(uniformBuffer, 0, rawMatrix);
+  // uniformBuffer.unmap();
+
   transform.updateUniformBuffer(queue, camera.windowSize);
 
   return [
@@ -1305,14 +1328,17 @@ export function setupGradientBuffers(
     // console.warn("no gradient selected");
   }
 
-  const gradientBuffer = device.createBuffer({
-    label: "Gradient Buffer",
-    // 2 vec4s for offsets + 8 vec4s for colors + 12 floats for config
-    // (2 + 8) * 16 + 12 * 4 = 208 bytes
-    size: 208,
-    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    mappedAtCreation: true,
-  });
+  const gradientBuffer = device.createBuffer(
+    {
+      label: "Gradient Buffer",
+      // 2 vec4s for offsets + 8 vec4s for colors + 12 floats for config
+      // (2 + 8) * 16 + 12 * 4 = 208 bytes
+      size: 208,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      mappedAtCreation: true,
+    },
+    "UBO"
+  );
 
   const mappedRange = new Float32Array(gradientBuffer.getMappedRange());
 
@@ -1347,7 +1373,9 @@ export function setupGradientBuffers(
   mappedRange[configOffset + 10] = selectedGradient.animationSpeed ?? 0;
   mappedRange[configOffset + 11] = selectedGradient.enabled;
 
-  gradientBuffer.unmap();
+  gradientBuffer.data = mappedRange.buffer; // TODO: needed?
+
+  // gradientBuffer.unmap(); // doesnt make a difference seemingly
 
   return [selectedGradient, gradientBuffer];
 }

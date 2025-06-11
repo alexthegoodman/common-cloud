@@ -152,15 +152,21 @@ export class TextRenderer {
 
     // this.gradientBindGroup = gradientBindGroup;
 
-    this.vertexBuffer = this.device.createBuffer({
-      size: isTextArea ? 4000000 : 131072, // 4MB to 128kb
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
+    this.vertexBuffer = this.device.createBuffer(
+      {
+        size: isTextArea ? 4000000 : 131072, // 4MB to 128kb
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      },
+      ""
+    );
 
-    this.indexBuffer = this.device.createBuffer({
-      size: isTextArea ? 1000000 : 131072, // 1mb to 128kb
-      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-    });
+    this.indexBuffer = this.device.createBuffer(
+      {
+        size: isTextArea ? 1000000 : 131072, // 1mb to 128kb
+        usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+      },
+      ""
+    );
 
     this.atlasTexture = this.device.createTexture({
       size: {
@@ -181,25 +187,35 @@ export class TextRenderer {
     // });
 
     const identityMatrix = mat4.create();
-    this.uniformBuffer = this.device.createBuffer({
-      size: 64,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      mappedAtCreation: true,
-    });
+    this.uniformBuffer = this.device.createBuffer(
+      {
+        size: 64,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true,
+      },
+      "uniformMatrix4fv"
+    );
     new Float32Array(this.uniformBuffer.getMappedRange()).set(identityMatrix);
-    this.uniformBuffer.unmap();
+    // this.uniformBuffer.unmap();
 
     // this.textureView = this.atlasTexture.createView();
 
     this.bindGroup = this.device.createBindGroup({
       layout: bindGroupLayout,
       entries: [
-        { binding: 0, resource: { pbuffer: this.uniformBuffer } },
+        {
+          binding: 0,
+          groupIndex: 1,
+          resource: { pbuffer: this.uniformBuffer },
+        },
         // { binding: 1, resource: this.textureView },
+        { binding: 1, groupIndex: 1, resource: this.atlasTexture },
         // { binding: 2, resource: this.sampler },
-        { binding: 3, resource: { pbuffer: gradientBuffer } },
+        { binding: 0, groupIndex: 2, resource: { pbuffer: gradientBuffer } },
       ],
     });
+
+    this.uniformBuffer.unmap();
 
     // console.info("text config", textConfig);
 

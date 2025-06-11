@@ -249,14 +249,16 @@ export class MotionPath {
     const emptyBuffer = mat4.create();
     const rawMatrix = matrix4ToRawArray(emptyBuffer);
 
-    const uniformBuffer = device.createBuffer({
-      label: "MotionPath Uniform Buffer",
-      size: rawMatrix.byteLength,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      mappedAtCreation: true,
-    });
+    const uniformBuffer = device.createBuffer(
+      {
+        label: "MotionPath Uniform Buffer",
+        size: rawMatrix.byteLength,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true,
+      },
+      "uniformMatrix4fv"
+    );
     new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
-    uniformBuffer.unmap();
 
     // Now create your bind group with these defaults
     this.bindGroup = device.createBindGroup({
@@ -264,6 +266,7 @@ export class MotionPath {
       entries: [
         {
           binding: 0,
+          groupIndex: 3,
           resource: {
             pbuffer: uniformBuffer,
           },
@@ -271,6 +274,8 @@ export class MotionPath {
       ],
       // label: "Motion Path Bind Group",
     });
+
+    uniformBuffer.unmap();
 
     const groupTransform = new Transform(
       vec2.fromValues(initialPosition[0], initialPosition[1]), // everything can move relative to this

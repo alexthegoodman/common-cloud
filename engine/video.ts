@@ -203,13 +203,16 @@ export class StVideo {
     this.dimensions = videoConfig.dimensions;
 
     const identityMatrix = mat4.create();
-    let uniformBuffer = device.createBuffer({
-      size: 64,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      mappedAtCreation: true,
-    });
+    let uniformBuffer = device.createBuffer(
+      {
+        size: 64,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true,
+      },
+      "uniformMatrix4fv"
+    );
     new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
-    uniformBuffer.unmap();
+    // uniformBuffer.unmap();
 
     this.transform = new Transform(
       // vec2.fromValues(videoConfig.position.x, videoConfig.position.y),
@@ -224,7 +227,7 @@ export class StVideo {
       -1.0 - getZLayer(videoConfig.layer - INTERNAL_LAYER_SPACE);
     this.transform.layer = layer_index;
 
-    this.transform.updateUniformBuffer(queue, windowSize);
+    // this.transform.updateUniformBuffer(queue, windowSize);
 
     let [gradient, gradientBuffer] = setupGradientBuffers(
       device,
@@ -247,7 +250,7 @@ export class StVideo {
 
     // group_transform.updateRotationYDegrees(0.02);
 
-    group_transform.updateUniformBuffer(queue, windowSize);
+    // group_transform.updateUniformBuffer(queue, windowSize);
 
     this.groupBindGroup = group_bind_group;
     this.groupTransform = group_transform;
@@ -298,14 +301,17 @@ export class StVideo {
         entries: [
           {
             binding: 0,
+            groupIndex: 1,
             resource: {
               pbuffer: uniformBuffer,
             },
           },
           // { binding: 1, resource: this.textureView },
+          { binding: 1, groupIndex: 1, resource: this.texture },
           // { binding: 2, resource: sampler },
           {
-            binding: 3,
+            binding: 0,
+            groupIndex: 2,
             resource: {
               pbuffer: gradientBuffer,
             },
@@ -313,6 +319,10 @@ export class StVideo {
         ],
         // label: "Video Bind Group",
       });
+
+      uniformBuffer.unmap();
+      this.transform.updateUniformBuffer(queue, windowSize);
+      group_transform.updateUniformBuffer(queue, windowSize);
 
       // // 20x20 grid
       const rows = this.gridResolution[0];
@@ -386,11 +396,14 @@ export class StVideo {
 
       // // console.info("vertices", this.vertices);
 
-      this.vertexBuffer = device.createBuffer({
-        label: "Vertex Buffer",
-        size: this.vertices.length * 4 * 16,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-      });
+      this.vertexBuffer = device.createBuffer(
+        {
+          label: "Vertex Buffer",
+          size: this.vertices.length * 4 * 16,
+          usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+        },
+        ""
+      );
 
       queue.writeBuffer(
         this.vertexBuffer,
@@ -430,11 +443,14 @@ export class StVideo {
         })()
       );
 
-      this.indexBuffer = device.createBuffer({
-        label: "Index Buffer",
-        size: this.indices.byteLength,
-        usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-      });
+      this.indexBuffer = device.createBuffer(
+        {
+          label: "Index Buffer",
+          size: this.indices.byteLength,
+          usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+        },
+        ""
+      );
 
       queue.writeBuffer(this.indexBuffer, 0, this.indices);
 

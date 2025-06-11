@@ -62,15 +62,21 @@ export class RepeatObject {
       return;
     }
 
-    this.vertexBuffer = device.createBuffer({
-      size: 65536,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
+    this.vertexBuffer = device.createBuffer(
+      {
+        size: 65536,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      },
+      ""
+    );
 
-    this.indexBuffer = device.createBuffer({
-      size: 65536,
-      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-    });
+    this.indexBuffer = device.createBuffer(
+      {
+        size: 65536,
+        usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+      },
+      ""
+    );
 
     queue.writeBuffer(
       this.vertexBuffer,
@@ -156,13 +162,16 @@ export class RepeatObject {
     instance: RepeatInstance
   ): PolyfillBuffer {
     const identityMatrix = mat4.create();
-    let uniformBuffer = device.createBuffer({
-      size: 64,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-      mappedAtCreation: true,
-    });
+    let uniformBuffer = device.createBuffer(
+      {
+        size: 64,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true,
+      },
+      "uniformMatrix4fv"
+    );
     new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
-    uniformBuffer.unmap();
+    // uniformBuffer.unmap();
 
     // let sampler = device.createSampler({
     //   addressModeU: "clamp-to-edge",
@@ -175,11 +184,13 @@ export class RepeatObject {
     instance.bindGroup = device.createBindGroup({
       layout: bindGroupLayout,
       entries: [
-        { binding: 0, resource: { pbuffer: uniformBuffer } },
+        { binding: 0, groupIndex: 3, resource: { pbuffer: uniformBuffer } },
         // { binding: 1, resource: this.sourceObject.textureView },
         // { binding: 2, resource: sampler },
       ],
     });
+
+    uniformBuffer.unmap();
 
     return uniformBuffer;
   }

@@ -166,11 +166,17 @@ export class CanvasPipeline {
     });
 
     // Create window size buffer and bind group
-    const windowSizeBuffer = gpuResources.device!.createBuffer({
-      label: "Window Size Buffer",
-      size: 8, // 2 floats, 4 bytes each
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
+    const windowSizeBuffer = gpuResources.device!.createBuffer(
+      {
+        label: "Window Size Buffer",
+        size: 8, // 2 floats, 4 bytes each
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true,
+      },
+      "uniform2f"
+    );
+
+    windowSizeBuffer.unmap(); // Unmap after creation
 
     // Update window size buffer
     const windowSizeData = new Float32Array([
@@ -196,7 +202,8 @@ export class CanvasPipeline {
       layout: windowSizeBindGroupLayout,
       entries: [
         {
-          binding: 0,
+          binding: 1,
+          groupIndex: 0,
           resource: {
             pbuffer: windowSizeBuffer,
           },
@@ -204,11 +211,13 @@ export class CanvasPipeline {
       ],
     });
 
+    // gpuResources.queue!.writeBuffer(windowSizeBuffer, 0, windowSizeData);
+
     // Create pipeline layout
     const pipelineLayout = gpuResources.device!.createPipelineLayout({
       label: "Pipeline Layout",
       bindGroupLayouts: [
-        cameraBinding.bindGroupLayout,
+        // cameraBinding.bindGroupLayout,
         modelBindGroupLayout,
         windowSizeBindGroupLayout,
         groupBindGroupLayout,
@@ -272,6 +281,9 @@ export class CanvasPipeline {
       },
     });
 
+    // necessary for webgl
+    // renderPipeline.use();
+
     console.info("Initialized...");
 
     // editor.cursorDot = cursorRingDot;
@@ -306,15 +318,19 @@ export class CanvasPipeline {
     if (this.stepFrames) {
       // Start the animation loop
       const renderLoop = async () => {
+        // editor.renderPipeline!.use();
+
         await this.renderWebglFrame(editor);
 
         // Schedule the next frame
         this.animationFrameId = window.requestAnimationFrame(renderLoop);
       };
 
+      // editor.renderPipeline!.use();
       // Start the first frame
       this.animationFrameId = window.requestAnimationFrame(renderLoop);
     } else {
+      // editor.renderPipeline!.use();
       await this.renderWebglFrame(editor);
     }
   }
@@ -780,7 +796,7 @@ export class CanvasPipeline {
     );
 
     // Clear the framebuffer
-    gl.clearColor(1.0, 1.0, 1.0, 1.0); // White background
+    gl.clearColor(1.0, 0.0, 0.0, 1.0); // White background
     gl.clearDepth(1.0);
     gl.clearStencil(0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
@@ -802,19 +818,63 @@ export class CanvasPipeline {
 
     // Bind camera uniform buffer (bind group 0)
     if (editor.cameraBinding) {
-      this.bindWebGLBindGroup(gl, editor.cameraBinding.bindGroup, 0);
+      editor.cameraBinding.bindGroup.bindWebGLBindGroup(gl);
     } else {
       console.error("Couldn't get camera binding");
       return;
     }
 
-    // Bind window size uniform buffer (bind group 2)
+    // Bind group 0: Camera/Global uniforms (set once per frame)
+    // const cameraBuffer = this.createCameraUniformBuffer(
+    //   editor.gpuResources.webglContext!,
+    //   editor.camera,
+    //   [editor.camera.windowSize.width, editor.camera.windowSize.height]
+    // );
+    // const cameraBindGroup = new PolyfillBindGroup(
+    //   editor.gpuResources.webglContext!,
+    //   editor.cameraBinding?.bindGroupLayout!,
+    //   [
+    //     {
+    //       binding: 0,
+    //       groupIndex: 0,
+    //       resource: cameraBuffer,
+    //     },
+    //   ]
+    // );
+    // this.bindWebGLBindGroup(
+    //   editor.gpuResources.webglContext!,
+    //   cameraBindGroup,
+    //   0
+    // );
+
+    // Bind window size uniform buffer
     if (editor.windowSizeBindGroup) {
-      this.bindWebGLBindGroup(gl, editor.windowSizeBindGroup, 2);
+      editor.windowSizeBindGroup.bindWebGLBindGroup(gl);
     } else {
       console.error("Couldn't get window size group");
       return;
     }
+
+    // // Bind group 0: Camera/Global uniforms (set once per frame)
+    // const windowSizeBuffer = this.createCameraUniformBuffer(
+    //   editor.gpuResources.webglContext!,
+    //   editor.camera,
+    //   [editor.camera.windowSize.width, editor.camera.windowSize.height]
+    // );
+    // const windowSizeBindGroup = new PolyfillBindGroup(
+    //   editor.cameraBinding?.bindGroupLayout!,
+    //   [
+    //     {
+    //       binding: 0,
+    //       resource: cameraBuffer,
+    //     },
+    //   ]
+    // );
+    // this.bindWebGLBindGroup(
+    //   editor.gpuResources.webglContext!,
+    //   windowSizeBindGroup,
+    //   2
+    // );
 
     // Helper function to draw indexed geometry
     const drawIndexedGeometry = (
@@ -870,8 +930,12 @@ export class CanvasPipeline {
       }
 
       // Bind polygon-specific resources (bind groups 1 and 3)
-      this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
-      this.bindWebGLBindGroup(gl, polygon.groupBindGroup, 3);
+      // this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
+      // this.bindWebGLBindGroup(gl, polygon.groupBindGroup, 3);
+
+      polygon.bindGroup.bindWebGLBindGroup(gl);
+      polygon.gradientBindGroup?.bindWebGLBindGroup(gl);
+      polygon.groupBindGroup?.bindWebGLBindGroup(gl);
 
       drawIndexedGeometry(
         polygon.vertexBuffer as PolyfillBuffer,
@@ -887,7 +951,7 @@ export class CanvasPipeline {
         path.transform.updateUniformBuffer(queue, editor.camera.windowSize);
       }
 
-      this.bindWebGLBindGroup(gl, path.bindGroup, 3);
+      // this.bindWebGLBindGroup(gl, path.bindGroup, 3);
 
       // Draw static polygons in this path
       for (const polygon of path.staticPolygons || []) {
@@ -898,7 +962,7 @@ export class CanvasPipeline {
           );
         }
 
-        this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
+        // this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
 
         drawIndexedGeometry(
           polygon.vertexBuffer as PolyfillBuffer,
@@ -919,8 +983,8 @@ export class CanvasPipeline {
           );
         }
 
-        this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
-        this.bindWebGLBindGroup(gl, polygon.groupBindGroup, 3);
+        // this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
+        // this.bindWebGLBindGroup(gl, polygon.groupBindGroup, 3);
 
         drawIndexedGeometry(
           polygon.vertexBuffer as PolyfillBuffer,
@@ -945,12 +1009,12 @@ export class CanvasPipeline {
             );
           }
 
-          this.bindWebGLBindGroup(gl, textItem.backgroundPolygon.bindGroup, 1);
-          this.bindWebGLBindGroup(
-            gl,
-            textItem.backgroundPolygon.groupBindGroup,
-            3
-          );
+          // this.bindWebGLBindGroup(gl, textItem.backgroundPolygon.bindGroup, 1);
+          // this.bindWebGLBindGroup(
+          //   gl,
+          //   textItem.backgroundPolygon.groupBindGroup,
+          //   3
+          // );
 
           drawIndexedGeometry(
             textItem.backgroundPolygon.vertexBuffer as PolyfillBuffer,
@@ -967,8 +1031,8 @@ export class CanvasPipeline {
           );
         }
 
-        this.bindWebGLBindGroup(gl, textItem.bindGroup, 1);
-        this.bindWebGLBindGroup(gl, textItem.groupBindGroup, 3);
+        // this.bindWebGLBindGroup(gl, textItem.bindGroup, 1);
+        // this.bindWebGLBindGroup(gl, textItem.groupBindGroup, 3);
 
         drawIndexedGeometry(
           textItem.vertexBuffer as PolyfillBuffer,
@@ -985,8 +1049,8 @@ export class CanvasPipeline {
           image.transform.updateUniformBuffer(queue, editor.camera.windowSize);
         }
 
-        this.bindWebGLBindGroup(gl, image.bindGroup, 1);
-        this.bindWebGLBindGroup(gl, image.groupBindGroup, 3);
+        // this.bindWebGLBindGroup(gl, image.bindGroup, 1);
+        // this.bindWebGLBindGroup(gl, image.groupBindGroup, 3);
 
         drawIndexedGeometry(
           image.vertexBuffer as PolyfillBuffer,
@@ -999,7 +1063,7 @@ export class CanvasPipeline {
     // Draw video items
     for (const video of editor.videoItems || []) {
       if (!video.hidden) {
-        this.bindWebGLBindGroup(gl, video.groupBindGroup, 3);
+        // this.bindWebGLBindGroup(gl, video.groupBindGroup, 3);
 
         if (video.mousePath) {
           // Update path transform if being dragged
@@ -1019,7 +1083,7 @@ export class CanvasPipeline {
               );
             }
 
-            this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
+            // this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
 
             drawIndexedGeometry(
               polygon.vertexBuffer as PolyfillBuffer,
@@ -1036,7 +1100,7 @@ export class CanvasPipeline {
           );
         }
 
-        this.bindWebGLBindGroup(gl, video.bindGroup, 1);
+        // this.bindWebGLBindGroup(gl, video.bindGroup, 1);
 
         drawIndexedGeometry(
           video.vertexBuffer as PolyfillBuffer,
@@ -1076,16 +1140,16 @@ export class CanvasPipeline {
                     );
                   }
 
-                  this.bindWebGLBindGroup(
-                    gl,
-                    sourceObject.backgroundPolygon.bindGroup,
-                    1
-                  );
-                  this.bindWebGLBindGroup(
-                    gl,
-                    sourceObject.backgroundPolygon.groupBindGroup,
-                    3
-                  );
+                  // this.bindWebGLBindGroup(
+                  //   gl,
+                  //   sourceObject.backgroundPolygon.bindGroup,
+                  //   1
+                  // );
+                  // this.bindWebGLBindGroup(
+                  //   gl,
+                  //   sourceObject.backgroundPolygon.groupBindGroup,
+                  //   3
+                  // );
 
                   drawIndexedGeometry(
                     sourceObject.backgroundPolygon
@@ -1106,8 +1170,8 @@ export class CanvasPipeline {
               );
             }
 
-            this.bindWebGLBindGroup(gl, instance.bindGroup!, 1);
-            this.bindWebGLBindGroup(gl, sourceObject.groupBindGroup, 3);
+            // this.bindWebGLBindGroup(gl, instance.bindGroup!, 1);
+            // this.bindWebGLBindGroup(gl, sourceObject.groupBindGroup, 3);
 
             drawIndexedGeometry(
               repeatObject.vertexBuffer as PolyfillBuffer,
@@ -1122,8 +1186,8 @@ export class CanvasPipeline {
     // Draw text areas
     if (editor.textArea) {
       if (!editor.textArea.hidden && editor.textArea.indices) {
-        this.bindWebGLBindGroup(gl, editor.textArea.bindGroup, 1);
-        this.bindWebGLBindGroup(gl, editor.textArea.groupBindGroup, 3);
+        // this.bindWebGLBindGroup(gl, editor.textArea.bindGroup, 1);
+        // this.bindWebGLBindGroup(gl, editor.textArea.groupBindGroup, 3);
 
         drawIndexedGeometry(
           editor.textArea.vertexBuffer as PolyfillBuffer,
@@ -1157,44 +1221,175 @@ export class CanvasPipeline {
     }
   }
 
-  // Helper method to bind WebGL bind groups
-  private bindWebGLBindGroup(
-    gl: WebGL2RenderingContext,
-    bindGroup: PolyfillBindGroup,
-    groupIndex: number
-  ): void {
-    // Iterate through the bind group resources and bind them appropriately
-    bindGroup.resources.forEach((resource, binding) => {
-      if (resource instanceof PolyfillBuffer) {
-        // Bind uniform buffer
-        const uniformBlockIndex = gl.getUniformBlockIndex(
-          gl.getParameter(gl.CURRENT_PROGRAM),
-          `bindGroup${groupIndex}_${binding}`
-        );
-        if (uniformBlockIndex !== gl.INVALID_INDEX) {
-          gl.uniformBlockBinding(
-            gl.getParameter(gl.CURRENT_PROGRAM),
-            uniformBlockIndex,
-            binding
-          );
-          gl.bindBufferBase(gl.UNIFORM_BUFFER, binding, resource.buffer);
-        }
-      } else if (resource instanceof PolyfillTexture) {
-        // Bind texture
-        gl.activeTexture(gl.TEXTURE0 + binding);
-        gl.bindTexture(gl.TEXTURE_2D, resource.texture);
+  //   // Helper method to bind WebGL bind groups
+  //   private bindWebGLBindGroup(
+  //     gl: WebGL2RenderingContext,
+  //     bindGroup: PolyfillBindGroup,
+  //     groupIndex: number
+  //   ): void {
+  //     // Iterate through the bind group resources and bind them appropriately
+  //     bindGroup.resources.forEach((resource, binding) => {
+  //       if (resource instanceof PolyfillBuffer) {
+  //         // Bind uniform buffer
+  //         const uniformBlockIndex = gl.getUniformBlockIndex(
+  //           gl.getParameter(gl.CURRENT_PROGRAM),
+  //           `bindGroup${groupIndex}_${binding}`
+  //         );
+  //         if (uniformBlockIndex !== gl.INVALID_INDEX) {
+  //           gl.uniformBlockBinding(
+  //             gl.getParameter(gl.CURRENT_PROGRAM),
+  //             uniformBlockIndex,
+  //             binding
+  //           );
+  //           gl.bindBufferBase(gl.UNIFORM_BUFFER, binding, resource.buffer);
+  //         }
+  //       } else if (resource instanceof PolyfillTexture) {
+  //         // Bind texture
+  //         gl.activeTexture(gl.TEXTURE0 + binding);
+  //         gl.bindTexture(gl.TEXTURE_2D, resource.texture);
 
-        // Set the uniform sampler
-        const samplerLocation = gl.getUniformLocation(
-          gl.getParameter(gl.CURRENT_PROGRAM),
-          `bindGroup${groupIndex}_${binding}`
-        );
-        if (samplerLocation) {
-          gl.uniform1i(samplerLocation, binding);
-        }
-      }
-    });
-  }
+  //         // Set the uniform sampler
+  //         const samplerLocation = gl.getUniformLocation(
+  //           gl.getParameter(gl.CURRENT_PROGRAM),
+  //           `bindGroup${groupIndex}_${binding}`
+  //         );
+  //         if (samplerLocation) {
+  //           gl.uniform1i(samplerLocation, binding);
+  //         }
+  //       }
+  //     });
+  //   }
+
+  // // Updated bind group method
+  // private bindWebGLBindGroup(
+  //   gl: WebGL2RenderingContext,
+  //   bindGroup: PolyfillBindGroup,
+  //   groupIndex: number
+  // ): void {
+  //   const program = gl.getParameter(gl.CURRENT_PROGRAM);
+
+  //   bindGroup.resources.forEach((resource, binding) => {
+  //     const uniformName = `bindGroup${groupIndex}_${binding}`;
+
+  //     if (resource instanceof PolyfillBuffer) {
+  //       // Bind uniform buffer
+  //       const uniformBlockIndex = gl.getUniformBlockIndex(program, uniformName);
+  //       if (uniformBlockIndex !== gl.INVALID_INDEX) {
+  //         // Bind the uniform block to a binding point
+  //         const bindingPoint = groupIndex * 10 + binding; // Unique binding point
+  //         gl.uniformBlockBinding(program, uniformBlockIndex, bindingPoint);
+  //         gl.bindBufferBase(gl.UNIFORM_BUFFER, bindingPoint, resource.buffer);
+  //       }
+  //     } else if (resource instanceof PolyfillTexture) {
+  //       // Bind texture
+  //       const textureUnit = groupIndex * 10 + binding; // Unique texture unit
+  //       gl.activeTexture(gl.TEXTURE0 + textureUnit);
+  //       gl.bindTexture(gl.TEXTURE_2D, resource.texture);
+
+  //       // Set the uniform sampler
+  //       const samplerLocation = gl.getUniformLocation(program, uniformName);
+  //       if (samplerLocation) {
+  //         gl.uniform1i(samplerLocation, textureUnit);
+  //       }
+  //     }
+  //   });
+  // }
+
+  // // Helper to create camera/global uniform buffer (bind group 0)
+  // createCameraUniformBuffer(
+  //   gl: WebGL2RenderingContext,
+  //   camera: Camera3D,
+  //   windowSize: [number, number]
+  // ): PolyfillBuffer {
+  //   // std140 layout: mat4 (64 bytes) + vec2 (8 bytes) + padding (8 bytes) = 80 bytes
+  //   const buffer = new PolyfillBuffer(gl, 80, "uniform");
+  //   const mappedRange = buffer.getMappedRange();
+  //   const data = new Float32Array(mappedRange);
+
+  //   // u_camera_view_proj (mat4 - 16 floats)
+  //   data.set(camera.getViewProjectionMatrix(), 0);
+
+  //   // u_window_size (vec2 - 2 floats)
+  //   data[16] = windowSize[0];
+  //   data[17] = windowSize[1];
+
+  //   // padding (2 floats)
+  //   data[18] = 0.0;
+  //   data[19] = 0.0;
+
+  //   buffer.unmap();
+  //   return buffer;
+  // }
+
+  // // Helper to create model matrix uniform buffer (bind group 1)
+  // createModelUniformBuffer(
+  //   gl: WebGL2RenderingContext,
+  //   modelMatrix: Float32Array
+  // ): PolyfillBuffer {
+  //   // std140 layout: mat4 (64 bytes)
+  //   const buffer = new PolyfillBuffer(gl, 64, "uniform");
+  //   const mappedRange = buffer.getMappedRange();
+  //   const data = new Float32Array(mappedRange);
+  //   data.set(modelMatrix, 0);
+
+  //   buffer.unmap();
+  //   return buffer;
+  // }
+
+  // // Helper to create gradient uniform buffer (bind group 2)
+  // createGradientUniformBuffer(
+  //   gl: WebGL2RenderingContext,
+  //   gradientData: any
+  // ): PolyfillBuffer {
+  //   // Calculate size based on std140 layout
+  //   // vec4[2] + vec4[8] + 13 floats + padding = approximately 256 bytes
+  //   const buffer = new PolyfillBuffer(gl, 256, "uniform");
+  //   const mappedRange = buffer.getMappedRange();
+  //   const data = new Float32Array(mappedRange);
+
+  //   let offset = 0;
+
+  //   // u_stop_offsets[2] (2 vec4s = 8 floats)
+  //   data.set(gradientData.stopOffsets || new Float32Array(8), offset);
+  //   offset += 8;
+
+  //   // u_stop_colors[8] (8 vec4s = 32 floats)
+  //   data.set(gradientData.stopColors || new Float32Array(32), offset);
+  //   offset += 32;
+
+  //   // Individual float uniforms
+  //   data[offset++] = gradientData.numStops || 0;
+  //   data[offset++] = gradientData.gradientType || 0;
+  //   data[offset++] = gradientData.startPoint?.[0] || 0;
+  //   data[offset++] = gradientData.startPoint?.[1] || 0;
+  //   data[offset++] = gradientData.endPoint?.[0] || 0;
+  //   data[offset++] = gradientData.endPoint?.[1] || 0;
+  //   data[offset++] = gradientData.center?.[0] || 0;
+  //   data[offset++] = gradientData.center?.[1] || 0;
+  //   data[offset++] = gradientData.radius || 0;
+  //   data[offset++] = gradientData.time || 0;
+  //   data[offset++] = gradientData.animationSpeed || 0;
+  //   data[offset++] = gradientData.enabled || 0;
+  //   data[offset++] = 0.0; // padding
+
+  //   buffer.unmap();
+  //   return buffer;
+  // }
+
+  // // Helper to create group transform uniform buffer (bind group 3)
+  // createGroupUniformBuffer(
+  //   gl: WebGL2RenderingContext,
+  //   groupMatrix: Float32Array
+  // ): PolyfillBuffer {
+  //   // std140 layout: mat4 (64 bytes)
+  //   const buffer = new PolyfillBuffer(gl, 64, "uniform");
+  //   const mappedRange = buffer.getMappedRange();
+  //   const data = new Float32Array(mappedRange);
+  //   data.set(groupMatrix, 0);
+
+  //   buffer.unmap();
+  //   return buffer;
+  // }
 }
 
 function isTextRenderer(obj: RepeatableObject): obj is TextRenderer {
