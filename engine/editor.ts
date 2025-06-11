@@ -272,104 +272,6 @@ export interface windowSize {
   height: number;
 }
 
-// WebGPU resources class
-export class WebGpuResources {
-  surface: GPUCanvasContext | null;
-  adapter: GPUAdapter;
-  device: GPUDevice;
-  queue: GPUQueue;
-
-  private constructor(
-    surface: GPUCanvasContext | null,
-    adapter: GPUAdapter,
-    device: GPUDevice,
-    queue: GPUQueue
-  ) {
-    this.surface = surface;
-    this.adapter = adapter;
-    this.device = device;
-    this.queue = queue;
-  }
-
-  static async request(
-    canvas: HTMLCanvasElement | OffscreenCanvas | null,
-    windowSize: WindowSize
-  ): Promise<WebGpuResources> {
-    if (!canvas) {
-      throw Error("No canvas provided");
-    }
-
-    if (!navigator.gpu) {
-      throw new Error("WebGPU not supported on this browser");
-    }
-
-    // Get WebGPU adapter
-    // const adapter = await navigator.gpu.requestAdapter({
-    //   powerPreference: "high-performance",
-    // });
-    const adapter = await navigator.gpu.requestAdapter();
-
-    if (!adapter) {
-      throw new GpuResourceError("AdapterNotFoundError");
-    }
-
-    // Request device from adapter
-    const device = await adapter.requestDevice({
-      label: "Main device",
-      requiredFeatures: [],
-      requiredLimits: {},
-    });
-
-    // Get canvas context
-    const context = canvas.getContext("webgpu");
-    if (!context) {
-      throw new Error("Couldn't get WebGPU context from canvas");
-    }
-
-    // Configure the canvas for the device
-    const format = navigator.gpu.getPreferredCanvasFormat();
-    context.configure({
-      device,
-      format,
-      alphaMode: "premultiplied",
-    });
-
-    // Return the resources
-    return new WebGpuResources(context, adapter, device, device.queue);
-  }
-}
-
-// GPU Resource Error class
-export class GpuResourceError extends Error {
-  constructor(errorType: string, originalError?: Error) {
-    const message = getErrorMessage(errorType, originalError);
-    super(message);
-    this.name = "GpuResourceError";
-
-    // This is needed for proper TypeScript error handling
-    Object.setPrototypeOf(this, GpuResourceError.prototype);
-  }
-}
-
-function getErrorMessage(errorType: string, originalError?: Error): string {
-  switch (errorType) {
-    case "SurfaceCreationError":
-      return `Surface creation error: ${
-        originalError?.message || "unknown error"
-      }`;
-    case "AdapterNotFoundError":
-      return "Failed to find a suitable GPU adapter";
-    case "DeviceRequestError":
-      return `Device request error: ${
-        originalError?.message || "unknown error"
-      }`;
-    default:
-      return `Unknown GPU resource error: ${
-        originalError?.message || "unknown error"
-      }`;
-  }
-}
-
 // import { ControlMode, PolygonClickHandler, TextItemClickHandler, ImageItemClickHandler, VideoItemClickHandler, OnMouseUp, OnHandleMouseUp, OnPathMouseUp } from './control-types';
 import { FontManager } from "./font";
 import { MotionPath } from "./motionpath";
@@ -392,6 +294,7 @@ import {
 } from "./rte";
 import { SaveTarget } from "./editor_state";
 import { Camera3D } from "./3dcamera";
+import { WebGpuResources } from "./polyfill";
 // import * as fontkit from "fontkit";
 
 export class Editor {

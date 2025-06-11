@@ -1,7 +1,7 @@
 import { mat4, vec3 } from "gl-matrix";
 import { createVertexBufferLayout } from "./vertex";
 import { Camera, CameraBinding } from "./camera";
-import { ControlMode, Editor, WebGpuResources } from "./editor";
+import { ControlMode, Editor } from "./editor";
 
 import FragShader from "./shaders/frag_primary.wgsl?raw";
 import VertShader from "./shaders/vert_primary.wgsl?raw";
@@ -12,6 +12,7 @@ import { RepeatableObject } from "./repeater";
 import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
 import { SaveTarget } from "./editor_state";
 import { Camera3D } from "./3dcamera";
+import { WebGpuResources } from "./polyfill";
 
 interface WindowSize {
   width: number;
