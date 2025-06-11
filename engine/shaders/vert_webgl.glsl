@@ -16,12 +16,13 @@ flat out uint v_object_type;
 uniform mat4 bindGroup0_0; // u_camera_view_proj
 uniform vec2 bindGroup0_1; // u_window_size (changed from mat4 to vec2)
 uniform mat4 bindGroup1_0; // u_model
-uniform vec2 bindGroup3_0; // u_group
+uniform mat4 bindGroup3_0; // u_group
 
 void main() {
     // Apply model transformation first, then add group offset
-    vec4 model_pos = bindGroup1_0 * vec4(a_position, 1.0);
-    model_pos.xy += bindGroup3_0; // Add group offset to transformed position
+    // vec4 model_pos = bindGroup1_0 * vec4(a_position, 1.0);
+    vec4 model_pos = bindGroup1_0 * bindGroup3_0 * vec4(a_position, 1.0);
+    // model_pos.xy += bindGroup3_0; // Add group offset to transformed position
 
     vec3 ndc_pos = model_pos.xyz;
     // Now use bindGroup0_1 as vec2 for window size
