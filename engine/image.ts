@@ -118,7 +118,7 @@ export class StImage {
       "uniformMatrix4fv"
     );
     new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
-    // uniformBuffer.unmap();
+    uniformBuffer.unmap();
 
     this.transform = new Transform(
       vec2.fromValues(imageConfig.position.x, imageConfig.position.y),
@@ -237,7 +237,7 @@ export class StImage {
       // label: "Image Bind Group",
     });
 
-    uniformBuffer.unmap();
+    // uniformBuffer.unmap();
     this.transform.updateUniformBuffer(queue, windowSize);
 
     if (imageConfig.isCircle) {

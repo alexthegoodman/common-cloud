@@ -93,7 +93,9 @@ interface VideoMetadata {
 interface DecodedFrameInfo {
   timestamp: number;
   duration: number;
-  frameData: Uint8Array;
+  // frameData: Uint8ClampedArray;
+  // bitmap: ImageBitmap;
+  frame: VideoFrame;
   width: number;
   height: number;
 }
@@ -218,7 +220,8 @@ export class StVideo {
       // vec2.fromValues(videoConfig.position.x, videoConfig.position.y),
       vec2.fromValues(0, 0),
       0.0,
-      vec2.fromValues(videoConfig.dimensions[0], videoConfig.dimensions[1]), // Apply scaling here instead of resizing image
+      // vec2.fromValues(videoConfig.dimensions[0], videoConfig.dimensions[1]), // Apply scaling here instead of resizing image
+      vec2.fromValues(1, 1), // testing
       uniformBuffer
       // window_size,
     );
@@ -243,10 +246,16 @@ export class StVideo {
       windowSize
     );
 
-    group_transform.updatePosition(
-      [videoConfig.position.x, videoConfig.position.y],
-      windowSize
-    );
+    // console.info("position", videoConfig.position);
+
+    let setPosition = {
+      // x: 1.5,
+      // y: 1.5,
+      x: videoConfig.position.x,
+      y: videoConfig.position.y,
+    };
+
+    group_transform.updatePosition([setPosition.x, setPosition.y], windowSize);
 
     // group_transform.updateRotationYDegrees(0.02);
 
@@ -274,6 +283,8 @@ export class StVideo {
         height: height,
         depthOrArrayLayers: 1,
       };
+
+      console.info("video texture", textureSize);
 
       this.texture = device.createTexture({
         label: "Video Texture",
@@ -340,8 +351,16 @@ export class StVideo {
       for (let y = 0; y <= rows; y++) {
         for (let x = 0; x <= cols; x++) {
           // Keep your original position calculation
-          const posX = -0.5 + x / cols;
-          const posY = -0.5 + y / rows;
+          // const posX = -0.5 + x / cols;
+          // const posY = -0.5 + y / rows;
+
+          // Center the position by offsetting by half dimensions
+          const posX =
+            -videoConfig.dimensions[0] / 2 +
+            videoConfig.dimensions[0] * (x / cols);
+          const posY =
+            -videoConfig.dimensions[1] / 2 +
+            videoConfig.dimensions[1] * (y / rows);
 
           // Map texture coordinates to properly implement cover
           const percentX = x / cols; // 0 to 1 across the grid
@@ -394,7 +413,7 @@ export class StVideo {
       //   }
       // }
 
-      // // console.info("vertices", this.vertices);
+      console.info("video vertices", this.vertices);
 
       this.vertexBuffer = device.createBuffer(
         {
@@ -464,6 +483,8 @@ export class StVideo {
       await this.drawVideoFrame(device, queue);
 
       this.hidden = loadedHidden;
+
+      console.info("video loaded");
     }
   }
 
@@ -728,23 +749,29 @@ export class StVideo {
             //   frame.colorSpace
             // );
 
-            const frameData = new Uint8Array(this.bytesPerFrame);
-            const options: VideoFrameCopyToOptions = {
-              colorSpace: "srgb",
-              format: "RGBA",
-            };
-            await frame.copyTo(frameData, options);
+            // needed for webgpu?
+            // const frameData = new Uint8ClampedArray(this.bytesPerFrame);
+            // const options: VideoFrameCopyToOptions = {
+            //   colorSpace: "srgb",
+            //   format: "RGBA",
+            // };
+            // await frame.copyTo(frameData, options);
+
+            // hmmm?
+            // const bitmap = await createImageBitmap(frame);
 
             const frameInfo: DecodedFrameInfo = {
               timestamp: frame.timestamp,
               duration: frame.duration || 0,
-              frameData,
+              // frameData,
+              // bitmap,
+              frame,
               width: frame.displayWidth,
               height: frame.displayHeight,
             };
 
             this.frameCallback?.(frameInfo);
-            frame.close();
+            // frame.close();
           } catch (error) {
             console.error("Error processing frame:", error);
             frame.close();
@@ -907,7 +934,8 @@ export class StVideo {
         origin: { x: 0, y: 0, z: 0 },
         // aspect: "all",
       },
-      frameInfo.frameData,
+      // frameInfo.frameData,
+      frameInfo.frame,
       {
         offset: 0,
         bytesPerRow: frameInfo.width * 4,
@@ -919,6 +947,8 @@ export class StVideo {
         depthOrArrayLayers: 1,
       }
     );
+
+    frameInfo.frame.close();
 
     // console.info("texture write succesful");
     // console.log("Texture format:", this.texture.format); // Log texture format
@@ -992,7 +1022,8 @@ export class StVideo {
   ): void {
     console.info("updateDataFromDimensions", dimensions);
     this.dimensions = [dimensions[0], dimensions[1]];
-    this.transform.updateScale([dimensions[0], dimensions[1]]);
+    // this.transform.updateScale([dimensions[0], dimensions[1]]); // old scale way with webgpu
+
     this.transform.updateUniformBuffer(queue, windowSize);
 
     const rows = this.gridResolution[0];
@@ -1009,6 +1040,10 @@ export class StVideo {
     let n = 0;
     for (let y = 0; y <= rows; y++) {
       for (let x = 0; x <= cols; x++) {
+        // Center the position by offsetting by half dimensions
+        const posX = -this.dimensions[0] / 2 + this.dimensions[0] * (x / cols);
+        const posY = -this.dimensions[1] / 2 + this.dimensions[1] * (y / rows);
+
         // Map texture coordinates to properly implement cover
         const percentX = x / cols; // 0 to 1 across the grid
         const percentY = y / rows; // 0 to 1 across the grid
@@ -1016,6 +1051,7 @@ export class StVideo {
         const texX = u0 + (u1 - u0) * percentX;
         const texY = v0 + (v1 - v0) * percentY;
 
+        this.vertices[n].position = [posX, posY, 0];
         this.vertices[n].tex_coords = [texX, texY];
 
         n++;

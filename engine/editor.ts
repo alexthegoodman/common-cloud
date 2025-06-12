@@ -2798,7 +2798,9 @@ export class Editor {
         prop.propertyPath === "position"
     );
     if (!positionProperty) {
-      console.warn(`Couldn't find position property for object ${objectId}`);
+      console.warn(
+        `Couldn't create motion path as couldn't find position property for object ${objectId}`
+      );
       return;
     }
 

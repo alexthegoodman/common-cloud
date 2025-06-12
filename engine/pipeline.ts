@@ -1098,6 +1098,8 @@ export class CanvasPipeline {
         video.bindGroup.bindWebGLBindGroup(gl);
         video.groupBindGroup?.bindWebGLBindGroup(gl);
 
+        // console.info("video layer", video.layer, video.transform.layer);
+
         drawIndexedGeometry(
           video.vertexBuffer as PolyfillBuffer,
           video.indexBuffer as PolyfillBuffer,

@@ -95,7 +95,7 @@ void main() {
     }
 
     // testing
-    // final_color = tex_color;
+    // final_color = v_color;
 
     fragColor = final_color;
 }

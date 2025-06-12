@@ -512,7 +512,7 @@ export class PolyfillDevice {
     }
 
     // Map WebGPU format to WebGL format
-    let format = this.webglContext.RGBA;
+    let format: number = this.webglContext.RGBA;
     let type = this.webglContext.UNSIGNED_BYTE;
 
     switch (descriptor.format) {
@@ -522,6 +522,10 @@ export class PolyfillDevice {
         break;
       case "bgra8unorm":
         format = this.webglContext.RGBA; // WebGL doesn't have BGRA in core
+        type = this.webglContext.UNSIGNED_BYTE;
+        break;
+      case "rgb":
+        format = this.webglContext.RGB;
         type = this.webglContext.UNSIGNED_BYTE;
         break;
       //   case "rgba32float":
@@ -947,7 +951,11 @@ export class PolyfillQueue {
       mipLevel?: number;
       origin?: { x: number; y: number; z: number };
     },
-    data: ArrayBuffer | ArrayBufferView,
+    // data: ArrayBuffer | ArrayBufferView,
+    data:
+      | Uint8Array<ArrayBufferLike>
+      | Uint8ClampedArray<ArrayBufferLike>
+      | VideoFrame,
     dataLayout: { offset?: number; bytesPerRow: number; rowsPerImage?: number },
     size: { width: number; height: number; depthOrArrayLayers?: number }
   ) {
@@ -956,25 +964,58 @@ export class PolyfillQueue {
 
     this.gl.bindTexture(this.gl.TEXTURE_2D, texture.texture);
 
-    const dataArray =
-      data instanceof ArrayBuffer
-        ? new Uint8Array(data, dataLayout.offset || 0)
-        : new Uint8Array(
-            data.buffer,
-            data.byteOffset + (dataLayout.offset || 0)
-          );
+    // log first few values
+    // console.log("Writing texture data:", {
+    //   width: size.width,
+    //   height: size.height,
+    //   mipLevel: destination.mipLevel || 0,
+    //   origin,
+    //   dataLength: data.byteLength,
+    //   dataLayout,
+    //   firstValues: data.slice(0, 10),
+    // });
 
-    this.gl.texSubImage2D(
-      this.gl.TEXTURE_2D,
-      destination.mipLevel || 0,
-      origin.x,
-      origin.y,
-      size.width,
-      size.height,
-      texture.format,
-      texture.type,
-      dataArray
-    );
+    // const dataArray =
+    //   data instanceof ArrayBuffer
+    //     ? new Uint8Array(data, dataLayout.offset || 0)
+    //     : new Uint8Array(
+    //         data.buffer,
+    //         data.byteOffset + (dataLayout.offset || 0)
+    //       );
+
+    if (data instanceof VideoFrame) {
+      // this.gl.texSubImage2D(
+      //   this.gl.TEXTURE_2D,
+      //   destination.mipLevel || 0,
+      //   origin.x,
+      //   origin.y,
+      //   size.width,
+      //   size.height,
+      //   texture.format,
+      //   texture.type,
+      //   data
+      // );
+      this.gl.texImage2D(
+        this.gl.TEXTURE_2D,
+        0,
+        this.gl.RGBA,
+        this.gl.RGBA,
+        this.gl.UNSIGNED_BYTE,
+        data
+      );
+    } else {
+      this.gl.texSubImage2D(
+        this.gl.TEXTURE_2D,
+        destination.mipLevel || 0,
+        origin.x,
+        origin.y,
+        size.width,
+        size.height,
+        texture.format,
+        texture.type,
+        data
+      );
+    }
   }
 
   submit(commandBuffers: any[]) {

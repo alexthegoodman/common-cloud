@@ -144,7 +144,7 @@ const DraggableSequence: React.FC<SequenceProps> = ({
   return (
     <div
       ref={setNodeRef}
-      className={`relative h-10 rounded cursor-pointer ${sequenceColor} 
+      className={`flex flex-row gap-2 relative h-10 rounded cursor-pointer ${sequenceColor} 
         hover:shadow-lg transition-shadow duration-200
         flex items-center px-2 select-none ${isDragging ? "opacity-50" : ""}`}
       style={{
@@ -155,7 +155,8 @@ const DraggableSequence: React.FC<SequenceProps> = ({
       {...listeners}
       {...attributes}
     >
-      {objectName}
+      <span>{objectName}</span>
+      {/* <span className="text-xs">({animation.polygonId})</span> */}
     </div>
   );
 };
