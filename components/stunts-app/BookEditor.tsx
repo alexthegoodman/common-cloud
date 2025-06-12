@@ -223,7 +223,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                       docCanvasSize
                     );
                     p.transform.updateUniformBuffer(
-                      previewGpuResources.queue,
+                      previewGpuResources.queue!,
                       docCanvasSize
                     );
                   }
@@ -247,7 +247,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                       docCanvasSize
                     );
                     p.transform.updateUniformBuffer(
-                      previewGpuResources.queue,
+                      previewGpuResources.queue!,
                       docCanvasSize
                     );
                   }
@@ -271,7 +271,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                       docCanvasSize
                     );
                     p.transform.updateUniformBuffer(
-                      previewGpuResources.queue,
+                      previewGpuResources.queue!,
                       docCanvasSize
                     );
                   }

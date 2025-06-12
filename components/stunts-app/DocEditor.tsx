@@ -163,7 +163,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
       }
 
       previewManager.preparePreview(sequenceId, savedSequence);
-      previewManager.pipeline?.renderFrame(previewManager.editor);
+      previewManager.pipeline?.renderWebglFrame(previewManager.editor);
       const previewUrl = await previewManager.generatePreview(sequenceId);
     }
   }
@@ -223,7 +223,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                       docCanvasSize
                     );
                     p.transform.updateUniformBuffer(
-                      previewGpuResources.queue,
+                      previewGpuResources.queue!,
                       docCanvasSize
                     );
                   }
@@ -247,7 +247,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                       docCanvasSize
                     );
                     p.transform.updateUniformBuffer(
-                      previewGpuResources.queue,
+                      previewGpuResources.queue!,
                       docCanvasSize
                     );
                   }
@@ -271,7 +271,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                       docCanvasSize
                     );
                     p.transform.updateUniformBuffer(
-                      previewGpuResources.queue,
+                      previewGpuResources.queue!,
                       docCanvasSize
                     );
                   }

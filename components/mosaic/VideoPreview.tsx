@@ -66,9 +66,9 @@ export default function VideoPreview({
 
     previewManagerRef.current.preparePreview(sequenceId, firstSequence);
 
-    await previewManagerRef.current.pipeline?.renderFrame(
+    await previewManagerRef.current.pipeline?.renderWebglFrame(
       previewManagerRef.current.editor,
-      (_) => {},
+      async (_) => {},
       10 // 10 seconds in
     );
 

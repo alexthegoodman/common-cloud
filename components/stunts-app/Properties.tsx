@@ -86,8 +86,8 @@ const RepeatProperties = ({
     }
 
     editor.repeatManager.updateRepeatObject(
-      gpuResources.device,
-      gpuResources.queue,
+      gpuResources.device!,
+      gpuResources.queue!,
       camera.windowSize,
       editor.modelBindGroupLayout,
       currentObjectId,
@@ -158,8 +158,8 @@ const RepeatProperties = ({
           };
 
           editor.repeatManager.createRepeatObject(
-            gpuResources?.device,
-            gpuResources?.queue,
+            gpuResources?.device!,
+            gpuResources?.queue!,
             camera.windowSize,
             editor.modelBindGroupLayout,
             sourceObject,
