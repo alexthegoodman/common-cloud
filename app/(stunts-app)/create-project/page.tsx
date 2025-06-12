@@ -55,7 +55,13 @@ const ProjectForm = () => {
       );
       // router.push("/projects");
       // go directly to project videos page
-      router.push(`/project/${info.newProject.id}/videos`);
+      const projectId = info.newProject.id;
+      localStorage.setItem(
+        "stored-project",
+        JSON.stringify({ project_id: projectId })
+      );
+
+      router.push(`/project/${projectId}/videos`);
     } catch (error) {
       console.error("Error creating project:", error);
     }

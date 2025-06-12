@@ -515,6 +515,11 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
       let response = await getSingleProject(authToken.token, projectId);
 
+      localStorage.setItem(
+        "stored-project",
+        JSON.stringify({ project_id: projectId })
+      );
+
       let fileData = response.project?.fileData;
 
       console.info("savedState", fileData);
@@ -542,6 +547,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       if (!cloned_sequences) {
         return;
       }
+
+      console.info("cloned_settings", cloned_settings);
 
       set_settings(cloned_settings);
       set_sequences(cloned_sequences);
