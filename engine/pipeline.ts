@@ -805,7 +805,7 @@ export class CanvasPipeline {
     );
 
     // Clear the framebuffer
-    gl.clearColor(1.0, 0.0, 0.0, 1.0); // White background
+    gl.clearColor(1.0, 1.0, 1.0, 1.0); // White background
     gl.clearDepth(1.0);
     gl.clearStencil(0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
