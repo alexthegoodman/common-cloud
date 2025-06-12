@@ -185,11 +185,11 @@ export class Polygon implements PolygonShape {
       name,
       points,
       dimensions,
-      // position,
-      position: {
-        x: 0,
-        y: 0,
-      },
+      position,
+      // position: {
+      //   x: 0,
+      //   y: 0,
+      // },
       rotation,
       borderRadius,
       // fill,
