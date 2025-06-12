@@ -65,7 +65,7 @@ export class MotionPath {
       const startKfId = startKf.id;
       const endKfId = endKf.id;
 
-      console.info("keyframes", startKf, endKf);
+      // console.info("keyframes", startKf, endKf);
 
       let startPos = [0, 0];
       let endPos = [0, 0];

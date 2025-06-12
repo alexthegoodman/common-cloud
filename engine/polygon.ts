@@ -1097,7 +1097,7 @@ export function getPolygonData(
   transform.layer = -1.0 - getZLayer(polygon.layer - INTERNAL_LAYER_SPACE); // results in numbers like -1.099
   // transform.layer = 1 - getZLayer(polygon.layer - INTERNAL_LAYER_SPACE);
   // transform.layer = getZLayer(polygon.layer - INTERNAL_LAYER_SPACE);
-  console.info("polygon transform layer", transform.layer);
+  // console.info("polygon transform layer", transform.layer);
 
   // queue.writeBuffer(uniformBuffer, 0, rawMatrix);
   // uniformBuffer.unmap();
@@ -1131,7 +1131,7 @@ export function getPolygonData(
   // unmap calls bindBuffer and bufferSubData
   // gradientBuffer.unmap();
 
-  console.info("vertexbuffer", vertexBuffer);
+  // console.info("vertexbuffer", vertexBuffer);
 
   return [
     vertices,
@@ -1368,10 +1368,10 @@ export function setupGradientBuffers(
   // const check = new Float32Array(gradientBuffer.data!);
   // console.log("check", check[0]); // Should be 42
 
-  console.info(
-    "gradientBuffer mappedRange",
-    JSON.stringify(mappedRange.buffer)
-  );
+  // console.info(
+  //   "gradientBuffer mappedRange",
+  //   JSON.stringify(mappedRange.buffer)
+  // );
 
   // Set stop offsets (packed into vec4s)
   selectedGradient.stops.forEach((stop, i) => {
@@ -1404,10 +1404,10 @@ export function setupGradientBuffers(
   mappedRange[configOffset + 10] = selectedGradient.animationSpeed ?? 0;
   mappedRange[configOffset + 11] = selectedGradient.enabled;
 
-  console.info(
-    "gradientBuffer mappedRange after setup",
-    JSON.stringify(mappedRange.buffer)
-  );
+  // console.info(
+  //   "gradientBuffer mappedRange after setup",
+  //   JSON.stringify(mappedRange.buffer)
+  // );
 
   // gradientBuffer.data = mappedRange.buffer; // TODO: is this correct?
 

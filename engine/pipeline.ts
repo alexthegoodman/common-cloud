@@ -942,6 +942,9 @@ export class CanvasPipeline {
 
         // this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
 
+        polygon.bindGroup.bindWebGLBindGroup(gl);
+        polygon.groupBindGroup?.bindWebGLBindGroup(gl);
+
         drawIndexedGeometry(
           polygon.vertexBuffer as PolyfillBuffer,
           polygon.indexBuffer as PolyfillBuffer,
@@ -963,6 +966,9 @@ export class CanvasPipeline {
 
         // this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
         // this.bindWebGLBindGroup(gl, polygon.groupBindGroup, 3);
+
+        polygon.bindGroup.bindWebGLBindGroup(gl);
+        polygon.groupBindGroup?.bindWebGLBindGroup(gl);
 
         drawIndexedGeometry(
           polygon.vertexBuffer as PolyfillBuffer,
@@ -993,6 +999,9 @@ export class CanvasPipeline {
           //   textItem.backgroundPolygon.groupBindGroup,
           //   3
           // );
+
+          textItem.bindGroup.bindWebGLBindGroup(gl);
+          textItem.groupBindGroup?.bindWebGLBindGroup(gl);
 
           drawIndexedGeometry(
             textItem.backgroundPolygon.vertexBuffer as PolyfillBuffer,
@@ -1030,6 +1039,9 @@ export class CanvasPipeline {
         // this.bindWebGLBindGroup(gl, image.bindGroup, 1);
         // this.bindWebGLBindGroup(gl, image.groupBindGroup, 3);
 
+        image.bindGroup.bindWebGLBindGroup(gl);
+        image.groupBindGroup?.bindWebGLBindGroup(gl);
+
         drawIndexedGeometry(
           image.vertexBuffer as PolyfillBuffer,
           image.indexBuffer as PolyfillBuffer,
@@ -1063,6 +1075,9 @@ export class CanvasPipeline {
 
             // this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
 
+            polygon.bindGroup.bindWebGLBindGroup(gl);
+            polygon.groupBindGroup?.bindWebGLBindGroup(gl);
+
             drawIndexedGeometry(
               polygon.vertexBuffer as PolyfillBuffer,
               polygon.indexBuffer as PolyfillBuffer,
@@ -1079,6 +1094,9 @@ export class CanvasPipeline {
         }
 
         // this.bindWebGLBindGroup(gl, video.bindGroup, 1);
+
+        video.bindGroup.bindWebGLBindGroup(gl);
+        video.groupBindGroup?.bindWebGLBindGroup(gl);
 
         drawIndexedGeometry(
           video.vertexBuffer as PolyfillBuffer,
@@ -1129,6 +1147,9 @@ export class CanvasPipeline {
                   //   3
                   // );
 
+                  sourceObject.bindGroup.bindWebGLBindGroup(gl);
+                  sourceObject.groupBindGroup?.bindWebGLBindGroup(gl);
+
                   drawIndexedGeometry(
                     sourceObject.backgroundPolygon
                       .vertexBuffer as PolyfillBuffer,
@@ -1151,6 +1172,9 @@ export class CanvasPipeline {
             // this.bindWebGLBindGroup(gl, instance.bindGroup!, 1);
             // this.bindWebGLBindGroup(gl, sourceObject.groupBindGroup, 3);
 
+            //             repeatObject.bindGroup.bindWebGLBindGroup(gl);
+            // repeatObject.groupBindGroup?.bindWebGLBindGroup(gl);
+
             drawIndexedGeometry(
               repeatObject.vertexBuffer as PolyfillBuffer,
               repeatObject.indexBuffer as PolyfillBuffer,
@@ -1166,6 +1190,9 @@ export class CanvasPipeline {
       if (!editor.textArea.hidden && editor.textArea.indices) {
         // this.bindWebGLBindGroup(gl, editor.textArea.bindGroup, 1);
         // this.bindWebGLBindGroup(gl, editor.textArea.groupBindGroup, 3);
+
+        //         textArea.bindGroup.bindWebGLBindGroup(gl);
+        // textArea.groupBindGroup?.bindWebGLBindGroup(gl);
 
         drawIndexedGeometry(
           editor.textArea.vertexBuffer as PolyfillBuffer,

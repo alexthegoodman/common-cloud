@@ -212,7 +212,7 @@ export class StVideo {
       "uniformMatrix4fv"
     );
     new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
-    // uniformBuffer.unmap();
+    uniformBuffer.unmap();
 
     this.transform = new Transform(
       // vec2.fromValues(videoConfig.position.x, videoConfig.position.y),
@@ -227,7 +227,7 @@ export class StVideo {
       -1.0 - getZLayer(videoConfig.layer - INTERNAL_LAYER_SPACE);
     this.transform.layer = layer_index;
 
-    // this.transform.updateUniformBuffer(queue, windowSize);
+    this.transform.updateUniformBuffer(queue, windowSize);
 
     let [gradient, gradientBuffer] = setupGradientBuffers(
       device,
@@ -250,7 +250,7 @@ export class StVideo {
 
     // group_transform.updateRotationYDegrees(0.02);
 
-    // group_transform.updateUniformBuffer(queue, windowSize);
+    group_transform.updateUniformBuffer(queue, windowSize);
 
     this.groupBindGroup = group_bind_group;
     this.groupTransform = group_transform;
@@ -320,9 +320,9 @@ export class StVideo {
         // label: "Video Bind Group",
       });
 
-      uniformBuffer.unmap();
-      this.transform.updateUniformBuffer(queue, windowSize);
-      group_transform.updateUniformBuffer(queue, windowSize);
+      // uniformBuffer.unmap();
+      // this.transform.updateUniformBuffer(queue, windowSize);
+      // group_transform.updateUniformBuffer(queue, windowSize);
 
       // // 20x20 grid
       const rows = this.gridResolution[0];
@@ -896,6 +896,8 @@ export class StVideo {
     //   ],
     //   label: "Video Bind Group",
     // });
+
+    // console.info("frameInfo", frameInfo);
 
     // Update WebGPU texture
     queue.writeTexture(
