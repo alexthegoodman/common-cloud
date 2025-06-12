@@ -46,14 +46,16 @@ const ProjectForm = () => {
         throw new Error("No auth token available");
       }
 
-      await createProject(
+      const info = await createProject(
         authToken.token,
         data.project_name,
         videoState,
         docState,
         presState
       );
-      router.push("/projects");
+      // router.push("/projects");
+      // go directly to project videos page
+      router.push(`/project/${info.newProject.id}/videos`);
     } catch (error) {
       console.error("Error creating project:", error);
     }
