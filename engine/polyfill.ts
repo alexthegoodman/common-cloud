@@ -218,7 +218,10 @@ export class PolyfillBindGroup {
     const program = gl.getParameter(gl.CURRENT_PROGRAM);
 
     if (!program) {
-      console.warn("No active WebGL program to bind resources to");
+      console.warn(
+        "No active WebGL program to bind resources to"
+        // this.resources
+      );
       return;
     }
 
@@ -762,11 +765,98 @@ export class PolyfillPipelineLayout {
 }
 
 export class PolyfillQueue {
-  gl: WebGLRenderingContext;
+  gl: WebGL2RenderingContext;
 
-  constructor(gl: WebGLRenderingContext) {
+  constructor(gl: WebGL2RenderingContext) {
     this.gl = gl;
   }
+
+  // writeBuffer(
+  //   buffer: PolyfillBuffer,
+  //   bufferOffset: number,
+  //   data: ArrayBuffer | ArrayBufferView,
+  //   dataOffset?: number,
+  //   size?: number
+  // ) {
+  //   // Set data property (ArrayBuffer) on PolyfillBuffer accounting for dataOffset and size
+  //   const sourceBuffer = data instanceof ArrayBuffer ? data : data.buffer;
+  //   const actualDataOffset = dataOffset || 0;
+  //   const actualSize =
+  //     size !== undefined
+  //       ? size
+  //       : data instanceof ArrayBuffer
+  //       ? data.byteLength - actualDataOffset
+  //       : data.byteLength;
+
+  //   // Create a new ArrayBuffer with just the relevant data
+  //   const relevantData = sourceBuffer.slice(
+  //     actualDataOffset,
+  //     actualDataOffset + actualSize
+  //   );
+
+  //   // Update the buffer's data property
+  //   if (!buffer.data || buffer.data.byteLength < bufferOffset + actualSize) {
+  //     // Expand the buffer if needed
+  //     const newSize = Math.max(
+  //       buffer.data?.byteLength || 0,
+  //       bufferOffset + actualSize
+  //     );
+  //     const newBuffer = new ArrayBuffer(newSize);
+  //     if (buffer.data) {
+  //       new Uint8Array(newBuffer).set(new Uint8Array(buffer.data));
+  //     }
+  //     buffer.data = newBuffer;
+  //   }
+
+  //   // Copy the new data into the buffer at the specified offset
+  //   new Uint8Array(buffer.data, bufferOffset, actualSize).set(
+  //     new Uint8Array(relevantData)
+  //   );
+
+  //   buffer.unmap(); // Ensure the buffer is updated in WebGL
+
+  //   // const target =
+  //   //   buffer.usage === "vertex"
+  //   //     ? this.gl.ARRAY_BUFFER
+  //   //     : buffer.usage === "index"
+  //   //     ? this.gl.ELEMENT_ARRAY_BUFFER
+  //   //     : this.gl.ARRAY_BUFFER;
+
+  //   let target: number;
+  //   switch (buffer.usage) {
+  //     case "vertex":
+  //       target = this.gl.ARRAY_BUFFER;
+  //       break;
+  //     case "index":
+  //       target = this.gl.ELEMENT_ARRAY_BUFFER;
+  //       break;
+  //     case "storage":
+  //     case "uniform":
+  //       target = this.gl.UNIFORM_BUFFER || this.gl.ARRAY_BUFFER;
+  //       break;
+  //     default:
+  //       target = this.gl.ARRAY_BUFFER;
+  //   }
+
+  //   this.gl.bindBuffer(target, buffer.buffer);
+
+  //   const dataToWrite =
+  //     size !== undefined
+  //       ? new Uint8Array(
+  //           data instanceof ArrayBuffer ? data : data.buffer,
+  //           dataOffset || 0,
+  //           size
+  //         )
+  //       : data instanceof ArrayBuffer
+  //       ? new Uint8Array(data, dataOffset || 0)
+  //       : new Uint8Array(
+  //           data.buffer,
+  //           data.byteOffset + (dataOffset || 0),
+  //           data.byteLength
+  //         );
+
+  //   this.gl.bufferSubData(target, bufferOffset, dataToWrite);
+  // }
 
   writeBuffer(
     buffer: PolyfillBuffer,
@@ -775,33 +865,82 @@ export class PolyfillQueue {
     dataOffset?: number,
     size?: number
   ) {
-    const target =
-      buffer.usage === "vertex"
-        ? this.gl.ARRAY_BUFFER
-        : buffer.usage === "index"
-        ? this.gl.ELEMENT_ARRAY_BUFFER
-        : this.gl.ARRAY_BUFFER;
+    // Convert input data to Float32Array for consistent float handling
+    let floatData: Float32Array;
+
+    if (data instanceof ArrayBuffer) {
+      const actualDataOffset = dataOffset || 0;
+      const actualSize =
+        size !== undefined ? size : data.byteLength - actualDataOffset;
+      floatData = new Float32Array(data, actualDataOffset, actualSize / 4); // Divide by 4 for float32 elements
+    } else if (data instanceof Float32Array) {
+      const actualDataOffset = dataOffset || 0;
+      const actualSize =
+        size !== undefined ? size / 4 : data.length - actualDataOffset;
+      floatData = data.subarray(
+        actualDataOffset,
+        actualDataOffset + actualSize
+      );
+    } else {
+      // Convert other typed arrays to Float32Array
+      const actualDataOffset = dataOffset || 0;
+      const actualSize = size !== undefined ? size : data.byteLength;
+      const sourceView = new Uint8Array(
+        data.buffer,
+        data.byteOffset + actualDataOffset,
+        actualSize
+      );
+      floatData = new Float32Array(
+        sourceView.buffer,
+        sourceView.byteOffset,
+        actualSize / 4
+      );
+    }
+
+    // Calculate byte size for buffer operations
+    const byteSize = floatData.byteLength;
+    const byteOffset = bufferOffset;
+
+    // Expand buffer if needed
+    if (!buffer.data || buffer.data.byteLength < byteOffset + byteSize) {
+      const newSize = Math.max(
+        buffer.data?.byteLength || 0,
+        byteOffset + byteSize
+      );
+      const newBuffer = new ArrayBuffer(newSize);
+      if (buffer.data) {
+        new Uint8Array(newBuffer).set(new Uint8Array(buffer.data));
+      }
+      buffer.data = newBuffer;
+    }
+
+    // Copy float data into buffer
+    new Float32Array(buffer.data, byteOffset, floatData.length).set(floatData);
+
+    buffer.unmap();
+
+    // Determine WebGL buffer target
+    let target: number;
+    switch (buffer.usage) {
+      case "vertex":
+        target = this.gl.ARRAY_BUFFER;
+        break;
+      case "index":
+        target = this.gl.ELEMENT_ARRAY_BUFFER;
+        break;
+      case "storage":
+      case "uniform":
+        target = this.gl.UNIFORM_BUFFER || this.gl.ARRAY_BUFFER;
+        break;
+      default:
+        target = this.gl.ARRAY_BUFFER;
+    }
 
     this.gl.bindBuffer(target, buffer.buffer);
 
-    const dataToWrite =
-      size !== undefined
-        ? new Uint8Array(
-            data instanceof ArrayBuffer ? data : data.buffer,
-            dataOffset || 0,
-            size
-          )
-        : data instanceof ArrayBuffer
-        ? new Uint8Array(data, dataOffset || 0)
-        : new Uint8Array(
-            data.buffer,
-            data.byteOffset + (dataOffset || 0),
-            data.byteLength
-          );
-
-    this.gl.bufferSubData(target, bufferOffset, dataToWrite);
+    // Upload the float data directly to WebGL
+    this.gl.bufferSubData(target, byteOffset, floatData);
   }
-
   writeTexture(
     destination: {
       texture: PolyfillTexture;
@@ -879,9 +1018,7 @@ export class GPUPolyfill {
       }
 
       // Get WebGL context
-      const gl =
-        (this.canvas.getContext("webgl2") as WebGL2RenderingContext) ||
-        (this.canvas.getContext("webgl") as WebGLRenderingContext);
+      const gl = this.canvas.getContext("webgl2") as WebGL2RenderingContext;
       if (!gl) {
         throw new Error("Failed to get WebGL context");
       }
@@ -892,8 +1029,8 @@ export class GPUPolyfill {
       gl.viewport(0, 0, this.windowSize.width, this.windowSize.height);
 
       // Enable common WebGL features
-      gl.enable(gl.DEPTH_TEST);
-      gl.enable(gl.CULL_FACE);
+      gl.disable(gl.DEPTH_TEST);
+      gl.disable(gl.CULL_FACE);
 
       // Create polyfill device and queue
       this.queue = new PolyfillQueue(gl);

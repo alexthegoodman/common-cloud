@@ -8,6 +8,7 @@ import {
   PolyfillDevice,
   PolyfillQueue,
 } from "./polyfill";
+import { matrix4ToRawArray } from "./transform";
 
 // Types
 export interface WindowSize {
@@ -165,7 +166,7 @@ export class CameraBinding {
   bindGroupLayout: PolyfillBindGroupLayout;
   uniform: CameraUniform;
 
-  constructor(device: PolyfillDevice) {
+  constructor(device: PolyfillDevice, queue: PolyfillQueue, camera: Camera) {
     this.uniform = new CameraUniform();
 
     // Create the uniform buffer
@@ -178,6 +179,12 @@ export class CameraBinding {
       },
       "uniformMatrix4fv"
     );
+
+    // const emptyMatrix = mat4.create();
+    // mat4.identity(emptyMatrix);
+    // const rawMatrix = matrix4ToRawArray(emptyMatrix);
+    // this.buffer.data = rawMatrix.buffer;
+    this.update(queue, camera);
 
     // unmap
     this.buffer.unmap();

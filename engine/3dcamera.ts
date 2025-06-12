@@ -27,13 +27,19 @@ export class Camera3D extends Camera {
     super(windowSize);
 
     // Initialize 3D position (x, y from base class, adding z)
-    this.position3D = vec3.fromValues(this.position[0], this.position[1], 0.0);
+    this.position3D = vec3.fromValues(
+      this.position[0],
+      this.position[1],
+      0.0
+      // 10.0
+    );
 
     // Initialize rotation as identity quaternion (no rotation)
     this.rotation = quat.create();
 
     // Default field of view
     this.fov = Math.PI / 2;
+    // this.fov = Math.PI; // very wide
 
     // Set reasonable near and far clipping planes
     this.near = 0.0001;

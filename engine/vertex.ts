@@ -31,6 +31,7 @@ export interface Vertex {
 
 export function getZLayer(layer: number): number {
   const z = -(layer / 1000.0);
+  // const z = layer / 1000.0 + 2;
   return z;
 }
 

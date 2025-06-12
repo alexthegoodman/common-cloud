@@ -91,7 +91,11 @@ export class CanvasPipeline {
     // Make it look at the origin
     camera.lookAt(vec3.fromValues(0, 0, 0));
 
-    const cameraBinding = new CameraBinding(gpuResources.device!);
+    const cameraBinding = new CameraBinding(
+      gpuResources.device!,
+      gpuResources.queue!,
+      camera
+    );
 
     editor.camera = camera;
     editor.cameraBinding = cameraBinding;
@@ -787,6 +791,11 @@ export class CanvasPipeline {
     editor.stepVideoAnimations(editor.camera, currentTimeS);
     await editor.stepMotionPathAnimations(editor.camera, currentTimeS);
 
+    // Bind render pipeline (in WebGL this means using the shader program)
+    if (renderPipeline.program) {
+      gl.useProgram(renderPipeline.program);
+    }
+
     // Set up WebGL render state
     gl.viewport(
       0,
@@ -802,19 +811,14 @@ export class CanvasPipeline {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
     // Enable depth testing and culling (similar to WebGPU setup)
-    gl.enable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.CULL_FACE); // disabling this fixed a annoying bug with culling
     gl.cullFace(gl.BACK);
     gl.frontFace(gl.CCW);
 
     // Set up blending for transparency
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-    // Bind render pipeline (in WebGL this means using the shader program)
-    if (renderPipeline.program) {
-      gl.useProgram(renderPipeline.program);
-    }
 
     // Bind camera uniform buffer (bind group 0)
     if (editor.cameraBinding) {
@@ -824,29 +828,6 @@ export class CanvasPipeline {
       return;
     }
 
-    // Bind group 0: Camera/Global uniforms (set once per frame)
-    // const cameraBuffer = this.createCameraUniformBuffer(
-    //   editor.gpuResources.webglContext!,
-    //   editor.camera,
-    //   [editor.camera.windowSize.width, editor.camera.windowSize.height]
-    // );
-    // const cameraBindGroup = new PolyfillBindGroup(
-    //   editor.gpuResources.webglContext!,
-    //   editor.cameraBinding?.bindGroupLayout!,
-    //   [
-    //     {
-    //       binding: 0,
-    //       groupIndex: 0,
-    //       resource: cameraBuffer,
-    //     },
-    //   ]
-    // );
-    // this.bindWebGLBindGroup(
-    //   editor.gpuResources.webglContext!,
-    //   cameraBindGroup,
-    //   0
-    // );
-
     // Bind window size uniform buffer
     if (editor.windowSizeBindGroup) {
       editor.windowSizeBindGroup.bindWebGLBindGroup(gl);
@@ -854,27 +835,6 @@ export class CanvasPipeline {
       console.error("Couldn't get window size group");
       return;
     }
-
-    // // Bind group 0: Camera/Global uniforms (set once per frame)
-    // const windowSizeBuffer = this.createCameraUniformBuffer(
-    //   editor.gpuResources.webglContext!,
-    //   editor.camera,
-    //   [editor.camera.windowSize.width, editor.camera.windowSize.height]
-    // );
-    // const windowSizeBindGroup = new PolyfillBindGroup(
-    //   editor.cameraBinding?.bindGroupLayout!,
-    //   [
-    //     {
-    //       binding: 0,
-    //       resource: cameraBuffer,
-    //     },
-    //   ]
-    // );
-    // this.bindWebGLBindGroup(
-    //   editor.gpuResources.webglContext!,
-    //   windowSizeBindGroup,
-    //   2
-    // );
 
     // Helper function to draw indexed geometry
     const drawIndexedGeometry = (
@@ -910,8 +870,16 @@ export class CanvasPipeline {
       // Bind index buffer
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer.buffer);
 
+      // console.info("indexBuffer.buffer", indexBuffer);
+      // console.info("indexCount", indexCount);
+
       // Draw
       gl.drawElements(gl.TRIANGLES, indexCount, gl.UNSIGNED_INT, 0);
+      // try drawArrays instead
+      // const vertexCount = vertexBuffer.data
+      //   ? vertexBuffer.data.byteLength / stride
+      //   : 0;
+      // gl.drawArrays(gl.TRIANGLES, 0, vertexCount); // Use indexCount directly for drawArrays
     };
 
     // Draw static polygons
@@ -929,13 +897,23 @@ export class CanvasPipeline {
         polygon.updateGradientAnimation(device, 0.001);
       }
 
-      // Bind polygon-specific resources (bind groups 1 and 3)
-      // this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
-      // this.bindWebGLBindGroup(gl, polygon.groupBindGroup, 3);
-
       polygon.bindGroup.bindWebGLBindGroup(gl);
-      polygon.gradientBindGroup?.bindWebGLBindGroup(gl);
+      // polygon.gradientBindGroup?.bindWebGLBindGroup(gl);
       polygon.groupBindGroup?.bindWebGLBindGroup(gl);
+
+      // log data
+      // console.info(
+      //   "polygon data",
+      //   polygon.bindGroup.resources.filter((x) =>
+      //     x.resource instanceof PolyfillBuffer ? x.resource.data : null
+      //   ),
+      //   // polygon.gradientBindGroup?.resources.filter((x) =>
+      //   //   x.resource instanceof PolyfillBuffer ? x.resource.data : null
+      //   // ),
+      //   polygon.groupBindGroup.resources.filter((x) =>
+      //     x.resource instanceof PolyfillBuffer ? x.resource.data : null
+      //   )
+      // );
 
       drawIndexedGeometry(
         polygon.vertexBuffer as PolyfillBuffer,

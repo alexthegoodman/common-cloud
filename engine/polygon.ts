@@ -175,12 +175,21 @@ export class Polygon implements PolygonShape {
       y: CANVAS_VERT_OFFSET + position.y,
     };
 
+    // this.position = {
+    //   x: 0,
+    //   y: 0,
+    // };
+
     let config: PolygonConfig = {
       id,
       name,
       points,
       dimensions,
-      position,
+      // position,
+      position: {
+        x: 0,
+        y: 0,
+      },
       rotation,
       borderRadius,
       // fill,
@@ -1017,11 +1026,11 @@ export function getPolygonData(
     "uniformMatrix4fv"
   );
 
-  // new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
-  uniformBuffer.data = rawMatrix.buffer;
+  new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
+  // uniformBuffer.data = rawMatrix.buffer;
 
   uniformBuffer.unmap();
-  queue.writeBuffer(uniformBuffer, 0, rawMatrix);
+  // queue.writeBuffer(uniformBuffer, 0, rawMatrix);
 
   const textureSize = { width: 1, height: 1, depthOrArrayLayers: 1 };
   const texture = device.createTexture({
@@ -1068,7 +1077,32 @@ export function getPolygonData(
     gradientDef
   );
 
-  gradientBuffer.unmap();
+  // gradientBuffer.unmap();
+
+  const transform = new Transform(
+    vec2.fromValues(polygon.position.x, polygon.position.y),
+    polygon.rotation,
+    // 0,
+    vec2.fromValues(1, 1),
+    uniformBuffer
+    // camera.windowSize // Assuming camera has windowSize
+  );
+
+  // console.info(
+  //   "polygon layer",
+  //   polygon.layer - INTERNAL_LAYER_SPACE,
+  //   getZLayer(polygon.layer - INTERNAL_LAYER_SPACE)
+  // );
+
+  transform.layer = -1.0 - getZLayer(polygon.layer - INTERNAL_LAYER_SPACE); // results in numbers like -1.099
+  // transform.layer = 1 - getZLayer(polygon.layer - INTERNAL_LAYER_SPACE);
+  // transform.layer = getZLayer(polygon.layer - INTERNAL_LAYER_SPACE);
+  console.info("polygon transform layer", transform.layer);
+
+  // queue.writeBuffer(uniformBuffer, 0, rawMatrix);
+  // uniformBuffer.unmap();
+
+  transform.updateUniformBuffer(queue, camera.windowSize);
 
   // createBindGroup calls uniformBlockBinding and bindBufferBase
   const bindGroup = device.createBindGroup({
@@ -1097,26 +1131,7 @@ export function getPolygonData(
   // unmap calls bindBuffer and bufferSubData
   // gradientBuffer.unmap();
 
-  const transform = new Transform(
-    vec2.fromValues(polygon.position.x, polygon.position.y),
-    polygon.rotation,
-    // 0,
-    vec2.fromValues(1, 1),
-    uniformBuffer
-    // camera.windowSize // Assuming camera has windowSize
-  );
-
-  // console.info(
-  //   "polygon layer",
-  //   polygon.layer - INTERNAL_LAYER_SPACE,
-  //   getZLayer(polygon.layer - INTERNAL_LAYER_SPACE)
-  // );
-
-  transform.layer = -1.0 - getZLayer(polygon.layer - INTERNAL_LAYER_SPACE);
-  // queue.writeBuffer(uniformBuffer, 0, rawMatrix);
-  // uniformBuffer.unmap();
-
-  transform.updateUniformBuffer(queue, camera.windowSize);
+  console.info("vertexbuffer", vertexBuffer);
 
   return [
     vertices,
@@ -1150,6 +1165,8 @@ function createRoundedPolygonPath(
   const [width, height] = dimensions;
   const centerX = width / 2;
   const centerY = height / 2;
+  // const centerX = 0;
+  // const centerY = 0;
 
   // Scale the normalized points to the dimensions
   const scaledPoints = normalizedPoints.map((point) => [
@@ -1344,6 +1361,18 @@ export function setupGradientBuffers(
 
   const mappedRange = new Float32Array(gradientBuffer.getMappedRange());
 
+  // const mappedRange = new Float32Array(gradientBuffer.getMappedRange());
+  // console.log("checking", mappedRange.buffer === gradientBuffer.data); // Should be true
+
+  // mappedRange[0] = 42;
+  // const check = new Float32Array(gradientBuffer.data!);
+  // console.log("check", check[0]); // Should be 42
+
+  console.info(
+    "gradientBuffer mappedRange",
+    JSON.stringify(mappedRange.buffer)
+  );
+
   // Set stop offsets (packed into vec4s)
   selectedGradient.stops.forEach((stop, i) => {
     const vec4Index = Math.floor(i / 4);
@@ -1375,9 +1404,14 @@ export function setupGradientBuffers(
   mappedRange[configOffset + 10] = selectedGradient.animationSpeed ?? 0;
   mappedRange[configOffset + 11] = selectedGradient.enabled;
 
-  gradientBuffer.data = mappedRange.buffer; // TODO: needed?
+  console.info(
+    "gradientBuffer mappedRange after setup",
+    JSON.stringify(mappedRange.buffer)
+  );
 
-  // gradientBuffer.unmap(); // doesnt make a difference seemingly
+  // gradientBuffer.data = mappedRange.buffer; // TODO: is this correct?
+
+  gradientBuffer.unmap(); // used elsewhere
 
   return [selectedGradient, gradientBuffer];
 }

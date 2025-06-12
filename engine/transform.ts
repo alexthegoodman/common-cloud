@@ -159,8 +159,8 @@ export function createEmptyGroupTransform(
     "uniformMatrix4fv"
   );
 
-  // new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
-  uniformBuffer.data = rawMatrix.buffer;
+  new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
+  // uniformBuffer.data = rawMatrix.buffer;
 
   uniformBuffer.unmap();
 
