@@ -219,7 +219,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       return;
     }
 
-    canvas.addEventListener("mousemove", (event: MouseEvent) => {
+    canvas.addEventListener("pointermove", (event: MouseEvent) => {
       // Get the canvas's bounding rectangle
       const rect = canvas.getBoundingClientRect();
 
@@ -233,16 +233,16 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       editor.handle_mouse_move(positionX, positionY);
     });
 
-    canvas.addEventListener("mousedown", () => {
+    canvas.addEventListener("pointerdown", () => {
       editor.handle_mouse_down();
     });
 
-    canvas.addEventListener("mouseup", () => {
+    canvas.addEventListener("pointerup", () => {
       console.info("handle mouse up");
       editor.handle_mouse_up();
     });
 
-    canvas.addEventListener("mouseleave", () => {
+    canvas.addEventListener("pointerleave", () => {
       // Handle mouse leaving canvas if needed
     });
   };
