@@ -233,12 +233,14 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       editor.handle_mouse_move(positionX, positionY);
     });
 
-    canvas.addEventListener("pointerdown", () => {
+    canvas.addEventListener("pointerdown", (event) => {
+      canvas.setPointerCapture(event.pointerId);
       editor.handle_mouse_down();
     });
 
-    canvas.addEventListener("pointerup", () => {
+    canvas.addEventListener("pointerup", (event) => {
       console.info("handle mouse up");
+      canvas.releasePointerCapture(event.pointerId);
       editor.handle_mouse_up();
     });
 
@@ -246,8 +248,9 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     //   // Handle mouse leaving canvas if needed
     // });
 
-    canvas.addEventListener("pointercancel", () => {
+    canvas.addEventListener("pointercancel", (event) => {
       console.info("pointer cancelled - treating as mouse up");
+      canvas.releasePointerCapture(event.pointerId);
       editor.handle_mouse_up();
     });
   };
