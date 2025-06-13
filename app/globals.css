@@ -20,6 +20,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 } */
 
+canvas {
+  touch-action: none;
+}
+
 .success-gradient {
   background: linear-gradient(145deg, #99c7a2 65%, #c8cc7c 100%);
 }
