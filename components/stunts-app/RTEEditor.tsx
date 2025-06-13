@@ -66,8 +66,15 @@ export const RTEEditor: React.FC<any> = ({ projectId }) => {
       editor.handle_mouse_move(positionX, positionY);
     });
 
-    canvas.addEventListener("mousedown", () => {
-      editor.handle_mouse_down();
+    canvas.addEventListener("mousedown", (event) => {
+      // Get the canvas's bounding rectangle
+      const rect = canvas.getBoundingClientRect();
+
+      // Calculate position relative to the canvas
+      const positionX = event.clientX - rect.left;
+      const positionY = event.clientY - rect.top;
+
+      editor.handle_mouse_down(positionX, positionY);
     });
 
     canvas.addEventListener("mouseup", () => {
