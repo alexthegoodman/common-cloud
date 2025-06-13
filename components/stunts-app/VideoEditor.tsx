@@ -242,8 +242,13 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       editor.handle_mouse_up();
     });
 
-    canvas.addEventListener("pointerleave", () => {
-      // Handle mouse leaving canvas if needed
+    // canvas.addEventListener("pointerleave", () => {
+    //   // Handle mouse leaving canvas if needed
+    // });
+
+    canvas.addEventListener("pointercancel", () => {
+      console.info("pointer cancelled - treating as mouse up");
+      editor.handle_mouse_up();
     });
   };
 
