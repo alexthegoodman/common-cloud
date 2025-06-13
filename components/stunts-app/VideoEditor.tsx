@@ -219,61 +219,77 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       return;
     }
 
-    const hasTouch = "ontouchstart" in window;
+    // const hasTouch = "ontouchstart" in window;
 
-    if (hasTouch) {
-      canvas.addEventListener("touchmove", (event: TouchEvent) => {
-        // Get the canvas's bounding rectangle
-        const rect = canvas.getBoundingClientRect();
+    // if (hasTouch) {
+    //   canvas.addEventListener("touchmove", (event: TouchEvent) => {
+    //     console.info("handle touch move");
 
-        var touch = event.touches[0];
-        var x = touch.pageX;
-        var y = touch.pageY;
+    //     // Get the canvas's bounding rectangle
+    //     const rect = canvas.getBoundingClientRect();
 
-        // Calculate position relative to the canvas
-        const positionX = x - rect.left;
-        const positionY = y - rect.top;
+    //     var touch = event.touches[0];
+    //     var x = touch.pageX;
+    //     var y = touch.pageY;
 
-        editor.handle_mouse_move(positionX, positionY);
-      });
+    //     // Calculate position relative to the canvas
+    //     const positionX = x - rect.left;
+    //     const positionY = y - rect.top;
 
-      canvas.addEventListener("touchstart", (event) => {
-        editor.handle_mouse_down();
-      });
+    //     editor.handle_mouse_move(positionX, positionY);
+    //   });
 
-      canvas.addEventListener("touchend", (event) => {
-        console.info("handle mouse up");
-        editor.handle_mouse_up();
-      });
-    } else {
-      canvas.addEventListener("pointermove", (event: MouseEvent) => {
-        // Get the canvas's bounding rectangle
-        const rect = canvas.getBoundingClientRect();
+    //   canvas.addEventListener("touchstart", (event) => {
+    //     console.info("handle touch down");
+    //     editor.handle_mouse_down();
+    //   });
 
-        // Calculate position relative to the canvas
-        const positionX = event.clientX - rect.left;
-        const positionY = event.clientY - rect.top;
+    //   canvas.addEventListener("touchend", (event) => {
+    //     console.info("handle touch up");
+    //     editor.handle_mouse_up();
+    //   });
 
-        editor.handle_mouse_move(positionX, positionY);
-      });
+    //   canvas.addEventListener("touchcancel", (event) => {
+    //     console.info("handle touch cancel");
+    //     editor.handle_mouse_up();
+    //   });
+    // } else {
+    canvas.addEventListener("pointermove", (event: MouseEvent) => {
+      // Get the canvas's bounding rectangle
+      const rect = canvas.getBoundingClientRect();
 
-      canvas.addEventListener("pointerdown", (event) => {
-        canvas.setPointerCapture(event.pointerId);
-        editor.handle_mouse_down();
-      });
+      // Calculate position relative to the canvas
+      const positionX = event.clientX - rect.left;
+      const positionY = event.clientY - rect.top;
 
-      canvas.addEventListener("pointerup", (event) => {
-        console.info("handle mouse up");
-        canvas.releasePointerCapture(event.pointerId);
-        editor.handle_mouse_up();
-      });
+      editor.handle_mouse_move(positionX, positionY);
+    });
 
-      canvas.addEventListener("pointercancel", (event) => {
-        console.info("pointer cancelled - treating as mouse up");
-        canvas.releasePointerCapture(event.pointerId);
-        editor.handle_mouse_up();
-      });
-    }
+    canvas.addEventListener("pointerdown", (event) => {
+      canvas.setPointerCapture(event.pointerId);
+
+      // Get the canvas's bounding rectangle
+      const rect = canvas.getBoundingClientRect();
+
+      // Calculate position relative to the canvas
+      const positionX = event.clientX - rect.left;
+      const positionY = event.clientY - rect.top;
+
+      editor.handle_mouse_down(positionX, positionY);
+    });
+
+    canvas.addEventListener("pointerup", (event) => {
+      console.info("handle mouse up");
+      canvas.releasePointerCapture(event.pointerId);
+      editor.handle_mouse_up();
+    });
+
+    canvas.addEventListener("pointercancel", (event) => {
+      console.info("pointer cancelled - treating as mouse up");
+      canvas.releasePointerCapture(event.pointerId);
+      editor.handle_mouse_up();
+    });
+    // }
   };
 
   let select_polygon = (polygon_id: string) => {

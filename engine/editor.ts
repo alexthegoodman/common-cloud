@@ -4330,12 +4330,21 @@ export class Editor {
   }
 
   // handlers
-  handle_mouse_down() {
+  handle_mouse_down(positionX: number, positionY: number) {
     let camera = this.camera;
 
     if (!camera) {
       return;
     }
+
+    let ray = visualize_ray_intersection(
+      camera.windowSize,
+      positionX,
+      positionY,
+      camera
+    );
+    let top_left = ray.top_left;
+    this.lastTopLeft = top_left;
 
     // if (
     //   this.lastScreen.x < this.interactiveBounds.min.x ||
@@ -4406,6 +4415,7 @@ export class Editor {
       }
 
       if (polygon.containsPoint(this.lastTopLeft, camera)) {
+        console.info("polygon contains pointer");
         intersecting_objects.push([
           polygon.layer,
           InteractionTarget.Polygon,
@@ -5122,6 +5132,7 @@ export class Editor {
     this.draggingPathObject = null;
     this.draggingPathKeyframe = null;
     this.isPanning = false;
+    // this.lastTopLeft = { x: -1000, y: -1000 }; // resets for mobile?
 
     // this.dragging_edge = None;
     // this.guide_lines.clear();
