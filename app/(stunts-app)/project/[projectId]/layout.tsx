@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 
 import { Toaster } from "react-hot-toast";
 
-export default function ProjectSettings({ children = null }) {
+export default function ProjectLayout({ children = null }) {
   const { projectId } = useParams();
 
   return (

@@ -19,6 +19,7 @@ export interface CurrentUser {
   name: string;
   createdAt: string;
   updatedAt: string;
+  userLanguage: string;
   stripeCustomerId: string;
   subscriptionId: string;
   subscriptionStatus: string;
@@ -28,7 +29,7 @@ export interface CurrentUser {
   trialEndsAt: string;
 }
 
-const getCurrentUser = async (token: string) => {
+export const getCurrentUser = async (token: string) => {
   console.info("fetching current user");
 
   const res = await fetch("/api/auth/current-user", {

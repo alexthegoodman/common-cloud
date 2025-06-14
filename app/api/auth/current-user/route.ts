@@ -14,9 +14,24 @@ export async function GET(req: Request) {
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+        userLanguage: true,
+        stripeCustomerId: true,
+        subscriptionId: true,
+        subscriptionStatus: true,
+        currentPeriodEnd: true,
         plan: true,
+        cancelAtPeriodEnd: true,
+        trialEndsAt: true,
       },
+      // include: {
+      //   plan: true,
+      // },
     });
 
     if (!user) {
