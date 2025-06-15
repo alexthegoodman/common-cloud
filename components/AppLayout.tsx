@@ -5,6 +5,7 @@ import { AuthToken } from "@/fetchers/projects";
 import { getCurrentUser } from "@/hooks/useCurrentUser";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import useSWR from "swr";
+import LanguagePicker from "./LanguagePicker";
 
 function AppInnerLayout({
   authToken = null,
@@ -26,6 +27,10 @@ function AppInnerLayout({
   }
 
   console.info("chosen language", data?.userLanguage);
+
+  if (!data?.userLanguage) {
+    return <LanguagePicker />;
+  }
 
   return (
     <TranslationProvider language={data?.userLanguage}>
