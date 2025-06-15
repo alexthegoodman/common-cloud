@@ -70,6 +70,14 @@ const LanguagePicker = ({
 
   const supportedLanguages = [
     {
+      lng: "hit",
+      labelEn: "Hindi (Roman)",
+      labelNative: "Hindi (Roman)",
+      color: "#F18F01",
+      flag: "🇮🇳",
+      description: "Hindi Roman mein",
+    },
+    {
       lng: "en",
       labelEn: "English",
       labelNative: "English",

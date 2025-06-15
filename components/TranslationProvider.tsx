@@ -24,7 +24,7 @@ export default function TranslationProvider({
         .init({
           lng: language,
           fallbackLng: "en",
-          supportedLngs: ["en", "hi"],
+          supportedLngs: ["en", "hi", "hit"],
           defaultNS: "common",
           interpolation: { escapeValue: false },
         });
