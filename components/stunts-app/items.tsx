@@ -16,6 +16,7 @@ import {
   getSingleProject,
 } from "@/fetchers/projects";
 import { mutate } from "swr";
+import { useTranslation } from "react-i18next";
 
 export const ProjectItem = ({
   project_id,
@@ -26,6 +27,8 @@ export const ProjectItem = ({
   project_label: string;
   icon: string;
 }) => {
+  const { t } = useTranslation("common");
+
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
@@ -94,7 +97,7 @@ export const ProjectItem = ({
         disabled={loading}
         onClick={handleDuplicate}
       >
-        Duplicate
+        {t("Duplicate")}
       </button>
     </div>
   );
@@ -293,6 +296,7 @@ export const PlaySequenceButton: React.FC<{
   editorStateRef: React.RefObject<EditorState | null>;
   selected_sequence_id: string;
 }> = ({ editorRef, editorStateRef, selected_sequence_id }) => {
+  const { t } = useTranslation("common");
   const [isPlaying, setIsPlaying] = useState(false);
 
   return (
@@ -337,7 +341,7 @@ export const PlaySequenceButton: React.FC<{
         }
       }}
     >
-      {isPlaying ? "Pause Sequence" : "Play Sequence"}
+      {isPlaying ? t("Pause Sequence") : t("Play Sequence")}
     </button>
   );
 };
@@ -346,6 +350,8 @@ export const PlayVideoButton: React.FC<{
   editorRef: React.RefObject<Editor | null>;
   editorStateRef: React.RefObject<EditorState | null>;
 }> = ({ editorRef, editorStateRef }) => {
+  const { t } = useTranslation("common");
+
   const [isPlaying, setIsPlaying] = useState(false);
 
   return (
@@ -494,7 +500,7 @@ export const PlayVideoButton: React.FC<{
         }
       }}
     >
-      {isPlaying ? "Pause Video" : "Play Video"}
+      {isPlaying ? t("Pause Video") : t("Play Video")}
     </button>
   );
 };
@@ -503,6 +509,8 @@ export const ExportVideoButton: React.FC<{
   editorRef: React.RefObject<Editor | null>;
   editorStateRef: React.RefObject<EditorState | null>;
 }> = ({ editorRef, editorStateRef }) => {
+  const { t } = useTranslation("common");
+
   let [isExporting, setIsExporting] = useState(false);
   let [progress, setProgress] = useState("0");
 
@@ -558,7 +566,7 @@ export const ExportVideoButton: React.FC<{
           exportHandler();
         }}
       >
-        {isExporting ? "Exporting..." : "Export Video"}
+        {isExporting ? t("Exporting") + "..." : t("Export Video")}
       </button>
       {isExporting && <p>{progress}%</p>}
     </div>

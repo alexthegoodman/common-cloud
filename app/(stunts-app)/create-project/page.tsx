@@ -5,11 +5,15 @@ import ErrorBoundary from "@/components/stunts-app/ErrorBoundary";
 import { SavedState } from "@/engine/animations";
 import { AuthToken, createProject } from "@/fetchers/projects";
 import { useLocalStorage } from "@uidotdev/usehooks";
+import { t } from "i18next";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 const ProjectForm = () => {
+  const { t } = useTranslation("common");
+
   const router = useRouter();
   const {
     register,
@@ -72,26 +76,26 @@ const ProjectForm = () => {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create a new project
+            {t("Create a new project")}
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="rounded-md shadow-sm space-y-4">
             <div>
               <label htmlFor="project_name" className="sr-only">
-                Project name
+                {t("Project name")}
               </label>
               <input
                 id="project_name"
                 type="text"
                 {...register("project_name", {
-                  required: "Project name is required",
+                  required: t("Project name is required"),
                 })} // react-hook-form integration
                 className={`appearance-none rounded-md relative block w-full px-3 py-2 border
                   border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none 
                   focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm
                   ${errors.project_name ? "border-red-500" : ""}`} // Conditional styling for errors
-                placeholder="Project name"
+                placeholder={t("Project name")}
               />
               {errors.project_name && (
                 <p className="text-red-500 text-sm">
@@ -110,7 +114,9 @@ const ProjectForm = () => {
                 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isSubmitting} // Disable while submitting
             >
-              {isSubmitting ? "Creating Project..." : "Create Project"}
+              {isSubmitting
+                ? t("Creating Project") + "..."
+                : t("Create Project")}
             </button>
           </div>
         </form>
@@ -121,7 +127,7 @@ const ProjectForm = () => {
 
 export default function CreateProject() {
   return (
-    <React.Suspense fallback={<div>Loading...</div>}>
+    <React.Suspense fallback={<div>{t("Loading")}...</div>}>
       {/* Wrap with Suspense */}
       <ErrorBoundary>
         {/* Error Boundary */}

@@ -4,8 +4,11 @@ import { NavButton } from "@/components/stunts-app/items";
 import { useParams } from "next/navigation";
 
 import { Toaster } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 export default function ProjectLayout({ children = null }) {
+  const { t } = useTranslation("common");
+
   const { projectId } = useParams();
 
   return (
@@ -14,17 +17,17 @@ export default function ProjectLayout({ children = null }) {
       <div className="flex flex-row p-4">
         <div className="flex flex-col gap-4 mr-4">
           <NavButton
-            label="Hub"
+            label={t("Hub")}
             icon="lightning"
             destination={`/project/${projectId}`}
           />
           <NavButton
-            label="Video"
+            label={t("Video")}
             icon="video"
             destination={`/project/${projectId}/videos`}
           />
           <NavButton
-            label="Visual Docs"
+            label={t("Document")}
             icon="file-cloud"
             destination={`/project/${projectId}/documents`}
           />
@@ -49,7 +52,7 @@ export default function ProjectLayout({ children = null }) {
             destination={`/project/${projectId}/books`}
           /> */}
           <NavButton
-            label="Settings"
+            label={t("Settings")}
             icon="gear"
             destination={`/project/${projectId}/settings`}
           />

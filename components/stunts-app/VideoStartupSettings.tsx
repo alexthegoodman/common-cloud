@@ -16,8 +16,11 @@ import { JwtData } from "@/hooks/useCurrentUser";
 import { set } from "zod";
 import { SavedState } from "@/engine/animations";
 import { SaveTarget } from "@/engine/editor_state";
+import { useTranslation } from "react-i18next";
 
 export default function VideoStartupSettings() {
+  const { t } = useTranslation("common");
+
   let [fileData, setFIleData] = React.useState<SavedState | null>(null);
   let [loading, setLoading] = React.useState(true);
   let [startupScreen, setStartupScreen] = React.useState(true);
@@ -74,7 +77,7 @@ export default function VideoStartupSettings() {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <p className="text-lg">Loading project...</p>
+          <p className="text-lg">{t("Loading project")}...</p>
         </div>
       </div>
     );
@@ -86,7 +89,7 @@ export default function VideoStartupSettings() {
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <p className="text-lg mb-4">
-            Choose your video orientation to get started:
+            {t("Choose your video orientation to get started")}:
           </p>
           <div className="flex justify-center space-x-4">
             <button
@@ -113,7 +116,7 @@ export default function VideoStartupSettings() {
                 setStartupScreen(false);
               }}
             >
-              Horizontal (16:9)
+              {t("Horizontal")} (16:9)
             </button>
             <button
               className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
@@ -139,7 +142,7 @@ export default function VideoStartupSettings() {
                 setStartupScreen(false);
               }}
             >
-              Vertical (9:16)
+              {t("Vertical")} (9:16)
             </button>
           </div>
         </div>

@@ -72,6 +72,7 @@ import { ThemePicker } from "./ThemePicker";
 import { ObjectTrack } from "./ObjectTimeline";
 import toast from "react-hot-toast";
 import { Hamburger, Stack } from "@phosphor-icons/react";
+import { useTranslation } from "react-i18next";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -162,6 +163,8 @@ export function update_keyframe(
 }
 
 export const VideoEditor: React.FC<any> = ({ projectId }) => {
+  const { t } = useTranslation("common");
+
   const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
@@ -1082,7 +1085,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           className="md:hidden text-xs rounded-md text-white stunts-gradient px-2 py-1 h-50 w-50 flex items-center justify-center top-4 left-18"
           onClick={toggleSidebar}
         >
-          <Stack size={"20px"} /> Actions
+          <Stack size={"20px"} /> {t("Actions")}
         </button>
       </div>
 
@@ -1095,14 +1098,16 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           <div className="relative md:fixed top-4 left-[0px] md:left-[100px] w-[315px]">
             {error ? (
               <div>
-                <span>Error: {error}</span>
+                <span>
+                  {t("Error")}: {error}
+                </span>
               </div>
             ) : (
               <></>
             )}
             {loading ? (
               <div>
-                <span>Loading...</span>
+                <span>{t("Loading")}...</span>
               </div>
             ) : (
               <></>
@@ -1115,7 +1120,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                     editorStateRef={editorStateRef}
                   />
                   <div className="flex flex-row justify-between align-center w-full mt-2">
-                    <h5>Sequences</h5>
+                    <h5>{t("Sequences")}</h5>
                     {/* <button
                       className="text-xs rounded-md text-white stunts-gradient px-2 py-1 cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
                       disabled={loading}
@@ -1129,7 +1134,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                       // disabled={loading}
                       onClick={on_create_sequence}
                     >
-                      New Sequence
+                      {t("New Sequence")}
                     </a>
                   </div>
                   <div className="flex flex-col w-full mt-2">
@@ -1140,7 +1145,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                           disabled={loading}
                           onClick={() => on_open_sequence(sequence.id)}
                         >
-                          Open {sequence.name}
+                          {t("Open")} {sequence.name}
                         </button>
                         {/* <button
                         className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
@@ -1198,7 +1203,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                             console.info("Sequence added!");
                           }}
                         >
-                          Add to Timeline
+                          {t("Add to Timeline")}
                         </button>
                       </div>
                     ))}

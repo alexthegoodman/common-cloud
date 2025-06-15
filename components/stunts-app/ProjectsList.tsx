@@ -11,8 +11,11 @@ import {
 } from "@/fetchers/projects";
 import useSWR from "swr";
 import { useLocalStorage } from "@uidotdev/usehooks";
+import { useTranslation } from "react-i18next";
 
 export const ProjectsList = () => {
+  const { t } = useTranslation("common");
+
   const router = useRouter();
   const [authToken] = useLocalStorage("auth-token", null);
 
@@ -23,15 +26,15 @@ export const ProjectsList = () => {
   } = useSWR("projects", () => getProjects(authToken));
 
   if (isLoading) {
-    return <div>Loading projects...</div>;
+    return <div>{t("Loading projects")}...</div>;
   }
 
   if (error) {
-    return <div>Error</div>;
+    return <div>{t("Error")}</div>;
   }
 
   if (!projects) {
-    return <div>No projects found.</div>;
+    return <div>{t("No projects found")}.</div>;
   }
 
   return (

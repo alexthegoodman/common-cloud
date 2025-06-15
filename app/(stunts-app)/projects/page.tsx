@@ -5,19 +5,22 @@ import ErrorBoundary from "@/components/stunts-app/ErrorBoundary";
 import { ProjectsList } from "@/components/stunts-app/ProjectsList";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function Projects() {
+  const { t } = useTranslation("common");
+
   const router = useRouter();
 
   return (
-    <React.Suspense fallback={<div>Loading...</div>}>
+    <React.Suspense fallback={<div>{t("Loading")}...</div>}>
       {/* Wrap with Suspense */}
       <ErrorBoundary>
         {/* Error Boundary */}
         <ClientOnly>
           <div className="container mx-auto py-4">
             <div className="flex flex-row gap-2 justify-between w-full">
-              <h1 className="text-lg">Projects</h1>
+              <h1 className="text-lg">{t("Projects")}</h1>
               <button
                 onClick={() => router.push("/create-project")}
                 className="group relative w-lg flex justify-center py-2 px-4 border border-transparent
@@ -25,7 +28,7 @@ export default function Projects() {
                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
                 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Project
+                {t("Create Project")}
               </button>
             </div>
             <ProjectsList />

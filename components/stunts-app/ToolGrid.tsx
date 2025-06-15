@@ -27,6 +27,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/react";
+import { useTranslation } from "react-i18next";
 
 export const ToolGrid = ({
   editorRef,
@@ -49,6 +50,8 @@ export const ToolGrid = ({
   layers: Layer[];
   setLayers: React.Dispatch<React.SetStateAction<Layer[]>>;
 }) => {
+  const { t } = useTranslation("common");
+
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
   const [isCapturing, setIsCapturing] = useState(false);
@@ -562,7 +565,7 @@ export const ToolGrid = ({
       {options.includes("page") && (
         <OptionButton
           style={{}}
-          label="Add Page"
+          label={t("Add Page")}
           icon="file-plus"
           callback={() => {
             if (!currentSequenceId || !on_create_sequence) {
@@ -577,7 +580,7 @@ export const ToolGrid = ({
       {options.includes("square") && (
         <OptionButton
           style={{}}
-          label="Add Square"
+          label={t("Add Square")}
           icon="square"
           callback={() => {
             if (!currentSequenceId) {
@@ -592,7 +595,7 @@ export const ToolGrid = ({
       {options.includes("text") && (
         <OptionButton
           style={{}}
-          label="Add Text"
+          label={t("Add Text")}
           icon="text"
           callback={() => {
             if (!currentSequenceId) {
@@ -627,7 +630,7 @@ export const ToolGrid = ({
           />
           <OptionButton
             style={{}}
-            label="Add Image"
+            label={t("Add Image")}
             icon="image"
             callback={() => fileInputRef.current?.click()}
           />
@@ -657,7 +660,7 @@ export const ToolGrid = ({
           />
           <OptionButton
             style={{}}
-            label="Add Video"
+            label={t("Add Video")}
             icon="video"
             callback={() => videoInputRef.current?.click()}
           />
@@ -667,7 +670,7 @@ export const ToolGrid = ({
       {options.includes("capture") && (
         <OptionButton
           style={{}}
-          label="Screen Capture"
+          label={t("Screen Capture")}
           icon="video"
           callback={() => {
             if (isCapturing) {
@@ -683,7 +686,7 @@ export const ToolGrid = ({
         <>
           <OptionButton
             style={{}}
-            label="Generate Image"
+            label={t("Generate Image")}
             icon="image"
             callback={() => {
               setGenerateImageModalOpen(true);

@@ -6,12 +6,15 @@ import { VideoEditor } from "@/components/stunts-app/VideoEditor";
 import React from "react";
 import { useParams } from "next/navigation";
 import VideoStartupSettings from "@/components/stunts-app/VideoStartupSettings";
+import { useTranslation } from "react-i18next";
 
 export default function Videos() {
+  const { t } = useTranslation("common");
+
   const { projectId } = useParams();
 
   return (
-    <React.Suspense fallback={<div>Loading...</div>}>
+    <React.Suspense fallback={<div>{t("Loading")}...</div>}>
       {/* Wrap with Suspense */}
       <ErrorBoundary>
         {/* Error Boundary */}
