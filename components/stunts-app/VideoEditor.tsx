@@ -71,7 +71,7 @@ import { WindowSize } from "@/engine/camera";
 import { ThemePicker } from "./ThemePicker";
 import { ObjectTrack } from "./ObjectTimeline";
 import toast from "react-hot-toast";
-import { Hamburger, Stack } from "@phosphor-icons/react";
+import { ArrowRight, Hamburger, Stack } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 
 export function update_keyframe(
@@ -1138,75 +1138,92 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                     </a>
                   </div>
                   <div className="flex flex-col w-full mt-2">
-                    {(sequences as Sequence[]).map((sequence: Sequence) => (
-                      <div className="flex flex-row" key={sequence.id}>
-                        <button
-                          className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
-                          disabled={loading}
-                          onClick={() => on_open_sequence(sequence.id)}
-                        >
-                          {t("Open")} {sequence.name}
-                        </button>
-                        {/* <button
+                    {(sequences as Sequence[]).map((sequence: Sequence) => {
+                      let showAddButton = false;
+                      if (
+                        sequence.activePolygons.length > 0 ||
+                        sequence.activeImageItems.length > 0 ||
+                        sequence.activeTextItems.length > 0 ||
+                        sequence.activeVideoItems.length > 0
+                      ) {
+                        showAddButton = true;
+                      }
+
+                      return (
+                        <div className="flex flex-row" key={sequence.id}>
+                          <button
+                            className="flex flex-row justify-start gap-1 text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
+                            disabled={loading}
+                            onClick={() => on_open_sequence(sequence.id)}
+                          >
+                            <span>
+                              {t("Open")} {sequence.name}
+                            </span>
+                            <ArrowRight />
+                          </button>
+                          {/* <button
                         className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
                         disabled={loading}
                         onClick={() => {}}
                       >
                         Duplicate
                       </button> */}
-                        <button
-                          className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
-                          disabled={loading}
-                          onClick={async () => {
-                            let editor_state = editorStateRef.current;
+                          {showAddButton && (
+                            <button
+                              className="text-xs w-[100px] text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
+                              disabled={loading}
+                              onClick={async () => {
+                                let editor_state = editorStateRef.current;
 
-                            if (
-                              !editor_state ||
-                              !editor_state.savedState.timeline_state
-                            ) {
-                              return;
-                            }
+                                if (
+                                  !editor_state ||
+                                  !editor_state.savedState.timeline_state
+                                ) {
+                                  return;
+                                }
 
-                            let existing_timeline =
-                              editor_state.savedState.timeline_state
-                                .timeline_sequences;
+                                let existing_timeline =
+                                  editor_state.savedState.timeline_state
+                                    .timeline_sequences;
 
-                            // Find the sequence that ends at the latest point in time
-                            let startTime = 0;
-                            if (existing_timeline.length > 0) {
-                              let test = existing_timeline.map((seq) => {
-                                let duration_ms =
-                                  sequenceDurations[seq.sequenceId];
-                                return seq.startTimeMs + duration_ms;
-                              });
+                                // Find the sequence that ends at the latest point in time
+                                let startTime = 0;
+                                if (existing_timeline.length > 0) {
+                                  let test = existing_timeline.map((seq) => {
+                                    let duration_ms =
+                                      sequenceDurations[seq.sequenceId];
+                                    return seq.startTimeMs + duration_ms;
+                                  });
 
-                              startTime = Math.max(...test);
-                            }
+                                  startTime = Math.max(...test);
+                                }
 
-                            existing_timeline.push({
-                              id: uuidv4(),
-                              sequenceId: sequence.id,
-                              trackType: TrackType.Video,
-                              startTimeMs: startTime,
-                              // duration_ms: 20000,
-                            });
+                                existing_timeline.push({
+                                  id: uuidv4(),
+                                  sequenceId: sequence.id,
+                                  trackType: TrackType.Video,
+                                  startTimeMs: startTime,
+                                  // duration_ms: 20000,
+                                });
 
-                            await saveTimelineData(
-                              editor_state.savedState.timeline_state
-                            );
+                                await saveTimelineData(
+                                  editor_state.savedState.timeline_state
+                                );
 
-                            setTSequences(
-                              editor_state.savedState.timeline_state
-                                .timeline_sequences
-                            );
+                                setTSequences(
+                                  editor_state.savedState.timeline_state
+                                    .timeline_sequences
+                                );
 
-                            console.info("Sequence added!");
-                          }}
-                        >
-                          {t("Add to Timeline")}
-                        </button>
-                      </div>
-                    ))}
+                                console.info("Sequence added!");
+                              }}
+                            >
+                              {t("Add to Timeline")}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
