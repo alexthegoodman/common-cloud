@@ -71,7 +71,7 @@ import { WindowSize } from "@/engine/camera";
 import { ThemePicker } from "./ThemePicker";
 import { ObjectTrack } from "./ObjectTimeline";
 import toast from "react-hot-toast";
-import { ArrowRight, Hamburger, Stack } from "@phosphor-icons/react";
+import { ArrowRight, Check, Hamburger, Stack, X } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 
 export function update_keyframe(
@@ -665,6 +665,11 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     }
   };
 
+  const [onboarding1Visible, setOnboard1Visible] = useLocalStorage<boolean>(
+    "video-onboarding-1-visible",
+    true
+  );
+
   useEffect(() => {
     if (editorIsSet) {
       console.info("Fetch data...");
@@ -1080,6 +1085,30 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
   return (
     <>
+      {/* Alert explaining hub */}
+      {onboarding1Visible && (
+        <section className="max-w-[300px] bg-yellow-100 text-yellow-800 p-4 rounded-lg mb-6 w-full md:w-[600px]">
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-lg font-semibold">Welcome to Stunts!</h2>
+
+            <button
+              className="text-gray-500 hover:text-gray-700"
+              onClick={() => setOnboard1Visible(false)}
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <div className="flex items-center">
+            <Check className="mr-2" />
+            <span className="text-sm">
+              Are you ready to create beautiful videos? Simply open up the
+              Actions sidebar, create a New Sequence, and then open it up to
+              start adding content and generating animations.
+            </span>
+          </div>
+        </section>
+      )}
+
       <div className="mb-2">
         <button
           className="md:hidden text-xs rounded-md text-white stunts-gradient px-2 py-1 h-50 w-50 flex items-center justify-center top-4 left-18"
