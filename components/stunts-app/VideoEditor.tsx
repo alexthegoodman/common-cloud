@@ -1528,13 +1528,22 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           </div>
         </div>
 
-        <div className="flex flex-col justify-start items-center w-[calc(100vw-175px)] ml-[175px] md:ml-0 md:w-[calc(100vw-420px)] gap-2">
-          <canvas
-            id="scene-canvas"
-            className={`w-[${settings?.dimensions.width}px] h-[${settings?.dimensions.height}px] border border-black`}
-            width={settings?.dimensions.width}
-            height={settings?.dimensions.height}
-          />
+        <div className="flex flex-col justify-start items-center w-[calc(100vw-125px)] md:ml-0 md:w-[calc(100vw-420px)] gap-2">
+          <div
+            id="scene-canvas-wrapper"
+            style={
+              settings?.dimensions.width === 900
+                ? { aspectRatio: 900 / 550 }
+                : { aspectRatio: 550 / 900 }
+            }
+          >
+            <canvas
+              id="scene-canvas"
+              className={`w-[${settings?.dimensions.width}px] h-[${settings?.dimensions.height}px] border border-black`}
+              width={settings?.dimensions.width}
+              height={settings?.dimensions.height}
+            />
+          </div>
           {current_sequence_id && (
             <PlaySequenceButton
               editorRef={editorRef}
