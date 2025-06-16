@@ -214,6 +214,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   const canvasPipelineRef = useRef<CanvasPipeline | null>(null);
   const webCaptureRef = useRef<WebCapture | null>(null);
   const [editorIsSet, setEditorIsSet] = useState(false);
+  const [editorStateSet, setEditorStateSet] = useState(false);
 
   let setupCanvasMouseTracking = (canvas: HTMLCanvasElement) => {
     let editor = editorRef.current;
@@ -627,6 +628,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       set_quick_access();
 
       set_loading(false);
+      setEditorStateSet(true);
     } catch (error: any) {
       console.error("Error fetching data:", error);
       toast.error("Failed to fetch project data");
@@ -1119,10 +1121,12 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             {section === "SequenceList" ? (
               <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
                 <div className="flex flex-col w-full">
-                  <ExportVideoButton
-                    editorRef={editorRef}
-                    editorStateRef={editorStateRef}
-                  />
+                  {editorStateSet && (
+                    <ExportVideoButton
+                      editorRef={editorRef}
+                      editorStateRef={editorStateRef}
+                    />
+                  )}
                   <div className="flex flex-row justify-between align-center w-full mt-2">
                     <h5>{t("Sequences")}</h5>
                     {/* <button
@@ -1522,7 +1526,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
               selected_sequence_id={current_sequence_id}
             />
           )}
-          {!current_sequence_id && (
+          {editorStateSet && !current_sequence_id && (
             <PlayVideoButton
               editorRef={editorRef}
               editorStateRef={editorStateRef}

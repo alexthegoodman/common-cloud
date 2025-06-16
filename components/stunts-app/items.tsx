@@ -353,6 +353,35 @@ export const PlayVideoButton: React.FC<{
   const { t } = useTranslation("common");
 
   const [isPlaying, setIsPlaying] = useState(false);
+  let [canPlay, setCanPlay] = useState(false);
+
+  useEffect(() => {
+    if (editorStateRef.current) {
+      let canPlay = false;
+      editorStateRef.current.savedState.sequences.forEach((seq) => {
+        if (
+          seq.activePolygons.length > 0 ||
+          seq.activeImageItems.length > 0 ||
+          seq.activeTextItems.length > 0 ||
+          seq.activeVideoItems.length > 0
+        ) {
+          canPlay = true;
+        }
+      });
+
+      setCanPlay(canPlay);
+    }
+  }, [editorStateRef]);
+
+  if (!canPlay) {
+    return (
+      <>
+        <span className="text-sm">
+          Create a sequence and add content to play a video
+        </span>
+      </>
+    );
+  }
 
   return (
     <button
@@ -529,9 +558,9 @@ export const ExportVideoButton: React.FC<{
         }
       });
 
-      setCanExport(true);
+      setCanExport(canExport);
     }
-  }, []);
+  }, [editorStateRef]);
 
   const exportHandler = async () => {
     let editorState = editorStateRef.current;
