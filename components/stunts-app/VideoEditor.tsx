@@ -716,8 +716,10 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
     let new_sequences = sequences as Sequence[];
 
+    let newId = uuidv4().toString();
+
     new_sequences.push({
-      id: uuidv4().toString(),
+      id: newId,
       name: "New Sequence",
       backgroundFill: { type: "Color", value: [200, 200, 200, 255] },
       durationMs: 20000,
@@ -740,6 +742,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     );
 
     set_quick_access();
+
+    on_open_sequence(newId);
 
     set_loading(false);
   };
