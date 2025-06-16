@@ -639,6 +639,10 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
       set_quick_access();
 
+      let firstSequenceId = cloned_sequences[0].id;
+
+      on_open_sequence(firstSequenceId);
+
       set_loading(false);
       setEditorStateSet(true);
     } catch (error: any) {
