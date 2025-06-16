@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import FacebookPixel from "@/components/FacebookPixel";
 import { Analytics } from "@vercel/analytics/next";
+import { LogRocketProvider } from "@/components/LogRocketProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +30,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <LogRocketProvider>{children}</LogRocketProvider>
         <FacebookPixel />
         <Analytics />
       </body>

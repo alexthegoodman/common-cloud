@@ -13,3 +13,5 @@ BUNNY_API_KEY=your-bunny-storage-api-key
 BUNNY_CDN_URL=https://your-pull-zone.b-cdn.net
 
 NEXT_PUBLIC_FACEBOOK_PIXEL_ID=""
+
+NEXT_PUBLIC_LOGROCKET_APP_ID=""
