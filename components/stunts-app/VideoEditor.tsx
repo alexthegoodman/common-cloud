@@ -1124,11 +1124,11 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
       <div className="flex flex-row w-full">
         <div
-          className={`z-10 relative w-[315px] ${
+          className={`z-10 relative w-full md:w-[315px] ${
             showSidebar ? "block" : "hidden md:block"
           }`}
         >
-          <div className="relative md:fixed top-4 left-[0px] md:left-[100px] w-[315px]">
+          <div className="relative md:fixed top-4 left-[0px] md:left-[100px] w-full md:w-[315px]">
             {error ? (
               <div>
                 <span>
