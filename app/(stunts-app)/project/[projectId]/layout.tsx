@@ -16,21 +16,21 @@ export default function ProjectLayout({ children = null }) {
       <Toaster position="top-left" reverseOrder={false} />
       <div className="flex flex-row p-4">
         <div className="flex flex-col gap-4 mr-4">
-          <NavButton
+          {/* <NavButton
             label={t("Hub")}
             icon="lightning"
             destination={`/project/${projectId}`}
-          />
+          /> */}
           <NavButton
             label={t("Video")}
             icon="video"
             destination={`/project/${projectId}/videos`}
           />
-          <NavButton
+          {/* <NavButton
             label={t("Document")}
             icon="file-cloud"
             destination={`/project/${projectId}/documents`}
-          />
+          /> */}
           {/* <NavButton
             label="Slides"
             icon="presentation"
