@@ -71,8 +71,18 @@ import { WindowSize } from "@/engine/camera";
 import { ThemePicker } from "./ThemePicker";
 import { ObjectTrack } from "./ObjectTimeline";
 import toast from "react-hot-toast";
-import { ArrowRight, Check, Hamburger, Stack, X } from "@phosphor-icons/react";
+import {
+  ArrowRight,
+  Check,
+  Hamburger,
+  Palette,
+  Stack,
+  Toolbox,
+  WaveSawtooth,
+  X,
+} from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
+import { FlowArrow } from "@phosphor-icons/react/dist/ssr";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -1086,12 +1096,52 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
         </section>
       )}
 
-      <div className="mb-2">
-        <button
+      <div className="flex flex-row gap-2 mb-2">
+        {/* <button
           className="md:hidden text-xs rounded-md text-white stunts-gradient px-2 py-1 h-50 w-50 flex items-center justify-center top-4 left-18"
           onClick={toggleSidebar}
         >
           <Stack size={"20px"} /> {t("Actions")}
+        </button> */}
+        <button
+          className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
+        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
+        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+        >
+          <Toolbox />
+          <span className="text-xs">Tools</span>
+        </button>
+        <button
+          className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
+        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
+        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+        >
+          <WaveSawtooth />
+          <span className="text-xs">Animations</span>
+        </button>
+        <button
+          className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
+        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
+        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+        >
+          <Palette />
+          <span className="text-xs">Themes</span>
+        </button>
+        <button
+          className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
+        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
+        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+        >
+          <Stack />
+          <span className="text-xs">Layers</span>
+        </button>
+        <button
+          className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
+        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
+        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+        >
+          <FlowArrow />
+          <span className="text-xs">Sequences</span>
         </button>
       </div>
 
@@ -1592,7 +1642,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 </>
               )}
           </div>
-          {!current_sequence_id &&
+          {/* {!current_sequence_id &&
             !selected_polygon_id &&
             !selected_text_id &&
             !selected_image_id &&
@@ -1606,7 +1656,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 sequenceQuickAccess={sequenceQuickAccess}
                 onSequenceDragEnd={handleSequenceDragEnd}
               />
-            )}
+            )} */}
           {selected_polygon_id && current_sequence_id && (
             <KeyframeTimeline
               editorRef={editorRef}
