@@ -376,9 +376,7 @@ export const PlayVideoButton: React.FC<{
   if (!canPlay) {
     return (
       <>
-        <span className="text-sm">
-          Create a sequence and add content to play a video
-        </span>
+        <span className="text-sm">Add content to play a video</span>
       </>
     );
   }
@@ -608,9 +606,7 @@ export const ExportVideoButton: React.FC<{
   if (!canExport) {
     return (
       <>
-        <span className="text-sm">
-          Create a sequence and add content to export a video
-        </span>
+        <span className="text-sm">Add content to export a video</span>
       </>
     );
   }

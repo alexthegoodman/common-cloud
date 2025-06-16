@@ -195,6 +195,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     null
   );
 
+  let [toolbarTab, setToolbarTab] = useState("none");
+
   let [selected_polygon_id, set_selected_polygon_id] = useState<string | null>(
     null
   );
@@ -1073,7 +1075,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   return (
     <>
       {/* Alert explaining hub */}
-      {onboarding1Visible && (
+      {/* {onboarding1Visible && (
         <section className="max-w-[300px] bg-yellow-100 text-yellow-800 p-4 rounded-lg mb-6 w-full md:w-[600px]">
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-lg font-semibold">Welcome to Stunts!</h2>
@@ -1094,7 +1096,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             </span>
           </div>
         </section>
-      )}
+      )} */}
 
       <div className="flex flex-row gap-2 mb-2">
         {/* <button
@@ -1107,6 +1109,13 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
         shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
         hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+          onClick={() => {
+            if (toolbarTab === "tools") {
+              setToolbarTab("none");
+            } else {
+              setToolbarTab("tools");
+            }
+          }}
         >
           <Toolbox />
           <span className="text-xs">Tools</span>
@@ -1115,6 +1124,13 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
         shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
         hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+          onClick={() => {
+            if (toolbarTab === "animations") {
+              setToolbarTab("none");
+            } else {
+              setToolbarTab("animations");
+            }
+          }}
         >
           <WaveSawtooth />
           <span className="text-xs">Animations</span>
@@ -1123,6 +1139,13 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
         shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
         hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+          onClick={() => {
+            if (toolbarTab === "themes") {
+              setToolbarTab("none");
+            } else {
+              setToolbarTab("themes");
+            }
+          }}
         >
           <Palette />
           <span className="text-xs">Themes</span>
@@ -1131,6 +1154,13 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
         shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
         hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+          onClick={() => {
+            if (toolbarTab === "layers") {
+              setToolbarTab("none");
+            } else {
+              setToolbarTab("layers");
+            }
+          }}
         >
           <Stack />
           <span className="text-xs">Layers</span>
@@ -1139,94 +1169,236 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
         shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
         hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+          onClick={() => {
+            if (toolbarTab === "sequences") {
+              setToolbarTab("none");
+            } else {
+              setToolbarTab("sequences");
+            }
+          }}
         >
           <FlowArrow />
           <span className="text-xs">Sequences</span>
         </button>
       </div>
 
-      <div className="flex flex-row w-full">
-        <div
-          className={`z-10 relative w-full md:w-[315px] ${
-            showSidebar ? "block" : "hidden md:block"
-          }`}
-        >
-          <div className="relative md:fixed top-4 left-[0px] md:left-[100px] w-full md:w-[315px]">
-            {error ? (
-              <div>
-                <span>
-                  {t("Error")}: {error}
-                </span>
-              </div>
-            ) : (
-              <></>
-            )}
-            {loading ? (
-              <div>
-                <span>{t("Loading")}...</span>
-              </div>
-            ) : (
-              <></>
-            )}
-            {section === "SequenceList" ? (
-              <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                <div className="flex flex-col w-full">
-                  {editorStateSet && (
-                    <ExportVideoButton
-                      editorRef={editorRef}
-                      editorStateRef={editorStateRef}
-                    />
-                  )}
-                  <div className="flex flex-row justify-between align-center w-full mt-2">
-                    <h5>{t("Sequences")}</h5>
-                    {/* <button
+      {error ? (
+        <div>
+          <span>
+            {t("Error")}: {error}
+          </span>
+        </div>
+      ) : (
+        <></>
+      )}
+      {loading ? (
+        <div>
+          <span>{t("Loading")}...</span>
+        </div>
+      ) : (
+        <></>
+      )}
+
+      <div className="mb-2">
+        {editorStateSet && (
+          <ExportVideoButton
+            editorRef={editorRef}
+            editorStateRef={editorStateRef}
+          />
+        )}
+      </div>
+
+      {toolbarTab === "tools" && (
+        <div>
+          <ToolGrid
+            editorRef={editorRef}
+            editorStateRef={editorStateRef}
+            webCaptureRef={webCaptureRef}
+            currentSequenceId={current_sequence_id}
+            set_sequences={set_sequences}
+            options={[
+              "square",
+              "text",
+              "image",
+              "video",
+              "capture",
+              "imageGeneration",
+            ]}
+            layers={layers}
+            setLayers={set_layers}
+          />
+        </div>
+      )}
+
+      {toolbarTab === "animations" && (
+        <div>
+          <div className="flex flex-row gap-2">
+            <label htmlFor="keyframe_count" className="text-xs">
+              Choose keyframe count
+            </label>
+            <select
+              id="keyframe_count"
+              name="keyframe_count"
+              className="text-xs"
+              value={keyframe_count}
+              onChange={(ev) => set_keyframe_count(parseInt(ev.target.value))}
+            >
+              <option value="4">4</option>
+              <option value="6">6</option>
+            </select>
+            <input
+              type="checkbox"
+              id="is_curved"
+              name="is_curved"
+              checked={is_curved}
+              onChange={(ev) => set_is_curved(ev.target.checked)}
+            />
+            <label htmlFor="is_curved" className="text-xs">
+              Is Curved
+            </label>
+          </div>
+          <div className="flex flex-row gap-2">
+            <input
+              type="checkbox"
+              id="auto_choreograph"
+              name="auto_choreograph"
+              checked={auto_choreograph}
+              onChange={(ev) => set_auto_choreograph(ev.target.checked)}
+            />
+            <label htmlFor="auto_choreograph" className="text-xs">
+              Auto-Choreograph
+            </label>
+            <input
+              type="checkbox"
+              id="auto_fade"
+              name="auto_fade"
+              checked={auto_fade}
+              onChange={(ev) => set_auto_fade(ev.target.checked)}
+            />
+            <label htmlFor="auto_fade" className="text-xs">
+              Auto-Fade
+            </label>
+          </div>
+          <button
+            type="submit"
+            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading}
+            onClick={() => {
+              on_generate_animation();
+            }}
+          >
+            {loading ? "Generating..." : "Generate Animation"}
+          </button>
+        </div>
+      )}
+
+      {toolbarTab === "themes" && current_sequence_id && (
+        <div>
+          <ThemePicker
+            editorRef={editorRef}
+            editorStateRef={editorStateRef}
+            currentSequenceId={current_sequence_id}
+            saveTarget={SaveTarget.Videos}
+          />
+
+          <label className="text-sm">Background Color</label>
+          <div className="flex flex-row gap-2 mb-4">
+            <DebouncedInput
+              id="background_red"
+              label="Red"
+              placeholder="Red"
+              initialValue={background_red.toString()}
+              onDebounce={(value) => {
+                set_background_red(parseInt(value));
+              }}
+            />
+            <DebouncedInput
+              id="background_green"
+              label="Green"
+              placeholder="Green"
+              initialValue={background_green.toString()}
+              onDebounce={(value) => {
+                set_background_green(parseInt(value));
+              }}
+            />
+            <DebouncedInput
+              id="background_blue"
+              label="Blue"
+              placeholder="Blue"
+              initialValue={background_blue.toString()}
+              onDebounce={(value) => {
+                set_background_blue(parseInt(value));
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {toolbarTab === "layers" && current_sequence_id && (
+        <div>
+          <LayerPanel
+            editorRef={editorRef}
+            editorStateRef={editorStateRef}
+            currentSequenceId={current_sequence_id}
+            layers={layers}
+            setLayers={set_layers}
+          />
+        </div>
+      )}
+
+      {toolbarTab === "sequences" && (
+        <div>
+          <div className="flex flex-col w-full">
+            <div className="flex flex-row justify-between align-center w-full mt-2">
+              <h5>{t("Sequences")}</h5>
+              {/* <button
                       className="text-xs rounded-md text-white stunts-gradient px-2 py-1 cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
                       disabled={loading}
                       onClick={on_create_sequence}
                     >
                       New Sequence
                     </button> */}
-                    <a
-                      className="text-xs rounded-md text-white stunts-gradient px-2 py-1 cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
-                      href="#"
-                      // disabled={loading}
-                      onClick={on_create_sequence}
-                    >
-                      {t("New Sequence")}
-                    </a>
-                  </div>
-                  <div className="flex flex-col w-full mt-2">
-                    {(sequences as Sequence[]).map((sequence: Sequence) => {
-                      let showAddButton = false;
-                      if (
-                        sequence.activePolygons.length > 0 ||
-                        sequence.activeImageItems.length > 0 ||
-                        sequence.activeTextItems.length > 0 ||
-                        sequence.activeVideoItems.length > 0
-                      ) {
-                        showAddButton = true;
-                      }
+              <a
+                className="text-xs rounded-md text-white stunts-gradient px-2 py-1 cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
+                href="#"
+                // disabled={loading}
+                onClick={on_create_sequence}
+              >
+                {t("New Sequence")}
+              </a>
+            </div>
+            <div className="flex flex-col w-full mt-2">
+              {(sequences as Sequence[]).map((sequence: Sequence) => {
+                let showAddButton = false;
+                if (
+                  sequence.activePolygons.length > 0 ||
+                  sequence.activeImageItems.length > 0 ||
+                  sequence.activeTextItems.length > 0 ||
+                  sequence.activeVideoItems.length > 0
+                ) {
+                  showAddButton = true;
+                }
 
-                      return (
-                        <div className="flex flex-row" key={sequence.id}>
-                          <button
-                            className="flex flex-row justify-start gap-1 text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
-                            disabled={loading}
-                            onClick={() => on_open_sequence(sequence.id)}
-                          >
-                            <span>
-                              {t("Open")} {sequence.name}
-                            </span>
-                            <ArrowRight />
-                          </button>
-                          {/* <button
+                return (
+                  <div className="flex flex-row" key={sequence.id}>
+                    <button
+                      className="flex flex-row justify-start gap-1 text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
+                      disabled={loading}
+                      onClick={() => on_open_sequence(sequence.id)}
+                    >
+                      <span>
+                        {t("Open")} {sequence.name}
+                      </span>
+                      <ArrowRight />
+                    </button>
+                    {/* <button
                         className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
                         disabled={loading}
                         onClick={() => {}}
                       >
                         Duplicate
                       </button> */}
-                          {showAddButton && (
+                    {/* {showAddButton && (
                             <button
                               className="text-xs w-[100px] text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
                               disabled={loading}
@@ -1278,16 +1450,29 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                             >
                               {t("Add to Timeline")}
                             </button>
-                          )}
-                        </div>
-                      );
-                    })}
+                          )} */}
                   </div>
-                </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-row w-full">
+        <div
+          className={`z-10 relative w-full md:w-[315px] ${
+            showSidebar ? "block" : "hidden md:block"
+          }`}
+        >
+          <div className="relative md:fixed top-4 left-[0px] md:left-[100px] w-full md:w-[315px]">
+            {/* {section === "SequenceList" ? (
+              <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                
               </div>
             ) : (
               <></>
-            )}
+            )} */}
             {section === "SequenceView" && current_sequence_id ? (
               <div className="flex flex-col gap-4 w-full md:max-w-[315px]">
                 {selected_keyframes && selected_keyframes?.length > 0 ? (
@@ -1370,7 +1555,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                       </>
                     )}
 
-                    {!selected_polygon_id &&
+                    {/* {!selected_polygon_id &&
                       !selected_image_id &&
                       !selected_text_id &&
                       !selected_video_id && (
@@ -1398,152 +1583,19 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                                 </button>
                                 <h5>Update Sequence</h5>
                               </div>
-                              <div className="flex flex-row gap-2">
-                                <label
-                                  htmlFor="keyframe_count"
-                                  className="text-xs"
-                                >
-                                  Choose keyframe count
-                                </label>
-                                <select
-                                  id="keyframe_count"
-                                  name="keyframe_count"
-                                  className="text-xs"
-                                  value={keyframe_count}
-                                  onChange={(ev) =>
-                                    set_keyframe_count(
-                                      parseInt(ev.target.value)
-                                    )
-                                  }
-                                >
-                                  <option value="4">4</option>
-                                  <option value="6">6</option>
-                                </select>
-                                <input
-                                  type="checkbox"
-                                  id="is_curved"
-                                  name="is_curved"
-                                  checked={is_curved}
-                                  onChange={(ev) =>
-                                    set_is_curved(ev.target.checked)
-                                  }
-                                />
-                                <label htmlFor="is_curved" className="text-xs">
-                                  Is Curved
-                                </label>
-                              </div>
-                              <div className="flex flex-row gap-2">
-                                <input
-                                  type="checkbox"
-                                  id="auto_choreograph"
-                                  name="auto_choreograph"
-                                  checked={auto_choreograph}
-                                  onChange={(ev) =>
-                                    set_auto_choreograph(ev.target.checked)
-                                  }
-                                />
-                                <label
-                                  htmlFor="auto_choreograph"
-                                  className="text-xs"
-                                >
-                                  Auto-Choreograph
-                                </label>
-                                <input
-                                  type="checkbox"
-                                  id="auto_fade"
-                                  name="auto_fade"
-                                  checked={auto_fade}
-                                  onChange={(ev) =>
-                                    set_auto_fade(ev.target.checked)
-                                  }
-                                />
-                                <label htmlFor="auto_fade" className="text-xs">
-                                  Auto-Fade
-                                </label>
-                              </div>
-                              <button
-                                type="submit"
-                                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled={loading}
-                                onClick={() => {
-                                  on_generate_animation();
-                                }}
-                              >
-                                {loading
-                                  ? "Generating..."
-                                  : "Generate Animation"}
-                              </button>
+                              
 
-                              <ToolGrid
-                                editorRef={editorRef}
-                                editorStateRef={editorStateRef}
-                                webCaptureRef={webCaptureRef}
-                                currentSequenceId={current_sequence_id}
-                                set_sequences={set_sequences}
-                                options={[
-                                  "square",
-                                  "text",
-                                  "image",
-                                  "video",
-                                  "capture",
-                                  "imageGeneration",
-                                ]}
-                                layers={layers}
-                                setLayers={set_layers}
-                              />
+                              
 
-                              <ThemePicker
-                                editorRef={editorRef}
-                                editorStateRef={editorStateRef}
-                                currentSequenceId={current_sequence_id}
-                                saveTarget={SaveTarget.Videos}
-                              />
-
-                              <label className="text-sm">
-                                Background Color
-                              </label>
-                              <div className="flex flex-row gap-2 mb-4">
-                                <DebouncedInput
-                                  id="background_red"
-                                  label="Red"
-                                  placeholder="Red"
-                                  initialValue={background_red.toString()}
-                                  onDebounce={(value) => {
-                                    set_background_red(parseInt(value));
-                                  }}
-                                />
-                                <DebouncedInput
-                                  id="background_green"
-                                  label="Green"
-                                  placeholder="Green"
-                                  initialValue={background_green.toString()}
-                                  onDebounce={(value) => {
-                                    set_background_green(parseInt(value));
-                                  }}
-                                />
-                                <DebouncedInput
-                                  id="background_blue"
-                                  label="Blue"
-                                  placeholder="Blue"
-                                  initialValue={background_blue.toString()}
-                                  onDebounce={(value) => {
-                                    set_background_blue(parseInt(value));
-                                  }}
-                                />
-                              </div>
+                              
+                              
                             </div>
                           </div>
                           <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                            <LayerPanel
-                              editorRef={editorRef}
-                              editorStateRef={editorStateRef}
-                              currentSequenceId={current_sequence_id}
-                              layers={layers}
-                              setLayers={set_layers}
-                            />
+                            
                           </div>
                         </>
-                      )}
+                      )} */}
                   </>
                 )}
               </div>
