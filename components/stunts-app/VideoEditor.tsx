@@ -1297,7 +1297,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       )}
 
       {toolbarTab === "themes" && current_sequence_id && (
-        <div>
+        <div className="max-h-[35vh] overflow-scroll">
           <ThemePicker
             editorRef={editorRef}
             editorStateRef={editorStateRef}
