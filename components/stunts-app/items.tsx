@@ -513,6 +513,25 @@ export const ExportVideoButton: React.FC<{
 
   let [isExporting, setIsExporting] = useState(false);
   let [progress, setProgress] = useState("0");
+  let [canExport, setCanExport] = useState(false);
+
+  useEffect(() => {
+    if (editorStateRef.current) {
+      let canExport = false;
+      editorStateRef.current.savedState.sequences.forEach((seq) => {
+        if (
+          seq.activePolygons.length > 0 ||
+          seq.activeImageItems.length > 0 ||
+          seq.activeTextItems.length > 0 ||
+          seq.activeVideoItems.length > 0
+        ) {
+          canExport = true;
+        }
+      });
+
+      setCanExport(true);
+    }
+  }, []);
 
   const exportHandler = async () => {
     let editorState = editorStateRef.current;
@@ -556,6 +575,16 @@ export const ExportVideoButton: React.FC<{
     setIsExporting(false);
     clearInterval(progressInterval);
   };
+
+  if (!canExport) {
+    return (
+      <>
+        <span className="text-sm">
+          Create a sequence and add content to export a video
+        </span>
+      </>
+    );
+  }
 
   return (
     <div className="flex flex-row gap-2 align-center">
