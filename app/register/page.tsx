@@ -14,7 +14,7 @@ const RegisterPage = () => {
             className="max-w-[200px] w-full mb-8"
           />
           <h1 className="text-4xl font-bold mb-8">Register</h1>
-          <AuthForm type="register" />
+          <AuthForm />
           <p className="mt-4">
             <Link href="/login">Login instead</Link>
           </p>

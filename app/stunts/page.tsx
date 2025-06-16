@@ -77,9 +77,9 @@ const HomePage = () => {
               hidden={!formVisible}
             >
               <p className="block text-sm font-medium mb-1 text-slate-400">
-                Register to download Stunts!
+                Register to use Stunts!
               </p>
-              <AuthForm type="register" />
+              <AuthForm />
             </motion.div>
           </div>
         </div>
