@@ -2,7 +2,7 @@
 
 import { ClientOnly } from "@/components/ClientOnly";
 import ErrorBoundary from "@/components/stunts-app/ErrorBoundary";
-import { SavedState } from "@/engine/animations";
+import { SavedState, Sequence, TrackType } from "@/engine/animations";
 import { AuthToken, createProject } from "@/fetchers/projects";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { t } from "i18next";
@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import { v4 as uuidv4 } from "uuid";
 
 const ProjectForm = () => {
   const { t } = useTranslation("common");
@@ -29,10 +30,32 @@ const ProjectForm = () => {
 
     // Type the form data
     try {
+      let newId = uuidv4().toString();
+
+      const defaultVideoSequence: Sequence = {
+        id: newId,
+        name: "Sequence #1",
+        backgroundFill: { type: "Color", value: [200, 200, 200, 255] },
+        durationMs: 20000,
+        activePolygons: [],
+        polygonMotionPaths: [],
+        activeTextItems: [],
+        activeImageItems: [],
+        activeVideoItems: [],
+      };
+
       const videoState: SavedState = {
-        sequences: [],
+        sequences: [defaultVideoSequence],
         timeline_state: {
-          timeline_sequences: [],
+          timeline_sequences: [
+            {
+              id: uuidv4(),
+              sequenceId: newId,
+              trackType: TrackType.Video,
+              startTimeMs: 0,
+              // duration_ms: 20000,
+            },
+          ],
         },
       };
 
