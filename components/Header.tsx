@@ -8,7 +8,7 @@ export default function Header({ language = "en", showLogo = false }) {
     case "en":
       copy = {
         blog: "Blog",
-        login: "Login",
+        login: "Login / Register",
         register: "Register",
       };
       break;
@@ -16,7 +16,7 @@ export default function Header({ language = "en", showLogo = false }) {
     case "hi":
       copy = {
         blog: "ब्लॉग",
-        login: "लॉगिन",
+        login: "लॉगिन / रजिस्टर",
         register: "रजिस्टर",
       };
       break;
@@ -54,9 +54,9 @@ export default function Header({ language = "en", showLogo = false }) {
           <li>
             <Link href="/login/">{copy?.login}</Link>
           </li>
-          <li>
+          {/* <li>
             <Link href="/register/">{copy?.register}</Link>
-          </li>
+          </li> */}
         </ul>
       </div>
     </section>

@@ -13,11 +13,11 @@ const LoginPage = () => {
             src="/stunts_logo_nobg.png"
             className="max-w-[200px] w-full mb-8"
           />
-          <h1 className="text-4xl font-bold mb-8">Login</h1>
+          <h1 className="text-4xl font-bold mb-8">Login / Register</h1>
           <AuthForm />
-          <p className="mt-4">
+          {/* <p className="mt-4">
             <Link href="/register">Register instead</Link>
-          </p>
+          </p> */}
         </div>
         <div>
           <Features grid={2} py={0} />
