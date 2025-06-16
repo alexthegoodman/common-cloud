@@ -222,63 +222,35 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       return;
     }
 
-    // const hasTouch = "ontouchstart" in window;
-
-    // if (hasTouch) {
-    //   canvas.addEventListener("touchmove", (event: TouchEvent) => {
-    //     console.info("handle touch move");
-
-    //     // Get the canvas's bounding rectangle
-    //     const rect = canvas.getBoundingClientRect();
-
-    //     var touch = event.touches[0];
-    //     var x = touch.pageX;
-    //     var y = touch.pageY;
-
-    //     // Calculate position relative to the canvas
-    //     const positionX = x - rect.left;
-    //     const positionY = y - rect.top;
-
-    //     editor.handle_mouse_move(positionX, positionY);
-    //   });
-
-    //   canvas.addEventListener("touchstart", (event) => {
-    //     console.info("handle touch down");
-    //     editor.handle_mouse_down();
-    //   });
-
-    //   canvas.addEventListener("touchend", (event) => {
-    //     console.info("handle touch up");
-    //     editor.handle_mouse_up();
-    //   });
-
-    //   canvas.addEventListener("touchcancel", (event) => {
-    //     console.info("handle touch cancel");
-    //     editor.handle_mouse_up();
-    //   });
-    // } else {
-    canvas.addEventListener("pointermove", (event: MouseEvent) => {
-      // Get the canvas's bounding rectangle
+    function getCanvasCoordinates(
+      canvas: HTMLCanvasElement,
+      event: PointerEvent
+    ) {
       const rect = canvas.getBoundingClientRect();
 
-      // Calculate position relative to the canvas
-      const positionX = event.clientX - rect.left;
-      const positionY = event.clientY - rect.top;
+      // Get mouse position relative to the scaled canvas
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
 
-      editor.handle_mouse_move(positionX, positionY);
+      // Convert to canvas internal coordinates
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      return {
+        x: mouseX * scaleX,
+        y: mouseY * scaleY,
+      };
+    }
+
+    canvas.addEventListener("pointermove", (event: PointerEvent) => {
+      const coords = getCanvasCoordinates(canvas, event);
+      editor.handle_mouse_move(coords.x, coords.y);
     });
 
     canvas.addEventListener("pointerdown", (event) => {
       canvas.setPointerCapture(event.pointerId);
-
-      // Get the canvas's bounding rectangle
-      const rect = canvas.getBoundingClientRect();
-
-      // Calculate position relative to the canvas
-      const positionX = event.clientX - rect.left;
-      const positionY = event.clientY - rect.top;
-
-      editor.handle_mouse_down(positionX, positionY);
+      const coords = getCanvasCoordinates(canvas, event);
+      editor.handle_mouse_down(coords.x, coords.y);
     });
 
     canvas.addEventListener("pointerup", (event) => {
@@ -292,7 +264,6 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       canvas.releasePointerCapture(event.pointerId);
       editor.handle_mouse_up();
     });
-    // }
   };
 
   let select_polygon = (polygon_id: string) => {
