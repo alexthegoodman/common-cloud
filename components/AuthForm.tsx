@@ -68,7 +68,10 @@ export default function AuthForm({ type = "login" }) {
       className="space-y-4 sm:w-[300px] md:w-[350px] lg:w-[400px] text-left"
     >
       <div>
-        <label htmlFor="email" className="block text-sm font-medium mb-1">
+        <label
+          htmlFor="email"
+          className="block text-sm font-medium mb-1 text-slate-400"
+        >
           Email
         </label>
         <input
@@ -88,7 +91,10 @@ export default function AuthForm({ type = "login" }) {
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium mb-1">
+        <label
+          htmlFor="password"
+          className="block text-sm font-medium mb-1 text-slate-400"
+        >
           Password
         </label>
         <input
