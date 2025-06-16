@@ -1558,7 +1558,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             />
           )}
           <div
-            className={`w-[${settings?.dimensions.width}px] md:mx-auto overflow-x-scroll`}
+            className={`w-full md:w-[${settings?.dimensions.width}px] md:mx-auto overflow-x-scroll`}
           >
             {current_sequence_id &&
               !selected_polygon_id &&
