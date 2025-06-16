@@ -76,9 +76,9 @@ const HomePage = () => {
               transition={{ duration: 0.5 }}
               hidden={!formVisible}
             >
-              <p className="block text-sm font-medium mb-1 text-slate-400">
+              {/* <p className="block text-sm font-medium mb-1 text-slate-400">
                 Register to use Stunts!
-              </p>
+              </p> */}
               <AuthForm />
             </motion.div>
           </div>
