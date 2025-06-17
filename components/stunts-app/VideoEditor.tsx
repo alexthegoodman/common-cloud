@@ -1463,103 +1463,89 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
         </div>
       )}
 
-      <div className="flex flex-row w-full">
-        <div
-          className={`z-10 relative w-full md:w-[315px] ${
-            showSidebar ? "block" : "hidden md:block"
-          }`}
-        >
-          <div className="relative md:fixed top-4 left-[0px] md:left-[100px] w-full md:w-[315px]">
-            {/* {section === "SequenceList" ? (
-              <div className="flex max-w-[315px] w-full max-h-[50vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                
-              </div>
-            ) : (
-              <></>
-            )} */}
-            {section === "SequenceView" && current_sequence_id ? (
-              <div className="flex flex-col gap-4 w-full md:max-w-[315px]">
-                {selected_keyframes && selected_keyframes?.length > 0 ? (
-                  <>
-                    <KeyframeProperties
-                      key={"props" + selected_keyframes[0]}
+      {current_sequence_id ? (
+        <div className="flex flex-col gap-4 w-full max-h-[300px] overflow-scroll md:max-h-full md:max-w-[315px]">
+          {selected_keyframes && selected_keyframes?.length > 0 ? (
+            <>
+              <KeyframeProperties
+                key={"props" + selected_keyframes[0]}
+                editorRef={editorRef}
+                editorStateRef={editorStateRef}
+                currentSequenceId={current_sequence_id}
+                selectedKeyframe={selected_keyframes[0]}
+                setRefreshTimeline={setRefreshTimeline}
+                handleGoBack={() => {
+                  set_selected_keyframes(null);
+                }}
+              />
+            </>
+          ) : (
+            <>
+              {selected_polygon_id && (
+                <PolygonProperties
+                  key={"props" + selected_polygon_id}
+                  editorRef={editorRef}
+                  editorStateRef={editorStateRef}
+                  currentSequenceId={current_sequence_id}
+                  currentPolygonId={selected_polygon_id}
+                  handleGoBack={() => {
+                    set_selected_polygon_id(null);
+                  }}
+                />
+              )}
+
+              {selected_image_id && (
+                <>
+                  <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                    <ImageProperties
+                      key={"props" + selected_image_id}
                       editorRef={editorRef}
                       editorStateRef={editorStateRef}
                       currentSequenceId={current_sequence_id}
-                      selectedKeyframe={selected_keyframes[0]}
-                      setRefreshTimeline={setRefreshTimeline}
+                      currentImageId={selected_image_id}
                       handleGoBack={() => {
-                        set_selected_keyframes(null);
+                        set_selected_image_id(null);
                       }}
                     />
-                  </>
-                ) : (
-                  <>
-                    {selected_polygon_id && (
-                      <PolygonProperties
-                        key={"props" + selected_polygon_id}
-                        editorRef={editorRef}
-                        editorStateRef={editorStateRef}
-                        currentSequenceId={current_sequence_id}
-                        currentPolygonId={selected_polygon_id}
-                        handleGoBack={() => {
-                          set_selected_polygon_id(null);
-                        }}
-                      />
-                    )}
+                  </div>
+                </>
+              )}
 
-                    {selected_image_id && (
-                      <>
-                        <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                          <ImageProperties
-                            key={"props" + selected_image_id}
-                            editorRef={editorRef}
-                            editorStateRef={editorStateRef}
-                            currentSequenceId={current_sequence_id}
-                            currentImageId={selected_image_id}
-                            handleGoBack={() => {
-                              set_selected_image_id(null);
-                            }}
-                          />
-                        </div>
-                      </>
-                    )}
+              {selected_text_id && (
+                <>
+                  <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                    <TextProperties
+                      key={"props" + selected_text_id}
+                      editorRef={editorRef}
+                      editorStateRef={editorStateRef}
+                      currentSequenceId={current_sequence_id}
+                      currentTextId={selected_text_id}
+                      handleGoBack={() => {
+                        set_selected_text_id(null);
+                      }}
+                    />
+                  </div>
+                </>
+              )}
 
-                    {selected_text_id && (
-                      <>
-                        <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                          <TextProperties
-                            key={"props" + selected_text_id}
-                            editorRef={editorRef}
-                            editorStateRef={editorStateRef}
-                            currentSequenceId={current_sequence_id}
-                            currentTextId={selected_text_id}
-                            handleGoBack={() => {
-                              set_selected_text_id(null);
-                            }}
-                          />
-                        </div>
-                      </>
-                    )}
+              {selected_video_id && (
+                <>
+                  <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                    <VideoProperties
+                      key={"props" + selected_video_id}
+                      editorRef={editorRef}
+                      editorStateRef={editorStateRef}
+                      currentSequenceId={current_sequence_id}
+                      currentVideoId={selected_video_id}
+                      handleGoBack={() => {
+                        set_selected_video_id(null);
+                      }}
+                    />
+                  </div>
+                </>
+              )}
 
-                    {selected_video_id && (
-                      <>
-                        <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                          <VideoProperties
-                            key={"props" + selected_video_id}
-                            editorRef={editorRef}
-                            editorStateRef={editorStateRef}
-                            currentSequenceId={current_sequence_id}
-                            currentVideoId={selected_video_id}
-                            handleGoBack={() => {
-                              set_selected_video_id(null);
-                            }}
-                          />
-                        </div>
-                      </>
-                    )}
-
-                    {/* {!selected_polygon_id &&
+              {/* {!selected_polygon_id &&
                       !selected_image_id &&
                       !selected_text_id &&
                       !selected_video_id && (
@@ -1600,15 +1586,14 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                           </div>
                         </>
                       )} */}
-                  </>
-                )}
-              </div>
-            ) : (
-              <></>
-            )}
-          </div>
+            </>
+          )}
         </div>
+      ) : (
+        <></>
+      )}
 
+      <div className="flex flex-row w-full">
         <div className="flex flex-col justify-start items-center w-[calc(100vw-125px)] md:ml-0 md:w-[calc(100vw-420px)] gap-2">
           <div
             id="scene-canvas-wrapper"
