@@ -105,7 +105,7 @@ export class MotionPath {
           // gradientBindGroupLayout,
           camera,
           startPoint,
-          12.0, // width and height
+          20.0, // width and height
           sequence.id,
           pathFill,
           0.0
@@ -133,7 +133,7 @@ export class MotionPath {
               // gradientBindGroupLayout,
               camera,
               endPoint,
-              12.0, // width and height
+              20.0, // width and height
               sequence.id,
               pathFill,
               0.0
@@ -147,7 +147,7 @@ export class MotionPath {
               // gradientBindGroupLayout,
               camera,
               endPoint,
-              12.0, // width and height
+              20.0, // width and height
               sequence.id,
               pathFill,
               45.0
