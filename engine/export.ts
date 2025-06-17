@@ -107,8 +107,8 @@ class WebGPUVideoEncoder {
     // Initialize encoder with configuration
     let config: VideoEncoderConfig = {
       // codec: "avc1.42001f", // H.264 baseline profile
-      // codec: "avc1.4D0032", // Much heigher resolution support
-      codec: "avc1.420034", // SHould support vertical
+      codec: "avc1.4D0032", // Much heigher resolution support
+      // codec: "avc1.420034", // SHould support vertical
       width: this.width,
       height: this.height,
       bitrate: 5_000_000, // 5 Mbps
@@ -385,8 +385,10 @@ export class FullExporter {
 
     if (this.isVertical) {
       windowSize = {
-        width: 900,
-        height: 1600,
+        width: 450,
+        height: 800,
+        // width: 900,
+        // height: 1600,
       };
     }
 
@@ -394,7 +396,7 @@ export class FullExporter {
 
     this.editor = new Editor(this.viewport);
 
-    this.editor.scaleMultiplier = 2.0; // 2x WindowSize
+    this.editor.scaleMultiplier = this.isVertical ? 1.0 : 2.0; // 2x WindowSize
 
     this.editorState = new EditorState(savedState);
 
