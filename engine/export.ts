@@ -359,8 +359,11 @@ export class FullExporter {
   editorState: EditorState | null = null;
   pipeline: CanvasPipeline | null = null;
   webExport: WebExport | null = null;
+  isVertical: boolean;
 
-  constructor() {}
+  constructor(isVertical: boolean) {
+    this.isVertical = isVertical;
+  }
 
   async initialize(
     savedState: SavedState,
@@ -378,6 +381,13 @@ export class FullExporter {
       width: 1600,
       height: 900,
     };
+
+    if (this.isVertical) {
+      windowSize = {
+        width: 900,
+        height: 1600,
+      };
+    }
 
     this.viewport = new Viewport(windowSize.width, windowSize.height);
 

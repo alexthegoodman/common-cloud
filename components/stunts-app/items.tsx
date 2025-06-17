@@ -574,7 +574,10 @@ export const ExportVideoButton: React.FC<{
       return;
     }
 
-    const exporter = new FullExporter();
+    let isVertical =
+      editorState.savedState.settings?.dimensions.height === 900 ? true : false;
+
+    const exporter = new FullExporter(isVertical);
 
     console.info("Initializing FullExporter");
 
