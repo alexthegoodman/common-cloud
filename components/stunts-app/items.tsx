@@ -574,36 +574,43 @@ export const ExportVideoButton: React.FC<{
       return;
     }
 
-    let isVertical =
-      editorState.savedState.settings?.dimensions.height === 900 ? true : false;
+    try {
+      let isVertical =
+        editorState.savedState.settings?.dimensions.height === 900
+          ? true
+          : false;
 
-    const exporter = new FullExporter(isVertical);
+      const exporter = new FullExporter(isVertical);
 
-    console.info("Initializing FullExporter");
+      console.info("Initializing FullExporter");
 
-    setIsExporting(true);
+      setIsExporting(true);
 
-    let progressInterval = setInterval(() => {
-      let exportProgress = (window as any).exportProgress;
-      if (exportProgress) {
-        setProgress(exportProgress);
-      }
-    }, 1000);
+      let progressInterval = setInterval(() => {
+        let exportProgress = (window as any).exportProgress;
+        if (exportProgress) {
+          setProgress(exportProgress);
+        }
+      }, 1000);
 
-    await exporter.initialize(
-      editorState.savedState,
-      (progress, currentTime, totalDuration) => {
-        let perc = (progress * 100).toFixed(1);
-        console.log(`Export progress: ${perc}%`);
-        console.log(
-          `Time: ${currentTime.toFixed(1)}s / ${totalDuration.toFixed(1)}s`
-        );
-        (window as any).exportProgress = perc;
-      }
-    );
+      await exporter.initialize(
+        editorState.savedState,
+        (progress, currentTime, totalDuration) => {
+          let perc = (progress * 100).toFixed(1);
+          console.log(`Export progress: ${perc}%`);
+          console.log(
+            `Time: ${currentTime.toFixed(1)}s / ${totalDuration.toFixed(1)}s`
+          );
+          (window as any).exportProgress = perc;
+        }
+      );
 
-    setIsExporting(false);
-    clearInterval(progressInterval);
+      setIsExporting(false);
+      clearInterval(progressInterval);
+    } catch (error: any) {
+      console.error("export error", error);
+      toast.error(error.message || "An error occurred");
+    }
   };
 
   if (!canExport) {
