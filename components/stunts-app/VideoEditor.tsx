@@ -624,7 +624,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       // console.info("Restoring objects...");
 
       for (let sequence of cloned_sequences) {
-        editorRef.current.restore_sequence_objects(
+        await editorRef.current.restore_sequence_objects(
           sequence,
           true
           // authToken.token,
