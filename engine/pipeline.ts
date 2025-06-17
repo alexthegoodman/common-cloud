@@ -1215,7 +1215,7 @@ export class CanvasPipeline {
     // Call frame encoder if provided
     if (frameEncoder) {
       // Create a dummy texture for the frame encoder
-      const dummyTexture = device.createTexture({
+      const frameTexture = device.createTexture({
         size: {
           width: editor.camera.windowSize.width,
           height: editor.camera.windowSize.height,
@@ -1224,7 +1224,13 @@ export class CanvasPipeline {
         usage: 0x10, // RENDER_ATTACHMENT
       });
 
-      await frameEncoder(dummyTexture);
+      // Need to write the WebGL frame to this texture so data is ultimately encoded to the video file
+      frameTexture.updateFromFramebuffer(
+        editor.camera.windowSize.width,
+        editor.camera.windowSize.height
+      );
+
+      await frameEncoder(frameTexture);
     }
   }
 

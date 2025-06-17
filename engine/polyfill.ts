@@ -160,6 +160,48 @@ export class PolyfillTexture {
   destroy() {
     this.gl.deleteTexture(this.texture);
   }
+
+  updateFromFramebuffer(width?: number, height?: number) {
+    const w = width || this.width;
+    const h = height || this.height;
+    const pixels = new Uint8Array(w * h * 4);
+
+    this.gl.readPixels(0, 0, w, h, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
+
+    this.flipPixelsVertically(pixels, w, h);
+
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
+    this.gl.texSubImage2D(
+      this.gl.TEXTURE_2D,
+      0,
+      0,
+      0,
+      w,
+      h,
+      this.format,
+      this.type,
+      pixels
+    );
+  }
+
+  // Helper function to flip pixels if video appears upside down
+  flipPixelsVertically(pixels: Uint8Array, width: number, height: number) {
+    const bytesPerRow = width * 4;
+    const temp = new Uint8Array(bytesPerRow);
+
+    for (let row = 0; row < height / 2; row++) {
+      const topRowStart = row * bytesPerRow;
+      const bottomRowStart = (height - 1 - row) * bytesPerRow;
+
+      // Swap rows
+      temp.set(pixels.subarray(topRowStart, topRowStart + bytesPerRow));
+      pixels.set(
+        pixels.subarray(bottomRowStart, bottomRowStart + bytesPerRow),
+        topRowStart
+      );
+      pixels.set(temp, bottomRowStart);
+    }
+  }
 }
 
 export class PolyfillBindGroupLayout {
@@ -654,7 +696,13 @@ export class PolyfillDevice {
   }
 
   copyTextureToBuffer(
-    { texture }: any,
+    {
+      texture,
+    }: {
+      texture: PolyfillTexture;
+      mipLevel: number;
+      origin: { x: number; y: number; z: number };
+    },
     { buffer, bytesPerRow, rowsPerImage }: any,
     { width, height }: any
   ): Uint8Array {
@@ -670,7 +718,7 @@ export class PolyfillDevice {
       gl.FRAMEBUFFER,
       gl.COLOR_ATTACHMENT0,
       gl.TEXTURE_2D,
-      texture,
+      texture.texture, // WebGLTexture
       0
     );
 
