@@ -107,7 +107,8 @@ class WebGPUVideoEncoder {
     // Initialize encoder with configuration
     let config: VideoEncoderConfig = {
       // codec: "avc1.42001f", // H.264 baseline profile
-      codec: "avc1.4D0032", // Much heigher resolution support
+      // codec: "avc1.4D0032", // Much heigher resolution support
+      codec: "avc1.420034", // SHould support vertical
       width: this.width,
       height: this.height,
       bitrate: 5_000_000, // 5 Mbps
