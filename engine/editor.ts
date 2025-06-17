@@ -1965,9 +1965,13 @@ export class Editor {
         return;
       }
 
+      let camera = this.camera;
+
+      if (!camera) return;
+
       let backgroundSize: WindowSize = {
-        width: 850 * this.scaleMultiplier,
-        height: 500 * this.scaleMultiplier,
+        width: (camera.windowSize.width - 50) * this.scaleMultiplier,
+        height: (camera.windowSize.height - 50) * this.scaleMultiplier,
       };
 
       this.replace_background(
