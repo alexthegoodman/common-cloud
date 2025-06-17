@@ -440,7 +440,7 @@ export const saveVideo = async (
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `Save image request failed: ${response.status} - ${response.statusText} - ${errorText}`
+      `Save video request failed: ${response.status} - ${response.statusText} - ${errorText}`
     );
   }
 

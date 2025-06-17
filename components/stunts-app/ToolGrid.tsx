@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 import { useTranslation } from "react-i18next";
+import toast from "react-hot-toast";
 
 export const ToolGrid = ({
   editorRef,
@@ -224,98 +225,104 @@ export const ToolGrid = ({
       return;
     }
 
-    let response = await saveImage(authToken.token, file.name, blob);
+    try {
+      let response = await saveImage(authToken.token, file.name, blob);
 
-    if (response) {
-      let url = response.url;
+      if (response) {
+        let url = response.url;
 
-      console.info("File url:", url);
+        console.info("File url:", url);
 
-      // let mut rng = rand::thread_rng();
-      // let random_number_800 = rng.gen_range(0..=800);
-      // let random_number_450 = rng.gen_range(0..=450);
+        // let mut rng = rand::thread_rng();
+        // let random_number_800 = rng.gen_range(0..=800);
+        // let random_number_450 = rng.gen_range(0..=450);
 
-      if (!editor.settings) {
-        console.error("Editor settings are not defined.");
-        return;
-      }
-
-      let random_number_800 = getRandomNumber(
-        100,
-        editor.settings?.dimensions.width
-      );
-      let random_number_450 = getRandomNumber(
-        100,
-        editor.settings?.dimensions.height
-      );
-
-      let new_id = uuidv4();
-
-      let position = {
-        x: random_number_800 + CANVAS_HORIZ_OFFSET,
-        y: random_number_450 + CANVAS_VERT_OFFSET,
-      };
-
-      let image_config = {
-        id: new_id,
-        name: "New Image Item",
-        dimensions: [100, 100] as [number, number],
-        position,
-        // path: new_path.clone(),
-        url: url,
-        layer: -layers.length,
-        isCircle: false,
-      };
-
-      editor.add_image_item(image_config, url, blob, new_id, sequence_id);
-
-      console.info("Adding image: {:?}", new_id);
-
-      editor_state.add_saved_image_item(sequence_id, {
-        id: image_config.id,
-        name: image_config.name,
-        // path: new_path.clone(),
-        url: url,
-        dimensions: [image_config.dimensions[0], image_config.dimensions[1]],
-        position: {
-          x: position.x,
-          y: position.y,
-        },
-        layer: image_config.layer,
-        isCircle: image_config.isCircle,
-      });
-
-      console.info("Saved image!");
-
-      let saved_state = editor_state.savedState;
-      let updated_sequence = saved_state.sequences.find(
-        (s) => s.id == sequence_id
-      );
-
-      let sequence_cloned = updated_sequence;
-
-      if (!sequence_cloned) {
-        return;
-      }
-
-      if (set_sequences) {
-        set_sequences(saved_state.sequences);
-      }
-
-      editor.currentSequenceData = sequence_cloned;
-      editor.updateMotionPaths(sequence_cloned);
-
-      editor.imageItems.forEach((image) => {
-        if (!image.hidden && image.id === image_config.id) {
-          let image_config: StImageConfig = image.toConfig();
-          let new_layer: Layer = LayerFromConfig.fromImageConfig(image_config);
-          layers.push(new_layer);
+        if (!editor.settings) {
+          console.error("Editor settings are not defined.");
+          return;
         }
-      });
 
-      setLayers(layers);
+        let random_number_800 = getRandomNumber(
+          100,
+          editor.settings?.dimensions.width
+        );
+        let random_number_450 = getRandomNumber(
+          100,
+          editor.settings?.dimensions.height
+        );
 
-      console.info("Image added!");
+        let new_id = uuidv4();
+
+        let position = {
+          x: random_number_800 + CANVAS_HORIZ_OFFSET,
+          y: random_number_450 + CANVAS_VERT_OFFSET,
+        };
+
+        let image_config = {
+          id: new_id,
+          name: "New Image Item",
+          dimensions: [100, 100] as [number, number],
+          position,
+          // path: new_path.clone(),
+          url: url,
+          layer: -layers.length,
+          isCircle: false,
+        };
+
+        editor.add_image_item(image_config, url, blob, new_id, sequence_id);
+
+        console.info("Adding image: {:?}", new_id);
+
+        editor_state.add_saved_image_item(sequence_id, {
+          id: image_config.id,
+          name: image_config.name,
+          // path: new_path.clone(),
+          url: url,
+          dimensions: [image_config.dimensions[0], image_config.dimensions[1]],
+          position: {
+            x: position.x,
+            y: position.y,
+          },
+          layer: image_config.layer,
+          isCircle: image_config.isCircle,
+        });
+
+        console.info("Saved image!");
+
+        let saved_state = editor_state.savedState;
+        let updated_sequence = saved_state.sequences.find(
+          (s) => s.id == sequence_id
+        );
+
+        let sequence_cloned = updated_sequence;
+
+        if (!sequence_cloned) {
+          return;
+        }
+
+        if (set_sequences) {
+          set_sequences(saved_state.sequences);
+        }
+
+        editor.currentSequenceData = sequence_cloned;
+        editor.updateMotionPaths(sequence_cloned);
+
+        editor.imageItems.forEach((image) => {
+          if (!image.hidden && image.id === image_config.id) {
+            let image_config: StImageConfig = image.toConfig();
+            let new_layer: Layer =
+              LayerFromConfig.fromImageConfig(image_config);
+            layers.push(new_layer);
+          }
+        });
+
+        setLayers(layers);
+
+        console.info("Image added!");
+      }
+    } catch (error: any) {
+      console.error("add image error", error);
+      toast.error(error.message || "An error occurred");
     }
   };
 
@@ -438,115 +445,124 @@ export const ToolGrid = ({
       return;
     }
 
-    let response = await saveVideo(authToken.token, name, blob);
+    try {
+      let response = await saveVideo(authToken.token, name, blob);
 
-    if (response) {
-      let url = response.url;
+      if (response) {
+        let url = response.url;
 
-      console.info("File url:", url);
+        console.info("File url:", url);
 
-      if (!editor.settings) {
-        console.error("Editor settings are not defined.");
-        return;
-      }
+        if (!editor.settings) {
+          console.error("Editor settings are not defined.");
+          return;
+        }
 
-      // let mut rng = rand::thread_rng();
-      // let random_number_800 = rng.gen_range(0..=800);
-      // let random_number_450 = rng.gen_range(0..=450);
+        // let mut rng = rand::thread_rng();
+        // let random_number_800 = rng.gen_range(0..=800);
+        // let random_number_450 = rng.gen_range(0..=450);
 
-      let random_number_800 = getRandomNumber(
-        100,
-        editor.settings?.dimensions.width
-      );
-      let random_number_450 = getRandomNumber(
-        100,
-        editor.settings?.dimensions.height
-      );
+        let random_number_800 = getRandomNumber(
+          100,
+          editor.settings?.dimensions.width
+        );
+        let random_number_450 = getRandomNumber(
+          100,
+          editor.settings?.dimensions.height
+        );
 
-      let new_id = uuidv4();
+        let new_id = uuidv4();
 
-      let position = {
-        x: random_number_800 + CANVAS_HORIZ_OFFSET,
-        y: random_number_450 + CANVAS_VERT_OFFSET,
-      };
+        let position = {
+          x: random_number_800 + CANVAS_HORIZ_OFFSET,
+          y: random_number_450 + CANVAS_VERT_OFFSET,
+        };
 
-      let video_config = {
-        id: new_id,
-        name: "New Video Item",
-        dimensions: [100, 100] as [number, number],
-        position,
-        // path: new_path.clone(),
-        path: url,
-        mousePath: "",
-        layer: -layers.length,
-      };
-
-      await editor.add_video_item(
-        video_config,
-        blob,
-        new_id,
-        sequence_id,
-        [],
-        null
-      );
-
-      console.info("Adding video: {:?}", new_id);
-
-      let new_video_item = editor.videoItems.find((v) => v.id === new_id);
-
-      if (!new_video_item || !new_video_item.sourceDurationMs) {
-        return;
-      }
-
-      editor_state.add_saved_video_item(
-        sequence_id,
-        {
-          id: video_config.id,
-          name: video_config.name,
+        let video_config = {
+          id: new_id,
+          name: "New Video Item",
+          dimensions: [100, 100] as [number, number],
+          position,
           // path: new_path.clone(),
           path: url,
-          dimensions: [video_config.dimensions[0], video_config.dimensions[1]],
-          position: {
-            x: position.x,
-            y: position.y,
-          },
-          layer: video_config.layer,
-          // mousePath: video_config.mousePath,
-        },
-        new_video_item.sourceDurationMs
-      );
+          mousePath: "",
+          layer: -layers.length,
+        };
 
-      console.info("Saved video!");
+        await editor.add_video_item(
+          video_config,
+          blob,
+          new_id,
+          sequence_id,
+          [],
+          null
+        );
 
-      let saved_state = editor_state.savedState;
-      let updated_sequence = saved_state.sequences.find(
-        (s) => s.id == sequence_id
-      );
+        console.info("Adding video: {:?}", new_id);
 
-      let sequence_cloned = updated_sequence;
+        let new_video_item = editor.videoItems.find((v) => v.id === new_id);
 
-      if (!sequence_cloned) {
-        return;
-      }
-
-      if (set_sequences) {
-        set_sequences(saved_state.sequences);
-      }
-
-      editor.currentSequenceData = sequence_cloned;
-      editor.updateMotionPaths(sequence_cloned);
-
-      editor.videoItems.forEach((video) => {
-        if (!video.hidden && video.id === video_config.id) {
-          let video_config: StVideoConfig = video.toConfig();
-          let new_layer: Layer = LayerFromConfig.fromVideoConfig(video_config);
-          layers.push(new_layer);
+        if (!new_video_item || !new_video_item.sourceDurationMs) {
+          return;
         }
-      });
 
-      setLayers(layers);
+        editor_state.add_saved_video_item(
+          sequence_id,
+          {
+            id: video_config.id,
+            name: video_config.name,
+            // path: new_path.clone(),
+            path: url,
+            dimensions: [
+              video_config.dimensions[0],
+              video_config.dimensions[1],
+            ],
+            position: {
+              x: position.x,
+              y: position.y,
+            },
+            layer: video_config.layer,
+            // mousePath: video_config.mousePath,
+          },
+          new_video_item.sourceDurationMs
+        );
 
-      console.info("video added!");
+        console.info("Saved video!");
+
+        let saved_state = editor_state.savedState;
+        let updated_sequence = saved_state.sequences.find(
+          (s) => s.id == sequence_id
+        );
+
+        let sequence_cloned = updated_sequence;
+
+        if (!sequence_cloned) {
+          return;
+        }
+
+        if (set_sequences) {
+          set_sequences(saved_state.sequences);
+        }
+
+        editor.currentSequenceData = sequence_cloned;
+        editor.updateMotionPaths(sequence_cloned);
+
+        editor.videoItems.forEach((video) => {
+          if (!video.hidden && video.id === video_config.id) {
+            let video_config: StVideoConfig = video.toConfig();
+            let new_layer: Layer =
+              LayerFromConfig.fromVideoConfig(video_config);
+            layers.push(new_layer);
+          }
+        });
+
+        setLayers(layers);
+
+        console.info("video added!");
+      }
+    } catch (error: any) {
+      console.error("add video error", error);
+      toast.error(error.message || "An error occurred");
     }
   };
 
