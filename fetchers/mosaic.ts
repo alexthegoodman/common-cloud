@@ -4,6 +4,14 @@ import { SavedState } from "@/engine/animations";
 
 export interface ProjectsResponse {
   projects: ProjectData[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    limit: number;
+  };
 }
 
 export interface ProjectData {
@@ -22,14 +30,20 @@ export interface PublicProjectInfo {
   modified: DateTime;
 }
 
-export const getPublicProjects = async (): Promise<PublicProjectInfo[]> => {
-  const response = await fetch("/api/projects/public", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      // Authorization: `Bearer ${authToken.token}`,
-    },
-  });
+export const getPublicProjects = async (
+  page: number = 1,
+  limit: number = 6
+): Promise<ProjectsResponse> => {
+  const response = await fetch(
+    `/api/projects/public?page=${page}&limit=${limit}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        // Authorization: `Bearer ${authToken.token}`,
+      },
+    }
+  );
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -40,15 +54,17 @@ export const getPublicProjects = async (): Promise<PublicProjectInfo[]> => {
 
   const projectsResponse: ProjectsResponse = await response.json();
 
-  const projects: PublicProjectInfo[] = projectsResponse.projects.map(
-    (data) => ({
-      project_id: data.id,
-      project_name: data.name,
-      video_data: data.fileData,
-      created: DateTime.fromISO(data.createdAt), // Handle nulls and parse with DateTime
-      modified: DateTime.fromISO(data.updatedAt),
-    })
-  );
+  return projectsResponse;
 
-  return projects.sort((a, b) => b.modified.diff(a.modified).milliseconds); // Sort using luxon's diff
+  // const projects: PublicProjectInfo[] = projectsResponse.projects.map(
+  //   (data) => ({
+  //     project_id: data.id,
+  //     project_name: data.name,
+  //     video_data: data.fileData,
+  //     created: DateTime.fromISO(data.createdAt), // Handle nulls and parse with DateTime
+  //     modified: DateTime.fromISO(data.updatedAt),
+  //   })
+  // );
+
+  // return projects.sort((a, b) => b.modified.diff(a.modified).milliseconds); // Sort using luxon's diff
 };

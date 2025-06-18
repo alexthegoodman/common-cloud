@@ -1,50 +1,29 @@
 import { NextResponse } from "next/server";
-import { verifyJWT } from "@/lib/jwt";
 import prisma from "@/lib/prisma";
 
 export async function GET(req: Request) {
   try {
-    // const token = req.headers.get("Authorization")?.split(" ")[1];
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "6");
+    const offset = (page - 1) * limit;
 
-    // if (!token) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
+    // Get total count for pagination info
+    const totalCount = await prisma.$queryRaw`
+      SELECT COUNT(*)::int as count
+      FROM "Project" 
+      WHERE public = true 
+      AND EXISTS (
+        SELECT 1 
+        FROM jsonb_array_elements("fileData"->'sequences') AS seq
+        WHERE jsonb_array_length(seq->'activeImageItems') > 0 or 
+        jsonb_array_length(seq->'activeTextItems') > 0 or
+        jsonb_array_length(seq->'activeVideoItems') > 0 or
+        jsonb_array_length(seq->'activePolygons') > 0
+      )
+    `;
 
-    // const decoded = verifyJWT(token) as { userId: string; email: string };
-
-    // const user = await prisma.user.findUnique({
-    //   where: { id: decoded.userId },
-    //   include: {
-    //     plan: true,
-    //   },
-    // });
-
-    // if (!user) {
-    //   return NextResponse.json({ error: "User not found" }, { status: 404 });
-    // }
-
-    // const projects = await prisma.project.findMany({
-    //   where: {
-    //     public: true,
-    //     fileData: {
-    //       // json
-    //       path: ["sequences"],
-    //       array_contains: [{}], // videos
-    //     },
-    //   },
-    //   orderBy: {
-    //     updatedAt: "desc",
-    //   },
-    //   select: {
-    //     id: true,
-    //     name: true,
-    //     fileData: true, // videos
-    //     createdAt: true,
-    //     updatedAt: true,
-    //   },
-    //   take: 3,
-    // });
-
+    // Get paginated projects
     const projects = await prisma.$queryRaw`
       SELECT id, name, "fileData", "createdAt", "updatedAt"
       FROM "Project" 
@@ -58,13 +37,28 @@ export async function GET(req: Request) {
         jsonb_array_length(seq->'activePolygons') > 0
       )
       ORDER BY "updatedAt" DESC 
-      LIMIT 3
+      LIMIT ${limit}
+      OFFSET ${offset}
     `;
+
+    const total = Array.isArray(totalCount) ? totalCount[0]?.count || 0 : 0;
+    const totalPages = Math.ceil(total / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
 
     return NextResponse.json({
       projects,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount: total,
+        hasNextPage,
+        hasPrevPage,
+        limit,
+      },
     });
   } catch (error) {
+    console.error("Error fetching projects:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
