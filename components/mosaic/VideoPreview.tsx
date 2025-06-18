@@ -7,14 +7,6 @@ import { PublicProjectInfo } from "@/fetchers/mosaic";
 import { useDevEffectOnce } from "@/hooks/useDevOnce";
 import { useRef, useState } from "react";
 
-let paperAspectRatio = 9 / 16; // standard US paper size
-let width = 800;
-let height = width * paperAspectRatio;
-let paperSize: WindowSize = {
-  width,
-  height,
-};
-
 export default function VideoPreview({
   project = null,
 }: {
@@ -40,9 +32,25 @@ export default function VideoPreview({
 
     previewManagerRef.current = new PreviewManager();
 
-    let docCanvasSize: WindowSize = {
-      width: 900,
-      height: 500,
+    let isVertical =
+      project.video_data.settings?.dimensions.width === 900 ? false : true;
+
+    let docCanvasSize: WindowSize = isVertical
+      ? {
+          width: 500,
+          height: 900,
+        }
+      : {
+          width: 900,
+          height: 500,
+        };
+
+    let paperAspectRatio = isVertical ? 16 / 9 : 9 / 16; // standard US paper size
+    let width = isVertical ? 450 : 850;
+    let height = width * paperAspectRatio;
+    let paperSize: WindowSize = {
+      width,
+      height,
     };
 
     await previewManagerRef.current.initialize(
@@ -82,12 +90,12 @@ export default function VideoPreview({
   });
 
   return (
-    <div className="w-full aspect-video bg-gray-400 mb-4">
+    <div className="w-full aspect-video bg-gray-200 mb-4">
       {Array.from(previewCache).map((cacheItem, i) => (
         <img
           key={"previewImage" + i}
           src={cacheItem[1].blobUrl}
-          className="block rounded"
+          className="block rounded max-h-[500px]"
         />
       ))}
     </div>
