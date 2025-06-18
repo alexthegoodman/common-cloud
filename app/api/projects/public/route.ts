@@ -23,26 +23,43 @@ export async function GET(req: Request) {
     //   return NextResponse.json({ error: "User not found" }, { status: 404 });
     // }
 
-    const projects = await prisma.project.findMany({
-      where: {
-        public: true,
-        fileData: {
-          path: ["sequences"],
-          array_contains: [{}], // videos
-        },
-      },
-      orderBy: {
-        updatedAt: "desc",
-      },
-      select: {
-        id: true,
-        name: true,
-        fileData: true, // videos
-        createdAt: true,
-        updatedAt: true,
-      },
-      take: 3,
-    });
+    // const projects = await prisma.project.findMany({
+    //   where: {
+    //     public: true,
+    //     fileData: {
+    //       // json
+    //       path: ["sequences"],
+    //       array_contains: [{}], // videos
+    //     },
+    //   },
+    //   orderBy: {
+    //     updatedAt: "desc",
+    //   },
+    //   select: {
+    //     id: true,
+    //     name: true,
+    //     fileData: true, // videos
+    //     createdAt: true,
+    //     updatedAt: true,
+    //   },
+    //   take: 3,
+    // });
+
+    const projects = await prisma.$queryRaw`
+      SELECT id, name, "fileData", "createdAt", "updatedAt"
+      FROM "Project" 
+      WHERE public = true 
+      AND EXISTS (
+        SELECT 1 
+        FROM jsonb_array_elements("fileData"->'sequences') AS seq
+        WHERE jsonb_array_length(seq->'activeImageItems') > 0 or 
+        jsonb_array_length(seq->'activeTextItems') > 0 or
+        jsonb_array_length(seq->'activeVideoItems') > 0 or
+        jsonb_array_length(seq->'activePolygons') > 0
+      )
+      ORDER BY "updatedAt" DESC 
+      LIMIT 3
+    `;
 
     return NextResponse.json({
       projects,
