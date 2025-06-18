@@ -62,7 +62,7 @@ const HomePage = () => {
               Get Started <ShieldChevron className="ml-2" />
             </button>
             <a
-              href="https://www.youtube.com/watch?v=4RLdp7SI840"
+              href="https://www.youtube.com/watch?v=5CJFGvoWT5w"
               target="_blank"
               className="border border-red-500 text-red-500 hover:bg-red-500/10 px-8 py-3 rounded-full flex items-center"
             >
