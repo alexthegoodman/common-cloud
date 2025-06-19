@@ -1084,7 +1084,7 @@ export class Editor {
           ]
         : [this.polygons, this.textItems, this.imageItems];
 
-    console.info("debug items", items);
+    console.info("debug items", isState, items);
 
     for (const itemArrays of items) {
       for (const item of itemArrays) {

@@ -30,7 +30,7 @@ export enum SaveTarget {
 }
 
 export default class EditorState {
-  kind: "editor" | "state" = "editor";
+  kind: "editor" | "state" = "state";
 
   selected_polygon_id: string = "";
   savedState: SavedState;
