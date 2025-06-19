@@ -177,7 +177,7 @@ export default function FlowQuestions({
         name: "New Text Item",
         text: new_text,
         fontFamily: font_family,
-        dimensions: [100.0, 100.0] as [number, number],
+        dimensions: [200.0, 300.0] as [number, number],
         position,
         layer: -1,
         // color: rgbToWgpu(20, 20, 200, 255) as [number, number, number, number],
@@ -288,7 +288,10 @@ export default function FlowQuestions({
 
     // Parse predictions into structured objects
     // TODO: getItemId, getObjectType
-    const objects = editor.parsePredictionsToObjects(predictions, editorState);
+    const objects = editor.parsePredictionsToObjects(predictions, editorState, {
+      width: 900,
+      height: 500,
+    });
 
     let sequences = editor.updateSequencesFromObjects(
       objects,

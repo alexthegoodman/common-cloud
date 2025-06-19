@@ -1063,7 +1063,11 @@ export class Editor {
     predictions: number[],
     // getItemId: (idx: number) => string | null,
     // getObjectType: (objectIdx: number) => ObjectType | null
-    manager: Editor | EditorState
+    manager: Editor | EditorState,
+    dimensions = {
+      width: 900,
+      height: 1100,
+    }
   ): BBox[] {
     let prePrediction = 7;
     let adjustTotal = 0;
@@ -1092,10 +1096,18 @@ export class Editor {
 
         const baseIdx = adjustTotal * prePrediction;
 
-        let new_width = Math.round(predictions[baseIdx + 3] * 0.01 * 900.0);
-        let new_height = Math.round(predictions[baseIdx + 4] * 0.01 * 1100.0);
-        let new_x = Math.round(predictions[baseIdx + 5] * 0.01 * 900.0);
-        let new_y = Math.round(predictions[baseIdx + 6] * 0.01 * 1100.0);
+        let new_width = Math.round(
+          predictions[baseIdx + 3] * 0.01 * dimensions.width
+        );
+        let new_height = Math.round(
+          predictions[baseIdx + 4] * 0.01 * dimensions.height
+        );
+        let new_x = Math.round(
+          predictions[baseIdx + 5] * 0.01 * dimensions.width
+        );
+        let new_y = Math.round(
+          predictions[baseIdx + 6] * 0.01 * dimensions.height
+        );
 
         objects.push({
           id: itemId,
