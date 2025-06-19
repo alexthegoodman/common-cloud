@@ -318,6 +318,8 @@ export default function FlowQuestions({
       editorState.savedState.sequences
     );
 
+    console.info("debug info", objects, sequences, currentSequenceId);
+
     editorState.savedState.sequences = sequences;
 
     // saveSequencesData(sequences, SaveTarget.Docs);
