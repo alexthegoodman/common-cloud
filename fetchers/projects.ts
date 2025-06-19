@@ -63,6 +63,10 @@ export interface UploadResponse {
   fileName: string;
   size: number;
   mimeType: string;
+  dimensions: {
+    width: number;
+    height: number;
+  };
 }
 
 export const getSingleProject = async (

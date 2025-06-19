@@ -3,7 +3,7 @@
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { DataInterface, dataSchema, questionSchema } from "@/def/ai";
 import { useLocalStorage } from "@uidotdev/usehooks";
-import { AuthToken } from "@/fetchers/projects";
+import { AuthToken, saveSequencesData } from "@/fetchers/projects";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import {
@@ -12,10 +12,21 @@ import {
   IFlowQuestions,
   updateFlowQuestions,
 } from "@/fetchers/flows";
-import { Editor, Viewport } from "@/engine/editor";
-import EditorState from "@/engine/editor_state";
-import { SavedState, Sequence, TrackType } from "@/engine/animations";
+import { Editor, rgbToWgpu, Viewport } from "@/engine/editor";
+import EditorState, { SaveTarget } from "@/engine/editor_state";
+import {
+  BackgroundFill,
+  GradientStop,
+  SavedState,
+  Sequence,
+  TrackType,
+} from "@/engine/animations";
 import { v4 as uuidv4 } from "uuid";
+import { THEME_COLORS, THEMES } from "./ThemePicker";
+import { Color, hexParse } from "@kurkle/color";
+import { TextRendererConfig } from "@/engine/text";
+import { callLayoutInference, callMotionInference } from "@/fetchers/inference";
+import { useRouter } from "next/navigation";
 
 export default function FlowQuestions({
   flowId = null,
@@ -24,6 +35,7 @@ export default function FlowQuestions({
   flowId: string | null;
   projectId: string | null;
 }) {
+  const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
   const [loading, setLoading] = useState(false);
@@ -96,7 +108,7 @@ export default function FlowQuestions({
 
     await updateFlowQuestions(authToken?.token, flowId!, savableQuestions);
 
-    // set the theme, add the images and text content, generate the layout, then generate the animation, finally save
+    //  add the images and text content, generate the layout, then generate the animation, set the theme, finally save
     const videoContent = await generateContent(
       authToken.token,
       flow?.flow.prompt,
@@ -111,12 +123,10 @@ export default function FlowQuestions({
       }
     );
 
-    // videoContent.data.contentItems.map()
-
-    let newId = uuidv4().toString();
+    let currentSequenceId = uuidv4().toString();
 
     const defaultVideoSequence: Sequence = {
-      id: newId,
+      id: currentSequenceId,
       name: "Sequence #1",
       backgroundFill: { type: "Color", value: [200, 200, 200, 255] },
       durationMs: 20000,
@@ -133,7 +143,7 @@ export default function FlowQuestions({
         timeline_sequences: [
           {
             id: uuidv4(),
-            sequenceId: newId,
+            sequenceId: currentSequenceId,
             trackType: TrackType.Video,
             startTimeMs: 0,
             // duration_ms: 20000,
@@ -145,6 +155,285 @@ export default function FlowQuestions({
     const viewport = new Viewport(900, 500);
     const editor = new Editor(viewport);
     const editorState = new EditorState(emptyVideoState);
+
+    // add text content
+    if (videoContent) {
+      let new_id = uuidv4();
+      let new_text = "";
+      videoContent.data.contentItems.forEach((item) => {
+        new_text += "- " + item.summaryText + "\n";
+      });
+
+      let font_family = "Aleo";
+
+      let position = {
+        x: 0,
+        y: 0,
+      };
+
+      let text_config: TextRendererConfig = {
+        id: new_id,
+        name: "New Text Item",
+        text: new_text,
+        fontFamily: font_family,
+        dimensions: [100.0, 100.0] as [number, number],
+        position,
+        layer: -1,
+        // color: rgbToWgpu(20, 20, 200, 255) as [number, number, number, number],
+        color: [20, 20, 200, 255] as [number, number, number, number],
+        fontSize: 28,
+        // backgroundFill: rgbToWgpu(200, 200, 200, 255) as [
+        //   number,
+        //   number,
+        //   number,
+        //   number
+        // ],
+        backgroundFill: { type: "Color", value: rgbToWgpu(200, 200, 200, 255) },
+        isCircle: false,
+      };
+
+      await editor.add_text_item(
+        text_config,
+        new_text,
+        new_id,
+        currentSequenceId
+      );
+
+      editorState.add_saved_text_item(currentSequenceId, {
+        id: text_config.id,
+        name: text_config.name,
+        text: new_text,
+        fontFamily: text_config.fontFamily,
+        dimensions: [text_config.dimensions[0], text_config.dimensions[1]],
+        position: {
+          x: position.x,
+          y: position.y,
+        },
+        layer: text_config.layer,
+        color: text_config.color,
+        fontSize: text_config.fontSize,
+        backgroundFill: text_config.backgroundFill,
+        isCircle: text_config.isCircle,
+      });
+    }
+
+    if (flow.flow.content.files) {
+      for (const file of flow.flow.content.files) {
+        let aspectRatio = file.dimensions.height / file.dimensions.width;
+        let setWidth =
+          file.dimensions.width > 400 ? 400 : file.dimensions.width;
+        let setHeight = setWidth * aspectRatio;
+
+        let new_id = uuidv4();
+
+        let position = {
+          x: 0,
+          y: 0,
+        };
+
+        let image_config = {
+          id: new_id,
+          name: "New Image Item",
+          dimensions: [setWidth, setHeight] as [number, number],
+          position,
+          // path: new_path.clone(),
+          url: file.url,
+          layer: -2,
+          isCircle: false,
+        };
+
+        editor.add_image_item(
+          image_config,
+          file.url,
+          new Blob(),
+          new_id,
+          currentSequenceId
+        );
+
+        console.info("Adding image: {:?}", new_id);
+
+        editorState.add_saved_image_item(currentSequenceId, {
+          id: image_config.id,
+          name: image_config.name,
+          // path: new_path.clone(),
+          url: file.url,
+          dimensions: [image_config.dimensions[0], image_config.dimensions[1]],
+          position: {
+            x: position.x,
+            y: position.y,
+          },
+          layer: image_config.layer,
+          isCircle: image_config.isCircle,
+        });
+
+        console.info("Saved image!");
+      }
+    }
+
+    // generate layout
+    let prompt = editor.createLayoutInferencePrompt();
+    let predictions = await callLayoutInference(prompt);
+
+    console.info("predictions", predictions);
+
+    let sequences = editor.updateLayoutFromPredictions(
+      predictions,
+      currentSequenceId,
+      editorState.savedState.sequences
+    );
+
+    // saveSequencesData(sequences, SaveTarget.Docs);
+
+    // generate animation
+    // console.info("create prompt");
+
+    let prompt2 = editor.createInferencePrompt();
+    let predictions2 = await callMotionInference(prompt2);
+
+    console.info("predictions2", predictions2);
+
+    let animation = editor.createMotionPathsFromPredictions(predictions2);
+
+    sequences.forEach((s) => {
+      if (s.id === currentSequenceId) {
+        s.polygonMotionPaths = animation;
+      }
+    });
+
+    let updatedSequence = sequences.find((s) => s.id === currentSequenceId);
+
+    if (!updatedSequence) {
+      return;
+    }
+
+    editorState.savedState.sequences = sequences;
+
+    const themeCount = 50;
+    const randomThemeIndex = Math.floor(Math.random() * themeCount);
+
+    const theme = THEMES[randomThemeIndex];
+
+    if (theme) {
+      const backgroundColorRow = Math.floor(theme[0]);
+      const backgroundColorColumn = Math.floor((theme[0] % 1) * 10);
+      const backgroundColor =
+        THEME_COLORS[backgroundColorRow][backgroundColorColumn];
+      const textColorRow = Math.floor(theme[4]);
+      const textColorColumn = Math.floor((theme[4] % 1) * 10);
+      const textColor = THEME_COLORS[textColorRow][textColorColumn];
+
+      const backgroundRgb = hexParse(backgroundColor);
+      const textRgb = hexParse(textColor);
+
+      const textKurkle = new Color(textRgb);
+      const darkTextColor = textKurkle.darken(0.15);
+
+      const fontIndex = theme[2];
+
+      // apply theme to background canvas and text objects
+
+      let text_color_wgpu = rgbToWgpu(textRgb.r, textRgb.g, textRgb.b, 255.0);
+
+      let text_color_dark_wgpu = rgbToWgpu(
+        darkTextColor._rgb.r,
+        darkTextColor._rgb.g,
+        darkTextColor._rgb.b,
+        255.0
+      );
+      let background_color_wgpu = rgbToWgpu(
+        backgroundRgb.r,
+        backgroundRgb.g,
+        backgroundRgb.b,
+        255.0
+      );
+      let background_color = [
+        backgroundRgb.r,
+        backgroundRgb.g,
+        backgroundRgb.b,
+        255,
+      ] as [number, number, number, number];
+
+      let ids_to_update = editor.textItems
+        .filter((text) => {
+          return !text.hidden && text.currentSequenceId === currentSequenceId;
+        })
+        .map((text) => text.id);
+
+      let fontId = editor.fontManager.fontData[fontIndex].name;
+
+      editorState.savedState.sequences.forEach((s) => {
+        if (s.id == currentSequenceId) {
+          s.activeTextItems.forEach((t) => {
+            if (ids_to_update.includes(t.id)) {
+              // if t.id == selected_text_id.get().to_string() {
+              t.color = background_color;
+              t.fontFamily = fontId;
+              // }
+            }
+          });
+        }
+      });
+
+      editorState.savedState.sequences.forEach((s) => {
+        s.activeTextItems.forEach((p) => {
+          if (ids_to_update.includes(p.id)) {
+            p.backgroundFill = {
+              type: "Color",
+              value: text_color_dark_wgpu,
+            };
+          }
+        });
+      });
+
+      let background_uuid = currentSequenceId;
+
+      let stops: GradientStop[] = [
+        {
+          offset: 0,
+          color: text_color_wgpu,
+        },
+        {
+          offset: 1,
+          color: background_color_wgpu,
+        },
+      ];
+
+      let gradientBackground: BackgroundFill = {
+        type: "Gradient",
+        value: {
+          stops: stops,
+          numStops: stops.length, // numStops
+          type: "linear", // gradientType (0 is linear, 1 is radial)
+          startPoint: [0, 0], // startPoint
+          endPoint: [1, 0], // endPoint
+          center: [0.5, 0.5], // center
+          radius: 1.0, // radius
+          timeOffset: 0, // timeOffset
+          animationSpeed: 1, // animationSpeed
+          enabled: 1, // enabled
+        },
+      };
+
+      editorState.savedState.sequences.forEach((s) => {
+        if (s.id == currentSequenceId) {
+          if (!s.backgroundFill) {
+            s.backgroundFill = {
+              type: "Color",
+              value: [0.8, 0.8, 0.8, 1],
+            } as BackgroundFill;
+          }
+          // gradient only on theme picker
+          s.backgroundFill = gradientBackground;
+        }
+      });
+    }
+
+    await saveSequencesData(
+      editorState.savedState.sequences,
+      SaveTarget.Videos
+    );
+
+    router.push(`/project/${projectId}/videos`);
 
     setLoading(false);
   };

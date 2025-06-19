@@ -3,18 +3,19 @@ import { verifyJWT } from "@/lib/jwt";
 import prisma from "@/lib/prisma";
 import fs from "fs/promises";
 import path from "path";
+import sharp from "sharp"; // Add this dependency
 
 export const maxDuration = 60; // 1 minute (60 seconds)
 
 // Constants
-const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB in bytes
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB in bytes
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png"];
 const UPLOAD_DIR = path.join(process.cwd(), "public", "image-uploads");
 
 // Bunny.net configuration
-const BUNNY_STORAGE_URL = process.env.BUNNY_STORAGE_URL; // e.g., https://storage.bunnycdn.com/your-storage-zone
+const BUNNY_STORAGE_URL = process.env.BUNNY_STORAGE_URL;
 const BUNNY_API_KEY = process.env.BUNNY_API_KEY;
-const BUNNY_CDN_URL = process.env.BUNNY_CDN_URL; // e.g., https://your-pull-zone.b-cdn.net
+const BUNNY_CDN_URL = process.env.BUNNY_CDN_URL;
 
 // Helper function to validate file type from raw bytes
 function getMimeTypeFromBuffer(buffer: Buffer): string | null {
@@ -40,6 +41,23 @@ function getMimeTypeFromBuffer(buffer: Buffer): string | null {
   }
 
   return null;
+}
+
+// Helper function to get image dimensions
+async function getImageDimensions(
+  buffer: Buffer
+): Promise<{ width: number; height: number }> {
+  try {
+    const metadata = await sharp(buffer).metadata();
+    return {
+      width: metadata.width || 0,
+      height: metadata.height || 0,
+    };
+  } catch (error) {
+    console.error("Error getting image dimensions:", error);
+    // Fallback: return 0x0 if we can't determine dimensions
+    return { width: 0, height: 0 };
+  }
 }
 
 // Helper function to upload to Bunny.net
@@ -69,7 +87,6 @@ async function uploadToBunny(
     throw new Error(`Bunny.net upload failed: ${response.status} ${errorText}`);
   }
 
-  // Return the CDN URL
   return `${BUNNY_CDN_URL}/${fileName}`;
 }
 
@@ -78,7 +95,6 @@ async function saveFileLocally(
   buffer: Buffer,
   fileName: string
 ): Promise<string> {
-  // Create uploads directory if it doesn't exist
   try {
     await fs.access(UPLOAD_DIR);
   } catch {
@@ -88,13 +104,12 @@ async function saveFileLocally(
   const filePath = path.join(UPLOAD_DIR, fileName);
   await fs.writeFile(filePath, buffer);
 
-  // Return the public URL
   return `/image-uploads/${fileName}`;
 }
 
 export const config = {
   api: {
-    bodyParser: false, // Disable default body parsing to handle raw binary data
+    bodyParser: false,
   },
 };
 
@@ -141,7 +156,7 @@ export async function POST(req: Request) {
     // File size validation
     if (buffer.length > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: "File size exceeds 4MB limit" },
+        { error: "File size exceeds 20MB limit" },
         { status: 400 }
       );
     }
@@ -155,6 +170,9 @@ export async function POST(req: Request) {
       );
     }
 
+    // Get image dimensions
+    const dimensions = await getImageDimensions(buffer);
+
     // Sanitize filename and add timestamp
     const fileName = req.headers.get("X-File-Name") || "uploaded_file";
     const timestamp = Date.now();
@@ -166,7 +184,6 @@ export async function POST(req: Request) {
 
     // Choose storage method based on environment
     if (process.env.NODE_ENV === "production") {
-      // Upload to Bunny.net in production
       try {
         publicUrl = await uploadToBunny(buffer, uniqueFileName, mimeType);
       } catch (error) {
@@ -177,7 +194,6 @@ export async function POST(req: Request) {
         );
       }
     } else {
-      // Save locally in development
       try {
         publicUrl = await saveFileLocally(buffer, uniqueFileName);
       } catch (error) {
@@ -189,11 +205,16 @@ export async function POST(req: Request) {
       }
     }
 
+    // Enhanced response with image dimensions
     return NextResponse.json({
       url: publicUrl,
       fileName: uniqueFileName,
       size: buffer.length,
       mimeType: mimeType,
+      dimensions: {
+        width: dimensions.width,
+        height: dimensions.height,
+      },
     });
   } catch (error) {
     console.error("Upload error:", error);
