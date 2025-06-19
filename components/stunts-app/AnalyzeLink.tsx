@@ -4,7 +4,8 @@ import { scrapeLink } from "@/fetchers/flows";
 import { AuthToken } from "@/fetchers/projects";
 import { Spinner } from "@phosphor-icons/react";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
-import { dataSchema } from "@/def/ai";
+import { DataInterface, dataSchema } from "@/def/ai";
+import { Dispatch, SetStateAction } from "react";
 
 export const AnalyzeLink = ({
   authToken,
@@ -14,6 +15,7 @@ export const AnalyzeLink = ({
   isAnalyzing,
   link,
   handleLinkChange,
+  setLinkData,
 }: {
   authToken: AuthToken | null;
   links: string[];
@@ -22,6 +24,7 @@ export const AnalyzeLink = ({
   isAnalyzing: boolean[];
   link: string;
   handleLinkChange: (index: number, value: string) => void;
+  setLinkData: Dispatch<SetStateAction<DataInterface[]>>;
 }) => {
   const { object, submit } = useObject({
     api: "/api/flows/extract-data",
@@ -29,9 +32,15 @@ export const AnalyzeLink = ({
       Authorization: `Bearer ${authToken?.token}`,
     },
     schema: dataSchema,
+    onFinish: ({ object, error }) => {
+      // TODO: save analysis to flow
+      console.info("save object", object);
+      setLinkData((linkData) => {
+        linkData[index] = object!;
+        return linkData;
+      });
+    },
   });
-
-  console.info("object", object);
 
   // Handle link analysis
   const analyzeLink = async (index: number) => {

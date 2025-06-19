@@ -1,3 +1,6 @@
+import { DataInterface } from "@/def/ai";
+import { UploadResponse } from "./projects";
+
 export interface FlowContent {}
 
 export interface FlowQuestions {}
@@ -36,6 +39,35 @@ export const createFlow = async (
     const errorText = await response.text();
     throw new Error(
       `Create flow request failed: ${response.status} - ${response.statusText} - ${errorText}`
+    );
+  }
+
+  return response.json();
+};
+
+export interface IFlowContent {
+  files: UploadResponse[];
+  links: DataInterface[];
+}
+
+export const updateFlowContent = async (
+  token: string,
+  flowId: string,
+  content: IFlowContent
+): Promise<CreateFlowResponse> => {
+  const response = await fetch("/api/flows/update-content", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ flowId, content }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Update flow request failed: ${response.status} - ${response.statusText} - ${errorText}`
     );
   }
 

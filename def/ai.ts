@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+export interface DataInterface {
+  bulletPoints: {
+    dataPoint: string;
+    description: string;
+  }[];
+}
+
 // define a schema for the notifications
 export const dataSchema = z.object({
   bulletPoints: z.array(

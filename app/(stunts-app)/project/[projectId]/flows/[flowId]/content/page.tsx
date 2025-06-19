@@ -20,10 +20,7 @@ export default function Project() {
             <h1 className="text-3xl text-center mb-12">Add Your Content</h1>
             <FlowSteps step={2} />
             <div className="flex flex-col">
-              <FlowContent />
-              <button className="stunts-gradient text-white p-2 rounded w-1/4 mx-auto mt-8">
-                Continue
-              </button>
+              <FlowContent flowId={flowId as string} />
             </div>
           </div>
         </ClientOnly>

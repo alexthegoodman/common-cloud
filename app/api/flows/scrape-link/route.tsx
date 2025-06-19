@@ -12,10 +12,15 @@ export async function POST(request: Request) {
 
     const decoded = verifyJWT(token) as { userId: string; email: string };
 
-    const { url } = await request.json();
+    let { url } = await request.json();
 
     if (!url) {
       return NextResponse.json({ error: "URL is required" }, { status: 400 });
+    }
+
+    // Ensure URL has protocol
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = "https://" + url;
     }
 
     // Fetch the webpage content
