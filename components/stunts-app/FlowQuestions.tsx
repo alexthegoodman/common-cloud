@@ -3,7 +3,11 @@
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { DataInterface, dataSchema, questionSchema } from "@/def/ai";
 import { useLocalStorage } from "@uidotdev/usehooks";
-import { AuthToken, saveSequencesData } from "@/fetchers/projects";
+import {
+  AuthToken,
+  saveSequencesData,
+  saveSettingsData,
+} from "@/fetchers/projects";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import {
@@ -471,6 +475,13 @@ export default function FlowQuestions({
 
     await saveSequencesData(
       editorState.savedState.sequences,
+      SaveTarget.Videos
+    );
+
+    await saveSettingsData(
+      {
+        dimensions,
+      },
       SaveTarget.Videos
     );
 
