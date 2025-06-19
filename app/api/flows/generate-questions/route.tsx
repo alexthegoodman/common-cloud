@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyJWT } from "@/lib/jwt";
 import { openai } from "@ai-sdk/openai";
 import { streamObject } from "ai";
-import { dataSchema } from "@/def/ai";
+import { dataSchema, questionSchema } from "@/def/ai";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     const result = streamObject({
       model: openai("gpt-4o-mini"),
-      schema: dataSchema,
+      schema: questionSchema,
       prompt: `Generate 3 questions regarding this content:` + context,
     });
 
