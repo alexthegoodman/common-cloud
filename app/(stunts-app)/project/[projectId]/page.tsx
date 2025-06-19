@@ -73,12 +73,12 @@ export default function Project() {
             <h1 className="text-3xl text-center mb-12">Welcome to Hub</h1>
             <FlowSteps step={1} />
             <div className="flex flex-col p-1 md:p-0 w-full">
-              <BrandKitList />
+              {/* <BrandKitList /> */}
               <div className="flex flex-col justify-center items-center mx-auto w-full md:w-[600px] rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
                 <textarea
                   className="w-full p-4 rounded-[15px] rounded-b-none"
                   rows={4}
-                  placeholder="Let's create marketing and sales materials for Common's dog food campaign"
+                  placeholder="Let's create a video for Common's dog food campaign"
                   onChange={(e) => setPrompt(e.target.value)}
                 ></textarea>
                 <button

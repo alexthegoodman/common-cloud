@@ -88,7 +88,7 @@ const ProjectForm = () => {
         JSON.stringify({ project_id: projectId })
       );
 
-      router.push(`/project/${projectId}/videos`);
+      router.push(`/project/${projectId}`);
     } catch (error) {
       console.error("Error creating project:", error);
     }

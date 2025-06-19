@@ -1,7 +1,7 @@
 "use client";
 
 import { NavButton } from "@/components/stunts-app/items";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 
 import { Toaster } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
@@ -10,6 +10,21 @@ export default function ProjectLayout({ children = null }) {
   const { t } = useTranslation("common");
 
   const { projectId } = useParams();
+  const pathname = usePathname();
+
+  let hubUrl = `/project/${projectId}`;
+  if (
+    pathname.includes("flows") ||
+    pathname === hubUrl ||
+    pathname === hubUrl + "/"
+  ) {
+    return (
+      <>
+        <Toaster position="bottom-left" reverseOrder={false} />
+        {children}
+      </>
+    );
+  }
 
   return (
     <>
