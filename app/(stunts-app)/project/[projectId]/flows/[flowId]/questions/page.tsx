@@ -5,9 +5,9 @@ import ErrorBoundary from "@/components/stunts-app/ErrorBoundary";
 import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import { FlowSteps } from "@/components/stunts-app/FlowSteps";
-import FlowContent from "@/components/stunts-app/FlowContent";
+import FlowQuestions from "@/components/stunts-app/FlowQuestions";
 
-export default function Project() {
+export default function Questions() {
   const { projectId, flowId } = useParams();
 
   return (
@@ -17,10 +17,10 @@ export default function Project() {
         {/* Error Boundary */}
         <ClientOnly>
           <div className="flex flex-col justify-center items-center mx-auto">
-            <h1 className="text-3xl text-center mb-12">Add Your Content</h1>
-            <FlowSteps step={2} />
+            <h1 className="text-3xl text-center mb-12">Answer Questions</h1>
+            <FlowSteps step={3} />
             <div className="flex flex-col">
-              <FlowContent
+              <FlowQuestions
                 projectId={projectId as string}
                 flowId={flowId as string}
               />

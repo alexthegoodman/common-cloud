@@ -1,5 +1,5 @@
 import { DataInterface } from "@/def/ai";
-import { UploadResponse } from "./projects";
+import { AuthToken, UploadResponse } from "./projects";
 
 export interface FlowContent {}
 
@@ -16,6 +16,10 @@ export interface FlowData {
 
 export interface CreateFlowResponse {
   newFlow: FlowData;
+}
+
+export interface GetFlowResponse {
+  flow: FlowData;
 }
 
 export const createFlow = async (
@@ -74,11 +78,71 @@ export const updateFlowContent = async (
   return response.json();
 };
 
+export const updateFlowQuestions = async (
+  token: string,
+  flowId: string,
+  questions: IFlowQuestions
+): Promise<CreateFlowResponse> => {
+  const response = await fetch("/api/flows/update-questions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ flowId, questions }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Update flow request failed: ${response.status} - ${response.statusText} - ${errorText}`
+    );
+  }
+
+  return response.json();
+};
+
+export const getFlow = async (
+  authToken: AuthToken | null,
+  flowId: string
+): Promise<GetFlowResponse | null> => {
+  if (!authToken) {
+    return null;
+  }
+
+  const response = await fetch("/api/flows/get?flowId=" + flowId, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${authToken.token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Get flow request failed: ${response.status} - ${response.statusText} - ${errorText}`
+    );
+  }
+
+  return response.json();
+};
+
 export interface ScrapeLinkResponse {
   url: string;
   content: string;
   title: string;
   description: string;
+}
+
+export interface IFlowQuestions {
+  questions: {
+    question: string;
+    possibleAnswers: {
+      answerText: string;
+    }[];
+    chosenAnswer: string;
+  }[];
 }
 
 export const scrapeLink = async (

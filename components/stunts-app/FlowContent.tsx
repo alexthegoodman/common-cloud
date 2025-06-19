@@ -9,12 +9,16 @@ import { useLocalStorage } from "@uidotdev/usehooks";
 import { AnalyzeLink } from "./AnalyzeLink";
 import { DataInterface } from "@/def/ai";
 import { fileToBlob } from "@/engine/image";
+import { useRouter } from "next/navigation";
 
 export default function FlowContent({
   flowId = null,
+  projectId = null,
 }: {
   flowId: string | null;
+  projectId: string | null;
 }) {
+  const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
   // State for file upload
@@ -174,6 +178,8 @@ export default function FlowContent({
     }
 
     await updateFlowContent(authToken.token, flowId, flowContent);
+
+    router.push(`/project/${projectId}/flows/${flowId}/questions`);
 
     setLoading(false);
   };
