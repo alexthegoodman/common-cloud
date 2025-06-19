@@ -1771,7 +1771,11 @@ export class Editor {
     current_positions: [number, number, number, number][],
     // getItemId: (idx: number) => string | null,
     // getObjectType: (objectIdx: number) => ObjectType | null
-    manager: Editor | EditorState
+    manager: Editor | EditorState,
+    dimensions = {
+      width: 800,
+      height: 450,
+    }
   ): AnimationData[] {
     const animation_data_vec: AnimationData[] = [];
     const values_per_prediction = NUM_INFERENCE_FEATURES;
@@ -1813,8 +1817,12 @@ export class Editor {
             continue;
           }
 
-          const x = Math.round(predictions[base_idx + 4] * 0.01 * 800.0);
-          const y = Math.round(predictions[base_idx + 5] * 0.01 * 450.0);
+          const x = Math.round(
+            predictions[base_idx + 4] * 0.01 * dimensions.width
+          );
+          const y = Math.round(
+            predictions[base_idx + 5] * 0.01 * dimensions.height
+          );
 
           if (prev_x !== null && prev_y !== null) {
             const dx = x - prev_x;
@@ -1875,10 +1883,10 @@ export class Editor {
       console.info("rangeCenterIdx", rangeCenterIdx);
 
       const centerX = Math.round(
-        predictions[rangeCenterIdx + 4] * 0.01 * 800.0
+        predictions[rangeCenterIdx + 4] * 0.01 * dimensions.width
       );
       const centerY = Math.round(
-        predictions[rangeCenterIdx + 5] * 0.01 * 450.0
+        predictions[rangeCenterIdx + 5] * 0.01 * dimensions.height
       );
 
       const offsetX = currentX - centerX;
@@ -1907,9 +1915,11 @@ export class Editor {
         }
 
         const predictedX =
-          Math.round(predictions[baseIdx + 4] * 0.01 * 800.0) + offsetX;
+          Math.round(predictions[baseIdx + 4] * 0.01 * dimensions.width) +
+          offsetX;
         const predictedY =
-          Math.round(predictions[baseIdx + 5] * 0.01 * 450.0) + offsetY;
+          Math.round(predictions[baseIdx + 5] * 0.01 * dimensions.height) +
+          offsetY;
 
         const timestamp =
           keyframeTimeIdx < 3
