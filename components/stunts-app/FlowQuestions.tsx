@@ -272,16 +272,30 @@ export default function FlowQuestions({
     }
 
     // generate layout
-    let prompt = editor.createLayoutInferencePrompt();
+    let prompt = editorState.genCreateLayoutInferencePrompt();
 
-    console.info("layout prompt", editor, editorState, prompt);
+    // console.info("layout prompt", editor, editorState, prompt);
 
     let predictions = await callLayoutInference(prompt);
 
     console.info("predictions", predictions);
 
-    let sequences = editor.updateLayoutFromPredictions(
+    // let sequences = editor.updateLayoutFromPredictions(
+    //   predictions,
+    //   currentSequenceId,
+    //   editorState.savedState.sequences
+    // );
+
+    // Parse predictions into structured objects
+    // TODO: getItemId, getObjectType
+    const objects = editor.parsePredictionsToObjects(
       predictions,
+      editorState.getItemId,
+      editorState.getObjectType
+    );
+
+    let sequences = editor.updateSequencesFromObjects(
+      objects,
       currentSequenceId,
       editorState.savedState.sequences
     );
@@ -291,12 +305,19 @@ export default function FlowQuestions({
     // generate animation
     // console.info("create prompt");
 
-    let prompt2 = editor.createInferencePrompt();
+    let prompt2 = editorState.genCreateInferencePrompt();
     let predictions2 = await callMotionInference(prompt2);
 
     console.info("predictions2", predictions2);
 
-    let animation = editor.createMotionPathsFromPredictions(predictions2);
+    let current_positions = editorState.getCurrentPositions();
+
+    let animation = editor.createMotionPathsFromPredictions(
+      predictions2,
+      current_positions,
+      editorState.getItemId,
+      editorState.getObjectType
+    );
 
     sequences.forEach((s) => {
       if (s.id === currentSequenceId) {

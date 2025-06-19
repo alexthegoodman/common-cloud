@@ -991,7 +991,14 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
     console.info("predictions", predictions);
 
-    let animation = editor.createMotionPathsFromPredictions(predictions);
+    let current_positions = editor.getCurrentPositions();
+
+    let animation = editor.createMotionPathsFromPredictions(
+      predictions,
+      current_positions,
+      editor.getItemId,
+      editor.getObjectType
+    );
 
     editor_state.savedState.sequences.forEach((s) => {
       if (s.id === current_sequence_id) {

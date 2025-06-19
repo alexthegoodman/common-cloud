@@ -726,36 +726,355 @@ export class Editor {
     return prompt;
   }
 
-  updateLayoutFromPredictions(
+  // updateLayoutFromPredictions(
+  //   predictions: number[],
+  //   curerntSequenceId: string,
+  //   sequences: Sequence[]
+  // ): Sequence[] {
+  //   let gpuResources = this.gpuResources;
+  //   let camera = this.camera;
+
+  //   if (!gpuResources || !camera || !this.modelBindGroupLayout) {
+  //     return sequences;
+  //   }
+
+  //   let prePrediction = 7;
+  //   let adjustTotal = 0;
+  //   let objects: BBox[] = [];
+
+  //   for (const itemArrays of [
+  //     this.polygons,
+  //     this.textItems,
+  //     this.imageItems,
+  //     // this.videoItems,
+  //   ]) {
+  //     for (const item of itemArrays) {
+  //       if (item.hidden) continue;
+  //       if (adjustTotal > 8) break;
+
+  //       const itemId = this.getItemId(adjustTotal);
+  //       const objectType = this.getObjectType(adjustTotal);
+
+  //       if (!itemId || !objectType) continue; // Skip if ID or type is not found
+
+  //       const baseIdx = adjustTotal * prePrediction;
+
+  //       let new_width = Math.round(predictions[baseIdx + 3] * 0.01 * 900.0);
+  //       let new_height = Math.round(predictions[baseIdx + 4] * 0.01 * 1100.0);
+  //       let new_x = Math.round(predictions[baseIdx + 5] * 0.01 * 900.0);
+  //       let new_y = Math.round(predictions[baseIdx + 6] * 0.01 * 1100.0);
+
+  //       objects.push({
+  //         id: itemId,
+  //         width: new_width,
+  //         height: new_height,
+  //         x: new_x,
+  //         y: new_y,
+  //       });
+
+  //       adjustTotal++;
+  //     }
+  //   }
+
+  //   const resolvedObjects = resolveOverlaps(objects);
+
+  //   let values_per_prediction = 7;
+  //   let total = 0;
+
+  //   // for (const itemArrays of [
+  //   //   this.polygons,
+  //   //   this.textItems,
+  //   //   this.imageItems,
+  //   //   // this.videoItems,
+  //   // ]) {
+  //   for (const item of resolvedObjects) {
+  //     if (total > 8) break;
+
+  //     const itemId = item.id;
+
+  //     let isPolygon = this.polygons.findIndex((p) => p.id === itemId);
+  //     let isText = this.textItems.findIndex((p) => p.id === itemId);
+  //     let isImage = this.imageItems.findIndex((p) => p.id === itemId);
+
+  //     let new_width = item.width;
+  //     let new_height = item.height;
+  //     let new_x = item.x;
+  //     let new_y = item.y;
+
+  //     if (isPolygon > -1) {
+  //       let polygon = this.polygons.find((p) => p.id === itemId);
+
+  //       if (!polygon || !this.modelBindGroupLayout) continue;
+
+  //       // polygon.dimensions = [new_width, new_height];
+  //       polygon.updateDataFromDimensions(
+  //         camera.windowSize,
+  //         gpuResources.device!,
+  //         gpuResources.queue!,
+  //         this.modelBindGroupLayout,
+  //         [new_width, new_height],
+  //         camera
+  //       );
+  //       polygon.transform.updatePosition([new_x, new_y], camera.windowSize);
+  //       polygon.transform.updateUniformBuffer(
+  //         gpuResources.queue!,
+  //         camera.windowSize
+  //       );
+
+  //       sequences.forEach((s) => {
+  //         if (s.id === curerntSequenceId) {
+  //           let activePolygon = s.activePolygons.find((p) => p.id === itemId);
+
+  //           if (activePolygon) {
+  //             activePolygon.dimensions = [new_width, new_height];
+  //             activePolygon.position = {
+  //               x: new_x,
+  //               y: new_y,
+  //             };
+  //           }
+  //         }
+  //       });
+  //     } else if (isText > -1) {
+  //       let text = this.textItems.find((p) => p.id === itemId);
+
+  //       if (!text || !this.modelBindGroupLayout) continue;
+
+  //       // text.dimensions = [new_width, new_height];
+  //       text.updateDataFromDimensions(
+  //         camera.windowSize,
+  //         gpuResources.device!,
+  //         gpuResources.queue!,
+  //         this.modelBindGroupLayout,
+  //         [new_width, new_height],
+  //         camera
+  //       );
+  //       text.transform.updatePosition([new_x, new_y], camera.windowSize);
+  //       text.backgroundPolygon.transform.updatePosition(
+  //         [new_x, new_y],
+  //         camera.windowSize
+  //       );
+  //       text.transform.updateUniformBuffer(
+  //         gpuResources.queue!,
+  //         camera.windowSize
+  //       );
+  //       text.backgroundPolygon.transform.updateUniformBuffer(
+  //         gpuResources.queue!,
+  //         camera.windowSize
+  //       );
+
+  //       sequences.forEach((s) => {
+  //         if (s.id === curerntSequenceId) {
+  //           let activeText = s.activeTextItems.find((p) => p.id === itemId);
+
+  //           if (activeText) {
+  //             activeText.dimensions = [new_width, new_height];
+  //             activeText.position = {
+  //               x: new_x,
+  //               y: new_y,
+  //             };
+  //           }
+  //         }
+  //       });
+  //     } else if (isImage > -1) {
+  //       let image = this.imageItems.find((p) => p.id === itemId);
+
+  //       if (!image || !this.modelBindGroupLayout) continue;
+
+  //       // image.dimensions = [new_width, new_height];
+  //       image.updateDataFromDimensions(
+  //         camera.windowSize,
+  //         gpuResources.device!,
+  //         gpuResources.queue!,
+  //         this.modelBindGroupLayout,
+  //         [new_width, new_height]
+  //         // camera
+  //       );
+  //       image.transform.updatePosition([new_x, new_y], camera.windowSize);
+  //       image.transform.updateUniformBuffer(
+  //         gpuResources.queue!,
+  //         camera.windowSize
+  //       );
+
+  //       sequences.forEach((s) => {
+  //         if (s.id === curerntSequenceId) {
+  //           let activeImage = s.activeImageItems.find((p) => p.id === itemId);
+
+  //           if (activeImage) {
+  //             activeImage.dimensions = [new_width, new_height];
+  //             activeImage.position = {
+  //               x: new_x,
+  //               y: new_y,
+  //             };
+  //           }
+  //         }
+  //       });
+  //     }
+
+  //     total++;
+  //   }
+  //   // }
+
+  //   // let values_per_prediction = 7;
+  //   // let total = 0;
+
+  //   // for (const itemArrays of [
+  //   //   this.polygons,
+  //   //   this.textItems,
+  //   //   this.imageItems,
+  //   //   // this.videoItems,
+  //   // ]) {
+  //   //   for (const item of itemArrays) {
+  //   //     if (item.hidden) continue;
+  //   //     if (total > 8) break;
+
+  //   //     const itemId = this.getItemId(total);
+  //   //     const objectType = this.getObjectType(total);
+
+  //   //     if (!itemId || !objectType) continue; // Skip if ID or type is not found
+
+  //   //     // TODO: what is baseIdx value? how to calculate?
+  //   //     const baseIdx = total * values_per_prediction;
+
+  //   //     let new_width = Math.round(predictions[baseIdx + 3] * 0.01 * 900.0);
+  //   //     let new_height = Math.round(predictions[baseIdx + 4] * 0.01 * 1100.0);
+  //   //     let new_x = Math.round(predictions[baseIdx + 5] * 0.01 * 900.0);
+  //   //     let new_y = Math.round(predictions[baseIdx + 6] * 0.01 * 1100.0);
+
+  //   //     if (objectType === ObjectType.Polygon) {
+  //   //       let polygon = this.polygons.find((p) => p.id === itemId);
+
+  //   //       if (!polygon || !this.modelBindGroupLayout) continue;
+
+  //   //       // polygon.dimensions = [new_width, new_height];
+  //   //       polygon.updateDataFromDimensions(
+  //   //         camera.windowSize,
+  //   //         gpuResources.device!,
+  //   //         gpuResources.queue!,
+  //   //         this.modelBindGroupLayout,
+  //   //         [new_width, new_height],
+  //   //         camera
+  //   //       );
+  //   //       polygon.transform.updatePosition([new_x, new_y], camera.windowSize);
+  //   //       polygon.transform.updateUniformBuffer(
+  //   //         gpuResources.queue!,
+  //   //         camera.windowSize
+  //   //       );
+
+  //   //       sequences.forEach((s) => {
+  //   //         if (s.id === curerntSequenceId) {
+  //   //           let activePolygon = s.activePolygons.find((p) => p.id === itemId);
+
+  //   //           if (activePolygon) {
+  //   //             activePolygon.dimensions = [new_width, new_height];
+  //   //             activePolygon.position = {
+  //   //               x: new_x,
+  //   //               y: new_y,
+  //   //             };
+  //   //           }
+  //   //         }
+  //   //       });
+  //   //     } else if (objectType === ObjectType.TextItem) {
+  //   //       let text = this.textItems.find((p) => p.id === itemId);
+
+  //   //       if (!text || !this.modelBindGroupLayout) continue;
+
+  //   //       // text.dimensions = [new_width, new_height];
+  //   //       text.updateDataFromDimensions(
+  //   //         camera.windowSize,
+  //   //         gpuResources.device!,
+  //   //         gpuResources.queue!,
+  //   //         this.modelBindGroupLayout,
+  //   //         [new_width, new_height],
+  //   //         camera
+  //   //       );
+  //   //       text.transform.updatePosition([new_x, new_y], camera.windowSize);
+  //   //       text.backgroundPolygon.transform.updatePosition(
+  //   //         [new_x, new_y],
+  //   //         camera.windowSize
+  //   //       );
+  //   //       text.transform.updateUniformBuffer(
+  //   //         gpuResources.queue!,
+  //   //         camera.windowSize
+  //   //       );
+  //   //       text.backgroundPolygon.transform.updateUniformBuffer(
+  //   //         gpuResources.queue!,
+  //   //         camera.windowSize
+  //   //       );
+
+  //   //       sequences.forEach((s) => {
+  //   //         if (s.id === curerntSequenceId) {
+  //   //           let activeText = s.activeTextItems.find((p) => p.id === itemId);
+
+  //   //           if (activeText) {
+  //   //             activeText.dimensions = [new_width, new_height];
+  //   //             activeText.position = {
+  //   //               x: new_x,
+  //   //               y: new_y,
+  //   //             };
+  //   //           }
+  //   //         }
+  //   //       });
+  //   //     } else if (objectType === ObjectType.ImageItem) {
+  //   //       let image = this.imageItems.find((p) => p.id === itemId);
+
+  //   //       if (!image || !this.modelBindGroupLayout) continue;
+
+  //   //       // image.dimensions = [new_width, new_height];
+  //   //       image.updateDataFromDimensions(
+  //   //         camera.windowSize,
+  //   //         gpuResources.device!,
+  //   //         gpuResources.queue!,
+  //   //         this.modelBindGroupLayout,
+  //   //         [new_width, new_height]
+  //   //         // camera
+  //   //       );
+  //   //       image.transform.updatePosition([new_x, new_y], camera.windowSize);
+  //   //       image.transform.updateUniformBuffer(
+  //   //         gpuResources.queue!,
+  //   //         camera.windowSize
+  //   //       );
+
+  //   //       sequences.forEach((s) => {
+  //   //         if (s.id === curerntSequenceId) {
+  //   //           let activeImage = s.activeImageItems.find((p) => p.id === itemId);
+
+  //   //           if (activeImage) {
+  //   //             activeImage.dimensions = [new_width, new_height];
+  //   //             activeImage.position = {
+  //   //               x: new_x,
+  //   //               y: new_y,
+  //   //             };
+  //   //           }
+  //   //         }
+  //   //       });
+  //   //     }
+
+  //   //     total++;
+  //   //   }
+  //   // }
+
+  //   return sequences;
+  // }
+
+  // First, extract prediction parsing into its own function
+  parsePredictionsToObjects(
     predictions: number[],
-    curerntSequenceId: string,
-    sequences: Sequence[]
-  ): Sequence[] {
-    let gpuResources = this.gpuResources;
-    let camera = this.camera;
-
-    if (!gpuResources || !camera || !this.modelBindGroupLayout) {
-      return sequences;
-    }
-
+    getItemId: (idx: number) => string | null,
+    getObjectType: (objectIdx: number) => ObjectType | null
+  ): BBox[] {
     let prePrediction = 7;
     let adjustTotal = 0;
     let objects: BBox[] = [];
 
-    for (const itemArrays of [
-      this.polygons,
-      this.textItems,
-      this.imageItems,
-      // this.videoItems,
-    ]) {
+    for (const itemArrays of [this.polygons, this.textItems, this.imageItems]) {
       for (const item of itemArrays) {
         if (item.hidden) continue;
         if (adjustTotal > 8) break;
 
-        const itemId = this.getItemId(adjustTotal);
-        const objectType = this.getObjectType(adjustTotal);
+        const itemId = getItemId(adjustTotal);
+        const objectType = getObjectType(adjustTotal);
 
-        if (!itemId || !objectType) continue; // Skip if ID or type is not found
+        if (!itemId || !objectType) continue;
 
         const baseIdx = adjustTotal * prePrediction;
 
@@ -776,284 +1095,219 @@ export class Editor {
       }
     }
 
-    const resolvedObjects = resolveOverlaps(objects);
+    return resolveOverlaps(objects);
+  }
 
-    let values_per_prediction = 7;
+  // Update sequences (pure function - no side effects)
+  updateSequencesFromObjects(
+    objects: BBox[],
+    currentSequenceId: string,
+    sequences: Sequence[]
+  ): Sequence[] {
+    return sequences.map((sequence) => {
+      if (sequence.id !== currentSequenceId) {
+        return sequence;
+      }
+
+      return {
+        ...sequence,
+        activePolygons: sequence.activePolygons.map((polygon) => {
+          const obj = objects.find((o) => o.id === polygon.id);
+          if (!obj) return polygon;
+
+          return {
+            ...polygon,
+            dimensions: [obj.width, obj.height],
+            position: { x: obj.x, y: obj.y },
+          };
+        }),
+        activeTextItems: sequence.activeTextItems.map((textItem) => {
+          const obj = objects.find((o) => o.id === textItem.id);
+          if (!obj) return textItem;
+
+          return {
+            ...textItem,
+            dimensions: [obj.width, obj.height],
+            position: { x: obj.x, y: obj.y },
+          };
+        }),
+        activeImageItems: sequence.activeImageItems.map((imageItem) => {
+          const obj = objects.find((o) => o.id === imageItem.id);
+          if (!obj) return imageItem;
+
+          return {
+            ...imageItem,
+            dimensions: [obj.width, obj.height],
+            position: { x: obj.x, y: obj.y },
+          };
+        }),
+      };
+    });
+  }
+
+  // Update GPU resources (side effects)
+  private updateGpuResourcesFromObjects(objects: BBox[]): void {
+    const { gpuResources, camera, modelBindGroupLayout } = this;
+
+    if (!gpuResources || !camera || !modelBindGroupLayout) {
+      return;
+    }
+
     let total = 0;
-
-    // for (const itemArrays of [
-    //   this.polygons,
-    //   this.textItems,
-    //   this.imageItems,
-    //   // this.videoItems,
-    // ]) {
-    for (const item of resolvedObjects) {
+    for (const obj of objects) {
       if (total > 8) break;
 
-      const itemId = item.id;
+      const { id, width, height, x, y } = obj;
 
-      let isPolygon = this.polygons.findIndex((p) => p.id === itemId);
-      let isText = this.textItems.findIndex((p) => p.id === itemId);
-      let isImage = this.imageItems.findIndex((p) => p.id === itemId);
-
-      let new_width = item.width;
-      let new_height = item.height;
-      let new_x = item.x;
-      let new_y = item.y;
-
-      if (isPolygon > -1) {
-        let polygon = this.polygons.find((p) => p.id === itemId);
-
-        if (!polygon || !this.modelBindGroupLayout) continue;
-
-        // polygon.dimensions = [new_width, new_height];
-        polygon.updateDataFromDimensions(
-          camera.windowSize,
-          gpuResources.device!,
-          gpuResources.queue!,
-          this.modelBindGroupLayout,
-          [new_width, new_height],
-          camera
-        );
-        polygon.transform.updatePosition([new_x, new_y], camera.windowSize);
-        polygon.transform.updateUniformBuffer(
-          gpuResources.queue!,
-          camera.windowSize
-        );
-
-        sequences.forEach((s) => {
-          if (s.id === curerntSequenceId) {
-            let activePolygon = s.activePolygons.find((p) => p.id === itemId);
-
-            if (activePolygon) {
-              activePolygon.dimensions = [new_width, new_height];
-              activePolygon.position = {
-                x: new_x,
-                y: new_y,
-              };
-            }
-          }
-        });
-      } else if (isText > -1) {
-        let text = this.textItems.find((p) => p.id === itemId);
-
-        if (!text || !this.modelBindGroupLayout) continue;
-
-        // text.dimensions = [new_width, new_height];
-        text.updateDataFromDimensions(
-          camera.windowSize,
-          gpuResources.device!,
-          gpuResources.queue!,
-          this.modelBindGroupLayout,
-          [new_width, new_height],
-          camera
-        );
-        text.transform.updatePosition([new_x, new_y], camera.windowSize);
-        text.backgroundPolygon.transform.updatePosition(
-          [new_x, new_y],
-          camera.windowSize
-        );
-        text.transform.updateUniformBuffer(
-          gpuResources.queue!,
-          camera.windowSize
-        );
-        text.backgroundPolygon.transform.updateUniformBuffer(
-          gpuResources.queue!,
-          camera.windowSize
-        );
-
-        sequences.forEach((s) => {
-          if (s.id === curerntSequenceId) {
-            let activeText = s.activeTextItems.find((p) => p.id === itemId);
-
-            if (activeText) {
-              activeText.dimensions = [new_width, new_height];
-              activeText.position = {
-                x: new_x,
-                y: new_y,
-              };
-            }
-          }
-        });
-      } else if (isImage > -1) {
-        let image = this.imageItems.find((p) => p.id === itemId);
-
-        if (!image || !this.modelBindGroupLayout) continue;
-
-        // image.dimensions = [new_width, new_height];
-        image.updateDataFromDimensions(
-          camera.windowSize,
-          gpuResources.device!,
-          gpuResources.queue!,
-          this.modelBindGroupLayout,
-          [new_width, new_height]
-          // camera
-        );
-        image.transform.updatePosition([new_x, new_y], camera.windowSize);
-        image.transform.updateUniformBuffer(
-          gpuResources.queue!,
-          camera.windowSize
-        );
-
-        sequences.forEach((s) => {
-          if (s.id === curerntSequenceId) {
-            let activeImage = s.activeImageItems.find((p) => p.id === itemId);
-
-            if (activeImage) {
-              activeImage.dimensions = [new_width, new_height];
-              activeImage.position = {
-                x: new_x,
-                y: new_y,
-              };
-            }
-          }
-        });
-      }
+      this.updatePolygonGpuResources(
+        id,
+        width,
+        height,
+        x,
+        y,
+        gpuResources,
+        camera,
+        modelBindGroupLayout
+      );
+      this.updateTextGpuResources(
+        id,
+        width,
+        height,
+        x,
+        y,
+        gpuResources,
+        camera,
+        modelBindGroupLayout
+      );
+      this.updateImageGpuResources(
+        id,
+        width,
+        height,
+        x,
+        y,
+        gpuResources,
+        camera,
+        modelBindGroupLayout
+      );
 
       total++;
     }
-    // }
+  }
 
-    // let values_per_prediction = 7;
-    // let total = 0;
+  // Individual GPU update functions
+  private updatePolygonGpuResources(
+    itemId: string,
+    width: number,
+    height: number,
+    x: number,
+    y: number,
+    gpuResources: any,
+    camera: any,
+    modelBindGroupLayout: any
+  ): void {
+    const polygonIndex = this.polygons.findIndex((p) => p.id === itemId);
+    if (polygonIndex === -1) return;
 
-    // for (const itemArrays of [
-    //   this.polygons,
-    //   this.textItems,
-    //   this.imageItems,
-    //   // this.videoItems,
-    // ]) {
-    //   for (const item of itemArrays) {
-    //     if (item.hidden) continue;
-    //     if (total > 8) break;
+    const polygon = this.polygons[polygonIndex];
+    if (!polygon) return;
 
-    //     const itemId = this.getItemId(total);
-    //     const objectType = this.getObjectType(total);
+    polygon.updateDataFromDimensions(
+      camera.windowSize,
+      gpuResources.device!,
+      gpuResources.queue!,
+      modelBindGroupLayout,
+      [width, height],
+      camera
+    );
+    polygon.transform.updatePosition([x, y], camera.windowSize);
+    polygon.transform.updateUniformBuffer(
+      gpuResources.queue!,
+      camera.windowSize
+    );
+  }
 
-    //     if (!itemId || !objectType) continue; // Skip if ID or type is not found
+  private updateTextGpuResources(
+    itemId: string,
+    width: number,
+    height: number,
+    x: number,
+    y: number,
+    gpuResources: any,
+    camera: any,
+    modelBindGroupLayout: any
+  ): void {
+    const textIndex = this.textItems.findIndex((p) => p.id === itemId);
+    if (textIndex === -1) return;
 
-    //     // TODO: what is baseIdx value? how to calculate?
-    //     const baseIdx = total * values_per_prediction;
+    const text = this.textItems[textIndex];
+    if (!text) return;
 
-    //     let new_width = Math.round(predictions[baseIdx + 3] * 0.01 * 900.0);
-    //     let new_height = Math.round(predictions[baseIdx + 4] * 0.01 * 1100.0);
-    //     let new_x = Math.round(predictions[baseIdx + 5] * 0.01 * 900.0);
-    //     let new_y = Math.round(predictions[baseIdx + 6] * 0.01 * 1100.0);
+    text.updateDataFromDimensions(
+      camera.windowSize,
+      gpuResources.device!,
+      gpuResources.queue!,
+      modelBindGroupLayout,
+      [width, height],
+      camera
+    );
+    text.transform.updatePosition([x, y], camera.windowSize);
+    text.backgroundPolygon.transform.updatePosition([x, y], camera.windowSize);
+    text.transform.updateUniformBuffer(gpuResources.queue!, camera.windowSize);
+    text.backgroundPolygon.transform.updateUniformBuffer(
+      gpuResources.queue!,
+      camera.windowSize
+    );
+  }
 
-    //     if (objectType === ObjectType.Polygon) {
-    //       let polygon = this.polygons.find((p) => p.id === itemId);
+  private updateImageGpuResources(
+    itemId: string,
+    width: number,
+    height: number,
+    x: number,
+    y: number,
+    gpuResources: any,
+    camera: any,
+    modelBindGroupLayout: any
+  ): void {
+    const imageIndex = this.imageItems.findIndex((p) => p.id === itemId);
+    if (imageIndex === -1) return;
 
-    //       if (!polygon || !this.modelBindGroupLayout) continue;
+    const image = this.imageItems[imageIndex];
+    if (!image) return;
 
-    //       // polygon.dimensions = [new_width, new_height];
-    //       polygon.updateDataFromDimensions(
-    //         camera.windowSize,
-    //         gpuResources.device!,
-    //         gpuResources.queue!,
-    //         this.modelBindGroupLayout,
-    //         [new_width, new_height],
-    //         camera
-    //       );
-    //       polygon.transform.updatePosition([new_x, new_y], camera.windowSize);
-    //       polygon.transform.updateUniformBuffer(
-    //         gpuResources.queue!,
-    //         camera.windowSize
-    //       );
+    image.updateDataFromDimensions(
+      camera.windowSize,
+      gpuResources.device!,
+      gpuResources.queue!,
+      modelBindGroupLayout,
+      [width, height]
+    );
+    image.transform.updatePosition([x, y], camera.windowSize);
+    image.transform.updateUniformBuffer(gpuResources.queue!, camera.windowSize);
+  }
 
-    //       sequences.forEach((s) => {
-    //         if (s.id === curerntSequenceId) {
-    //           let activePolygon = s.activePolygons.find((p) => p.id === itemId);
+  // Main orchestrator function
+  updateLayoutFromPredictions(
+    predictions: number[],
+    currentSequenceId: string,
+    sequences: Sequence[]
+  ): Sequence[] {
+    // Parse predictions into structured objects
+    const objects = this.parsePredictionsToObjects(
+      predictions,
+      this.getItemId,
+      this.getObjectType
+    );
 
-    //           if (activePolygon) {
-    //             activePolygon.dimensions = [new_width, new_height];
-    //             activePolygon.position = {
-    //               x: new_x,
-    //               y: new_y,
-    //             };
-    //           }
-    //         }
-    //       });
-    //     } else if (objectType === ObjectType.TextItem) {
-    //       let text = this.textItems.find((p) => p.id === itemId);
+    // Update GPU resources (side effects)
+    this.updateGpuResourcesFromObjects(objects);
 
-    //       if (!text || !this.modelBindGroupLayout) continue;
-
-    //       // text.dimensions = [new_width, new_height];
-    //       text.updateDataFromDimensions(
-    //         camera.windowSize,
-    //         gpuResources.device!,
-    //         gpuResources.queue!,
-    //         this.modelBindGroupLayout,
-    //         [new_width, new_height],
-    //         camera
-    //       );
-    //       text.transform.updatePosition([new_x, new_y], camera.windowSize);
-    //       text.backgroundPolygon.transform.updatePosition(
-    //         [new_x, new_y],
-    //         camera.windowSize
-    //       );
-    //       text.transform.updateUniformBuffer(
-    //         gpuResources.queue!,
-    //         camera.windowSize
-    //       );
-    //       text.backgroundPolygon.transform.updateUniformBuffer(
-    //         gpuResources.queue!,
-    //         camera.windowSize
-    //       );
-
-    //       sequences.forEach((s) => {
-    //         if (s.id === curerntSequenceId) {
-    //           let activeText = s.activeTextItems.find((p) => p.id === itemId);
-
-    //           if (activeText) {
-    //             activeText.dimensions = [new_width, new_height];
-    //             activeText.position = {
-    //               x: new_x,
-    //               y: new_y,
-    //             };
-    //           }
-    //         }
-    //       });
-    //     } else if (objectType === ObjectType.ImageItem) {
-    //       let image = this.imageItems.find((p) => p.id === itemId);
-
-    //       if (!image || !this.modelBindGroupLayout) continue;
-
-    //       // image.dimensions = [new_width, new_height];
-    //       image.updateDataFromDimensions(
-    //         camera.windowSize,
-    //         gpuResources.device!,
-    //         gpuResources.queue!,
-    //         this.modelBindGroupLayout,
-    //         [new_width, new_height]
-    //         // camera
-    //       );
-    //       image.transform.updatePosition([new_x, new_y], camera.windowSize);
-    //       image.transform.updateUniformBuffer(
-    //         gpuResources.queue!,
-    //         camera.windowSize
-    //       );
-
-    //       sequences.forEach((s) => {
-    //         if (s.id === curerntSequenceId) {
-    //           let activeImage = s.activeImageItems.find((p) => p.id === itemId);
-
-    //           if (activeImage) {
-    //             activeImage.dimensions = [new_width, new_height];
-    //             activeImage.position = {
-    //               x: new_x,
-    //               y: new_y,
-    //             };
-    //           }
-    //         }
-    //       });
-    //     }
-
-    //     total++;
-    //   }
-    // }
-
-    return sequences;
+    // Return updated sequences (pure)
+    return this.updateSequencesFromObjects(
+      objects,
+      currentSequenceId,
+      sequences
+    );
   }
 
   async restore_sequence_objects(saved_sequence: Sequence, hidden: boolean) {
@@ -1435,26 +1689,7 @@ export class Editor {
     this.currentSequenceData = null;
   }
 
-  createMotionPathsFromPredictions(predictions: number[]): AnimationData[] {
-    const animation_data_vec: AnimationData[] = [];
-    const values_per_prediction = NUM_INFERENCE_FEATURES;
-    const keyframes_per_object = 6;
-
-    const timestamp_diffs = [0.0, 2500.0, 5000.0, -5000.0, -2500.0, 0.0];
-
-    const total_predictions = predictions.length;
-    const num_objects =
-      total_predictions / (values_per_prediction * keyframes_per_object);
-
-    console.info(
-      "createMotionPathsFromPredictions",
-      total_predictions,
-      num_objects,
-      this.generationChoreographed,
-      this.generationFade,
-      this.generationCurved
-    );
-
+  getCurrentPositions() {
     const current_positions: [number, number, number, number][] = [];
     let total = 0;
 
@@ -1506,6 +1741,34 @@ export class Editor {
       }
     }
 
+    return current_positions;
+  }
+
+  createMotionPathsFromPredictions(
+    predictions: number[],
+    current_positions: [number, number, number, number][],
+    getItemId: (idx: number) => string | null,
+    getObjectType: (objectIdx: number) => ObjectType | null
+  ): AnimationData[] {
+    const animation_data_vec: AnimationData[] = [];
+    const values_per_prediction = NUM_INFERENCE_FEATURES;
+    const keyframes_per_object = 6;
+
+    const timestamp_diffs = [0.0, 2500.0, 5000.0, -5000.0, -2500.0, 0.0];
+
+    const total_predictions = predictions.length;
+    const num_objects =
+      total_predictions / (values_per_prediction * keyframes_per_object);
+
+    console.info(
+      "createMotionPathsFromPredictions",
+      total_predictions,
+      num_objects,
+      this.generationChoreographed,
+      this.generationFade,
+      this.generationCurved
+    );
+
     let longest_path: number | null = 0;
     if (this.generationChoreographed) {
       let max_distance = 0.0;
@@ -1552,8 +1815,8 @@ export class Editor {
       object_idx < current_positions.length;
       object_idx++
     ) {
-      const itemId = this.getItemId(object_idx);
-      const objectType = this.getObjectType(object_idx);
+      const itemId = getItemId(object_idx);
+      const objectType = getObjectType(object_idx);
 
       if (!itemId || !objectType) continue; // Skip if ID or type is not found
 
