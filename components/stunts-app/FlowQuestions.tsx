@@ -151,6 +151,12 @@ export default function FlowQuestions({
           },
         ],
       },
+      settings: {
+        dimensions: {
+          width: 900,
+          height: 500,
+        },
+      },
     };
 
     const viewport = new Viewport(900, 500);
