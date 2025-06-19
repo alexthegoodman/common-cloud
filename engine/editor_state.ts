@@ -30,6 +30,8 @@ export enum SaveTarget {
 }
 
 export default class EditorState {
+  kind: "editor" | "state" = "editor";
+
   selected_polygon_id: string = "";
   savedState: SavedState;
   supportsMotionPaths: boolean = true;

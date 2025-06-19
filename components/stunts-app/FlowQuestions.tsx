@@ -288,11 +288,7 @@ export default function FlowQuestions({
 
     // Parse predictions into structured objects
     // TODO: getItemId, getObjectType
-    const objects = editor.parsePredictionsToObjects(
-      predictions,
-      editorState.getItemId,
-      editorState.getObjectType
-    );
+    const objects = editor.parsePredictionsToObjects(predictions, editorState);
 
     let sequences = editor.updateSequencesFromObjects(
       objects,
@@ -315,8 +311,7 @@ export default function FlowQuestions({
     let animation = editor.createMotionPathsFromPredictions(
       predictions2,
       current_positions,
-      editorState.getItemId,
-      editorState.getObjectType
+      editorState
     );
 
     sequences.forEach((s) => {

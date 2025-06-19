@@ -292,7 +292,7 @@ import {
   MultiPageEditor,
   RenderItem,
 } from "./rte";
-import { SaveTarget } from "./editor_state";
+import EditorState, { SaveTarget } from "./editor_state";
 import { Camera3D } from "./3dcamera";
 import {
   GPUPolyfill,
@@ -306,6 +306,8 @@ import {
 // import * as fontkit from "fontkit";
 
 export class Editor {
+  kind: "editor" | "state" = "editor";
+
   // visual
   selectedPolygonId: string | null;
   polygons: Polygon[];
@@ -1059,20 +1061,32 @@ export class Editor {
   // First, extract prediction parsing into its own function
   parsePredictionsToObjects(
     predictions: number[],
-    getItemId: (idx: number) => string | null,
-    getObjectType: (objectIdx: number) => ObjectType | null
+    // getItemId: (idx: number) => string | null,
+    // getObjectType: (objectIdx: number) => ObjectType | null
+    manager: Editor | EditorState
   ): BBox[] {
     let prePrediction = 7;
     let adjustTotal = 0;
     let objects: BBox[] = [];
 
-    for (const itemArrays of [this.polygons, this.textItems, this.imageItems]) {
+    let isState = manager.kind === "state" ? true : false;
+
+    let items =
+      manager.kind === "state"
+        ? [
+            (manager as EditorState).savedState.sequences[0].activePolygons,
+            (manager as EditorState).savedState.sequences[0].activeTextItems,
+            (manager as EditorState).savedState.sequences[0].activeImageItems,
+          ]
+        : [this.polygons, this.textItems, this.imageItems];
+
+    for (const itemArrays of items) {
       for (const item of itemArrays) {
-        if (item.hidden) continue;
+        if ((item as any).hidden) continue;
         if (adjustTotal > 8) break;
 
-        const itemId = getItemId(adjustTotal);
-        const objectType = getObjectType(adjustTotal);
+        const itemId = manager.getItemId(adjustTotal);
+        const objectType = manager.getObjectType(adjustTotal);
 
         if (!itemId || !objectType) continue;
 
@@ -1293,11 +1307,7 @@ export class Editor {
     sequences: Sequence[]
   ): Sequence[] {
     // Parse predictions into structured objects
-    const objects = this.parsePredictionsToObjects(
-      predictions,
-      this.getItemId,
-      this.getObjectType
-    );
+    const objects = this.parsePredictionsToObjects(predictions, this);
 
     // Update GPU resources (side effects)
     this.updateGpuResourcesFromObjects(objects);
@@ -1747,8 +1757,9 @@ export class Editor {
   createMotionPathsFromPredictions(
     predictions: number[],
     current_positions: [number, number, number, number][],
-    getItemId: (idx: number) => string | null,
-    getObjectType: (objectIdx: number) => ObjectType | null
+    // getItemId: (idx: number) => string | null,
+    // getObjectType: (objectIdx: number) => ObjectType | null
+    manager: Editor | EditorState
   ): AnimationData[] {
     const animation_data_vec: AnimationData[] = [];
     const values_per_prediction = NUM_INFERENCE_FEATURES;
@@ -1815,8 +1826,8 @@ export class Editor {
       object_idx < current_positions.length;
       object_idx++
     ) {
-      const itemId = getItemId(object_idx);
-      const objectType = getObjectType(object_idx);
+      const itemId = manager.getItemId(object_idx);
+      const objectType = manager.getObjectType(object_idx);
 
       if (!itemId || !objectType) continue; // Skip if ID or type is not found
 
