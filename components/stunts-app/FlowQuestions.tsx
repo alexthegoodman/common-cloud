@@ -200,7 +200,7 @@ export default function FlowQuestions({
         currentSequenceId
       );
 
-      editorState.add_saved_text_item(currentSequenceId, {
+      await editorState.add_saved_text_item(currentSequenceId, {
         id: text_config.id,
         name: text_config.name,
         text: new_text,
@@ -243,7 +243,7 @@ export default function FlowQuestions({
           isCircle: false,
         };
 
-        editor.add_image_item(
+        await editor.add_image_item(
           image_config,
           file.url,
           new Blob(),
@@ -253,7 +253,7 @@ export default function FlowQuestions({
 
         console.info("Adding image: {:?}", new_id);
 
-        editorState.add_saved_image_item(currentSequenceId, {
+        await editorState.add_saved_image_item(currentSequenceId, {
           id: image_config.id,
           name: image_config.name,
           // path: new_path.clone(),
@@ -273,6 +273,9 @@ export default function FlowQuestions({
 
     // generate layout
     let prompt = editor.createLayoutInferencePrompt();
+
+    console.info("layout prompt", editor, editorState, prompt);
+
     let predictions = await callLayoutInference(prompt);
 
     console.info("predictions", predictions);
