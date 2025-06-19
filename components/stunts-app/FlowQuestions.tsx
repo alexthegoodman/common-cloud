@@ -314,6 +314,8 @@ export default function FlowQuestions({
       editorState.savedState.sequences
     );
 
+    editorState.savedState.sequences = sequences;
+
     // saveSequencesData(sequences, SaveTarget.Docs);
 
     // generate animation
@@ -333,19 +335,19 @@ export default function FlowQuestions({
       dimensions
     );
 
-    sequences.forEach((s) => {
+    editorState.savedState.sequences.forEach((s) => {
       if (s.id === currentSequenceId) {
         s.polygonMotionPaths = animation;
       }
     });
 
-    let updatedSequence = sequences.find((s) => s.id === currentSequenceId);
+    let updatedSequence = editorState.savedState.sequences.find(
+      (s) => s.id === currentSequenceId
+    );
 
     if (!updatedSequence) {
       return;
     }
-
-    editorState.savedState.sequences = sequences;
 
     const themeCount = 50;
     const randomThemeIndex = Math.floor(Math.random() * themeCount);

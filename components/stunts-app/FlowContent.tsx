@@ -186,11 +186,11 @@ export default function FlowContent({
 
   return (
     <>
-      <div className="max-w-[1200px] flex flex-row gap-4 mx-auto p-6">
+      <div className="max-w-[1200px] flex flex-col md:flex-row gap-4 mx-auto p-6">
         {/* <h1 className="text-3xl font-bold mb-8">File Upload & Link Analyzer</h1> */}
 
         {/* File Upload Section */}
-        <div className="max-w-[600px] mb-10">
+        <div className="w-full max-w-[600px] mb-10">
           <h2 className="text-xl font-semibold mb-2">Upload Files</h2>
           <span className="block text-slate-500 mb-4">Optional</span>
           <div
@@ -255,7 +255,7 @@ export default function FlowContent({
         </div>
 
         {/* Link Analysis Section */}
-        <div className="max-w-[600px]">
+        <div className="w-full max-w-[600px]">
           <h2 className="text-xl font-semibold mb-2">Analyze Links</h2>
           <span className="block text-slate-500 mb-4">Optional</span>
           <div className="space-y-4">
