@@ -1084,6 +1084,8 @@ export class Editor {
           ]
         : [this.polygons, this.textItems, this.imageItems];
 
+    console.info("debug items", items);
+
     for (const itemArrays of items) {
       for (const item of itemArrays) {
         if ((item as any).hidden) continue;
@@ -1091,6 +1093,8 @@ export class Editor {
 
         const itemId = manager.getItemId(adjustTotal);
         const objectType = manager.getObjectType(adjustTotal);
+
+        console.info("debug item", itemId, objectType, adjustTotal);
 
         if (!itemId || !objectType) continue;
 
