@@ -42,7 +42,7 @@ export const ProjectItem = ({
 
     localStorage.setItem("stored-project", JSON.stringify({ project_id }));
 
-    router.push(`/project/${project_id}`);
+    router.push(`/project/${project_id}/videos`);
     setLoading(false);
   };
 
