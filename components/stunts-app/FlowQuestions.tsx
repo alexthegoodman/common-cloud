@@ -6,7 +6,16 @@ import { useLocalStorage } from "@uidotdev/usehooks";
 import { AuthToken } from "@/fetchers/projects";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { getFlow, IFlowQuestions, updateFlowQuestions } from "@/fetchers/flows";
+import {
+  generateContent,
+  getFlow,
+  IFlowQuestions,
+  updateFlowQuestions,
+} from "@/fetchers/flows";
+import { Editor, Viewport } from "@/engine/editor";
+import EditorState from "@/engine/editor_state";
+import { SavedState, Sequence, TrackType } from "@/engine/animations";
+import { v4 as uuidv4 } from "uuid";
 
 export default function FlowQuestions({
   flowId = null,
@@ -67,6 +76,10 @@ export default function FlowQuestions({
       return;
     }
 
+    if (!flow) {
+      return;
+    }
+
     const savableQuestions: IFlowQuestions = {
       questions: object.questions.map((question, i) => {
         return {
@@ -82,6 +95,56 @@ export default function FlowQuestions({
     };
 
     await updateFlowQuestions(authToken?.token, flowId!, savableQuestions);
+
+    // set the theme, add the images and text content, generate the layout, then generate the animation, finally save
+    const videoContent = await generateContent(
+      authToken.token,
+      flow?.flow.prompt,
+      flow?.flow.content.links,
+      {
+        questions: flow?.flow.questions.questions.map((question) => {
+          return {
+            question: question.question,
+            chosenAnswer: question.chosenAnswer,
+          };
+        }),
+      }
+    );
+
+    // videoContent.data.contentItems.map()
+
+    let newId = uuidv4().toString();
+
+    const defaultVideoSequence: Sequence = {
+      id: newId,
+      name: "Sequence #1",
+      backgroundFill: { type: "Color", value: [200, 200, 200, 255] },
+      durationMs: 20000,
+      activePolygons: [],
+      polygonMotionPaths: [],
+      activeTextItems: [],
+      activeImageItems: [],
+      activeVideoItems: [],
+    };
+
+    const emptyVideoState: SavedState = {
+      sequences: [defaultVideoSequence],
+      timeline_state: {
+        timeline_sequences: [
+          {
+            id: uuidv4(),
+            sequenceId: newId,
+            trackType: TrackType.Video,
+            startTimeMs: 0,
+            // duration_ms: 20000,
+          },
+        ],
+      },
+    };
+
+    const viewport = new Viewport(900, 500);
+    const editor = new Editor(viewport);
+    const editorState = new EditorState(emptyVideoState);
 
     setLoading(false);
   };

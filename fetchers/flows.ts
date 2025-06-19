@@ -1,4 +1,4 @@
-import { DataInterface } from "@/def/ai";
+import { ContentInterface, DataInterface } from "@/def/ai";
 import { AuthToken, UploadResponse } from "./projects";
 
 export interface FlowContent {}
@@ -8,8 +8,8 @@ export interface FlowQuestions {}
 export interface FlowData {
   id: string;
   prompt: string;
-  content: FlowContent;
-  questions: FlowQuestions;
+  content: IFlowContent;
+  questions: IFlowQuestions;
   updatedAt: string;
   createdAt: string;
 }
@@ -102,6 +102,35 @@ export const updateFlowQuestions = async (
   return response.json();
 };
 
+export interface GenerateContentReponse {
+  data: ContentInterface;
+}
+
+export const generateContent = async (
+  token: string,
+  prompt: string,
+  links: DataInterface[],
+  questions: IFlowQuestions
+): Promise<GenerateContentReponse> => {
+  const response = await fetch("/api/flows/generate-content", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ prompt, links, questions }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Generate content request failed: ${response.status} - ${response.statusText} - ${errorText}`
+    );
+  }
+
+  return response.json();
+};
+
 export const getFlow = async (
   authToken: AuthToken | null,
   flowId: string
@@ -138,7 +167,7 @@ export interface ScrapeLinkResponse {
 export interface IFlowQuestions {
   questions: {
     question: string;
-    possibleAnswers: {
+    possibleAnswers?: {
       answerText: string;
     }[];
     chosenAnswer: string;

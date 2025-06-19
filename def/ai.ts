@@ -47,3 +47,19 @@ export const questionSchema = z.object({
     })
   ),
 });
+
+export interface ContentInterface {
+  contentItems: {
+    summaryText: string;
+  }[];
+}
+
+export const contentSchema = z.object({
+  contentItems: z.array(
+    z.object({
+      summaryText: z
+        .string()
+        .describe("The qualitative or quantitative data point if one exists."),
+    })
+  ),
+});
