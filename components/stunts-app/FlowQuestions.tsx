@@ -113,14 +113,15 @@ export default function FlowQuestions({
       authToken.token,
       flow?.flow.prompt,
       flow?.flow.content.links,
-      {
-        questions: flow?.flow.questions.questions.map((question) => {
-          return {
-            question: question.question,
-            chosenAnswer: question.chosenAnswer,
-          };
-        }),
-      }
+      //   {
+      //     questions: flow?.flow.questions.questions.map((question) => {
+      //       return {
+      //         question: question.question,
+      //         chosenAnswer: question.chosenAnswer,
+      //       };
+      //     }),
+      //   }
+      flow?.flow.questions
     );
 
     let currentSequenceId = uuidv4().toString();
