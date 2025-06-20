@@ -110,7 +110,11 @@ const LanguagePicker = ({
       // Add a small delay for better UX feedback
       setTimeout(() => {
         // location.reload();
-        router.push("/projects");
+        // router.push("/projects");
+        window.location.href =
+          process.env.NODE_ENV === "production"
+            ? "https://madebycommon.com/projects"
+            : "http://localhost:3000/projects";
       }, 400);
     } catch (error) {
       setIsLoading(false);

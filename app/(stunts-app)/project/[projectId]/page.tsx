@@ -11,6 +11,7 @@ import { FlowSteps } from "@/components/stunts-app/FlowSteps";
 import { createFlow } from "@/fetchers/flows";
 import { AuthToken } from "@/fetchers/projects";
 import { useLocalStorage } from "@uidotdev/usehooks";
+import toast from "react-hot-toast";
 
 export default function Project() {
   const { projectId } = useParams();
@@ -26,7 +27,12 @@ export default function Project() {
   const [prompt, setPrompt] = useState<string>("");
 
   const handleCreateFlow = async () => {
-    if (!authToken?.token || !prompt) {
+    if (!authToken?.token) {
+      return;
+    }
+
+    if (!prompt) {
+      toast.error("You must enter a prompt / description to begin");
       return;
     }
 
@@ -60,11 +66,10 @@ export default function Project() {
                 <div className="flex items-center">
                   <Check className="mr-2" />
                   <span className="text-sm">
-                    Welcome to the Hub! Here you can create and manage your
-                    flows, which are the quick and easy way to generate
-                    marketing and sales materials that are tailored and
-                    personalized. Alternatively, head straight to the area of
-                    your choice using the navigation on the left.
+                    Here you can generate content (such as videos) by entering a
+                    description / prompt, uploading some of your own content,
+                    and answering intelligent questions. It's fast, simple, and
+                    highly personalized!
                   </span>
                 </div>
               </section>
@@ -76,9 +81,9 @@ export default function Project() {
               {/* <BrandKitList /> */}
               <div className="flex flex-col justify-center items-center mx-auto w-full md:w-[600px] rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
                 <textarea
-                  className="w-full p-4 rounded-[15px] rounded-b-none"
+                  className="w-full p-4 rounded-[15px] rounded-b-none placeholder-opacity-100 placeholder-gray-800"
                   rows={4}
-                  placeholder="Let's create a video for Common's dog food campaign"
+                  placeholder={`Enter a prompt / description. For example, "Let's create a video for Common's dog food campaign"`}
                   onChange={(e) => setPrompt(e.target.value)}
                 ></textarea>
                 <button
@@ -86,7 +91,7 @@ export default function Project() {
                   onClick={handleCreateFlow}
                   disabled={loading}
                 >
-                  Get Started
+                  {loading ? "Working..." : "Get Started"}
                 </button>
               </div>
             </div>
