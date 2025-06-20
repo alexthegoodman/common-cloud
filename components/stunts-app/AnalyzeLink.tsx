@@ -6,6 +6,8 @@ import { Spinner } from "@phosphor-icons/react";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { DataInterface, dataSchema } from "@/def/ai";
 import { Dispatch, SetStateAction } from "react";
+import { useTranslation } from "react-i18next";
+import toast from "react-hot-toast";
 
 export const AnalyzeLink = ({
   authToken,
@@ -26,6 +28,8 @@ export const AnalyzeLink = ({
   handleLinkChange: (index: number, value: string) => void;
   setLinkData: Dispatch<SetStateAction<DataInterface[]>>;
 }) => {
+  const { t } = useTranslation("flow");
+
   const { object, submit } = useObject({
     api: "/api/flows/extract-data",
     headers: {
@@ -65,6 +69,7 @@ export const AnalyzeLink = ({
       submit(linkData.content);
     } catch (error) {
       console.error(`Error analyzing link ${index + 1}:`, error);
+      toast.error(t("Error! Try a different URL"));
     } finally {
       // Reset the analyzing state
       const resetIsAnalyzing = [...isAnalyzing];
@@ -97,10 +102,10 @@ export const AnalyzeLink = ({
           {isAnalyzing[index] ? (
             <div className="flex items-center">
               <Spinner className="w-5 h-5 animate-spin mr-2" />
-              Analyzing...
+              {t("Analyzing")}...
             </div>
           ) : (
-            "Analyze"
+            t("Analyze")
           )}
         </button>
       </div>

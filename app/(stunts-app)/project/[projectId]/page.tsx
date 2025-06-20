@@ -12,8 +12,11 @@ import { createFlow } from "@/fetchers/flows";
 import { AuthToken } from "@/fetchers/projects";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 export default function Project() {
+  const { t } = useTranslation("flow");
+
   const { projectId } = useParams();
   const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
@@ -32,7 +35,8 @@ export default function Project() {
     }
 
     if (!prompt) {
-      toast.error("You must enter a prompt / description to begin");
+      // toast.error("You must enter a prompt / description to begin");
+      toast.error(t("You must enter a prompt / description to begin"));
       return;
     }
 
@@ -44,7 +48,7 @@ export default function Project() {
   };
 
   return (
-    <React.Suspense fallback={<div>Loading...</div>}>
+    <React.Suspense fallback={<div>{t("Loading")}...</div>}>
       {/* Wrap with Suspense */}
       <ErrorBoundary>
         {/* Error Boundary */}
@@ -54,7 +58,9 @@ export default function Project() {
             {hubAlertVisible && (
               <section className="bg-yellow-100 text-yellow-800 p-4 rounded-lg mb-6 w-full md:w-[600px]">
                 <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-lg font-semibold">Welcome to the Hub!</h2>
+                  <h2 className="text-lg font-semibold">
+                    {t("Welcome to the Hub")}!
+                  </h2>
 
                   <button
                     className="text-gray-500 hover:text-gray-700"
@@ -66,16 +72,15 @@ export default function Project() {
                 <div className="flex items-center">
                   <Check className="mr-2" />
                   <span className="text-sm">
-                    Here you can generate content (such as videos) by entering a
-                    description / prompt, uploading some of your own content,
-                    and answering intelligent questions. It's fast, simple, and
-                    highly personalized!
+                    {t("Here you can generate content...")}
                   </span>
                 </div>
               </section>
             )}
 
-            <h1 className="text-3xl text-center mb-12">Welcome to Hub</h1>
+            <h1 className="text-3xl text-center mb-12">
+              {t("Welcome to the Hub")}
+            </h1>
             <FlowSteps step={1} />
             <div className="flex flex-col p-1 md:p-0 w-full">
               {/* <BrandKitList /> */}
@@ -91,7 +96,7 @@ export default function Project() {
                   onClick={handleCreateFlow}
                   disabled={loading}
                 >
-                  {loading ? "Working..." : "Get Started"}
+                  {loading ? t("Working...") : t("Get Started")}
                 </button>
               </div>
             </div>

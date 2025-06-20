@@ -10,6 +10,7 @@ import { AnalyzeLink } from "./AnalyzeLink";
 import { DataInterface } from "@/def/ai";
 import { fileToBlob } from "@/engine/image";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 export default function FlowContent({
   flowId = null,
@@ -18,6 +19,8 @@ export default function FlowContent({
   flowId: string | null;
   projectId: string | null;
 }) {
+  const { t } = useTranslation("flow");
+
   const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
@@ -66,7 +69,7 @@ export default function FlowContent({
     });
 
     if (validFiles.length > 3) {
-      toast.error("You can only upload up to 3 files");
+      toast.error(t("You can only upload up to 3 files"));
     } else {
       setFiles((prev) => [...prev, ...validFiles]);
     }
@@ -191,8 +194,8 @@ export default function FlowContent({
 
         {/* File Upload Section */}
         <div className="w-full max-w-[600px] mb-10">
-          <h2 className="text-xl font-semibold mb-2">Upload Files</h2>
-          <span className="block text-slate-500 mb-4">Optional</span>
+          <h2 className="text-xl font-semibold mb-2">{t("Upload Files")}</h2>
+          <span className="block text-slate-500 mb-4">{t("Optional")}</span>
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
               isDragging
@@ -214,10 +217,10 @@ export default function FlowContent({
             />
             <div className="text-gray-500">
               <p className="font-medium mb-1">
-                Drag and drop files here or click to browse
+                {t("Drag and drop files here or click to browse")}
               </p>
               <p className="text-sm">
-                Accepts images, TXT, DOCX, and PDF files
+                {t("Accepts images (PNG or JPG, under 20MB)")}
               </p>
             </div>
           </div>
@@ -226,7 +229,7 @@ export default function FlowContent({
           {files.length > 0 && (
             <div className="mt-6">
               <h3 className="text-lg font-medium mb-2">
-                Uploaded Files ({files.length})
+                {t("Uploaded Files")} ({files.length})
               </h3>
               <div className="space-y-3">
                 {files.map((file, index) => (
@@ -245,7 +248,7 @@ export default function FlowContent({
                       onClick={() => removeFile(index)}
                       className="text-gray-500 hover:text-red-500 p-1"
                     >
-                      Remove
+                      {t("Remove")}
                     </button>
                   </div>
                 ))}
@@ -256,8 +259,8 @@ export default function FlowContent({
 
         {/* Link Analysis Section */}
         <div className="w-full max-w-[600px]">
-          <h2 className="text-xl font-semibold mb-2">Analyze Links</h2>
-          <span className="block text-slate-500 mb-4">Optional</span>
+          <h2 className="text-xl font-semibold mb-2">{t("Analyze Links")}</h2>
+          <span className="block text-slate-500 mb-4">{t("Optional")}</span>
           <div className="space-y-4">
             {links.map((link, index) => (
               <AnalyzeLink
@@ -281,7 +284,7 @@ export default function FlowContent({
         onClick={continueHandler}
         disabled={loading}
       >
-        {loading ? "Saving..." : "Continue"}
+        {loading ? t("Saving") + "..." : t("Continue")}
       </button>
     </>
   );

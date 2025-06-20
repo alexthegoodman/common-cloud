@@ -31,6 +31,7 @@ import { Color, hexParse } from "@kurkle/color";
 import { TextRendererConfig } from "@/engine/text";
 import { callLayoutInference, callMotionInference } from "@/fetchers/inference";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 export default function FlowQuestions({
   flowId = null,
@@ -39,6 +40,8 @@ export default function FlowQuestions({
   flowId: string | null;
   projectId: string | null;
 }) {
+  const { t } = useTranslation("flow");
+
   const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
@@ -571,7 +574,7 @@ export default function FlowQuestions({
                     d="M4 6h16M4 12h16M4 18h16"
                   />
                 </svg>
-                <span>Vertical</span>
+                <span>{t("Vertical")}</span>
               </div>
             </button>
             <button
@@ -596,7 +599,7 @@ export default function FlowQuestions({
                     d="M9 4h6M9 8h6m-6 4h6m-6 4h6"
                   />
                 </svg>
-                <span>Horizontal</span>
+                <span>{t("Horizontal")}</span>
               </div>
             </button>
           </div>
@@ -627,10 +630,10 @@ export default function FlowQuestions({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              <span>Saving and generating...</span>
+              <span>{t("Saving and generating")}...</span>
             </span>
           ) : (
-            "Generate Your Content!"
+            t("Generate Your Content!")
           )}
         </button>
       </div>
