@@ -27,11 +27,29 @@ export async function POST(req: Request) {
     }
 
     const context = await req.json();
+    const userLanguage = req.headers.get("X-User-Language");
+
+    let targetLanguage = "English";
+    switch (userLanguage) {
+      case "en":
+        targetLanguage = "English";
+        break;
+      case "hi":
+        targetLanguage = "Hindi";
+        break;
+      case "hit":
+        targetLanguage = "Hindi (Roman)";
+        break;
+      default:
+        break;
+    }
 
     const object = await generateObject({
       model: openai("gpt-4o-mini"),
       schema: contentSchema,
-      prompt: `Generate 3 mini summaries regarding this content:` + context,
+      prompt:
+        `Generate 3 mini summaries regarding this content (in the language of ${targetLanguage}):` +
+        context,
     });
 
     const json = object.toJsonResponse();

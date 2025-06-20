@@ -19,6 +19,22 @@ export async function POST(req: Request) {
 
     // const { content } = await req.json();
     const context = await req.json();
+    const userLanguage = req.headers.get("X-User-Language");
+
+    let targetLanguage = "English";
+    switch (userLanguage) {
+      case "en":
+        targetLanguage = "English";
+        break;
+      case "hi":
+        targetLanguage = "Hindi";
+        break;
+      case "hit":
+        targetLanguage = "Hindi (Roman)";
+        break;
+      default:
+        break;
+    }
 
     if (!context) {
       return NextResponse.json(
@@ -30,7 +46,9 @@ export async function POST(req: Request) {
     const result = streamObject({
       model: openai("gpt-4o-mini"),
       schema: questionSchema,
-      prompt: `Generate 3 questions regarding this content:` + context,
+      prompt:
+        `Generate 3 questions regarding this content (in the language of ${targetLanguage}):` +
+        context,
     });
 
     return result.toTextStreamResponse();

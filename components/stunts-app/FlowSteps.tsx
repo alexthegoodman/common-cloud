@@ -1,6 +1,10 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
+
 export const FlowSteps = ({ step = 1 }: { step: number }) => {
+  const { t } = useTranslation("flow");
+
   return (
     <div className="flex flex-row gap-4 mb-6 md:mb-12 text-sm md:text-base">
       <div
@@ -16,7 +20,7 @@ export const FlowSteps = ({ step = 1 }: { step: number }) => {
               : ""
           }
         >
-          Your Prompt
+          {t("Your Prompt")}
         </span>
       </div>
       <div
@@ -32,7 +36,7 @@ export const FlowSteps = ({ step = 1 }: { step: number }) => {
               : ""
           }
         >
-          Your Content
+          {t("Your Content")}
         </span>
       </div>
       <div
@@ -48,7 +52,7 @@ export const FlowSteps = ({ step = 1 }: { step: number }) => {
               : ""
           }
         >
-          Intelligent Questions
+          {t("Intelligent Questions")}
         </span>
       </div>
     </div>

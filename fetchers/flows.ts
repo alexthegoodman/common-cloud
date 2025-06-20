@@ -108,6 +108,7 @@ export interface GenerateContentReponse {
 
 export const generateContent = async (
   token: string,
+  userLanguage: string,
   prompt: string,
   links: DataInterface[],
   questions: IFlowQuestions
@@ -117,6 +118,7 @@ export const generateContent = async (
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
+      "X-User-Language": `${userLanguage}`,
     },
     body: JSON.stringify({ prompt, links, questions }),
   });

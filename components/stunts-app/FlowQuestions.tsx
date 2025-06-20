@@ -32,6 +32,7 @@ import { TextRendererConfig } from "@/engine/text";
 import { callLayoutInference, callMotionInference } from "@/fetchers/inference";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { getCurrentUser } from "@/hooks/useCurrentUser";
 
 export default function FlowQuestions({
   flowId = null,
@@ -48,6 +49,10 @@ export default function FlowQuestions({
   const [loading, setLoading] = useState(false);
   const [isVertical, setIsVertical] = useState(true);
 
+  const { data: user } = useSWR("currentUser", () =>
+    getCurrentUser(authToken?.token ? authToken?.token : "")
+  );
+
   let {
     data: flow,
     isLoading,
@@ -61,6 +66,7 @@ export default function FlowQuestions({
     api: "/api/flows/generate-questions",
     headers: {
       Authorization: `Bearer ${authToken?.token}`,
+      "X-User-Language": `${user?.userLanguage}`,
     },
     schema: questionSchema,
   });
@@ -119,6 +125,7 @@ export default function FlowQuestions({
     //  add the images and text content, generate the layout, then generate the animation, set the theme, finally save
     const videoContent = await generateContent(
       authToken.token,
+      user?.userLanguage || "en",
       flow?.flow.prompt,
       flow?.flow.content.links,
       //   {
@@ -203,7 +210,7 @@ export default function FlowQuestions({
         layer: -1,
         // color: rgbToWgpu(20, 20, 200, 255) as [number, number, number, number],
         color: [20, 20, 200, 255] as [number, number, number, number],
-        fontSize: 28,
+        fontSize: 18,
         // backgroundFill: rgbToWgpu(200, 200, 200, 255) as [
         //   number,
         //   number,

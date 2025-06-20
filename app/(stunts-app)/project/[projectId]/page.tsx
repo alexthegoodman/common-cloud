@@ -88,7 +88,10 @@ export default function Project() {
                 <textarea
                   className="w-full p-4 rounded-[15px] rounded-b-none placeholder-opacity-100 placeholder-gray-800"
                   rows={4}
-                  placeholder={`Enter a prompt / description. For example, "Let's create a video for Common's dog food campaign"`}
+                  // placeholder={`Enter a prompt / description. For example, "Let's create a video for Common's dog food campaign"`}
+                  placeholder={t(
+                    "You must enter a prompt / description to begin"
+                  )}
                   onChange={(e) => setPrompt(e.target.value)}
                 ></textarea>
                 <button
