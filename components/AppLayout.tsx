@@ -6,6 +6,8 @@ import { getCurrentUser } from "@/hooks/useCurrentUser";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import useSWR from "swr";
 import LanguagePicker from "./LanguagePicker";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 function AppInnerLayout({
   authToken = null,
@@ -14,6 +16,7 @@ function AppInnerLayout({
   authToken: AuthToken | null;
   children: any;
 }) {
+  const router = useRouter();
   const { data, isLoading, error } = useSWR("currentUser", () =>
     getCurrentUser(authToken?.token ? authToken?.token : "")
   );
@@ -28,9 +31,15 @@ function AppInnerLayout({
 
   console.info("chosen language", data?.userLanguage);
 
-  if (!data?.userLanguage) {
-    return <LanguagePicker />;
-  }
+  // if (!data?.userLanguage) {
+  //   return <LanguagePicker />;
+  // }
+
+  // useEffect(() => {
+  //   if (data && !data?.userLanguage && !isLoading && !error) {
+  //     router.push(`/select-language`);
+  //   }
+  // }, [data, isLoading, error]);
 
   return (
     <TranslationProvider language={data?.userLanguage}>

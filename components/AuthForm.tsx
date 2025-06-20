@@ -226,7 +226,11 @@ export default function AuthForm() {
       );
 
       localStorage.setItem("auth-token", JSON.stringify(json.jwtData));
-      router.push("/projects");
+      if (mode === "login") {
+        router.push("/projects");
+      } else {
+        router.push("/select-language");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");
     } finally {

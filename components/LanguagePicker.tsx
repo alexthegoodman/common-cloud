@@ -57,6 +57,7 @@
 import { AuthToken } from "@/fetchers/projects";
 import { updateUserLanguage } from "@/fetchers/users";
 import { useLocalStorage } from "@uidotdev/usehooks";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 
 const LanguagePicker = ({
@@ -64,6 +65,7 @@ const LanguagePicker = ({
   className = "",
   onClick = (e: any) => console.info("Click LanguagePicker"),
 }) => {
+  const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
   const [selectedLang, setSelectedLang] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -107,8 +109,9 @@ const LanguagePicker = ({
       await updateUserLanguage(authToken.token, lng);
       // Add a small delay for better UX feedback
       setTimeout(() => {
-        location.reload();
-      }, 800);
+        // location.reload();
+        router.push("/projects");
+      }, 400);
     } catch (error) {
       setIsLoading(false);
       setSelectedLang(null);
