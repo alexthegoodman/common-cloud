@@ -636,6 +636,8 @@ export class StVideo {
         this.mp4File.onReady = (info: MP4Box.MP4Info) => {
           const videoTrack = info.videoTracks[0];
 
+          console.info("track length ", info.videoTracks.length);
+
           if (!videoTrack) {
             reject(new Error("No video track found in the file"));
             return;
@@ -670,20 +672,25 @@ export class StVideo {
 
             // console.info("original duration", videoTrack.duration);
 
-            // const durationInSeconds =
-            //   videoTrack.duration / videoTrack.timescale;
+            // const durationInSeconds = videoTrack.duration / 1000;
+            // const durationMs = videoTrack.duration;
             // const frameRate = samples.length / durationInSeconds;
-            // let actualDurationInSeconds = durationInSeconds / frameRate;
 
-            const durationInSeconds = videoTrack.duration / 1000;
-            const durationMs = videoTrack.duration;
+            const durationInSeconds =
+              videoTrack.duration / videoTrack.timescale;
+            const durationMs = durationInSeconds * 1000;
             const frameRate = samples.length / durationInSeconds;
 
             console.info(
-              "timings ",
+              "samples ",
               samples.length,
+              "info ",
+              info.duration,
+              info.timescale,
+              "track: ",
               videoTrack.duration,
               videoTrack.timescale,
+              "rate: ",
               frameRate,
               durationInSeconds
             );
@@ -711,6 +718,8 @@ export class StVideo {
         if (!this.sourceBuffer) {
           return;
         }
+
+        console.info("append buffer");
 
         this.mp4File.appendBuffer(this.sourceBuffer);
       });
