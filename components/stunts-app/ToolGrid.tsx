@@ -455,6 +455,7 @@ export const ToolGrid = ({
         clientPayload: JSON.stringify({
           token: authToken.token,
         }),
+        multipart: true,
       });
 
       if (newBlob) {
