@@ -9,7 +9,7 @@ import {
 } from "@/engine/editor";
 import { OptionButton } from "./items";
 import EditorState from "@/engine/editor_state";
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { WebCapture } from "@/engine/capture";
 import { v4 as uuidv4 } from "uuid";
 import { fileToBlob, StImageConfig } from "@/engine/image";
@@ -58,6 +58,7 @@ export const ToolGrid = ({
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
   const [isCapturing, setIsCapturing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
@@ -435,322 +436,345 @@ export const ToolGrid = ({
     // drop(editor);
   };
 
-  let import_video = async (sequence_id: string, name: string, blob: Blob) => {
-    let editor = editorRef.current;
-    let editor_state = editorStateRef.current;
+  let import_video = useCallback(
+    async (sequence_id: string, name: string, blob: Blob) => {
+      let editor = editorRef.current;
+      let editor_state = editorStateRef.current;
 
-    if (!editor || !editor_state) {
-      return;
-    }
+      if (!editor || !editor_state) {
+        return;
+      }
 
-    if (!authToken) {
-      return;
-    }
+      if (!authToken) {
+        return;
+      }
 
-    try {
-      // let response = await saveVideo(authToken.token, name, blob);
-      const newBlob = await upload(name, blob, {
-        access: "public",
-        handleUploadUrl: "/api/video/upload",
-        clientPayload: JSON.stringify({
-          token: authToken.token,
-        }),
-        multipart: true,
-      });
-
-      if (newBlob) {
-        let url = newBlob.url;
-
-        console.info("File url:", url);
-
-        if (!editor.settings) {
-          console.error("Editor settings are not defined.");
-          return;
-        }
-
-        // let mut rng = rand::thread_rng();
-        // let random_number_800 = rng.gen_range(0..=800);
-        // let random_number_450 = rng.gen_range(0..=450);
-
-        let random_number_800 = getRandomNumber(
-          100,
-          editor.settings?.dimensions.width
-        );
-        let random_number_450 = getRandomNumber(
-          100,
-          editor.settings?.dimensions.height
-        );
-
-        let new_id = uuidv4();
-
-        let position = {
-          x: random_number_800 + CANVAS_HORIZ_OFFSET,
-          y: random_number_450 + CANVAS_VERT_OFFSET,
-        };
-
-        let video_config = {
-          id: new_id,
-          name: "New Video Item",
-          dimensions: [100, 100] as [number, number],
-          position,
-          // path: new_path.clone(),
-          path: url,
-          mousePath: "",
-          layer: -layers.length,
-        };
-
-        await editor.add_video_item(
-          video_config,
-          blob,
-          new_id,
-          sequence_id,
-          [],
-          null
-        );
-
-        console.info("Adding video: {:?}", new_id);
-
-        let new_video_item = editor.videoItems.find((v) => v.id === new_id);
-
-        if (!new_video_item || !new_video_item.sourceDurationMs) {
-          return;
-        }
-
-        editor_state.add_saved_video_item(
-          sequence_id,
-          {
-            id: video_config.id,
-            name: video_config.name,
-            // path: new_path.clone(),
-            path: url,
-            dimensions: [
-              video_config.dimensions[0],
-              video_config.dimensions[1],
-            ],
-            position: {
-              x: position.x,
-              y: position.y,
-            },
-            layer: video_config.layer,
-            // mousePath: video_config.mousePath,
+      try {
+        // let response = await saveVideo(authToken.token, name, blob);
+        const newBlob = await upload(name, blob, {
+          access: "public",
+          handleUploadUrl: "/api/video/upload",
+          clientPayload: JSON.stringify({
+            token: authToken.token,
+          }),
+          multipart: true,
+          onUploadProgress: (progress) => {
+            setUploadProgress(progress.percentage);
           },
-          new_video_item.sourceDurationMs
-        );
-
-        console.info("Saved video!");
-
-        let saved_state = editor_state.savedState;
-        let updated_sequence = saved_state.sequences.find(
-          (s) => s.id == sequence_id
-        );
-
-        let sequence_cloned = updated_sequence;
-
-        if (!sequence_cloned) {
-          return;
-        }
-
-        if (set_sequences) {
-          set_sequences(saved_state.sequences);
-        }
-
-        editor.currentSequenceData = sequence_cloned;
-        editor.updateMotionPaths(sequence_cloned);
-
-        editor.videoItems.forEach((video) => {
-          if (!video.hidden && video.id === video_config.id) {
-            let video_config: StVideoConfig = video.toConfig();
-            let new_layer: Layer =
-              LayerFromConfig.fromVideoConfig(video_config);
-            layers.push(new_layer);
-          }
         });
 
-        setLayers(layers);
+        if (newBlob) {
+          let url = newBlob.url;
 
-        console.info("video added!");
+          console.info("File url:", url);
+
+          if (!editor.settings) {
+            console.error("Editor settings are not defined.");
+            return;
+          }
+
+          // let mut rng = rand::thread_rng();
+          // let random_number_800 = rng.gen_range(0..=800);
+          // let random_number_450 = rng.gen_range(0..=450);
+
+          let random_number_800 = getRandomNumber(
+            100,
+            editor.settings?.dimensions.width
+          );
+          let random_number_450 = getRandomNumber(
+            100,
+            editor.settings?.dimensions.height
+          );
+
+          let new_id = uuidv4();
+
+          let position = {
+            x: random_number_800 + CANVAS_HORIZ_OFFSET,
+            y: random_number_450 + CANVAS_VERT_OFFSET,
+          };
+
+          let video_config = {
+            id: new_id,
+            name: "New Video Item",
+            dimensions: [100, 100] as [number, number],
+            position,
+            // path: new_path.clone(),
+            path: url,
+            mousePath: "",
+            layer: -layers.length,
+          };
+
+          await editor.add_video_item(
+            video_config,
+            blob,
+            new_id,
+            sequence_id,
+            [],
+            null
+          );
+
+          console.info("Adding video: {:?}", new_id);
+
+          let new_video_item = editor.videoItems.find((v) => v.id === new_id);
+
+          if (!new_video_item || !new_video_item.sourceDurationMs) {
+            return;
+          }
+
+          editor_state.add_saved_video_item(
+            sequence_id,
+            {
+              id: video_config.id,
+              name: video_config.name,
+              // path: new_path.clone(),
+              path: url,
+              dimensions: [
+                video_config.dimensions[0],
+                video_config.dimensions[1],
+              ],
+              position: {
+                x: position.x,
+                y: position.y,
+              },
+              layer: video_config.layer,
+              // mousePath: video_config.mousePath,
+            },
+            new_video_item.sourceDurationMs
+          );
+
+          console.info("Saved video!");
+
+          let saved_state = editor_state.savedState;
+          let updated_sequence = saved_state.sequences.find(
+            (s) => s.id == sequence_id
+          );
+
+          let sequence_cloned = updated_sequence;
+
+          if (!sequence_cloned) {
+            return;
+          }
+
+          if (set_sequences) {
+            set_sequences(saved_state.sequences);
+          }
+
+          editor.currentSequenceData = sequence_cloned;
+          editor.updateMotionPaths(sequence_cloned);
+
+          editor.videoItems.forEach((video) => {
+            if (!video.hidden && video.id === video_config.id) {
+              let video_config: StVideoConfig = video.toConfig();
+              let new_layer: Layer =
+                LayerFromConfig.fromVideoConfig(video_config);
+              layers.push(new_layer);
+            }
+          });
+
+          setLayers(layers);
+
+          console.info("video added!");
+        }
+      } catch (error: any) {
+        console.error("add video error", error);
+        toast.error(error.message || "An error occurred");
       }
-    } catch (error: any) {
-      console.error("add video error", error);
-      toast.error(error.message || "An error occurred");
-    }
-  };
+    },
+    [
+      authToken,
+      setUploadProgress,
+      getRandomNumber,
+      set_sequences,
+      setLayers,
+      layers,
+    ]
+  );
 
-  let on_add_video = async (sequence_id: string, file: File) => {
-    let blob = await fileToBlob(file);
+  let on_add_video = useCallback(
+    async (sequence_id: string, file: File) => {
+      let blob = await fileToBlob(file);
 
-    if (!blob) {
-      return;
-    }
+      if (!blob) {
+        return;
+      }
 
-    await import_video(sequence_id, file.name, blob);
-  };
+      await import_video(sequence_id, file.name, blob);
+    },
+    [import_video]
+  );
 
   return (
-    <div className="flex flex-row flex-wrap gap-2">
-      {options.includes("page") && (
-        <OptionButton
-          style={{}}
-          label={t("Add Page")}
-          icon="file-plus"
-          callback={() => {
-            if (!currentSequenceId || !on_create_sequence) {
-              return;
-            }
-
-            on_create_sequence();
-          }}
-        />
+    <>
+      {uploadProgress > 0 && uploadProgress < 99 ? (
+        <span>{uploadProgress}%</span>
+      ) : (
+        <></>
       )}
-
-      {options.includes("square") && (
-        <OptionButton
-          style={{}}
-          label={t("Add Square")}
-          icon="square"
-          callback={() => {
-            if (!currentSequenceId) {
-              return;
-            }
-
-            on_add_square(currentSequenceId);
-          }}
-        />
-      )}
-
-      {options.includes("text") && (
-        <OptionButton
-          style={{}}
-          label={t("Add Text")}
-          icon="text"
-          callback={() => {
-            if (!currentSequenceId) {
-              return;
-            }
-
-            on_add_text(currentSequenceId);
-          }}
-        />
-      )}
-
-      {options.includes("image") && (
-        <>
-          <input
-            type="file"
-            ref={fileInputRef}
-            accept="image/*"
-            style={{ display: "none" }}
-            onChange={(e) => {
-              // Handle the selected file here
-              if (!e.target.files || !currentSequenceId) {
-                return;
-              }
-
-              const file = e.target.files[0];
-              if (file) {
-                // Do something with the file
-                console.log("Selected file:", file);
-                on_add_image(currentSequenceId, file);
-              }
-            }}
-          />
+      <div className="flex flex-row flex-wrap gap-2">
+        {options.includes("page") && (
           <OptionButton
             style={{}}
-            label={t("Add Image")}
-            icon="image"
-            callback={() => fileInputRef.current?.click()}
-          />
-        </>
-      )}
-
-      {options.includes("video") && (
-        <>
-          <input
-            type="file"
-            ref={videoInputRef}
-            accept="video/*"
-            style={{ display: "none" }}
-            onChange={(e) => {
-              // Handle the selected file here
-              if (!e.target.files || !currentSequenceId) {
-                return;
-              }
-
-              const file = e.target.files[0];
-              if (file) {
-                // Do something with the file
-                console.log("Selected file:", file);
-                on_add_video(currentSequenceId, file);
-              }
-            }}
-          />
-          <OptionButton
-            style={{}}
-            label={t("Add Video")}
-            icon="video"
-            callback={() => videoInputRef.current?.click()}
-          />
-        </>
-      )}
-
-      {options.includes("capture") && (
-        <OptionButton
-          style={{}}
-          label={t("Screen Capture")}
-          icon="video"
-          callback={() => {
-            if (isCapturing) {
-              handleStopCapture();
-            } else {
-              handleStartCapture();
-            }
-          }}
-        />
-      )}
-
-      {options.includes("imageGeneration") && (
-        <>
-          <OptionButton
-            style={{}}
-            label={t("Generate Image")}
-            icon="image"
+            label={t("Add Page")}
+            icon="file-plus"
             callback={() => {
-              setGenerateImageModalOpen(true);
+              if (!currentSequenceId || !on_create_sequence) {
+                return;
+              }
+
+              on_create_sequence();
             }}
           />
-          <Dialog
-            open={generateImageModalOpen}
-            onClose={() => setGenerateImageModalOpen(false)}
-            className="relative z-50"
-          >
-            <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-              <DialogPanel className="max-w-lg space-y-4 border bg-white p-12">
-                <DialogTitle className="font-bold">
-                  Generate New Image
-                </DialogTitle>
-                <Description>
-                  This will enable you to create images which you can use freely
-                  in your projects.
-                </Description>
-                <div>
-                  <textarea
-                    placeholder="A dog eating food with delight..."
-                    rows={2}
-                  ></textarea>
-                </div>
-                <div className="flex gap-4">
-                  <button onClick={() => setGenerateImageModalOpen(false)}>
-                    Cancel
-                  </button>
-                  <button onClick={() => setGenerateImageModalOpen(false)}>
-                    Generate
-                  </button>
-                </div>
-              </DialogPanel>
-            </div>
-          </Dialog>
-        </>
-      )}
-    </div>
+        )}
+
+        {options.includes("square") && (
+          <OptionButton
+            style={{}}
+            label={t("Add Square")}
+            icon="square"
+            callback={() => {
+              if (!currentSequenceId) {
+                return;
+              }
+
+              on_add_square(currentSequenceId);
+            }}
+          />
+        )}
+
+        {options.includes("text") && (
+          <OptionButton
+            style={{}}
+            label={t("Add Text")}
+            icon="text"
+            callback={() => {
+              if (!currentSequenceId) {
+                return;
+              }
+
+              on_add_text(currentSequenceId);
+            }}
+          />
+        )}
+
+        {options.includes("image") && (
+          <>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                // Handle the selected file here
+                if (!e.target.files || !currentSequenceId) {
+                  return;
+                }
+
+                const file = e.target.files[0];
+                if (file) {
+                  // Do something with the file
+                  console.log("Selected file:", file);
+                  on_add_image(currentSequenceId, file);
+                }
+              }}
+            />
+            <OptionButton
+              style={{}}
+              label={t("Add Image")}
+              icon="image"
+              callback={() => fileInputRef.current?.click()}
+            />
+          </>
+        )}
+
+        {options.includes("video") && (
+          <>
+            <input
+              type="file"
+              ref={videoInputRef}
+              accept="video/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                // Handle the selected file here
+                if (!e.target.files || !currentSequenceId) {
+                  return;
+                }
+
+                const file = e.target.files[0];
+                if (file) {
+                  // Do something with the file
+                  console.log("Selected file:", file);
+                  on_add_video(currentSequenceId, file);
+                }
+              }}
+            />
+            <OptionButton
+              style={{}}
+              label={t("Add Video")}
+              icon="video"
+              callback={() => videoInputRef.current?.click()}
+            />
+          </>
+        )}
+
+        {options.includes("capture") && (
+          <OptionButton
+            style={{}}
+            label={t("Screen Capture")}
+            icon="video"
+            callback={() => {
+              if (isCapturing) {
+                handleStopCapture();
+              } else {
+                handleStartCapture();
+              }
+            }}
+          />
+        )}
+
+        {options.includes("imageGeneration") && (
+          <>
+            <OptionButton
+              style={{}}
+              label={t("Generate Image")}
+              icon="image"
+              callback={() => {
+                setGenerateImageModalOpen(true);
+              }}
+            />
+            <Dialog
+              open={generateImageModalOpen}
+              onClose={() => setGenerateImageModalOpen(false)}
+              className="relative z-50"
+            >
+              <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
+                <DialogPanel className="max-w-lg space-y-4 border bg-white p-12">
+                  <DialogTitle className="font-bold">
+                    Generate New Image
+                  </DialogTitle>
+                  <Description>
+                    This will enable you to create images which you can use
+                    freely in your projects.
+                  </Description>
+                  <div>
+                    <textarea
+                      placeholder="A dog eating food with delight..."
+                      rows={2}
+                    ></textarea>
+                  </div>
+                  <div className="flex gap-4">
+                    <button onClick={() => setGenerateImageModalOpen(false)}>
+                      Cancel
+                    </button>
+                    <button onClick={() => setGenerateImageModalOpen(false)}>
+                      Generate
+                    </button>
+                  </div>
+                </DialogPanel>
+              </div>
+            </Dialog>
+          </>
+        )}
+      </div>
+    </>
   );
 };
