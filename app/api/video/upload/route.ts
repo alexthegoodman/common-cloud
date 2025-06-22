@@ -38,7 +38,12 @@ export async function POST(request: Request): Promise<NextResponse> {
         }
 
         return {
-          allowedContentTypes: ["image/jpeg", "image/png", "image/webp"],
+          allowedContentTypes: [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "video/mp4",
+          ],
           addRandomSuffix: true,
           tokenPayload: JSON.stringify({
             // optional, sent to your server on upload completion
