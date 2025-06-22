@@ -457,7 +457,7 @@ export const ToolGrid = ({
           clientPayload: JSON.stringify({
             token: authToken.token,
           }),
-          multipart: true,
+          // multipart: true,
           onUploadProgress: (progress) => {
             setUploadProgress(progress.percentage);
           },
