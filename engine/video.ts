@@ -676,8 +676,7 @@ export class StVideo {
             // const durationMs = videoTrack.duration;
             // const frameRate = samples.length / durationInSeconds;
 
-            const durationInSeconds =
-              videoTrack.duration / videoTrack.timescale;
+            const durationInSeconds = info.duration / info.timescale;
             const durationMs = durationInSeconds * 1000;
             const frameRate = samples.length / durationInSeconds;
 
