@@ -29,6 +29,8 @@ import {
 } from "@headlessui/react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
+import { type PutBlobResult } from "@vercel/blob";
+import { upload } from "@vercel/blob/client";
 
 export const ToolGrid = ({
   editorRef,
@@ -446,10 +448,17 @@ export const ToolGrid = ({
     }
 
     try {
-      let response = await saveVideo(authToken.token, name, blob);
+      // let response = await saveVideo(authToken.token, name, blob);
+      const newBlob = await upload(name, blob, {
+        access: "public",
+        handleUploadUrl: "/api/video/upload",
+        clientPayload: JSON.stringify({
+          token: authToken.token,
+        }),
+      });
 
-      if (response) {
-        let url = response.url;
+      if (newBlob) {
+        let url = newBlob.url;
 
         console.info("File url:", url);
 
