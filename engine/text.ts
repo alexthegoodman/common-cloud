@@ -325,12 +325,26 @@ export class TextRenderer {
     ctx.fillStyle = "white"; // Use white for the glyph color, or black for testing
 
     // Set up the font and text rendering
-    ctx.font = `${charGlyph.fontSize}px ${this.font.familyName}`;
+    const fontFamily = this.font.familyName || this.fontFamily || "Arial";
+    ctx.font = `${charGlyph.fontSize}px "${fontFamily}"`;
 
-    console.info("this.font.familyName", this.font.familyName);
+    console.info(
+      "Area text rendering with font:",
+      fontFamily,
+      "for character:",
+      charGlyph.charItem.char
+    );
 
     ctx.textBaseline = "alphabetic"; // Align text to the baseline
     ctx.textAlign = "left"; // Align text to the left
+
+    // Enable better text rendering for complex scripts
+    // if (ctx.textKerning) {
+    //   ctx.textKerning = "normal";
+    // }
+    if (ctx.fontVariantCaps) {
+      ctx.fontVariantCaps = "normal";
+    }
 
     // const baselineY = Math.ceil(charGlyph.charItem.height);
     let DPI_SCALE = 1;
@@ -671,14 +685,30 @@ export class TextRenderer {
     // ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Set up the font and text rendering with scaled size
-    ctx.textRendering = "optimizeLegibility"; // Better than optimizeLegibility for high DPI
+    ctx.textRendering = "optimizeLegibility";
     const scaledFontSize = rasterConfig.fontSize * DPI_SCALE;
-    ctx.font = `${scaledFontSize}px ${this.font.familyName}`;
 
-    console.info("this.font.familyName", this.font.familyName);
+    // Use the actual font family name from fontkit, which should support Hindi
+    const fontFamily = this.font.familyName || this.fontFamily || "Arial";
+    ctx.font = `${scaledFontSize}px "${fontFamily}"`;
+
+    console.info(
+      "Rendering with font:",
+      fontFamily,
+      "for character:",
+      rasterConfig.character
+    );
 
     ctx.textBaseline = "alphabetic";
     ctx.textAlign = "left";
+
+    // Enable better text rendering for complex scripts
+    // if (ctx.textKerning) {
+    //   ctx.textKerning = "normal";
+    // }
+    if (ctx.fontVariantCaps) {
+      ctx.fontVariantCaps = "normal";
+    }
 
     const baselineY = Math.ceil(boundingBox.maxY * scale * DPI_SCALE);
     ctx.fillText(rasterConfig.character, 0, baselineY);
@@ -793,7 +823,9 @@ export class TextRenderer {
     const maxLineWidth = this.dimensions[0]; // Define your maximum line width here
 
     // Use fontkit's layout function to get glyph positions and metrics
-    const glyphRun = this.font.layout(text);
+    // Enable proper shaping for complex scripts
+    const layoutOptions = this.getLayoutOptions(text);
+    const glyphRun = this.font.layout(text, layoutOptions);
 
     const capHeight =
       ((this.font.capHeight + this.font.ascent + this.font.descent) /
@@ -842,7 +874,8 @@ export class TextRenderer {
 
     for (let i = 0; i < words.length; i++) {
       const word = words[i];
-      const wordGlyphRun = this.font.layout(word);
+      const wordLayoutOptions = this.getLayoutOptions(word);
+      const wordGlyphRun = this.font.layout(word, wordLayoutOptions);
       const wordWidth = wordGlyphRun.positions.reduce(
         (sum, pos) => sum + pos.xAdvance * scale,
         0
@@ -865,7 +898,8 @@ export class TextRenderer {
 
         // Add space width (if not the last word)
         if (i < words.length - 1) {
-          const spaceGlyphRun = this.font.layout(" ");
+          const spaceLayoutOptions = this.getLayoutOptions(" ");
+          const spaceGlyphRun = this.font.layout(" ", spaceLayoutOptions);
           const spaceWidth = spaceGlyphRun.positions[0].xAdvance * scale;
           currentLine.glyphs.push(...spaceGlyphRun.glyphs);
           currentLine.positions.push(...spaceGlyphRun.positions);
@@ -902,15 +936,24 @@ export class TextRenderer {
         const glyph = line.glyphs[i];
         const position = line.positions[i];
 
-        // Create a unique key for the glyph (e.g., glyph ID + font size)
+        // Create a unique key for the glyph (use glyph ID which is unique for shaped glyphs)
         const key = `${glyph.id}-${this.fontSize}`;
 
         // Ensure the glyph is in the atlas
         // Glyph cache is reset when new font family chosen
         if (!this.glyphCache.has(key)) {
-          // console.info("dosen't have glyph", key);
+          // For complex scripts, use the shaped glyph directly
+          // Get the actual character representation from the shaped glyph
+          let glyphChar = "";
+          if (glyph.codePoints && glyph.codePoints.length > 0) {
+            glyphChar = String.fromCodePoint(...glyph.codePoints);
+          } else {
+            // Fallback: render using glyph path or use a placeholder
+            glyphChar = "?"; // This shouldn't happen with proper fonts
+          }
+
           const atlasGlyph = this.addGlyphToAtlas(device, queue, {
-            character: String.fromCodePoint(glyph.codePoints[0]), // Convert code point to character
+            character: glyphChar,
             fontSize: this.fontSize,
           });
           this.glyphCache.set(key, atlasGlyph);
@@ -1047,6 +1090,116 @@ export class TextRenderer {
     const font = fontkit.create(fontData) as fontkit.Font;
     this.font = font;
     this.glyphCache = new Map(); // Clear the glyph cache
+  }
+
+  // Helper method to determine layout options based on text content
+  getLayoutOptions(text: string): Record<string, any> {
+    // Detect script based on Unicode ranges
+    const hasDevanagari = /[\u0900-\u097F]/.test(text); // Devanagari (Hindi, Sanskrit, etc.)
+    const hasArabic = /[\u0600-\u06FF]/.test(text); // Arabic
+    const hasThai = /[\u0E00-\u0E7F]/.test(text); // Thai
+    const hasMyanmar = /[\u1000-\u109F]/.test(text); // Myanmar
+    const hasBengali = /[\u0980-\u09FF]/.test(text); // Bengali
+    const hasTamil = /[\u0B80-\u0BFF]/.test(text); // Tamil
+
+    // Default layout options with common features
+    const baseOptions = {
+      features: {
+        kern: true, // Kerning
+        liga: true, // Standard ligatures
+        clig: true, // Contextual ligatures
+      },
+    };
+
+    // Script-specific layout options
+    if (hasDevanagari) {
+      return {
+        script: "deva",
+        language: "HIN",
+        features: {
+          ...baseOptions.features,
+          akhn: true, // Akhand forms
+          rphf: true, // Reph forms
+          blwf: true, // Below-base forms
+          half: true, // Half forms
+          pstf: true, // Post-base forms
+          vatu: true, // Vattu variants
+          pres: true, // Pre-base substitutions
+          blws: true, // Below-base substitutions
+          abvs: true, // Above-base substitutions
+          psts: true, // Post-base substitutions
+          haln: true, // Halant forms
+          cjct: true, // Conjunct forms
+        },
+      };
+    }
+
+    if (hasArabic) {
+      return {
+        script: "arab",
+        language: "ARA",
+        features: {
+          ...baseOptions.features,
+          init: true, // Initial forms
+          medi: true, // Medial forms
+          fina: true, // Final forms
+          isol: true, // Isolated forms
+          rlig: true, // Required ligatures
+          calt: true, // Contextual alternates
+        },
+      };
+    }
+
+    if (hasThai) {
+      return {
+        script: "thai",
+        language: "THA",
+        features: {
+          ...baseOptions.features,
+          ccmp: true, // Glyph composition/decomposition
+        },
+      };
+    }
+
+    if (hasBengali) {
+      return {
+        script: "beng",
+        language: "BEN",
+        features: {
+          ...baseOptions.features,
+          akhn: true,
+          rphf: true,
+          blwf: true,
+          half: true,
+          pstf: true,
+          vatu: true,
+          pres: true,
+          blws: true,
+          abvs: true,
+          psts: true,
+          haln: true,
+        },
+      };
+    }
+
+    if (hasTamil) {
+      return {
+        script: "taml",
+        language: "TAM",
+        features: {
+          ...baseOptions.features,
+          akhn: true,
+          pres: true,
+          blws: true,
+          abvs: true,
+          psts: true,
+          haln: true,
+        },
+      };
+    }
+
+    // Default for Latin and other simple scripts
+    return baseOptions;
   }
 
   updateOpacity(queue: PolyfillQueue, opacity: number) {
