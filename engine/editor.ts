@@ -391,7 +391,7 @@ export class Editor {
   dsNdcPos: Point; // double-width sized ndc-style positioning (screen-oriented)
   ndc: Point;
   previousTopLeft: Point;
-  gridSnap: number = 25;
+  gridSnap: number = 10;
 
   // ai
   generationCount: number;
