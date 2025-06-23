@@ -347,3 +347,110 @@ export function findObjectType(
 
   return null;
 }
+
+export function interpolateKeyframeValue(
+  prevKeyframe: UIKeyframe,
+  nextKeyframe: UIKeyframe,
+  time: number
+): KeyframeValue {
+  // Calculate interpolation factor (0 to 1)
+  const timeDiff = nextKeyframe.time - prevKeyframe.time;
+  const factor = timeDiff > 0 ? (time - prevKeyframe.time) / timeDiff : 0;
+
+  const prevValue = prevKeyframe.value;
+  const nextValue = nextKeyframe.value;
+
+  // Only interpolate if both keyframes have the same value type
+  if (prevValue.type !== nextValue.type) {
+    return prevValue; // Return previous value if types don't match
+  }
+
+  switch (prevValue.type) {
+    case "Position":
+      if (nextValue.type === "Position") {
+        return {
+          type: "Position",
+          value: [
+            prevValue.value[0] + (nextValue.value[0] - prevValue.value[0]) * factor,
+            prevValue.value[1] + (nextValue.value[1] - prevValue.value[1]) * factor,
+          ],
+        };
+      }
+      break;
+
+    case "Rotation":
+      if (nextValue.type === "Rotation") {
+        return {
+          type: "Rotation",
+          value: prevValue.value + (nextValue.value - prevValue.value) * factor,
+        };
+      }
+      break;
+
+    case "Scale":
+      if (nextValue.type === "Scale") {
+        return {
+          type: "Scale",
+          value: prevValue.value + (nextValue.value - prevValue.value) * factor,
+        };
+      }
+      break;
+
+    case "PerspectiveX":
+      if (nextValue.type === "PerspectiveX") {
+        return {
+          type: "PerspectiveX",
+          value: prevValue.value + (nextValue.value - prevValue.value) * factor,
+        };
+      }
+      break;
+
+    case "PerspectiveY":
+      if (nextValue.type === "PerspectiveY") {
+        return {
+          type: "PerspectiveY",
+          value: prevValue.value + (nextValue.value - prevValue.value) * factor,
+        };
+      }
+      break;
+
+    case "Opacity":
+      if (nextValue.type === "Opacity") {
+        return {
+          type: "Opacity",
+          value: prevValue.value + (nextValue.value - prevValue.value) * factor,
+        };
+      }
+      break;
+
+    case "Zoom":
+      if (nextValue.type === "Zoom") {
+        return {
+          type: "Zoom",
+          value: {
+            position: [
+              prevValue.value.position[0] + (nextValue.value.position[0] - prevValue.value.position[0]) * factor,
+              prevValue.value.position[1] + (nextValue.value.position[1] - prevValue.value.position[1]) * factor,
+            ],
+            zoomLevel: prevValue.value.zoomLevel + (nextValue.value.zoomLevel - prevValue.value.zoomLevel) * factor,
+          },
+        };
+      }
+      break;
+
+    case "Custom":
+      if (nextValue.type === "Custom") {
+        const interpolatedArray = prevValue.value.map((prevVal, index) => {
+          const nextVal = nextValue.value[index] || prevVal;
+          return prevVal + (nextVal - prevVal) * factor;
+        });
+        return {
+          type: "Custom",
+          value: interpolatedArray,
+        };
+      }
+      break;
+  }
+
+  return prevValue; // Fallback to previous value
+}

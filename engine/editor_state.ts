@@ -8,6 +8,7 @@ import {
   PathType,
   SavedState,
   UIKeyframe,
+  interpolateKeyframeValue,
 } from "./animations";
 import { SavedPoint, SavedPolygonConfig } from "./polygon";
 import { v4 as uuidv4 } from "uuid";
@@ -2373,5 +2374,58 @@ export default class EditorState {
     } else {
       return null;
     }
+  }
+
+  addKeyframe(
+    objectId: string,
+    sequenceId: string,
+    propertyPath: string,
+    time: number,
+    prevKeyframe: UIKeyframe,
+    nextKeyframe: UIKeyframe
+  ) {
+    const sequence = this.savedState.sequences.find(s => s.id === sequenceId);
+    if (!sequence?.polygonMotionPaths) return;
+
+    const animationData = sequence.polygonMotionPaths.find(
+      mp => mp.polygonId === objectId
+    );
+    if (!animationData) return;
+
+    const property = animationData.properties.find(
+      p => p.propertyPath === propertyPath
+    );
+    if (!property) return;
+
+    // Create interpolated value at the specified time
+    const interpolatedValue = interpolateKeyframeValue(prevKeyframe, nextKeyframe, time);
+
+    // Create new keyframe
+    const newKeyframe: UIKeyframe = {
+      id: uuidv4(),
+      time: time,
+      value: interpolatedValue,
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    };
+
+    // Find the correct insertion point
+    const insertIndex = property.keyframes.findIndex(kf => kf.time > time);
+    
+    if (insertIndex === -1) {
+      // Add to end
+      property.keyframes.push(newKeyframe);
+    } else {
+      // Insert at the correct position
+      property.keyframes.splice(insertIndex, 0, newKeyframe);
+    }
+
+    // Sort keyframes by time to ensure correct order
+    property.keyframes.sort((a, b) => a.time - b.time);
+
+    // Save the updated state
+    saveSequencesData(this.savedState.sequences, this.saveTarget);
   }
 }

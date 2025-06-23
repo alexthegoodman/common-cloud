@@ -37,6 +37,12 @@ interface TimelineProps {
     keyframeId: string,
     newTime: number
   ) => void;
+  onKeyframeAdded?: (
+    propertyPath: string,
+    time: number,
+    prevKeyframe: UIKeyframe,
+    nextKeyframe: UIKeyframe
+  ) => void;
   refreshTimeline: number;
 }
 
@@ -85,6 +91,12 @@ interface PropertyKeyframesProps {
     propertyPath: string,
     keyframeId: string,
     newTime: number
+  ) => void;
+  onKeyframeAdded?: (
+    propertyPath: string,
+    time: number,
+    prevKeyframe: UIKeyframe,
+    nextKeyframe: UIKeyframe
   ) => void;
 }
 
@@ -216,7 +228,9 @@ const PropertyKeyframe: React.FC<PropertyKeyframeProps> = ({
           timeToX(msToSec(property.keyframes[index - 1].time)),
           y + rowHeight / 2,
           x,
-          y + rowHeight / 2
+          y + rowHeight / 2,
+          property,
+          index
         )}
     </div>
   );
@@ -236,6 +250,7 @@ const PropertyKeyframes: React.FC<PropertyKeyframesProps> = ({
   scrollOffset,
   rowHeight,
   onKeyframeChanged,
+  onKeyframeAdded,
 }) => {
   return property.keyframes.map((keyframe, index) => (
     <PropertyKeyframe
@@ -247,7 +262,9 @@ const PropertyKeyframes: React.FC<PropertyKeyframesProps> = ({
       xToTime={xToTime}
       timeToX={timeToX}
       drawKeyframe={drawKeyframe}
-      drawConnectingLine={drawConnectingLine}
+      drawConnectingLine={(x1: number, y1: number, x2: number, y2: number) =>
+        drawConnectingLine(x1, y1, x2, y2, property, index)
+      }
       handleKeyframeClick={handleKeyframeClick}
       propertyWidth={propertyWidth}
       selectedKeyframes={selectedKeyframes}
@@ -275,6 +292,12 @@ const renderProperties = (
     propertyPath: string,
     keyframeId: string,
     newTime: number
+  ) => void,
+  onKeyframeAdded?: (
+    propertyPath: string,
+    time: number,
+    prevKeyframe: UIKeyframe,
+    nextKeyframe: UIKeyframe
   ) => void
 ): { elements: JSX.Element[]; nextY: number } => {
   let currentY = startY;
@@ -297,6 +320,7 @@ const renderProperties = (
         scrollOffset={scrollOffset}
         rowHeight={rowHeight}
         onKeyframeChanged={onKeyframeChanged}
+        onKeyframeAdded={onKeyframeAdded}
       />
     );
 
@@ -320,6 +344,7 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
   selectedKeyframes,
   setSelectedKeyframes,
   onKeyframeChanged,
+  onKeyframeAdded,
   refreshTimeline,
 }) => {
   const [currentTime, setCurrentTime] = useState(0);
@@ -542,7 +567,9 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
     x1: number,
     y1: number,
     x2: number,
-    y2: number
+    y2: number,
+    property?: AnimationProperty,
+    currentIndex?: number
   ) => {
     const [lineHoverPosition, setLineHoverPosition] = useState<number | null>(
       null
@@ -552,6 +579,22 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
       getAdjustedPropertyWidth(propertyWidth, zoomLevel) - propertyWidth;
     const adjustedX1 = adjustedWidth + x1;
     const adjustedX2 = adjustedWidth + x2;
+
+    const handleAddKeyframe = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!property || currentIndex === undefined || !onKeyframeAdded) return;
+
+      const rect = timelineRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const clickX = e.clientX - rect.left + timelineRef.current!.scrollLeft;
+      const newTime = secToMs(xToTime(clickX - propertyWidth));
+
+      const prevKeyframe = property.keyframes[currentIndex - 1];
+      const nextKeyframe = property.keyframes[currentIndex];
+
+      onKeyframeAdded(property.propertyPath, newTime, prevKeyframe, nextKeyframe);
+    };
 
     return (
       <>
@@ -563,8 +606,7 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
             width: `${Math.abs(adjustedX2 - adjustedX1 + propertyWidth)}px`,
             height: "15px",
             padding: "8px 0",
-            // backgroundColor: "darkgray",
-            // borderBottom: "1px solid darkgray inset",
+            cursor: "pointer",
           }}
           onMouseMove={(e) => {
             if (!timelineRef.current) {
@@ -580,6 +622,7 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
           onMouseLeave={() => {
             setLineHoverPosition(null);
           }}
+          onClick={handleAddKeyframe}
         >
           <div className="w-full bg-gray-400 h-[1px]"></div>
         </div>
@@ -595,8 +638,10 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
               color: "white",
               borderRadius: "50%",
               padding: "1.5px 2px",
-              zIndex: -1,
+              zIndex: 10,
+              cursor: "pointer",
             }}
+            onClick={handleAddKeyframe}
           >
             <Plus size="11px" />
           </div>
@@ -656,7 +701,8 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
     scrollOffset,
     rowHeight,
     drawPropertyLabel,
-    onKeyframeChanged
+    onKeyframeChanged,
+    onKeyframeAdded
   );
 
   return (

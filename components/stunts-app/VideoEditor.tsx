@@ -1720,6 +1720,25 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
               setSelectedKeyframes={set_selected_keyframes}
               onKeyframeChanged={() => {}}
               refreshTimeline={refreshTimeline}
+              onKeyframeAdded={(
+                propertyPath,
+                time,
+                prevKeyframe,
+                nextKeyframe
+              ) => {
+                if (!editorStateRef.current) {
+                  return;
+                }
+
+                editorStateRef.current.addKeyframe(
+                  selected_polygon_id,
+                  current_sequence_id,
+                  propertyPath,
+                  time,
+                  prevKeyframe,
+                  nextKeyframe
+                );
+              }}
             />
           )}
           {selected_text_id && current_sequence_id && (
@@ -1738,6 +1757,25 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
               setSelectedKeyframes={set_selected_keyframes}
               onKeyframeChanged={() => {}}
               refreshTimeline={refreshTimeline}
+              onKeyframeAdded={(
+                propertyPath,
+                time,
+                prevKeyframe,
+                nextKeyframe
+              ) => {
+                if (!editorStateRef.current) {
+                  return;
+                }
+
+                editorStateRef.current.addKeyframe(
+                  selected_text_id,
+                  current_sequence_id,
+                  propertyPath,
+                  time,
+                  prevKeyframe,
+                  nextKeyframe
+                );
+              }}
             />
           )}
           {selected_image_id && current_sequence_id && (
@@ -1756,6 +1794,25 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
               setSelectedKeyframes={set_selected_keyframes}
               onKeyframeChanged={() => {}}
               refreshTimeline={refreshTimeline}
+              onKeyframeAdded={(
+                propertyPath,
+                time,
+                prevKeyframe,
+                nextKeyframe
+              ) => {
+                if (!editorStateRef.current) {
+                  return;
+                }
+
+                editorStateRef.current.addKeyframe(
+                  selected_image_id,
+                  current_sequence_id,
+                  propertyPath,
+                  time,
+                  prevKeyframe,
+                  nextKeyframe
+                );
+              }}
             />
           )}
           {selected_video_id && current_sequence_id && (
@@ -1774,6 +1831,25 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
               setSelectedKeyframes={set_selected_keyframes}
               onKeyframeChanged={() => {}}
               refreshTimeline={refreshTimeline}
+              onKeyframeAdded={(
+                propertyPath,
+                time,
+                prevKeyframe,
+                nextKeyframe
+              ) => {
+                if (!editorStateRef.current) {
+                  return;
+                }
+
+                editorStateRef.current.addKeyframe(
+                  selected_video_id,
+                  current_sequence_id,
+                  propertyPath,
+                  time,
+                  prevKeyframe,
+                  nextKeyframe
+                );
+              }}
             />
           )}
         </div>
