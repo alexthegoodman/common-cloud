@@ -1119,7 +1119,7 @@ export const TextProperties = ({
           editorStateRef={editorStateRef}
           currentSequenceId={currentSequenceId}
           currentObjectId={currentTextId}
-          objectType={ObjectType.VideoItem}
+          objectType={ObjectType.TextItem}
         />
         {/* <DebouncedInput
           id="text_border_radius"
@@ -1309,7 +1309,7 @@ export const ImageProperties = ({
           editorStateRef={editorStateRef}
           currentSequenceId={currentSequenceId}
           currentObjectId={currentImageId}
-          objectType={ObjectType.VideoItem}
+          objectType={ObjectType.ImageItem}
         />
         <input
           type="checkbox"
