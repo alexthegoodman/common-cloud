@@ -83,6 +83,8 @@ import {
 } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 import { FlowArrow } from "@phosphor-icons/react/dist/ssr";
+import useSWR from "swr";
+import { getCurrentUser } from "@/hooks/useCurrentUser";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -177,6 +179,10 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
   const router = useRouter();
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
+
+  const { data: user } = useSWR("currentUser", () =>
+    getCurrentUser(authToken?.token ? authToken?.token : "")
+  );
 
   let [settings, set_settings] = useState<ProjectSettings | undefined | null>(
     null
@@ -1309,6 +1315,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             editorStateRef={editorStateRef}
             currentSequenceId={current_sequence_id}
             saveTarget={SaveTarget.Videos}
+            userLanguage={user?.userLanguage || "en"}
           />
 
           <label className="text-sm">Background Color</label>

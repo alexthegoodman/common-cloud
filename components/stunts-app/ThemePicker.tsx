@@ -68,11 +68,13 @@ export const ThemePicker = ({
   editorStateRef,
   currentSequenceId,
   saveTarget,
+  userLanguage,
 }: {
   editorRef: React.RefObject<Editor | null>;
   editorStateRef: React.RefObject<EditorState | null>;
   currentSequenceId: string;
   saveTarget: SaveTarget;
+  userLanguage: string;
 }) => {
   return (
     <>
@@ -94,7 +96,8 @@ export const ThemePicker = ({
           const textKurkle = new Color(textRgb);
           const darkTextColor = textKurkle.darken(0.15);
 
-          const fontIndex = theme[2];
+          const fontIndex =
+            userLanguage === "hi" ? Math.floor(theme[2] / 10) : theme[2];
 
           return (
             <OptionButton
@@ -165,7 +168,16 @@ export const ThemePicker = ({
 
                 console.info("texts to update", ids_to_update);
 
-                let fontId = editor.fontManager.fontData[fontIndex].name;
+                let fontData =
+                  userLanguage === "hi"
+                    ? editor.fontManager.fontData.filter((data) =>
+                        data.support.includes("devanagari")
+                      )
+                    : editor.fontManager.fontData.filter((data) =>
+                        data.support.includes("latin")
+                      );
+
+                let fontId = fontData[fontIndex].name;
                 for (let id of ids_to_update) {
                   editor.update_text_color(id, background_color);
                   await editor.update_text_fontFamily(fontId, id);

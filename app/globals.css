@@ -481,3 +481,40 @@ input.rcp-field-input {
   font-style: normal;
   font-weight: normal;
 }
+
+/* add baloo2, cambay, ibmplexmono, karma, and notosansdevanagari for hindi */
+@font-face {
+  font-family: "Baloo 2";
+  src: url("/fonts/baloo2/Baloo2[wght].ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Cambay";
+  src: url("/fonts/cambay/Cambay-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/ibmplexmono/IBMPlexMono-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Karma";
+  src: url("/fonts/karma/Karma-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "Noto Sans Devanagari";
+  src: url("/fonts/notosansdevanagari/NotoSansDevanagari[wdth,wght].ttf")
+    format("truetype");
+  font-style: normal;
+  font-weight: normal;
+}
