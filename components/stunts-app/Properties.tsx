@@ -866,6 +866,13 @@ export const PolygonProperties = ({
             }}
           />
         </div>
+        <AnimationOptions
+          editorRef={editorRef}
+          editorStateRef={editorStateRef}
+          currentSequenceId={currentSequenceId}
+          currentObjectId={currentPolygonId}
+          objectType={ObjectType.Polygon}
+        />
         <DebouncedInput
           id="polygon_border_radius"
           label="Border Radius"
@@ -1107,6 +1114,13 @@ export const TextProperties = ({
             }}
           />
         </div>
+        <AnimationOptions
+          editorRef={editorRef}
+          editorStateRef={editorStateRef}
+          currentSequenceId={currentSequenceId}
+          currentObjectId={currentTextId}
+          objectType={ObjectType.VideoItem}
+        />
         {/* <DebouncedInput
           id="text_border_radius"
           label="Border Radius"
@@ -1290,6 +1304,13 @@ export const ImageProperties = ({
             }}
           />
         </div>
+        <AnimationOptions
+          editorRef={editorRef}
+          editorStateRef={editorStateRef}
+          currentSequenceId={currentSequenceId}
+          currentObjectId={currentImageId}
+          objectType={ObjectType.VideoItem}
+        />
         <input
           type="checkbox"
           id="is_circle"
@@ -1439,226 +1460,246 @@ export const VideoProperties = ({
             }}
           />
         </div>
-        <div className="flex flex-col gap-2">
-          <p>Apply Animations</p>
-          <button
-            className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-            onClick={async () => {
-              let editor = editorRef.current;
-              let editorState = editorStateRef.current;
-
-              if (!editorState || !editor) {
-                return;
-              }
-
-              let currentSequence = editorState.savedState.sequences.find(
-                (s) => s.id === currentSequenceId
-              );
-
-              if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-                return;
-              }
-
-              let current_animation_data =
-                currentSequence?.polygonMotionPaths.find(
-                  (p) => p.polygonId === currentVideoId
-                );
-
-              if (!current_animation_data) {
-                return;
-              }
-
-              let newAnimationData = editorState.remove_position_keyframes(
-                currentVideoId,
-                ObjectType.VideoItem,
-                current_animation_data
-              );
-
-              let sequence_cloned = null;
-
-              editorState.savedState.sequences.forEach((s) => {
-                if (s.id == currentSequenceId) {
-                  sequence_cloned = s;
-
-                  if (s.polygonMotionPaths) {
-                    let currentIndex = s.polygonMotionPaths.findIndex(
-                      (p) => p.id === current_animation_data.id
-                    );
-                    s.polygonMotionPaths[currentIndex] = newAnimationData;
-                  }
-                }
-              });
-
-              if (!sequence_cloned) {
-                return;
-              }
-
-              let sequences = editorState.savedState.sequences;
-
-              await saveSequencesData(sequences, editorState.saveTarget);
-
-              // update motion path preview
-              editor.updateMotionPaths(sequence_cloned);
-            }}
-          >
-            Remove Position Keyframes
-          </button>
-          <button
-            className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-            onClick={async () => {
-              let editor = editorRef.current;
-              let editorState = editorStateRef.current;
-
-              if (!editorState || !editor) {
-                return;
-              }
-
-              let currentSequence = editorState.savedState.sequences.find(
-                (s) => s.id === currentSequenceId
-              );
-
-              if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-                return;
-              }
-
-              let current_animation_data =
-                currentSequence?.polygonMotionPaths.find(
-                  (p) => p.polygonId === currentVideoId
-                );
-
-              if (!current_animation_data) {
-                return;
-              }
-
-              let newAnimationData = editorState.save_perspective_x_keyframes(
-                currentVideoId,
-                ObjectType.VideoItem,
-                current_animation_data
-              );
-
-              editorState.savedState.sequences.forEach((s) => {
-                if (s.id == currentSequenceId) {
-                  if (s.polygonMotionPaths) {
-                    let currentIndex = s.polygonMotionPaths.findIndex(
-                      (p) => p.id === current_animation_data.id
-                    );
-                    s.polygonMotionPaths[currentIndex] = newAnimationData;
-                  }
-                }
-              });
-
-              let sequences = editorState.savedState.sequences;
-
-              await saveSequencesData(sequences, editorState.saveTarget);
-            }}
-          >
-            Apply Perspective X + Fade
-          </button>
-          <button
-            className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-            onClick={async () => {
-              let editor = editorRef.current;
-              let editorState = editorStateRef.current;
-
-              if (!editorState || !editor) {
-                return;
-              }
-
-              let currentSequence = editorState.savedState.sequences.find(
-                (s) => s.id === currentSequenceId
-              );
-
-              if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-                return;
-              }
-
-              let current_animation_data =
-                currentSequence?.polygonMotionPaths.find(
-                  (p) => p.polygonId === currentVideoId
-                );
-
-              if (!current_animation_data) {
-                return;
-              }
-
-              let newAnimationData = editorState.save_perspective_y_keyframes(
-                currentVideoId,
-                ObjectType.VideoItem,
-                current_animation_data
-              );
-
-              editorState.savedState.sequences.forEach((s) => {
-                if (s.id == currentSequenceId) {
-                  if (s.polygonMotionPaths) {
-                    let currentIndex = s.polygonMotionPaths.findIndex(
-                      (p) => p.id === current_animation_data.id
-                    );
-                    s.polygonMotionPaths[currentIndex] = newAnimationData;
-                  }
-                }
-              });
-
-              let sequences = editorState.savedState.sequences;
-
-              await saveSequencesData(sequences, editorState.saveTarget);
-            }}
-          >
-            Apply Perspective Y + Fade
-          </button>
-          <button
-            className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-            onClick={async () => {
-              let editor = editorRef.current;
-              let editorState = editorStateRef.current;
-
-              if (!editorState || !editor) {
-                return;
-              }
-
-              let currentSequence = editorState.savedState.sequences.find(
-                (s) => s.id === currentSequenceId
-              );
-
-              if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-                return;
-              }
-
-              let current_animation_data =
-                currentSequence?.polygonMotionPaths.find(
-                  (p) => p.polygonId === currentVideoId
-                );
-
-              if (!current_animation_data) {
-                return;
-              }
-
-              let newAnimationData = editorState.save_pulse_keyframes(
-                currentVideoId,
-                ObjectType.VideoItem,
-                current_animation_data
-              );
-
-              editorState.savedState.sequences.forEach((s) => {
-                if (s.id == currentSequenceId) {
-                  if (s.polygonMotionPaths) {
-                    let currentIndex = s.polygonMotionPaths.findIndex(
-                      (p) => p.id === current_animation_data.id
-                    );
-                    s.polygonMotionPaths[currentIndex] = newAnimationData;
-                  }
-                }
-              });
-
-              let sequences = editorState.savedState.sequences;
-
-              await saveSequencesData(sequences, editorState.saveTarget);
-            }}
-          >
-            Apply Pulse
-          </button>
-        </div>
+        <AnimationOptions
+          editorRef={editorRef}
+          editorStateRef={editorStateRef}
+          currentSequenceId={currentSequenceId}
+          currentObjectId={currentVideoId}
+          objectType={ObjectType.VideoItem}
+        />
       </div>
     </>
+  );
+};
+
+export const AnimationOptions = ({
+  editorRef,
+  editorStateRef,
+  currentSequenceId,
+  currentObjectId,
+  objectType,
+}: {
+  editorRef: React.RefObject<Editor | null>;
+  editorStateRef: React.RefObject<EditorState | null>;
+  currentSequenceId: string;
+  currentObjectId: string;
+  objectType: ObjectType;
+}) => {
+  return (
+    <div className="flex flex-col gap-2">
+      <p>Apply Animations</p>
+      <button
+        className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+        onClick={async () => {
+          let editor = editorRef.current;
+          let editorState = editorStateRef.current;
+
+          if (!editorState || !editor) {
+            return;
+          }
+
+          let currentSequence = editorState.savedState.sequences.find(
+            (s) => s.id === currentSequenceId
+          );
+
+          if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+            return;
+          }
+
+          let current_animation_data = currentSequence?.polygonMotionPaths.find(
+            (p) => p.polygonId === currentObjectId
+          );
+
+          if (!current_animation_data) {
+            return;
+          }
+
+          let newAnimationData = editorState.remove_position_keyframes(
+            currentObjectId,
+            objectType,
+            current_animation_data
+          );
+
+          let sequence_cloned = null;
+
+          editorState.savedState.sequences.forEach((s) => {
+            if (s.id == currentSequenceId) {
+              sequence_cloned = s;
+
+              if (s.polygonMotionPaths) {
+                let currentIndex = s.polygonMotionPaths.findIndex(
+                  (p) => p.id === current_animation_data.id
+                );
+                s.polygonMotionPaths[currentIndex] = newAnimationData;
+              }
+            }
+          });
+
+          if (!sequence_cloned) {
+            return;
+          }
+
+          let sequences = editorState.savedState.sequences;
+
+          await saveSequencesData(sequences, editorState.saveTarget);
+
+          // update motion path preview
+          editor.updateMotionPaths(sequence_cloned);
+        }}
+      >
+        Remove Position Keyframes
+      </button>
+      <button
+        className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+        onClick={async () => {
+          let editor = editorRef.current;
+          let editorState = editorStateRef.current;
+
+          if (!editorState || !editor) {
+            return;
+          }
+
+          let currentSequence = editorState.savedState.sequences.find(
+            (s) => s.id === currentSequenceId
+          );
+
+          if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+            return;
+          }
+
+          let current_animation_data = currentSequence?.polygonMotionPaths.find(
+            (p) => p.polygonId === currentObjectId
+          );
+
+          if (!current_animation_data) {
+            return;
+          }
+
+          let newAnimationData = editorState.save_perspective_x_keyframes(
+            currentObjectId,
+            objectType,
+            current_animation_data
+          );
+
+          editorState.savedState.sequences.forEach((s) => {
+            if (s.id == currentSequenceId) {
+              if (s.polygonMotionPaths) {
+                let currentIndex = s.polygonMotionPaths.findIndex(
+                  (p) => p.id === current_animation_data.id
+                );
+                s.polygonMotionPaths[currentIndex] = newAnimationData;
+              }
+            }
+          });
+
+          let sequences = editorState.savedState.sequences;
+
+          await saveSequencesData(sequences, editorState.saveTarget);
+        }}
+      >
+        Apply Perspective X + Fade
+      </button>
+      <button
+        className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+        onClick={async () => {
+          let editor = editorRef.current;
+          let editorState = editorStateRef.current;
+
+          if (!editorState || !editor) {
+            return;
+          }
+
+          let currentSequence = editorState.savedState.sequences.find(
+            (s) => s.id === currentSequenceId
+          );
+
+          if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+            return;
+          }
+
+          let current_animation_data = currentSequence?.polygonMotionPaths.find(
+            (p) => p.polygonId === currentObjectId
+          );
+
+          if (!current_animation_data) {
+            return;
+          }
+
+          let newAnimationData = editorState.save_perspective_y_keyframes(
+            currentObjectId,
+            objectType,
+            current_animation_data
+          );
+
+          editorState.savedState.sequences.forEach((s) => {
+            if (s.id == currentSequenceId) {
+              if (s.polygonMotionPaths) {
+                let currentIndex = s.polygonMotionPaths.findIndex(
+                  (p) => p.id === current_animation_data.id
+                );
+                s.polygonMotionPaths[currentIndex] = newAnimationData;
+              }
+            }
+          });
+
+          let sequences = editorState.savedState.sequences;
+
+          await saveSequencesData(sequences, editorState.saveTarget);
+        }}
+      >
+        Apply Perspective Y + Fade
+      </button>
+      <button
+        className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+        onClick={async () => {
+          let editor = editorRef.current;
+          let editorState = editorStateRef.current;
+
+          if (!editorState || !editor) {
+            return;
+          }
+
+          let currentSequence = editorState.savedState.sequences.find(
+            (s) => s.id === currentSequenceId
+          );
+
+          if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+            return;
+          }
+
+          let current_animation_data = currentSequence?.polygonMotionPaths.find(
+            (p) => p.polygonId === currentObjectId
+          );
+
+          if (!current_animation_data) {
+            return;
+          }
+
+          let newAnimationData = editorState.save_pulse_keyframes(
+            currentObjectId,
+            objectType,
+            current_animation_data
+          );
+
+          editorState.savedState.sequences.forEach((s) => {
+            if (s.id == currentSequenceId) {
+              if (s.polygonMotionPaths) {
+                let currentIndex = s.polygonMotionPaths.findIndex(
+                  (p) => p.id === current_animation_data.id
+                );
+                s.polygonMotionPaths[currentIndex] = newAnimationData;
+              }
+            }
+          });
+
+          let sequences = editorState.savedState.sequences;
+
+          await saveSequencesData(sequences, editorState.saveTarget);
+        }}
+      >
+        Apply Pulse
+      </button>
+    </div>
   );
 };
 

@@ -1612,8 +1612,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             id="scene-canvas-wrapper"
             style={
               settings?.dimensions.width === 900
-                ? { aspectRatio: 900 / 550 }
-                : { aspectRatio: 550 / 900 }
+                ? { aspectRatio: 900 / 550, maxWidth: "900px" }
+                : { aspectRatio: 550 / 900, maxWidth: "550px" }
             }
           >
             <canvas

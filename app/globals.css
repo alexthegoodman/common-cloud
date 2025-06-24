@@ -27,7 +27,7 @@ body {
 
 #scene-canvas-wrapper {
   width: 100%;
-  max-width: 900px;
+  /* max-width: 900px; */
 }
 
 #scene-canvas {

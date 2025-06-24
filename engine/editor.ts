@@ -2364,6 +2364,8 @@ export class Editor {
         continue;
       }
 
+      // console.info("animating", animation.objectType, animation.polygonId);
+
       // Find the object to update
       let objectIdx: number | undefined;
       switch (animation.objectType) {
@@ -2689,6 +2691,8 @@ export class Editor {
             const new_scale = this.lerp(start, end, progress) / 100.0;
             // const scaleVec: vec2 = vec2.fromValues(new_scale, new_scale); // Create scale vector
             const scaleVec = [new_scale, new_scale] as [number, number];
+
+            // console.info("scaling to", new_scale, scaleVec);
 
             switch (animation.objectType) {
               case ObjectType.Polygon:
