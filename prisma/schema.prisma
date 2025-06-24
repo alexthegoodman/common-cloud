@@ -65,6 +65,7 @@ model Project {
 
   name   String
   public Boolean @default(true)
+  isTemplate Boolean @default(false)
 
   fileData Json
   docData  Json?
