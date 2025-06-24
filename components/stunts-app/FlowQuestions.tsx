@@ -185,6 +185,8 @@ export default function FlowQuestions({
     const editor = new Editor(viewport);
     const editorState = new EditorState(emptyVideoState);
 
+    const isHindi = user?.userLanguage === "hi";
+
     // add text content
     if (videoContent) {
       let new_id = uuidv4();
@@ -193,7 +195,7 @@ export default function FlowQuestions({
         new_text += "- " + item.summaryText + "\n";
       });
 
-      let font_family = "Aleo";
+      let font_family = isHindi ? "Noto Sans Devanagari" : "Aleo";
 
       let position = {
         x: 0,
@@ -385,7 +387,7 @@ export default function FlowQuestions({
       const textKurkle = new Color(textRgb);
       const darkTextColor = textKurkle.darken(0.15);
 
-      const fontIndex = theme[2];
+      const fontIndex = isHindi ? Math.floor(theme[2] / 10) : theme[2];
 
       // apply theme to background canvas and text objects
 
@@ -410,13 +412,24 @@ export default function FlowQuestions({
         255,
       ] as [number, number, number, number];
 
-      let ids_to_update = editor.textItems
-        .filter((text) => {
-          return !text.hidden && text.currentSequenceId === currentSequenceId;
-        })
-        .map((text) => text.id);
+      let ids_to_update = editorState.savedState.sequences
+        .find((s) => s.id === currentSequenceId)
+        ?.activeTextItems.map((text) => text.id);
 
-      let fontId = editor.fontManager.fontData[fontIndex].name;
+      if (!ids_to_update) {
+        ids_to_update = [];
+      }
+
+      // let fontId = editor.fontManager.fontData[fontIndex].name;
+      let fontData = isHindi
+        ? editor.fontManager.fontData.filter((data) =>
+            data.support.includes("devanagari")
+          )
+        : editor.fontManager.fontData.filter((data) =>
+            data.support.includes("latin")
+          );
+
+      let fontId = fontData[fontIndex].name;
 
       editorState.savedState.sequences.forEach((s) => {
         if (s.id == currentSequenceId) {
