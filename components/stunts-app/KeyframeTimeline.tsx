@@ -593,7 +593,12 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
       const prevKeyframe = property.keyframes[currentIndex - 1];
       const nextKeyframe = property.keyframes[currentIndex];
 
-      onKeyframeAdded(property.propertyPath, newTime, prevKeyframe, nextKeyframe);
+      onKeyframeAdded(
+        property.propertyPath,
+        newTime,
+        prevKeyframe,
+        nextKeyframe
+      );
     };
 
     return (
@@ -710,10 +715,12 @@ const KeyframeTimeline: React.FC<TimelineProps> = ({
       className="timeline"
       style={{
         width,
+        maxWidth: "100%",
         height: "auto",
         overflowX: "auto",
         overflowY: "auto",
         paddingBottom: "25px",
+        marginBottom: "20px",
       }}
       ref={timelineRef}
       // onWheel={handleScroll}

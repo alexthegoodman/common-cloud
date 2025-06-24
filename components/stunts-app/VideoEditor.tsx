@@ -1477,7 +1477,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       )}
 
       {current_sequence_id ? (
-        <div className="flex flex-col gap-4 w-full max-h-[300px] overflow-scroll md:max-h-full md:max-w-[315px]">
+        <div className="flex flex-col gap-4 w-full max-h-[300px] overflow-scroll md:max-w-[315px]">
           {selected_keyframes && selected_keyframes?.length > 0 ? (
             <>
               <KeyframeProperties
