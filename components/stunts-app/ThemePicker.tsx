@@ -68,13 +68,13 @@ export const ThemePicker = ({
   editorStateRef,
   currentSequenceId,
   saveTarget,
-  userLanguage,
+  userLanguage = "en",
 }: {
   editorRef: React.RefObject<Editor | null>;
   editorStateRef: React.RefObject<EditorState | null>;
   currentSequenceId: string;
   saveTarget: SaveTarget;
-  userLanguage: string;
+  userLanguage?: string;
 }) => {
   return (
     <>
