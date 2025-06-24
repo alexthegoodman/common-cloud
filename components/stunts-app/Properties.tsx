@@ -1914,12 +1914,12 @@ export const KeyframeProperties = ({
             />
           </div>
         )}
-        {data?.value.type === "Scale" && (
+        {data?.value.type === "ScaleX" && (
           <div className="flex flex-row gap-2">
             <DebouncedInput
-              id="keyframe_scale"
-              label="Scale (out of 100%)"
-              placeholder="Scale"
+              id="keyframe_scale_x"
+              label="Scale X (out of 100%)"
+              placeholder="Scale X"
               initialValue={data?.value.value.toString()}
               onDebounce={(value) => {
                 let editor = editorRef.current;
@@ -1937,7 +1937,41 @@ export const KeyframeProperties = ({
                   return;
                 }
 
-                if (data.value.type === "Scale") {
+                if (data.value.type === "ScaleX") {
+                  data.value.value = parseInt(value);
+                }
+
+                update_keyframe(editorState, data, sequence, [
+                  selectedKeyframe,
+                ]);
+              }}
+            />
+          </div>
+        )}
+        {data?.value.type === "ScaleY" && (
+          <div className="flex flex-row gap-2">
+            <DebouncedInput
+              id="keyframe_scale_y"
+              label="Scale Y (out of 100%)"
+              placeholder="Scale Y"
+              initialValue={data?.value.value.toString()}
+              onDebounce={(value) => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let sequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
+                );
+
+                if (!sequence) {
+                  return;
+                }
+
+                if (data.value.type === "ScaleY") {
                   data.value.value = parseInt(value);
                 }
 

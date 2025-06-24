@@ -139,7 +139,8 @@ export interface UIKeyframe {
 export type KeyframeValue =
   | { type: "Position"; value: [number, number] }
   | { type: "Rotation"; value: number }
-  | { type: "Scale"; value: number }
+  | { type: "ScaleX"; value: number }
+  | { type: "ScaleY"; value: number }
   | { type: "PerspectiveX"; value: number }
   | { type: "PerspectiveY"; value: number }
   | { type: "Opacity"; value: number }
@@ -371,8 +372,10 @@ export function interpolateKeyframeValue(
         return {
           type: "Position",
           value: [
-            prevValue.value[0] + (nextValue.value[0] - prevValue.value[0]) * factor,
-            prevValue.value[1] + (nextValue.value[1] - prevValue.value[1]) * factor,
+            prevValue.value[0] +
+              (nextValue.value[0] - prevValue.value[0]) * factor,
+            prevValue.value[1] +
+              (nextValue.value[1] - prevValue.value[1]) * factor,
           ],
         };
       }
@@ -387,10 +390,19 @@ export function interpolateKeyframeValue(
       }
       break;
 
-    case "Scale":
-      if (nextValue.type === "Scale") {
+    case "ScaleX":
+      if (nextValue.type === "ScaleX") {
         return {
-          type: "Scale",
+          type: "ScaleX",
+          value: prevValue.value + (nextValue.value - prevValue.value) * factor,
+        };
+      }
+      break;
+
+    case "ScaleY":
+      if (nextValue.type === "ScaleY") {
+        return {
+          type: "ScaleY",
           value: prevValue.value + (nextValue.value - prevValue.value) * factor,
         };
       }
@@ -429,10 +441,16 @@ export function interpolateKeyframeValue(
           type: "Zoom",
           value: {
             position: [
-              prevValue.value.position[0] + (nextValue.value.position[0] - prevValue.value.position[0]) * factor,
-              prevValue.value.position[1] + (nextValue.value.position[1] - prevValue.value.position[1]) * factor,
+              prevValue.value.position[0] +
+                (nextValue.value.position[0] - prevValue.value.position[0]) *
+                  factor,
+              prevValue.value.position[1] +
+                (nextValue.value.position[1] - prevValue.value.position[1]) *
+                  factor,
             ],
-            zoomLevel: prevValue.value.zoomLevel + (nextValue.value.zoomLevel - prevValue.value.zoomLevel) * factor,
+            zoomLevel:
+              prevValue.value.zoomLevel +
+              (nextValue.value.zoomLevel - prevValue.value.zoomLevel) * factor,
           },
         };
       }

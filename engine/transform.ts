@@ -103,6 +103,14 @@ export class Transform {
     this.scale = vec2.fromValues(scale[0], scale[1]);
   }
 
+  updateScaleX(scaleX: number) {
+    this.scale[0] = scaleX;
+  }
+
+  updateScaleY(scaleY: number) {
+    this.scale[1] = scaleY;
+  }
+
   translate(translation: vec2) {
     vec2.add(this.position, this.position, translation);
   }

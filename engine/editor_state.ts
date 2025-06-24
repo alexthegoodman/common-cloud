@@ -792,7 +792,7 @@ export default class EditorState {
     scale_keyframes.push({
       id: uuidv4().toString(),
       time: 0,
-      value: { type: "Scale", value: 100 },
+      value: { type: "ScaleX", value: 100 },
       easing: EasingType.Linear,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
@@ -801,7 +801,7 @@ export default class EditorState {
     scale_keyframes.push({
       id: uuidv4().toString(),
       time: 2500,
-      value: { type: "Scale", value: 100 },
+      value: { type: "ScaleX", value: 100 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
@@ -810,7 +810,7 @@ export default class EditorState {
     scale_keyframes.push({
       id: uuidv4().toString(),
       time: 5000,
-      value: { type: "Scale", value: 100 },
+      value: { type: "ScaleX", value: 100 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
@@ -819,7 +819,7 @@ export default class EditorState {
     scale_keyframes.push({
       id: uuidv4().toString(),
       time: durationMs - 5000,
-      value: { type: "Scale", value: 100 },
+      value: { type: "ScaleX", value: 100 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
@@ -828,7 +828,7 @@ export default class EditorState {
     scale_keyframes.push({
       id: uuidv4().toString(),
       time: durationMs - 2500,
-      value: { type: "Scale", value: 100 },
+      value: { type: "ScaleX", value: 100 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
@@ -837,7 +837,7 @@ export default class EditorState {
     scale_keyframes.push({
       id: uuidv4().toString(),
       time: durationMs,
-      value: { type: "Scale", value: 100 },
+      value: { type: "ScaleX", value: 100 },
       easing: EasingType.Linear,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
@@ -845,10 +845,75 @@ export default class EditorState {
     });
 
     let scale_prop = {
-      name: "Scale",
-      propertyPath: "scale",
+      name: "Scale X",
+      propertyPath: "scalex",
       children: [],
       keyframes: scale_keyframes,
+      depth: 0,
+    };
+
+    let scale_y_keyframes: UIKeyframe[] = [];
+
+    scale_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "ScaleY", value: 100 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 2500,
+      value: { type: "ScaleY", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 5000,
+      value: { type: "ScaleY", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 5000,
+      value: { type: "ScaleY", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs - 2500,
+      value: { type: "ScaleY", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs,
+      value: { type: "ScaleY", value: 100 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let scale_y_prop = {
+      name: "Scale Y",
+      propertyPath: "scaley",
+      children: [],
+      keyframes: scale_y_keyframes,
       depth: 0,
     };
 
@@ -1050,6 +1115,7 @@ export default class EditorState {
     properties.push(position_prop);
     properties.push(rotation_prop);
     properties.push(scale_prop);
+    properties.push(scale_y_prop);
     properties.push(perspective_x_prop);
     properties.push(perspective_y_prop);
     properties.push(opacity_prop);
@@ -1733,7 +1799,7 @@ export default class EditorState {
     scale_keyframes.push({
       id: uuidv4().toString(),
       time: 0,
-      value: { type: "Scale", value: 100 },
+      value: { type: "ScaleX", value: 100 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
@@ -1742,7 +1808,7 @@ export default class EditorState {
     scale_keyframes.push({
       id: uuidv4().toString(),
       time: 2500,
-      value: { type: "Scale", value: 110 },
+      value: { type: "ScaleX", value: 110 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
@@ -1751,7 +1817,7 @@ export default class EditorState {
     scale_keyframes.push({
       id: uuidv4().toString(),
       time: 5000,
-      value: { type: "Scale", value: 100 },
+      value: { type: "ScaleX", value: 100 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
@@ -1760,7 +1826,7 @@ export default class EditorState {
     scale_keyframes.push({
       id: uuidv4().toString(),
       time: 15000,
-      value: { type: "Scale", value: 100 },
+      value: { type: "ScaleX", value: 100 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
@@ -1769,7 +1835,7 @@ export default class EditorState {
     scale_keyframes.push({
       id: uuidv4().toString(),
       time: 17500,
-      value: { type: "Scale", value: 110 },
+      value: { type: "ScaleX", value: 110 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
@@ -1778,7 +1844,7 @@ export default class EditorState {
     scale_keyframes.push({
       id: uuidv4().toString(),
       time: 20000,
-      value: { type: "Scale", value: 100 },
+      value: { type: "ScaleX", value: 100 },
       easing: EasingType.EaseInOut,
       pathType: PathType.Linear,
       keyType: { type: "Frame" },
@@ -1786,10 +1852,75 @@ export default class EditorState {
     });
 
     let scale_prop = {
-      name: "Scale",
-      propertyPath: "scale",
+      name: "Scale X",
+      propertyPath: "scalex",
       children: [],
       keyframes: scale_keyframes,
+      depth: 0,
+    };
+
+    let scale_y_keyframes: UIKeyframe[] = [];
+
+    scale_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "ScaleY", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 2500,
+      value: { type: "ScaleY", value: 110 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 5000,
+      value: { type: "ScaleY", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 15000,
+      value: { type: "ScaleY", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 17500,
+      value: { type: "ScaleY", value: 110 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+    scale_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 20000,
+      value: { type: "ScaleY", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let scale_y_prop = {
+      name: "Scale Y",
+      propertyPath: "scaley",
+      children: [],
+      keyframes: scale_y_keyframes,
       depth: 0,
     };
 
@@ -1861,6 +1992,7 @@ export default class EditorState {
     properties.push(position_prop);
     properties.push(rotation_prop);
     properties.push(scale_prop);
+    properties.push(scale_y_prop);
     // properties.push(perspective_x_prop);
     // properties.push(perspective_y_prop);
     properties.push(opacity_prop);
@@ -2384,21 +2516,25 @@ export default class EditorState {
     prevKeyframe: UIKeyframe,
     nextKeyframe: UIKeyframe
   ) {
-    const sequence = this.savedState.sequences.find(s => s.id === sequenceId);
+    const sequence = this.savedState.sequences.find((s) => s.id === sequenceId);
     if (!sequence?.polygonMotionPaths) return;
 
     const animationData = sequence.polygonMotionPaths.find(
-      mp => mp.polygonId === objectId
+      (mp) => mp.polygonId === objectId
     );
     if (!animationData) return;
 
     const property = animationData.properties.find(
-      p => p.propertyPath === propertyPath
+      (p) => p.propertyPath === propertyPath
     );
     if (!property) return;
 
     // Create interpolated value at the specified time
-    const interpolatedValue = interpolateKeyframeValue(prevKeyframe, nextKeyframe, time);
+    const interpolatedValue = interpolateKeyframeValue(
+      prevKeyframe,
+      nextKeyframe,
+      time
+    );
 
     // Create new keyframe
     const newKeyframe: UIKeyframe = {
@@ -2412,8 +2548,8 @@ export default class EditorState {
     };
 
     // Find the correct insertion point
-    const insertIndex = property.keyframes.findIndex(kf => kf.time > time);
-    
+    const insertIndex = property.keyframes.findIndex((kf) => kf.time > time);
+
     if (insertIndex === -1) {
       // Add to end
       property.keyframes.push(newKeyframe);

@@ -2024,14 +2024,32 @@ export class Editor {
             depth: 0,
           },
           {
-            name: "Scale",
-            propertyPath: "scale",
+            name: "Scale X",
+            propertyPath: "scalex",
             children: [],
             keyframes: timestamps.map((t) => ({
               id: uuidv4(),
               time: t,
               value: {
-                type: "Scale",
+                type: "ScaleX",
+                value: 100,
+              }, // Assuming 100 for scale
+              easing: EasingType.EaseInOut,
+              pathType: PathType.Linear,
+              keyType: { type: "Frame" },
+              curveData: null,
+            })),
+            depth: 0,
+          },
+          {
+            name: "Scale Y",
+            propertyPath: "scaley",
+            children: [],
+            keyframes: timestamps.map((t) => ({
+              id: uuidv4(),
+              time: t,
+              value: {
+                type: "ScaleY",
                 value: 100,
               }, // Assuming 100 for scale
               easing: EasingType.EaseInOut,
@@ -2684,8 +2702,8 @@ export class Editor {
             }
             break;
           }
-          case startFrame.value.type === "Scale" &&
-            endFrame.value.type === "Scale": {
+          case startFrame.value.type === "ScaleX" &&
+            endFrame.value.type === "ScaleX": {
             const start = startFrame.value.value as number;
             const end = endFrame.value.value as number;
             const new_scale = this.lerp(start, end, progress) / 100.0;
@@ -2696,15 +2714,15 @@ export class Editor {
 
             switch (animation.objectType) {
               case ObjectType.Polygon:
-                (this.polygons[objectIdx] as Polygon).transform.updateScale(
-                  scaleVec
+                (this.polygons[objectIdx] as Polygon).transform.updateScaleX(
+                  new_scale
                 );
                 break;
               case ObjectType.TextItem:
-                this.textItems[objectIdx].transform.updateScale(scaleVec);
+                this.textItems[objectIdx].transform.updateScaleX(new_scale);
                 this.textItems[
                   objectIdx
-                ].backgroundPolygon.transform.updateScale(scaleVec);
+                ].backgroundPolygon.transform.updateScaleX(new_scale);
                 break;
               case ObjectType.ImageItem:
                 const originalScaleImage =
@@ -2717,8 +2735,8 @@ export class Editor {
                   originalScaleImage[0] * new_scale,
                   originalScaleImage[1] * new_scale,
                 ] as [number, number];
-                this.imageItems[objectIdx].transform.updateScale(
-                  scaledImageDimensions
+                this.imageItems[objectIdx].transform.updateScaleX(
+                  originalScaleImage[0] * new_scale
                 );
                 break;
               case ObjectType.VideoItem:
@@ -2733,14 +2751,69 @@ export class Editor {
                 //   originalScaleVideo[1] * new_scale,
                 // ] as [number, number];
                 // console.info("scaling", originalScaleVideo, new_scale);
-                this.videoItems[objectIdx].groupTransform.updateScale(
-                  scaleVec // only scaleVec needed for group
+                this.videoItems[objectIdx].groupTransform.updateScaleX(
+                  new_scale // only scaleVec needed for group
                 );
                 break;
             }
             break;
           }
+          case startFrame.value.type === "ScaleY" &&
+            endFrame.value.type === "ScaleY": {
+            const start = startFrame.value.value as number;
+            const end = endFrame.value.value as number;
+            const new_scale = this.lerp(start, end, progress) / 100.0;
+            // const scaleVec: vec2 = vec2.fromValues(new_scale, new_scale); // Create scale vector
+            const scaleVec = [new_scale, new_scale] as [number, number];
 
+            // console.info("scaling to", new_scale, scaleVec);
+
+            switch (animation.objectType) {
+              case ObjectType.Polygon:
+                (this.polygons[objectIdx] as Polygon).transform.updateScaleY(
+                  new_scale
+                );
+                break;
+              case ObjectType.TextItem:
+                this.textItems[objectIdx].transform.updateScaleY(new_scale);
+                this.textItems[
+                  objectIdx
+                ].backgroundPolygon.transform.updateScaleY(new_scale);
+                break;
+              case ObjectType.ImageItem:
+                const originalScaleImage =
+                  this.imageItems[objectIdx].dimensions;
+                // const scaledImageDimensions = vec2.fromValues(
+                //   originalScaleImage[0] * new_scale,
+                //   originalScaleImage[1] * new_scale
+                // );
+                const scaledImageDimensions = [
+                  originalScaleImage[0] * new_scale,
+                  originalScaleImage[1] * new_scale,
+                ] as [number, number];
+                this.imageItems[objectIdx].transform.updateScaleY(
+                  originalScaleImage[0] * new_scale
+                );
+                break;
+              case ObjectType.VideoItem:
+                const originalScaleVideo =
+                  this.videoItems[objectIdx].dimensions;
+                // const scaledVideoDimensions = vec2.fromValues(
+                //   originalScaleVideo[0] * new_scale,
+                //   originalScaleVideo[1] * new_scale
+                // );
+                // const scaledVideoDimensions = [
+                //   originalScaleVideo[0] * new_scale,
+                //   originalScaleVideo[1] * new_scale,
+                // ] as [number, number];
+                // console.info("scaling", originalScaleVideo, new_scale);
+                this.videoItems[objectIdx].groupTransform.updateScaleY(
+                  new_scale // only scaleVec needed for group
+                );
+                break;
+            }
+            break;
+          }
           case startFrame.value.type === "Opacity" &&
             endFrame.value.type === "Opacity": {
             const start = startFrame.value.value as number;
