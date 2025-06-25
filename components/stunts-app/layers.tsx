@@ -457,6 +457,10 @@ export const LayerPanel: React.FC<{
       return;
     }
 
+    let device = gpuResources.device!;
+    let queue = gpuResources.queue!;
+    let windowSize = camera.windowSize;
+
     // update the layer property on each object that is not hidden
     editor.polygons.forEach((polygon) => {
       if (!polygon.hidden) {
@@ -477,7 +481,7 @@ export const LayerPanel: React.FC<{
       if (!text.hidden) {
         let index = layers.findIndex((l) => l.instance_id === text.id);
         if (index > -1) {
-          text.updateLayer(-index);
+          text.updateLayer(device, queue, windowSize, -index);
           text.transform.updateUniformBuffer(
             gpuResources.queue!,
             camera.windowSize

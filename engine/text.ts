@@ -260,7 +260,7 @@ export class TextRenderer {
       // -1.0,
       // 1, // positive to use INTERNAL_LAYER_SPACE
       0.0,
-      textConfig.layer + 0.5,
+      textConfig.layer - 0.5,
       textConfig.name,
       this.id,
       currentSequenceId,
@@ -270,9 +270,10 @@ export class TextRenderer {
     this.backgroundPolygon.hidden = false;
 
     // -10.0 to provide 10 spots for internal items on top of objects
-    let layer_index = -1.0 - getZLayer(textConfig.layer - INTERNAL_LAYER_SPACE);
-    this.transform.layer = layer_index;
-    this.transform.updateUniformBuffer(queue, windowSize);
+    // let layer_index = -1.0 - getZLayer(textConfig.layer - INTERNAL_LAYER_SPACE);
+    // this.transform.layer = layer_index;
+    // this.transform.updateUniformBuffer(queue, windowSize);
+    this.updateLayer(device, queue, windowSize, textConfig.layer);
 
     let [tmp_group_bind_group, tmp_group_transform] = createEmptyGroupTransform(
       device,
@@ -547,7 +548,7 @@ export class TextRenderer {
             id: vertexId,
           },
           {
-            position: [x1, y0, z],
+            position: [x1, y0, 0.0],
             tex_coords: [u1, v0],
             color: activeColor,
             gradient_coords: [normalizedX1, normalizedY0],
@@ -555,7 +556,7 @@ export class TextRenderer {
             id: vertexId,
           },
           {
-            position: [x1, y1, z],
+            position: [x1, y1, 0.0],
             tex_coords: [u1, v1],
             color: activeColor,
             gradient_coords: [normalizedX1, normalizedY1],
@@ -563,7 +564,7 @@ export class TextRenderer {
             id: vertexId,
           },
           {
-            position: [x0, y1, z],
+            position: [x0, y1, 0.0],
             tex_coords: [u0, v1],
             color: activeColor,
             gradient_coords: [normalizedX0, normalizedY1],
@@ -1071,14 +1072,22 @@ export class TextRenderer {
     this.initialized = true;
   }
 
-  updateLayer(layerIndex: number) {
+  updateLayer(
+    device: PolyfillDevice,
+    queue: PolyfillQueue,
+    windowSize: WindowSize,
+    layerIndex: number
+  ) {
     // -10.0 to provide 10 spots for internal items on top of objects
     // const adjustedLayerIndex = layerIndex - INTERNAL_LAYER_SPACE;
     let layer_index = -1.0 - getZLayer(layerIndex - INTERNAL_LAYER_SPACE);
     this.layer = layer_index;
     this.transform.layer = layer_index;
-    this.backgroundPolygon.layer = layer_index + 0.5;
-    this.backgroundPolygon.transform.layer = layer_index + 0.5;
+    this.backgroundPolygon.layer = layer_index - 0.5;
+    this.backgroundPolygon.transform.layer = layer_index - 0.5;
+
+    this.transform.updateUniformBuffer(queue, windowSize);
+    this.backgroundPolygon.transform.updateUniformBuffer(queue, windowSize);
   }
 
   updateText(device: PolyfillDevice, queue: PolyfillQueue, text: string) {

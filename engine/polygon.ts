@@ -225,11 +225,6 @@ export class Polygon implements PolygonShape {
     this.gradient = gradient;
     this.gradientBuffer = gradientBuffer;
 
-    // -10.0 to provide 10 spots for internal items on top of objects
-    let layer_index = -1.0 - getZLayer(transformLayer - INTERNAL_LAYER_SPACE);
-    this.transformLayer = layer_index;
-    this.layer = transformLayer - INTERNAL_LAYER_SPACE;
-
     let [tmp_group_bind_group, tmp_group_transform] = createEmptyGroupTransform(
       device,
       groupBindGroupLayout,
@@ -247,6 +242,13 @@ export class Polygon implements PolygonShape {
     this.indexBuffer = index_buffer;
     this.bindGroup = bind_group;
     this.transform = transform;
+
+    // -10.0 to provide 10 spots for internal items on top of objects
+    let layer_index = -1.0 - getZLayer(transformLayer - INTERNAL_LAYER_SPACE);
+    this.transformLayer = transformLayer;
+    this.layer = layer_index;
+    this.transform.layer = layer_index as number;
+    // this.layer = transformLayer - INTERNAL_LAYER_SPACE;
   }
 
   updateGradientAnimation(device: PolyfillDevice, deltaTime: number) {
@@ -418,7 +420,7 @@ export class Polygon implements PolygonShape {
       backgroundFill: this.backgroundFill,
       stroke: this.stroke,
       // 0.0,
-      layer: this.layer + INTERNAL_LAYER_SPACE,
+      layer: this.transformLayer,
       isCircle,
     };
 
@@ -471,7 +473,7 @@ export class Polygon implements PolygonShape {
       backgroundFill: this.backgroundFill,
       stroke: this.stroke,
       // 0.0,
-      layer: this.layer + INTERNAL_LAYER_SPACE,
+      layer: this.transformLayer,
       isCircle: this.isCircle,
     };
 
@@ -534,7 +536,7 @@ export class Polygon implements PolygonShape {
       backgroundFill: this.backgroundFill,
       stroke: this.stroke,
       // 0.0,
-      layer: this.layer + INTERNAL_LAYER_SPACE,
+      layer: this.transformLayer,
       isCircle: this.isCircle,
     };
 
@@ -598,7 +600,7 @@ export class Polygon implements PolygonShape {
       backgroundFill: this.backgroundFill,
       stroke: stroke,
       // 0.0,
-      layer: this.layer + INTERNAL_LAYER_SPACE,
+      layer: this.transformLayer,
       isCircle: this.isCircle,
     };
 
@@ -663,7 +665,7 @@ export class Polygon implements PolygonShape {
       backgroundFill: backgroundFill,
       stroke: this.stroke,
       // 0.0,
-      layer: this.layer + INTERNAL_LAYER_SPACE,
+      layer: this.transformLayer,
       isCircle: this.isCircle,
     };
 
@@ -805,7 +807,7 @@ function generateCircleVertices(
     // const v = y + 0.5;
 
     vertices.push({
-      position: [x, y, 0.0],
+      position: [x, y, -0.0001], // Slightly above z=0 to avoid z-fighting
       tex_coords: [0, 0],
       color,
       gradient_coords: [x, y], // Adjust gradient coords if needed
@@ -815,7 +817,7 @@ function generateCircleVertices(
 
   // Add the center vertex
   vertices.push({
-    position: [0.0, 0.0, 0.0],
+    position: [0.0, 0.0, -0.0001],
     tex_coords: [0, 0],
     color,
     gradient_coords: [0.0, 0.0],
@@ -929,7 +931,7 @@ export function getPolygonData(
         vertices.push(
           // createVertex(point[0], point[1], getZLayer(1.0), polygon.fill, ObjectType.Polygon)
           {
-            position: [point[0], point[1], 0],
+            position: [point[0], point[1], -0.0001],
             tex_coords: [0, 0],
             color: fill,
             gradient_coords: [normalizedX, normalizedY],
