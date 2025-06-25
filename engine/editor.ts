@@ -2523,11 +2523,22 @@ export class Editor {
         const elapsed = currentTimeMs - startTimeMs - startFrame.time; // elapsed since start keyframe
         let progress = elapsed / duration;
 
-        // Apply easing (EaseInOut)
-        progress =
-          progress < 0.5
-            ? 2.0 * progress * progress
-            : 1.0 - Math.pow(-2.0 * progress + 2.0, 2) / 2.0;
+        // Apply easing based on keyframe setting
+        switch (startFrame.easing) {
+          case EasingType.Linear:
+            break; // progress stays as is
+          case EasingType.EaseIn:
+            progress = progress * progress;
+            break;
+          case EasingType.EaseOut:
+            progress = 1.0 - (1.0 - progress) * (1.0 - progress);
+            break;
+          case EasingType.EaseInOut:
+            progress = progress < 0.5 ? 2.0 * progress * progress : 1.0 - Math.pow(-2.0 * progress + 2.0, 2) / 2.0;
+            break;
+          default:
+            break; // Default to linear
+        }
 
         // Apply the interpolated value to the object's property
         const startValue = startFrame.value;
@@ -6050,8 +6061,8 @@ export function interpolatePosition(
   switch (start.pathType) {
     case PathType.Linear:
       return [
-        Math.round(startPos[0] + (endPos[0] - startPos[0]) * progress),
-        Math.round(startPos[1] + (endPos[1] - startPos[1]) * progress),
+        startPos[0] + (endPos[0] - startPos[0]) * progress,
+        startPos[1] + (endPos[1] - startPos[1]) * progress,
       ];
     case PathType.Bezier:
       const p0 = [startPos[0], startPos[1]];
@@ -6085,7 +6096,7 @@ export function interpolatePosition(
         3.0 * p2[1] * mt * t2 +
         p3[1] * t3;
 
-      return [Math.round(x), Math.round(y)];
+      return [x, y];
     default:
       throw new Error("Invalid PathType");
   }
