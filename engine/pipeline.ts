@@ -807,14 +807,14 @@ export class CanvasPipeline {
     // Clear the framebuffer
     gl.clearColor(1.0, 1.0, 1.0, 1.0); // White background
     gl.clearDepth(1.0);
-    gl.clearStencil(0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+    // gl.clearStencil(0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // Enable depth testing and culling (similar to WebGPU setup)
-    gl.disable(gl.DEPTH_TEST);
+    gl.enable(gl.DEPTH_TEST);
     gl.disable(gl.CULL_FACE); // disabling this fixed a annoying bug with culling
-    gl.cullFace(gl.BACK);
-    gl.frontFace(gl.CCW);
+    // gl.cullFace(gl.BACK);
+    // gl.frontFace(gl.CCW);
 
     // Set up blending for transparency
     gl.enable(gl.BLEND);
@@ -962,6 +962,8 @@ export class CanvasPipeline {
             queue,
             editor.camera.windowSize
           );
+
+          // console.info("polygon", polygon.id, polygon.transform.layer);
         }
 
         // this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);

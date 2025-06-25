@@ -166,6 +166,13 @@ export class PolyfillTexture {
     const h = height || this.height;
     const pixels = new Uint8Array(w * h * 4);
 
+    // Debug: Check what framebuffer is currently bound
+    // const currentFramebuffer = this.gl.getParameter(
+    //   this.gl.FRAMEBUFFER_BINDING
+    // );
+    // console.log("Reading from framebuffer:", currentFramebuffer); // null = default framebuffer
+    // console.log("Depth test enabled:", this.gl.isEnabled(this.gl.DEPTH_TEST));
+
     this.gl.readPixels(0, 0, w, h, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixels);
 
     this.flipPixelsVertically(pixels, w, h);
@@ -695,6 +702,53 @@ export class PolyfillDevice {
     });
   }
 
+  // copyTextureToBuffer(
+  //   {
+  //     texture,
+  //   }: {
+  //     texture: PolyfillTexture;
+  //     mipLevel: number;
+  //     origin: { x: number; y: number; z: number };
+  //   },
+  //   { buffer, bytesPerRow, rowsPerImage }: any,
+  //   { width, height }: any
+  // ): Uint8Array {
+  //   const gl = this.webglContext;
+
+  //   if (!gl) {
+  //     throw new Error("WebGL context not available");
+  //   }
+
+  //   const framebuffer = gl.createFramebuffer();
+  //   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+  //   gl.framebufferTexture2D(
+  //     gl.FRAMEBUFFER,
+  //     gl.COLOR_ATTACHMENT0,
+  //     gl.TEXTURE_2D,
+  //     texture.texture, // WebGLTexture
+  //     0
+  //   );
+
+  //   if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+  //     throw new Error("Framebuffer is not complete");
+  //   }
+
+  //   const rawData = new Uint8Array(width * height * 4);
+  //   gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, rawData);
+
+  //   const padded = new Uint8Array(bytesPerRow * height);
+  //   for (let row = 0; row < height; row++) {
+  //     const src = row * width * 4;
+  //     const dst = row * bytesPerRow;
+  //     padded.set(rawData.subarray(src, src + width * 4), dst);
+  //   }
+
+  //   // Simulate the buffer mapping
+  //   buffer.data = padded; // or use getMappedRange() later
+
+  //   return padded;
+  // }
+
   copyTextureToBuffer(
     {
       texture,
@@ -714,20 +768,45 @@ export class PolyfillDevice {
 
     const framebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+
+    // Attach the color texture
     gl.framebufferTexture2D(
       gl.FRAMEBUFFER,
       gl.COLOR_ATTACHMENT0,
       gl.TEXTURE_2D,
-      texture.texture, // WebGLTexture
+      texture.texture,
       0
+    );
+
+    // Create and attach a depth buffer
+    const depthBuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+    gl.renderbufferStorage(
+      gl.RENDERBUFFER,
+      gl.DEPTH_COMPONENT16,
+      width,
+      height
+    );
+    gl.framebufferRenderbuffer(
+      gl.FRAMEBUFFER,
+      gl.DEPTH_ATTACHMENT,
+      gl.RENDERBUFFER,
+      depthBuffer
     );
 
     if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
       throw new Error("Framebuffer is not complete");
     }
 
+    // Make sure to clear the depth buffer before rendering
+    // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
     const rawData = new Uint8Array(width * height * 4);
     gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, rawData);
+
+    // Clean up
+    // gl.deleteRenderbuffer(depthBuffer);
+    // gl.deleteFramebuffer(framebuffer);
 
     const padded = new Uint8Array(bytesPerRow * height);
     for (let row = 0; row < height; row++) {
@@ -736,9 +815,7 @@ export class PolyfillDevice {
       padded.set(rawData.subarray(src, src + width * 4), dst);
     }
 
-    // Simulate the buffer mapping
-    buffer.data = padded; // or use getMappedRange() later
-
+    buffer.data = padded;
     return padded;
   }
 }
@@ -1106,8 +1183,13 @@ export class GPUPolyfill {
         throw new Error("Canvas is required for WebGL backend");
       }
 
-      // Get WebGL context
-      const gl = this.canvas.getContext("webgl2") as WebGL2RenderingContext;
+      // Get WebGL context with depth buffer
+      const gl = this.canvas.getContext("webgl2", {
+        depth: true,
+        stencil: true,
+        antialias: true,
+        premultipliedAlpha: false,
+      }) as WebGL2RenderingContext;
       if (!gl) {
         throw new Error("Failed to get WebGL context");
       }
@@ -1118,7 +1200,7 @@ export class GPUPolyfill {
       gl.viewport(0, 0, this.windowSize.width, this.windowSize.height);
 
       // Enable common WebGL features
-      gl.disable(gl.DEPTH_TEST);
+      gl.enable(gl.DEPTH_TEST);
       gl.disable(gl.CULL_FACE);
 
       // Create polyfill device and queue

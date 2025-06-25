@@ -42,7 +42,8 @@ export class Camera3D extends Camera {
     // this.fov = Math.PI; // very wide
 
     // Set reasonable near and far clipping planes
-    this.near = 0.0001;
+    // this.near = 0.0001;
+    this.near = 1.0;
     this.far = 1000.0;
 
     // Default up vector

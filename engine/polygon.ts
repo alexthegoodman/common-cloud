@@ -226,7 +226,8 @@ export class Polygon implements PolygonShape {
     this.gradientBuffer = gradientBuffer;
 
     // -10.0 to provide 10 spots for internal items on top of objects
-    this.transformLayer = transformLayer - INTERNAL_LAYER_SPACE;
+    let layer_index = -1.0 - getZLayer(transformLayer - INTERNAL_LAYER_SPACE);
+    this.transformLayer = layer_index;
     this.layer = transformLayer - INTERNAL_LAYER_SPACE;
 
     let [tmp_group_bind_group, tmp_group_transform] = createEmptyGroupTransform(
@@ -234,6 +235,9 @@ export class Polygon implements PolygonShape {
       groupBindGroupLayout,
       window_size
     );
+
+    // tmp_group_transform.layer = this.layer;
+    // tmp_group_transform.updateUniformBuffer(queue, camera.windowSize);
 
     this.groupBindGroup = tmp_group_bind_group;
 
@@ -350,8 +354,10 @@ export class Polygon implements PolygonShape {
     // -10.0 to provide 10 spots for internal items on top of objects
     // let layer_index = layer - INTERNAL_LAYER_SPACE;
     let layer_index = -1.0 - getZLayer(layer - INTERNAL_LAYER_SPACE);
-    this.layer = layer_index;
+    this.layer = layer - INTERNAL_LAYER_SPACE;
     this.transform.layer = layer_index as number;
+
+    // TODO: update group transform layer as well?
   }
 
   updateGroupPosition(position: [number, number]) {
