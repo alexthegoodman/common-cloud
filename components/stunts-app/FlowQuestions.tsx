@@ -164,14 +164,14 @@ export default function FlowQuestions({
 
         // Merge positioning of image items from template
         if (
-          templateSequence.activeImageItems &&
+          templateSequence.activePolygons &&
           existingState.sequences[0].activeImageItems
         ) {
           mergedState.sequences[0].activeImageItems =
             existingState.sequences[0].activeImageItems.map(
               (imageItem: SavedStImageConfig, index: number) => {
                 const templateImageItem =
-                  templateSequence.activeImageItems[index];
+                  templateSequence.activePolygons[index];
                 if (templateImageItem) {
                   return {
                     ...imageItem,
@@ -188,14 +188,14 @@ export default function FlowQuestions({
 
         // Merge positioning of video items from template - with 200px width check
         if (
-          templateSequence.activeVideoItems &&
+          templateSequence.activePolygons &&
           existingState.sequences[0].activeVideoItems
         ) {
           mergedState.sequences[0].activeVideoItems =
             existingState.sequences[0].activeVideoItems.map(
               (videoItem: SavedStVideoConfig, index: number) => {
                 const templateVideoItem =
-                  templateSequence.activeVideoItems[index];
+                  templateSequence.activePolygons[index];
                 if (templateVideoItem) {
                   // Check if the video item is 200 pixels or wider
                   const videoWidth = videoItem.dimensions?.[0] || 0;
