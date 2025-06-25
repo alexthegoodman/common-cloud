@@ -9,6 +9,7 @@ import {
   GradientStop,
   ObjectType,
   UIKeyframe,
+  EasingType,
 } from "@/engine/animations";
 import { CreateIcon } from "./icon";
 import { RepeatPattern } from "@/engine/repeater";
@@ -1816,6 +1817,56 @@ export const KeyframeProperties = ({
             setRefreshTimeline(Date.now());
           }}
         />
+        <div className="mt-2">
+          <label htmlFor="keyframe_easing" className="text-xs font-medium">
+            Easing
+          </label>
+          <select
+            id="keyframe_easing"
+            name="keyframe_easing"
+            className="text-xs w-full p-1 border rounded"
+            value={data?.easing || EasingType.Linear}
+            onChange={async (ev) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+
+              if (!editor || !editorState) {
+                return;
+              }
+
+              let sequence = editorState.savedState.sequences.find(
+                (s) => s.id === currentSequenceId
+              );
+
+              if (!sequence || !sequence.polygonMotionPaths) {
+                return;
+              }
+
+              let keyframeData = sequence.polygonMotionPaths
+                .flatMap((p) => p.properties)
+                .flatMap((p) => p.keyframes)
+                .find((k) => k.id === selectedKeyframe);
+
+              if (!keyframeData) {
+                return;
+              }
+
+              keyframeData.easing = ev.target.value as EasingType;
+
+              await saveSequencesData(
+                editorState.savedState.sequences,
+                editorState.saveTarget
+              );
+
+              setRefreshTimeline(Date.now());
+            }}
+          >
+            <option value={EasingType.Linear}>Linear</option>
+            <option value={EasingType.EaseIn}>Ease In</option>
+            <option value={EasingType.EaseOut}>Ease Out</option>
+            <option value={EasingType.EaseInOut}>Ease In Out</option>
+          </select>
+        </div>
         {data?.value.type === "Position" && (
           <div className="flex flex-row gap-2">
             <DebouncedInput
