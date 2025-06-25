@@ -260,7 +260,7 @@ export class TextRenderer {
       // -1.0,
       // 1, // positive to use INTERNAL_LAYER_SPACE
       0.0,
-      textConfig.layer - 0.5,
+      textConfig.layer + 0.5,
       textConfig.name,
       this.id,
       currentSequenceId,
@@ -1077,8 +1077,8 @@ export class TextRenderer {
     let layer_index = -1.0 - getZLayer(layerIndex - INTERNAL_LAYER_SPACE);
     this.layer = layer_index;
     this.transform.layer = layer_index;
-    this.backgroundPolygon.layer = layer_index - 0.5;
-    this.backgroundPolygon.transform.layer = layer_index - 0.5;
+    this.backgroundPolygon.layer = layer_index + 0.5;
+    this.backgroundPolygon.transform.layer = layer_index + 0.5;
   }
 
   updateText(device: PolyfillDevice, queue: PolyfillQueue, text: string) {
