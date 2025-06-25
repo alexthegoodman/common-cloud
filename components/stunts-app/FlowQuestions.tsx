@@ -16,6 +16,11 @@ import {
   IFlowQuestions,
   updateFlowQuestions,
 } from "@/fetchers/flows";
+import {
+  getTemplates,
+  selectRandomTemplate,
+  Template,
+} from "@/fetchers/templates";
 import { Editor, rgbToWgpu, Viewport } from "@/engine/editor";
 import EditorState, { SaveTarget } from "@/engine/editor_state";
 import {
@@ -61,6 +66,7 @@ export default function FlowQuestions({
 
   const [gotQuestions, setGotQuestions] = useState(false);
   const [answersProvided, setAnswersProvided] = useState<string[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
 
   const { object, submit } = useObject({
     api: "/api/flows/generate-questions",
@@ -79,6 +85,16 @@ export default function FlowQuestions({
     }
   }, [authToken, isLoading, error]);
 
+  // Fetch templates on component mount
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      const templateList = await getTemplates();
+      setTemplates(templateList);
+    };
+
+    fetchTemplates();
+  }, []);
+
   // Handle answer selection
   const handleAnswerSelection = (
     questionIndex: number,
@@ -89,6 +105,112 @@ export default function FlowQuestions({
       newAnswers[questionIndex] = selectedAnswer;
       return newAnswers;
     });
+  };
+
+  // Merge template with existing content
+  // Merge template with existing content
+  const mergeTemplateWithContent = (
+    templateData: SavedState,
+    existingState: SavedState
+  ): SavedState => {
+    const mergedState = { ...existingState };
+
+    if (templateData?.sequences) {
+      // Use the first sequence from template as base
+      const templateSequence = templateData.sequences[0];
+      if (templateSequence && mergedState.sequences[0]) {
+        // Replace polygons with existing content
+        mergedState.sequences[0].activePolygons =
+          existingState.sequences[0].activePolygons || [];
+
+        // Keep template's layout and motion paths but merge with content
+        if (templateSequence.polygonMotionPaths) {
+          mergedState.sequences[0].polygonMotionPaths =
+            templateSequence.polygonMotionPaths;
+        }
+
+        // Keep template's background if it exists
+        if (templateSequence.backgroundFill) {
+          mergedState.sequences[0].backgroundFill =
+            templateSequence.backgroundFill;
+        }
+
+        // Merge positioning of text items from template
+        // if (
+        //   templateSequence.activeTextItems &&
+        //   existingState.sequences[0].activeTextItems
+        // ) {
+        //   mergedState.sequences[0].activeTextItems =
+        //     existingState.sequences[0].activeTextItems.map(
+        //       (textItem: any, index: number) => {
+        //         const templateTextItem =
+        //           templateSequence.activeTextItems[index];
+        //         if (templateTextItem) {
+        //           return {
+        //             ...textItem,
+        //             position: templateTextItem.position,
+        //             dimensions: templateTextItem.dimensions,
+        //             layer: templateTextItem.layer,
+        //           };
+        //         }
+        //         return textItem;
+        //       }
+        //     );
+        // }
+
+        // Merge positioning of image items from template
+        if (
+          templateSequence.activeImageItems &&
+          existingState.sequences[0].activeImageItems
+        ) {
+          mergedState.sequences[0].activeImageItems =
+            existingState.sequences[0].activeImageItems.map(
+              (imageItem: any, index: number) => {
+                const templateImageItem =
+                  templateSequence.activeImageItems[index];
+                if (templateImageItem) {
+                  return {
+                    ...imageItem,
+                    position: templateImageItem.position,
+                    dimensions: templateImageItem.dimensions,
+                    layer: templateImageItem.layer,
+                  };
+                }
+                return imageItem;
+              }
+            );
+        }
+
+        // Merge positioning of video items from template - with 200px width check
+        if (
+          templateSequence.activeVideoItems &&
+          existingState.sequences[0].activeVideoItems
+        ) {
+          mergedState.sequences[0].activeVideoItems =
+            existingState.sequences[0].activeVideoItems.map(
+              (videoItem: any, index: number) => {
+                const templateVideoItem =
+                  templateSequence.activeVideoItems[index];
+                if (templateVideoItem) {
+                  // Check if the video item is 200 pixels or wider
+                  const videoWidth = videoItem.dimensions?.[0] || 0;
+                  if (videoWidth >= 200) {
+                    return {
+                      ...videoItem,
+                      position: templateVideoItem.position,
+                      dimensions: templateVideoItem.dimensions,
+                      layer: templateVideoItem.layer,
+                    };
+                  }
+                }
+                return videoItem;
+              }
+            );
+        }
+      }
+    }
+
+    return mergedState;
   };
 
   const generateHandler = async () => {
@@ -183,6 +305,13 @@ export default function FlowQuestions({
 
     const viewport = new Viewport(900, 500);
     const editor = new Editor(viewport);
+
+    // Select and apply random template
+    const selectedTemplate = selectRandomTemplate(templates);
+    // const initState = selectedTemplate
+    //   ? mergeTemplateWithContent(selectedTemplate.fileData, emptyVideoState)
+    //   : emptyVideoState;
+
     const editorState = new EditorState(emptyVideoState);
 
     const isHindi = user?.userLanguage === "hi";
@@ -358,202 +487,206 @@ export default function FlowQuestions({
       }
     }
 
-    // generate layout
-    let prompt = editorState.genCreateLayoutInferencePrompt();
+    const finalState = selectedTemplate
+      ? mergeTemplateWithContent(
+          selectedTemplate.fileData,
+          editorState.savedState
+        )
+      : emptyVideoState;
 
-    // console.info("layout prompt", editor, editorState, prompt);
+    editorState.savedState = finalState;
 
-    let predictions = await callLayoutInference(prompt);
+    // // generate layout
+    // let prompt = editorState.genCreateLayoutInferencePrompt();
 
-    console.info("predictions", predictions);
+    // // console.info("layout prompt", editor, editorState, prompt);
 
-    // let sequences = editor.updateLayoutFromPredictions(
+    // let predictions = await callLayoutInference(prompt);
+
+    // console.info("predictions", predictions);
+
+    // // let sequences = editor.updateLayoutFromPredictions(
+    // //   predictions,
+    // //   currentSequenceId,
+    // //   editorState.savedState.sequences
+    // // );
+
+    // // Parse predictions into structured objects
+    // // TODO: getItemId, getObjectType
+    // const objects = editor.parsePredictionsToObjects(
     //   predictions,
+    //   editorState,
+    //   dimensions
+    // );
+
+    // let sequences = editor.updateSequencesFromObjects(
+    //   objects,
     //   currentSequenceId,
     //   editorState.savedState.sequences
     // );
 
-    // Parse predictions into structured objects
-    // TODO: getItemId, getObjectType
-    const objects = editor.parsePredictionsToObjects(
-      predictions,
-      editorState,
-      dimensions
-    );
+    // console.info("debug info", objects, sequences, currentSequenceId);
 
-    let sequences = editor.updateSequencesFromObjects(
-      objects,
-      currentSequenceId,
-      editorState.savedState.sequences
-    );
+    // editorState.savedState.sequences = sequences;
 
-    console.info("debug info", objects, sequences, currentSequenceId);
+    // let prompt2 = editorState.genCreateInferencePrompt();
+    // let predictions2 = await callMotionInference(prompt2);
 
-    editorState.savedState.sequences = sequences;
+    // console.info("predictions2", predictions2);
 
-    // saveSequencesData(sequences, SaveTarget.Docs);
+    // let current_positions = editorState.getCurrentPositions();
 
-    // generate animation
-    // console.info("create prompt");
+    // let animation = editor.createMotionPathsFromPredictions(
+    //   predictions2,
+    //   current_positions,
+    //   editorState,
+    //   dimensions
+    // );
 
-    let prompt2 = editorState.genCreateInferencePrompt();
-    let predictions2 = await callMotionInference(prompt2);
+    // editorState.savedState.sequences.forEach((s) => {
+    //   if (s.id === currentSequenceId) {
+    //     s.polygonMotionPaths = animation;
+    //   }
+    // });
 
-    console.info("predictions2", predictions2);
+    // let updatedSequence = editorState.savedState.sequences.find(
+    //   (s) => s.id === currentSequenceId
+    // );
 
-    let current_positions = editorState.getCurrentPositions();
+    // if (!updatedSequence) {
+    //   return;
+    // }
 
-    let animation = editor.createMotionPathsFromPredictions(
-      predictions2,
-      current_positions,
-      editorState,
-      dimensions
-    );
+    // const themeCount = 50;
+    // const randomThemeIndex = Math.floor(Math.random() * themeCount);
 
-    editorState.savedState.sequences.forEach((s) => {
-      if (s.id === currentSequenceId) {
-        s.polygonMotionPaths = animation;
-      }
-    });
+    // const theme = THEMES[randomThemeIndex];
 
-    let updatedSequence = editorState.savedState.sequences.find(
-      (s) => s.id === currentSequenceId
-    );
+    // if (theme) {
+    //   const backgroundColorRow = Math.floor(theme[0]);
+    //   const backgroundColorColumn = Math.floor((theme[0] % 1) * 10);
+    //   const backgroundColor =
+    //     THEME_COLORS[backgroundColorRow][backgroundColorColumn];
+    //   const textColorRow = Math.floor(theme[4]);
+    //   const textColorColumn = Math.floor((theme[4] % 1) * 10);
+    //   const textColor = THEME_COLORS[textColorRow][textColorColumn];
 
-    if (!updatedSequence) {
-      return;
-    }
+    //   const backgroundRgb = hexParse(backgroundColor);
+    //   const textRgb = hexParse(textColor);
 
-    const themeCount = 50;
-    const randomThemeIndex = Math.floor(Math.random() * themeCount);
+    //   const textKurkle = new Color(textRgb);
+    //   const darkTextColor = textKurkle.darken(0.15);
 
-    const theme = THEMES[randomThemeIndex];
+    //   const fontIndex = isHindi ? Math.floor(theme[2] / 10) : theme[2];
 
-    if (theme) {
-      const backgroundColorRow = Math.floor(theme[0]);
-      const backgroundColorColumn = Math.floor((theme[0] % 1) * 10);
-      const backgroundColor =
-        THEME_COLORS[backgroundColorRow][backgroundColorColumn];
-      const textColorRow = Math.floor(theme[4]);
-      const textColorColumn = Math.floor((theme[4] % 1) * 10);
-      const textColor = THEME_COLORS[textColorRow][textColorColumn];
+    //   // apply theme to background canvas and text objects
 
-      const backgroundRgb = hexParse(backgroundColor);
-      const textRgb = hexParse(textColor);
+    //   let text_color_wgpu = rgbToWgpu(textRgb.r, textRgb.g, textRgb.b, 255.0);
 
-      const textKurkle = new Color(textRgb);
-      const darkTextColor = textKurkle.darken(0.15);
+    //   let text_color_dark_wgpu = rgbToWgpu(
+    //     darkTextColor._rgb.r,
+    //     darkTextColor._rgb.g,
+    //     darkTextColor._rgb.b,
+    //     255.0
+    //   );
+    //   let background_color_wgpu = rgbToWgpu(
+    //     backgroundRgb.r,
+    //     backgroundRgb.g,
+    //     backgroundRgb.b,
+    //     255.0
+    //   );
+    //   let background_color = [
+    //     backgroundRgb.r,
+    //     backgroundRgb.g,
+    //     backgroundRgb.b,
+    //     255,
+    //   ] as [number, number, number, number];
 
-      const fontIndex = isHindi ? Math.floor(theme[2] / 10) : theme[2];
+    //   let ids_to_update = editorState.savedState.sequences
+    //     .find((s) => s.id === currentSequenceId)
+    //     ?.activeTextItems.map((text) => text.id);
 
-      // apply theme to background canvas and text objects
+    //   if (!ids_to_update) {
+    //     ids_to_update = [];
+    //   }
 
-      let text_color_wgpu = rgbToWgpu(textRgb.r, textRgb.g, textRgb.b, 255.0);
+    //   // let fontId = editor.fontManager.fontData[fontIndex].name;
+    //   let fontData = isHindi
+    //     ? editor.fontManager.fontData.filter((data) =>
+    //         data.support.includes("devanagari")
+    //       )
+    //     : editor.fontManager.fontData.filter((data) =>
+    //         data.support.includes("latin")
+    //       );
 
-      let text_color_dark_wgpu = rgbToWgpu(
-        darkTextColor._rgb.r,
-        darkTextColor._rgb.g,
-        darkTextColor._rgb.b,
-        255.0
-      );
-      let background_color_wgpu = rgbToWgpu(
-        backgroundRgb.r,
-        backgroundRgb.g,
-        backgroundRgb.b,
-        255.0
-      );
-      let background_color = [
-        backgroundRgb.r,
-        backgroundRgb.g,
-        backgroundRgb.b,
-        255,
-      ] as [number, number, number, number];
+    //   let fontId = fontData[fontIndex].name;
 
-      let ids_to_update = editorState.savedState.sequences
-        .find((s) => s.id === currentSequenceId)
-        ?.activeTextItems.map((text) => text.id);
+    //   editorState.savedState.sequences.forEach((s) => {
+    //     if (s.id == currentSequenceId) {
+    //       s.activeTextItems.forEach((t) => {
+    //         if (ids_to_update.includes(t.id)) {
+    //           // if t.id == selected_text_id.get().to_string() {
+    //           t.color = background_color;
+    //           t.fontFamily = fontId;
+    //           // }
+    //         }
+    //       });
+    //     }
+    //   });
 
-      if (!ids_to_update) {
-        ids_to_update = [];
-      }
+    //   editorState.savedState.sequences.forEach((s) => {
+    //     s.activeTextItems.forEach((p) => {
+    //       if (ids_to_update.includes(p.id)) {
+    //         p.backgroundFill = {
+    //           type: "Color",
+    //           value: text_color_dark_wgpu,
+    //         };
+    //       }
+    //     });
+    //   });
 
-      // let fontId = editor.fontManager.fontData[fontIndex].name;
-      let fontData = isHindi
-        ? editor.fontManager.fontData.filter((data) =>
-            data.support.includes("devanagari")
-          )
-        : editor.fontManager.fontData.filter((data) =>
-            data.support.includes("latin")
-          );
+    //   let background_uuid = currentSequenceId;
 
-      let fontId = fontData[fontIndex].name;
+    //   let stops: GradientStop[] = [
+    //     {
+    //       offset: 0,
+    //       color: text_color_wgpu,
+    //     },
+    //     {
+    //       offset: 1,
+    //       color: background_color_wgpu,
+    //     },
+    //   ];
 
-      editorState.savedState.sequences.forEach((s) => {
-        if (s.id == currentSequenceId) {
-          s.activeTextItems.forEach((t) => {
-            if (ids_to_update.includes(t.id)) {
-              // if t.id == selected_text_id.get().to_string() {
-              t.color = background_color;
-              t.fontFamily = fontId;
-              // }
-            }
-          });
-        }
-      });
+    //   let gradientBackground: BackgroundFill = {
+    //     type: "Gradient",
+    //     value: {
+    //       stops: stops,
+    //       numStops: stops.length, // numStops
+    //       type: "linear", // gradientType (0 is linear, 1 is radial)
+    //       startPoint: [0, 0], // startPoint
+    //       endPoint: [1, 0], // endPoint
+    //       center: [0.5, 0.5], // center
+    //       radius: 1.0, // radius
+    //       timeOffset: 0, // timeOffset
+    //       animationSpeed: 1, // animationSpeed
+    //       enabled: 1, // enabled
+    //     },
+    //   };
 
-      editorState.savedState.sequences.forEach((s) => {
-        s.activeTextItems.forEach((p) => {
-          if (ids_to_update.includes(p.id)) {
-            p.backgroundFill = {
-              type: "Color",
-              value: text_color_dark_wgpu,
-            };
-          }
-        });
-      });
-
-      let background_uuid = currentSequenceId;
-
-      let stops: GradientStop[] = [
-        {
-          offset: 0,
-          color: text_color_wgpu,
-        },
-        {
-          offset: 1,
-          color: background_color_wgpu,
-        },
-      ];
-
-      let gradientBackground: BackgroundFill = {
-        type: "Gradient",
-        value: {
-          stops: stops,
-          numStops: stops.length, // numStops
-          type: "linear", // gradientType (0 is linear, 1 is radial)
-          startPoint: [0, 0], // startPoint
-          endPoint: [1, 0], // endPoint
-          center: [0.5, 0.5], // center
-          radius: 1.0, // radius
-          timeOffset: 0, // timeOffset
-          animationSpeed: 1, // animationSpeed
-          enabled: 1, // enabled
-        },
-      };
-
-      editorState.savedState.sequences.forEach((s) => {
-        if (s.id == currentSequenceId) {
-          if (!s.backgroundFill) {
-            s.backgroundFill = {
-              type: "Color",
-              value: [0.8, 0.8, 0.8, 1],
-            } as BackgroundFill;
-          }
-          // gradient only on theme picker
-          s.backgroundFill = gradientBackground;
-        }
-      });
-    }
+    //   editorState.savedState.sequences.forEach((s) => {
+    //     if (s.id == currentSequenceId) {
+    //       if (!s.backgroundFill) {
+    //         s.backgroundFill = {
+    //           type: "Color",
+    //           value: [0.8, 0.8, 0.8, 1],
+    //         } as BackgroundFill;
+    //       }
+    //       // gradient only on theme picker
+    //       s.backgroundFill = gradientBackground;
+    //     }
+    //   });
+    // }
 
     await saveSequencesData(
       editorState.savedState.sequences,
