@@ -38,6 +38,8 @@ import { callLayoutInference, callMotionInference } from "@/fetchers/inference";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { getCurrentUser } from "@/hooks/useCurrentUser";
+import { SavedStVideoConfig } from "@/engine/video";
+import { SavedStImageConfig } from "@/engine/image";
 
 export default function FlowQuestions({
   flowId = null,
@@ -113,6 +115,8 @@ export default function FlowQuestions({
     templateData: SavedState,
     existingState: SavedState
   ): SavedState => {
+    // TODO: assure polygonMotionPaths have updated polygonIds (which assoiate with all object types)
+
     const mergedState = { ...existingState };
 
     if (templateData?.sequences) {
@@ -165,12 +169,13 @@ export default function FlowQuestions({
         ) {
           mergedState.sequences[0].activeImageItems =
             existingState.sequences[0].activeImageItems.map(
-              (imageItem: any, index: number) => {
+              (imageItem: SavedStImageConfig, index: number) => {
                 const templateImageItem =
                   templateSequence.activeImageItems[index];
                 if (templateImageItem) {
                   return {
                     ...imageItem,
+                    id: templateImageItem.id,
                     position: templateImageItem.position,
                     dimensions: templateImageItem.dimensions,
                     layer: templateImageItem.layer,
@@ -188,7 +193,7 @@ export default function FlowQuestions({
         ) {
           mergedState.sequences[0].activeVideoItems =
             existingState.sequences[0].activeVideoItems.map(
-              (videoItem: any, index: number) => {
+              (videoItem: SavedStVideoConfig, index: number) => {
                 const templateVideoItem =
                   templateSequence.activeVideoItems[index];
                 if (templateVideoItem) {
@@ -197,6 +202,7 @@ export default function FlowQuestions({
                   if (videoWidth >= 200) {
                     return {
                       ...videoItem,
+                      id: templateVideoItem.id,
                       position: templateVideoItem.position,
                       dimensions: templateVideoItem.dimensions,
                       layer: templateVideoItem.layer,
