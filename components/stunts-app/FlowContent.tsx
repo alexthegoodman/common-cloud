@@ -11,6 +11,7 @@ import { DataInterface } from "@/def/ai";
 import { fileToBlob } from "@/engine/image";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { upload } from "@vercel/blob/client";
 
 export default function FlowContent({
   flowId = null,
@@ -61,6 +62,7 @@ export default function FlowContent({
       const fileType = file.type;
       return (
         fileType.includes("image/") ||
+        fileType.includes("video/") ||
         fileType === "text/plain" ||
         fileType === "application/pdf" ||
         fileType ===
@@ -68,8 +70,8 @@ export default function FlowContent({
       );
     });
 
-    if (validFiles.length > 3) {
-      toast.error(t("You can only upload up to 3 files"));
+    if (validFiles.length > 6) {
+      toast.error(t("You can only upload up to 6 files"));
     } else {
       setFiles((prev) => [...prev, ...validFiles]);
     }
@@ -118,6 +120,26 @@ export default function FlowContent({
           />
         </div>
       );
+    } else if (file.type.includes("video/")) {
+      return (
+        <div className="h-16 w-16 relative">
+          <video
+            id={
+              "video-" +
+              file.name
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, "-")
+                .replace(/-+/g, "-")
+            }
+            src={URL.createObjectURL(file)}
+            className="h-full w-full object-cover rounded"
+            muted
+          />
+          <div className="absolute inset-0 bg-black bg-opacity-30 rounded flex items-center justify-center">
+            <div className="text-white text-xs font-bold">VIDEO</div>
+          </div>
+        </div>
+      );
     } else if (file.type === "application/pdf") {
       return (
         <div className="h-16 w-16 bg-red-100 rounded flex items-center justify-center text-red-500 font-bold">
@@ -164,13 +186,49 @@ export default function FlowContent({
       }
 
       try {
-        let response = await saveImage(authToken.token, file.name, blob);
+        let response;
+
+        if (file.type.includes("video/")) {
+          // Use Vercel blob client-side upload for videos
+          const newBlob = await upload(file.name, blob, {
+            access: "public",
+            handleUploadUrl: "/api/video/upload",
+            clientPayload: JSON.stringify({
+              token: authToken.token,
+            }),
+          });
+
+          let realId =
+            "video-" +
+            file.name
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, "-")
+              .replace(/-+/g, "-");
+          let realVideo = document.getElementById(realId) as HTMLVideoElement;
+          let width = 100;
+          let height = 100;
+          if (realVideo) {
+            width = realVideo.videoWidth;
+            height = realVideo.videoHeight;
+          }
+
+          response = {
+            url: newBlob.url,
+            fileName: file.name,
+            size: file.size,
+            mimeType: file.type,
+            dimensions: { width, height },
+          };
+        } else {
+          // Use existing saveImage for other file types
+          response = await saveImage(authToken.token, file.name, blob);
+        }
 
         if (response) {
           flowContent.files.push(response);
         }
       } catch (error: any) {
-        console.error("add image error", error);
+        console.error("add file error", error);
         toast.error(error.message || "An error occurred");
       }
     }
@@ -213,14 +271,14 @@ export default function FlowContent({
               onChange={handleFileInputChange}
               className="hidden"
               multiple
-              accept="image/*,.txt,.pdf,.docx"
+              accept="image/*,video/*,.txt,.pdf,.docx"
             />
             <div className="text-gray-500">
               <p className="font-medium mb-1">
                 {t("Drag and drop files here or click to browse")}
               </p>
               <p className="text-sm">
-                {t("Accepts images (PNG or JPG, under 20MB)")}
+                {t("Accepts images (PNG, JPG) or videos (MP4")}
               </p>
             </div>
           </div>

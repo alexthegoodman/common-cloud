@@ -250,54 +250,111 @@ export default function FlowQuestions({
 
     if (flow.flow.content.files) {
       for (const file of flow.flow.content.files) {
-        let aspectRatio = file.dimensions.height / file.dimensions.width;
-        let setWidth =
-          file.dimensions.width > 400 ? 400 : file.dimensions.width;
-        let setHeight = setWidth * aspectRatio;
-
         let new_id = uuidv4();
+        let position = { x: 0, y: 0 };
 
-        let position = {
-          x: 0,
-          y: 0,
-        };
+        if (file.mimeType && file.mimeType.includes("video/")) {
+          // Handle video files
+          let video_config = {
+            id: new_id,
+            name: "New Video Item",
+            dimensions: [file.dimensions.width, file.dimensions.height] as [
+              number,
+              number
+            ], // Default video dimensions
+            position,
+            path: file.url,
+            mousePath: "",
+            layer: -2,
+          };
 
-        let image_config = {
-          id: new_id,
-          name: "New Image Item",
-          dimensions: [setWidth, setHeight] as [number, number],
-          position,
-          // path: new_path.clone(),
-          url: file.url,
-          layer: -2,
-          isCircle: false,
-        };
+          // Create blob from video URL for video processing
+          // const response = await fetch(file.url);
+          // const blob = await response.blob();
+          const blob = new Blob(); // Placeholder, as we don't want to fetch the actual video
 
-        await editor.add_image_item(
-          image_config,
-          file.url,
-          new Blob(),
-          new_id,
-          currentSequenceId
-        );
+          await editor.add_video_item(
+            video_config,
+            blob,
+            new_id,
+            currentSequenceId,
+            [],
+            null
+          );
 
-        console.info("Adding image: {:?}", new_id);
+          console.info("Adding video: {:?}", new_id);
 
-        await editorState.add_saved_image_item(currentSequenceId, {
-          id: image_config.id,
-          name: image_config.name,
-          // path: new_path.clone(),
-          url: file.url,
-          dimensions: [image_config.dimensions[0], image_config.dimensions[1]],
-          position: {
-            x: position.x,
-            y: position.y,
-          },
-          layer: image_config.layer,
-          isCircle: image_config.isCircle,
-        });
+          // Get video item to access duration
+          let new_video_item = editor.videoItems.find((v) => v.id === new_id);
+          let sourceDurationMs = new_video_item?.sourceDurationMs || 5000; // Default 5 seconds
 
-        console.info("Saved image!");
+          await editorState.add_saved_video_item(
+            currentSequenceId,
+            {
+              id: video_config.id,
+              name: video_config.name,
+              path: file.url,
+              dimensions: [
+                video_config.dimensions[0],
+                video_config.dimensions[1],
+              ],
+              position: {
+                x: position.x,
+                y: position.y,
+              },
+              layer: video_config.layer,
+            },
+            sourceDurationMs
+          );
+
+          console.info("Saved video!");
+        } else {
+          // Handle image files (existing logic)
+          let aspectRatio = file.dimensions.height / file.dimensions.width;
+          let setWidth =
+            file.dimensions.width > 400 ? 400 : file.dimensions.width;
+          let setHeight = setWidth * aspectRatio;
+
+          let image_config = {
+            id: new_id,
+            name: "New Image Item",
+            dimensions: [setWidth, setHeight] as [number, number],
+            position,
+            // path: new_path.clone(),
+            url: file.url,
+            layer: -2,
+            isCircle: false,
+          };
+
+          await editor.add_image_item(
+            image_config,
+            file.url,
+            new Blob(),
+            new_id,
+            currentSequenceId
+          );
+
+          console.info("Adding image: {:?}", new_id);
+
+          await editorState.add_saved_image_item(currentSequenceId, {
+            id: image_config.id,
+            name: image_config.name,
+            // path: new_path.clone(),
+            url: file.url,
+            dimensions: [
+              image_config.dimensions[0],
+              image_config.dimensions[1],
+            ],
+            position: {
+              x: position.x,
+              y: position.y,
+            },
+            layer: image_config.layer,
+            isCircle: image_config.isCircle,
+          });
+
+          console.info("Saved image!");
+        }
       }
     }
 
