@@ -2108,6 +2108,71 @@ export default class EditorState {
     return new_motion_path;
   }
 
+  save_circular_motion_keyframes(
+    savable_item_id: string,
+    object_type: ObjectType,
+    current_keyframes: AnimationData,
+    current_position: [number, number],
+    radius: number
+  ): AnimationData {
+    let durationMs = current_keyframes.duration;
+    let properties: AnimationProperty[] = [];
+
+    let non_position_props = current_keyframes.properties.filter(
+      (p) => p.propertyPath !== "position"
+    );
+
+    if (non_position_props) {
+      non_position_props.forEach((prop) => {
+        properties.push(prop);
+      });
+    }
+
+    let position_keyframes: UIKeyframe[] = [];
+    let center_x = current_position[0];
+    let center_y = current_position[1];
+    let num_points = 32;
+    let time_step = durationMs / num_points;
+
+    for (let i = 0; i <= num_points; i++) {
+      let angle = (i / num_points) * 2 * Math.PI;
+      let x = center_x + radius * Math.cos(angle);
+      let y = center_y + radius * Math.sin(angle);
+
+      position_keyframes.push({
+        id: uuidv4().toString(),
+        time: i * time_step,
+        value: { type: "Position", value: [x, y] },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    }
+
+    let position_prop = {
+      name: "Position",
+      propertyPath: "position",
+      children: [],
+      keyframes: position_keyframes,
+      depth: 0,
+    };
+
+    properties.push(position_prop);
+
+    let new_motion_path: AnimationData = {
+      id: uuidv4().toString(),
+      objectType: object_type,
+      polygonId: savable_item_id,
+      duration: durationMs,
+      startTimeMs: current_keyframes.startTimeMs,
+      position: current_keyframes.position,
+      properties: properties,
+    };
+
+    return new_motion_path;
+  }
+
   async add_saved_polygon(
     selected_sequence_id: string,
     savable_polygon: SavedPolygonConfig

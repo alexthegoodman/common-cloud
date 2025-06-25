@@ -1486,6 +1486,8 @@ export const AnimationOptions = ({
   currentObjectId: string;
   objectType: ObjectType;
 }) => {
+  const [circularRadius, setCircularRadius] = useState<number>(100);
+
   return (
     <div className="flex flex-col gap-2">
       <p>Apply Animations</p>
@@ -1700,6 +1702,107 @@ export const AnimationOptions = ({
       >
         Apply Pulse
       </button>
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-row items-center gap-2">
+          <label className="text-xs text-gray-600">Radius:</label>
+          <input
+            type="number"
+            value={circularRadius}
+            onChange={(e) => setCircularRadius(Number(e.target.value))}
+            className="text-xs border rounded px-2 py-1 w-16"
+            min="1"
+            max="1000"
+          />
+        </div>
+        <button
+          className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+          onClick={async () => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            let currentSequence = editorState.savedState.sequences.find(
+              (s) => s.id === currentSequenceId
+            );
+
+            if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+              return;
+            }
+
+            let currentObject = null;
+            switch (objectType) {
+              case ObjectType.Polygon:
+                currentObject = currentSequence.activePolygons.find(
+                  (p) => p.id === currentObjectId
+                );
+                break;
+              case ObjectType.TextItem:
+                currentObject = currentSequence.activeTextItems.find(
+                  (p) => p.id === currentObjectId
+                );
+                break;
+              case ObjectType.ImageItem:
+                currentObject = currentSequence.activeImageItems.find(
+                  (p) => p.id === currentObjectId
+                );
+                break;
+              case ObjectType.VideoItem:
+                currentObject = currentSequence.activeVideoItems.find(
+                  (p) => p.id === currentObjectId
+                );
+                break;
+            }
+
+            let current_animation_data =
+              currentSequence?.polygonMotionPaths.find(
+                (p) => p.polygonId === currentObjectId
+              );
+
+            if (!current_animation_data) {
+              return;
+            }
+
+            let newAnimationData = editorState.save_circular_motion_keyframes(
+              currentObjectId,
+              objectType,
+              current_animation_data,
+              [currentObject?.position.x || 0, currentObject?.position.y || 0],
+              circularRadius
+            );
+
+            let sequence_cloned = null;
+
+            editorState.savedState.sequences.forEach((s) => {
+              if (s.id == currentSequenceId) {
+                sequence_cloned = s;
+
+                if (s.polygonMotionPaths) {
+                  let currentIndex = s.polygonMotionPaths.findIndex(
+                    (p) => p.id === current_animation_data.id
+                  );
+                  s.polygonMotionPaths[currentIndex] = newAnimationData;
+                }
+              }
+            });
+
+            if (!sequence_cloned) {
+              return;
+            }
+
+            let sequences = editorState.savedState.sequences;
+
+            await saveSequencesData(sequences, editorState.saveTarget);
+
+            // update motion path preview
+            editor.updateMotionPaths(sequence_cloned);
+          }}
+        >
+          Transform Motion Path to Circle
+        </button>
+      </div>
     </div>
   );
 };
