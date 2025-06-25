@@ -24,8 +24,10 @@ import {
 import { Editor, rgbToWgpu, Viewport } from "@/engine/editor";
 import EditorState, { SaveTarget } from "@/engine/editor_state";
 import {
+  AnimationData,
   BackgroundFill,
   GradientStop,
+  ObjectType,
   SavedState,
   Sequence,
   TrackType,
@@ -111,12 +113,120 @@ export default function FlowQuestions({
 
   // Merge template with existing content
   // Merge template with existing content
+  // const mergeTemplateWithContent = (
+  //   templateData: SavedState,
+  //   existingState: SavedState
+  // ): SavedState => {
+  //   // TODO: assure polygonMotionPaths have updated polygonIds (which assoiate with all object types)
+
+  //   const mergedState = { ...existingState };
+
+  //   if (templateData?.sequences) {
+  //     // Use the first sequence from template as base
+  //     const templateSequence = templateData.sequences[0];
+  //     if (templateSequence && mergedState.sequences[0]) {
+  //       // Replace polygons with existing content
+  //       mergedState.sequences[0].activePolygons =
+  //         existingState.sequences[0].activePolygons || [];
+
+  //       // Keep template's layout and motion paths but merge with content
+  //       if (templateSequence.polygonMotionPaths) {
+  //         mergedState.sequences[0].polygonMotionPaths =
+  //           templateSequence.polygonMotionPaths;
+
+  //         // TODO: need to update objectType on each path
+  //       }
+
+  //       // Keep template's background if it exists
+  //       if (templateSequence.backgroundFill) {
+  //         mergedState.sequences[0].backgroundFill =
+  //           templateSequence.backgroundFill;
+  //       }
+
+  //       // Merge positioning of text items from template
+  //       // if (
+  //       //   templateSequence.activeTextItems &&
+  //       //   existingState.sequences[0].activeTextItems
+  //       // ) {
+  //       //   mergedState.sequences[0].activeTextItems =
+  //       //     existingState.sequences[0].activeTextItems.map(
+  //       //       (textItem: any, index: number) => {
+  //       //         const templateTextItem =
+  //       //           templateSequence.activeTextItems[index];
+  //       //         if (templateTextItem) {
+  //       //           return {
+  //       //             ...textItem,
+  //       //             position: templateTextItem.position,
+  //       //             dimensions: templateTextItem.dimensions,
+  //       //             layer: templateTextItem.layer,
+  //       //           };
+  //       //         }
+  //       //         return textItem;
+  //       //       }
+  //       //     );
+  //       // }
+
+  //       // Merge positioning of image items from template
+  //       if (
+  //         templateSequence.activePolygons &&
+  //         existingState.sequences[0].activeImageItems
+  //       ) {
+  //         mergedState.sequences[0].activeImageItems =
+  //           existingState.sequences[0].activeImageItems.map(
+  //             (imageItem: SavedStImageConfig, index: number) => {
+  //               const templateImageItem =
+  //                 templateSequence.activePolygons[index];
+  //               if (templateImageItem) {
+  //                 return {
+  //                   ...imageItem,
+  //                   id: templateImageItem.id,
+  //                   position: templateImageItem.position,
+  //                   dimensions: templateImageItem.dimensions,
+  //                   layer: templateImageItem.layer,
+  //                 };
+  //               }
+  //               return imageItem;
+  //             }
+  //           );
+  //       }
+
+  //       // Merge positioning of video items from template - with 200px width check
+  //       if (
+  //         templateSequence.activePolygons &&
+  //         existingState.sequences[0].activeVideoItems
+  //       ) {
+  //         mergedState.sequences[0].activeVideoItems =
+  //           existingState.sequences[0].activeVideoItems.map(
+  //             (videoItem: SavedStVideoConfig, index: number) => {
+  //               const templateVideoItem =
+  //                 templateSequence.activePolygons[index];
+  //               if (templateVideoItem) {
+  //                 // Check if the video item is 200 pixels or wider
+  //                 const videoWidth = videoItem.dimensions?.[0] || 0;
+  //                 if (videoWidth >= 200) {
+  //                   return {
+  //                     ...videoItem,
+  //                     id: templateVideoItem.id,
+  //                     position: templateVideoItem.position,
+  //                     dimensions: templateVideoItem.dimensions,
+  //                     layer: templateVideoItem.layer,
+  //                   };
+  //                 }
+  //               }
+  //               return videoItem;
+  //             }
+  //           );
+  //       }
+  //     }
+  //   }
+
+  //   return mergedState;
+  // };
+
   const mergeTemplateWithContent = (
     templateData: SavedState,
     existingState: SavedState
   ): SavedState => {
-    // TODO: assure polygonMotionPaths have updated polygonIds (which assoiate with all object types)
-
     const mergedState = { ...existingState };
 
     if (templateData?.sequences) {
@@ -127,42 +237,61 @@ export default function FlowQuestions({
         mergedState.sequences[0].activePolygons =
           existingState.sequences[0].activePolygons || [];
 
-        // Keep template's layout and motion paths but merge with content
-        if (templateSequence.polygonMotionPaths) {
-          mergedState.sequences[0].polygonMotionPaths =
-            templateSequence.polygonMotionPaths;
-        }
-
         // Keep template's background if it exists
         if (templateSequence.backgroundFill) {
           mergedState.sequences[0].backgroundFill =
             templateSequence.backgroundFill;
         }
 
-        // Merge positioning of text items from template
-        // if (
-        //   templateSequence.activeTextItems &&
-        //   existingState.sequences[0].activeTextItems
-        // ) {
-        //   mergedState.sequences[0].activeTextItems =
-        //     existingState.sequences[0].activeTextItems.map(
-        //       (textItem: any, index: number) => {
-        //         const templateTextItem =
-        //           templateSequence.activeTextItems[index];
-        //         if (templateTextItem) {
-        //           return {
-        //             ...textItem,
-        //             position: templateTextItem.position,
-        //             dimensions: templateTextItem.dimensions,
-        //             layer: templateTextItem.layer,
-        //           };
-        //         }
-        //         return textItem;
-        //       }
-        //     );
-        // }
+        // OPTION 1: Keep original item IDs, update motion paths to match them
+        // Create a mapping from template polygon indices to existing object IDs and types
+        const createObjectMapping = () => {
+          const mapping: Array<{ id: string; objectType: ObjectType } | null> =
+            [];
+          let currentIndex = 0;
 
-        // Merge positioning of image items from template
+          // Map image items
+          if (existingState.sequences[0].activeImageItems) {
+            existingState.sequences[0].activeImageItems.forEach((imageItem) => {
+              mapping[currentIndex] = {
+                id: imageItem.id, // Keep original ID
+                objectType: ObjectType.ImageItem,
+              };
+              currentIndex++;
+            });
+          }
+
+          // Map video items (only if 200px or wider)
+          if (existingState.sequences[0].activeVideoItems) {
+            existingState.sequences[0].activeVideoItems.forEach((videoItem) => {
+              const videoWidth = videoItem.dimensions?.[0] || 0;
+              if (videoWidth >= 200) {
+                mapping[currentIndex] = {
+                  id: videoItem.id, // Keep original ID
+                  objectType: ObjectType.VideoItem,
+                };
+              } else {
+                mapping[currentIndex] = null; // Skip narrow videos
+              }
+              currentIndex++;
+            });
+          }
+
+          // Map text items
+          if (existingState.sequences[0].activeTextItems) {
+            existingState.sequences[0].activeTextItems.forEach((textItem) => {
+              mapping[currentIndex] = {
+                id: textItem.id, // Keep original ID
+                objectType: ObjectType.TextItem,
+              };
+              currentIndex++;
+            });
+          }
+
+          return mapping;
+        };
+
+        // Merge positioning of image items from template (DON'T change IDs)
         if (
           templateSequence.activePolygons &&
           existingState.sequences[0].activeImageItems
@@ -175,7 +304,7 @@ export default function FlowQuestions({
                 if (templateImageItem) {
                   return {
                     ...imageItem,
-                    id: templateImageItem.id,
+                    // Keep original ID, only update positioning
                     position: templateImageItem.position,
                     dimensions: templateImageItem.dimensions,
                     layer: templateImageItem.layer,
@@ -186,7 +315,7 @@ export default function FlowQuestions({
             );
         }
 
-        // Merge positioning of video items from template - with 200px width check
+        // Merge positioning of video items from template (DON'T change IDs)
         if (
           templateSequence.activePolygons &&
           existingState.sequences[0].activeVideoItems
@@ -202,7 +331,7 @@ export default function FlowQuestions({
                   if (videoWidth >= 200) {
                     return {
                       ...videoItem,
-                      id: templateVideoItem.id,
+                      // Keep original ID, only update positioning
                       position: templateVideoItem.position,
                       dimensions: templateVideoItem.dimensions,
                       layer: templateVideoItem.layer,
@@ -212,6 +341,29 @@ export default function FlowQuestions({
                 return videoItem;
               }
             );
+        }
+
+        // Update motion paths to use existing object IDs
+        if (templateSequence.polygonMotionPaths) {
+          const objectMapping = createObjectMapping();
+
+          mergedState.sequences[0].polygonMotionPaths =
+            templateSequence.polygonMotionPaths
+              .map((motionPath: AnimationData, index: number) => {
+                const mappedObject = objectMapping[index];
+
+                // Skip motion paths for objects that don't exist or narrow videos
+                if (!mappedObject) {
+                  return null;
+                }
+
+                return {
+                  ...motionPath,
+                  polygonId: mappedObject.id, // Use existing object ID
+                  objectType: mappedObject.objectType,
+                };
+              })
+              .filter((path): path is AnimationData => path !== null); // Remove null entries
         }
       }
     }
