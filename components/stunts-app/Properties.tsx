@@ -1487,6 +1487,7 @@ export const AnimationOptions = ({
   objectType: ObjectType;
 }) => {
   const [circularRadius, setCircularRadius] = useState<number>(100);
+  const [circularRotation, setCircularRotation] = useState<number>(0);
 
   return (
     <div className="flex flex-col gap-2">
@@ -1714,6 +1715,18 @@ export const AnimationOptions = ({
             max="1000"
           />
         </div>
+        <div className="flex flex-row items-center gap-2">
+          <label className="text-xs text-gray-600">Rotation:</label>
+          <input
+            type="number"
+            value={circularRotation}
+            onChange={(e) => setCircularRotation(Number(e.target.value))}
+            className="text-xs border rounded px-2 py-1 w-16"
+            min="0"
+            max="360"
+          />
+          <span className="text-xs text-gray-500">°</span>
+        </div>
         <button
           className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
           onClick={async () => {
@@ -1770,7 +1783,8 @@ export const AnimationOptions = ({
               objectType,
               current_animation_data,
               [currentObject?.position.x || 0, currentObject?.position.y || 0],
-              circularRadius
+              circularRadius,
+              circularRotation
             );
 
             let sequence_cloned = null;

@@ -2113,7 +2113,8 @@ export default class EditorState {
     object_type: ObjectType,
     current_keyframes: AnimationData,
     current_position: [number, number],
-    radius: number
+    radius: number,
+    rotation: number = 0
   ): AnimationData {
     let durationMs = current_keyframes.duration;
     let properties: AnimationProperty[] = [];
@@ -2135,7 +2136,7 @@ export default class EditorState {
     let time_step = durationMs / num_points;
 
     for (let i = 0; i <= num_points; i++) {
-      let angle = (i / num_points) * 2 * Math.PI;
+      let angle = (i / num_points) * 2 * Math.PI + (rotation * Math.PI / 180);
       let x = center_x + radius * Math.cos(angle);
       let y = center_y + radius * Math.sin(angle);
 
