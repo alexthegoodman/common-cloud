@@ -23,5 +23,15 @@
   "Vertical": "लंबवत",
   "Your Prompt": "आपका प्रॉम्प्ट",
   "Your Content": "आपकी सामग्री",
-  "Intelligent Questions": "बुद्धिमान प्रश्न"
+  "Intelligent Questions": "बुद्धिमान प्रश्न",
+  "Please upload 1 video and 4 images to continue": "कृपया जारी रखने के लिए 1 वीडियो और 4 छवियां अपलोड करें",
+  "Required": "आवश्यक",
+  "Upload at least 1 video and 4 images to complete your flow": "अपना फ़्लो पूरा करने के लिए कम से कम 1 वीडियो और 4 छवियां अपलोड करें",
+  "Required: 1 video + 4 images minimum. Accepts PNG, JPG, MP4": "आवश्यक: न्यूनतम 1 वीडियो + 4 छवियां। PNG, JPG, MP4 स्वीकार करता है",
+  "Media Status": "मीडिया स्थिति",
+  "Requirements met!": "आवश्यकताएं पूरी हुईं!",
+  "Need": "चाहिए",
+  "more video(s)": "और वीडियो",
+  "more image(s)": "और छवियां",
+  "Optional - Add context from web links": "वैकल्पिक - वेब लिंक से संदर्भ जोड़ें"
 }

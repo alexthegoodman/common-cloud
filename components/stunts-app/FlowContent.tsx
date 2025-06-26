@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useRef, ChangeEvent, DragEventHandler } from "react";
+import {
+  useState,
+  useRef,
+  ChangeEvent,
+  DragEventHandler,
+  useMemo,
+} from "react";
 import { Spinner } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
 import { IFlowContent, scrapeLink, updateFlowContent } from "@/fetchers/flows";
@@ -35,6 +41,16 @@ export default function FlowContent({
   const [isAnalyzing, setIsAnalyzing] = useState([false, false, false]);
   const [linkData, setLinkData] = useState<DataInterface[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const videoCount = useMemo(
+    () => files.filter((file) => file.type.includes("video/")).length,
+    [files]
+  );
+  const imageCount = useMemo(
+    () => files.filter((file) => file.type.includes("image/")).length,
+    [files]
+  );
+  const requirementsMet = videoCount >= 1 && imageCount >= 4;
 
   // Handle file drop
   const handleDrop: DragEventHandler<HTMLDivElement> = (e) => {
@@ -169,6 +185,11 @@ export default function FlowContent({
       return;
     }
 
+    if (!requirementsMet) {
+      toast.error(t("Please upload 1 video and 4 images to continue"));
+      return;
+    }
+
     // TODO: update flow with files and link data
     setLoading(true);
 
@@ -253,7 +274,31 @@ export default function FlowContent({
         {/* File Upload Section */}
         <div className="w-full max-w-[600px] mb-10">
           <h2 className="text-xl font-semibold mb-2">{t("Upload Files")}</h2>
-          <span className="block text-slate-500 mb-4">{t("Optional")}</span>
+          <div className="mb-4">
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <svg
+                  className="w-5 h-5 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span className="text-blue-800 font-medium">
+                  {t("Required")}:{" "}
+                  {t(
+                    "Upload at least 1 video and 4 images to complete your flow"
+                  )}
+                </span>
+              </div>
+            </div>
+          </div>
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
               isDragging
@@ -278,14 +323,45 @@ export default function FlowContent({
                 {t("Drag and drop files here or click to browse")}
               </p>
               <p className="text-sm">
-                {t("Accepts images (PNG, JPG) or videos (MP4")}
+                {t(
+                  "Required: 1 video + 4 images minimum. Accepts PNG, JPG, MP4"
+                )}
               </p>
             </div>
           </div>
 
-          {/* File List */}
+          {/* Media Requirements Status */}
           {files.length > 0 && (
             <div className="mt-6">
+              <div className="mb-4">
+                {(() => {
+                  // const videoCount = files.filter(file => file.type.includes("video/")).length;
+                  // const imageCount = files.filter(file => file.type.includes("image/")).length;
+                  // const requirementsMet = videoCount >= 1 && imageCount >= 4;
+
+                  return (
+                    <div
+                      className={`p-3 rounded-lg border ${
+                        requirementsMet
+                          ? "bg-green-50 border-green-200 text-green-800"
+                          : "bg-yellow-50 border-yellow-200 text-yellow-800"
+                      }`}
+                    >
+                      <div className="text-sm font-medium">
+                        {t("Media Status")}: {videoCount} video(s), {imageCount}{" "}
+                        image(s)
+                        {requirementsMet
+                          ? ` - ${t("Requirements met!")}`
+                          : ` - ${t("Need")} ${Math.max(0, 1 - videoCount)} ${t(
+                              "more video(s)"
+                            )} ${Math.max(0, 4 - imageCount)} ${t(
+                              "more image(s)"
+                            )}`}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
               <h3 className="text-lg font-medium mb-2">
                 {t("Uploaded Files")} ({files.length})
               </h3>
@@ -318,7 +394,9 @@ export default function FlowContent({
         {/* Link Analysis Section */}
         <div className="w-full max-w-[600px]">
           <h2 className="text-xl font-semibold mb-2">{t("Analyze Links")}</h2>
-          <span className="block text-slate-500 mb-4">{t("Optional")}</span>
+          <span className="block text-slate-500 mb-4">
+            {t("Optional - Add context from web links")}
+          </span>
           <div className="space-y-4">
             {links.map((link, index) => (
               <AnalyzeLink

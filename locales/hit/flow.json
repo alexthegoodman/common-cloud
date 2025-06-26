@@ -23,5 +23,15 @@
   "Vertical": "Lambavat",
   "Your Prompt": "Aapka Prompt",
   "Your Content": "Aapki Samagri",
-  "Intelligent Questions": "Buddhiman Prashn"
+  "Intelligent Questions": "Buddhiman Prashn",
+  "Please upload 1 video and 4 images to continue": "Kripaya jaari rakhne ke liye 1 video aur 4 chaviyan upload karein",
+  "Required": "Aavashyak",
+  "Upload at least 1 video and 4 images to complete your flow": "Apna flow pura karne ke liye kam se kam 1 video aur 4 chaviyan upload karein",
+  "Required: 1 video + 4 images minimum. Accepts PNG, JPG, MP4": "Aavashyak: nyuntam 1 video + 4 chaviyan. PNG, JPG, MP4 swikar karta hai",
+  "Media Status": "Media sthiti",
+  "Requirements met!": "Aavashyakatayen puri huin!",
+  "Need": "Chahiye",
+  "more video(s)": "aur video",
+  "more image(s)": "aur chaviyan",
+  "Optional - Add context from web links": "Vaikalpik - web link se sandarbh jodein"
 }

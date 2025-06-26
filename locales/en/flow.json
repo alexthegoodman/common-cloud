@@ -23,5 +23,15 @@
   "Vertical": "Vertical",
   "Your Prompt": "Your Prompt",
   "Your Content": "Your Content",
-  "Intelligent Questions": "Intelligent Questions"
+  "Intelligent Questions": "Intelligent Questions",
+  "Please upload 1 video and 4 images to continue": "Please upload 1 video and 4 images to continue",
+  "Required": "Required",
+  "Upload at least 1 video and 4 images to complete your flow": "Upload at least 1 video and 4 images to complete your flow",
+  "Required: 1 video + 4 images minimum. Accepts PNG, JPG, MP4": "Required: 1 video + 4 images minimum. Accepts PNG, JPG, MP4",
+  "Media Status": "Media Status",
+  "Requirements met!": "Requirements met!",
+  "Need": "Need",
+  "more video(s)": "more video(s)",
+  "more image(s)": "more image(s)",
+  "Optional - Add context from web links": "Optional - Add context from web links"
 }
