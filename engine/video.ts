@@ -920,13 +920,13 @@ export class StVideo {
 
     const frameInfo = await this.decodeNextFrame();
 
-    // console.info(
-    //   "write texture!",
-    //   frameInfo.width,
-    //   frameInfo.height,
-    //   frameInfo.frameData.length,
-    //   frameInfo.frameData.slice(0, 1000)
-    // );
+    console.info(
+      "frame info",
+      frameInfo.width,
+      frameInfo.height,
+      frameInfo.frame.displayWidth,
+      frameInfo.frame.displayHeight
+    );
 
     // this.bindGroup = device.createBindGroup({
     //   layout: this.bindGroupLayout,
@@ -970,10 +970,12 @@ export class StVideo {
       }
     );
 
+    console.info("close frame");
+
     frameInfo.frame.close();
 
-    // console.info("texture write succesful");
-    // console.log("Texture format:", this.texture.format); // Log texture format
+    console.info("texture write succesful");
+    console.log("Texture format:", this.texture.format); // Log texture format
 
     return frameInfo;
   }
