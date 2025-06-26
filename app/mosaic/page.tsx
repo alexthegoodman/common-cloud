@@ -8,6 +8,7 @@ import Pagination from "@/components/Pagination"; // Import the pagination compo
 import { getPublicProjects } from "@/fetchers/mosaic";
 import useSWR from "swr";
 import { DateTime } from "luxon";
+import Link from "next/link";
 
 export default function Page() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -117,20 +118,22 @@ export default function Page() {
                     key={project.id || `project-${i}`}
                     className={isFirstProject ? "mb-8" : "w-96 mb-8"}
                   >
-                    <ClientOnly>
-                      <VideoPreview
-                        project={{
-                          project_id: project.id,
-                          project_name: project.name,
-                          video_data: project.fileData,
-                          created: DateTime.fromISO(project.createdAt),
-                          modified: DateTime.fromISO(project.createdAt),
-                        }}
-                      />
-                    </ClientOnly>
-                    <h2 className="text-xl font-bold mt-2">
-                      {project.name || project.name}
-                    </h2>
+                    <Link href={`/mosaic/${project.id}`} className="block group">
+                      <ClientOnly>
+                        <VideoPreview
+                          project={{
+                            project_id: project.id,
+                            project_name: project.name,
+                            video_data: project.fileData,
+                            created: DateTime.fromISO(project.createdAt),
+                            modified: DateTime.fromISO(project.createdAt),
+                          }}
+                        />
+                      </ClientOnly>
+                      <h2 className="text-xl font-bold mt-2 group-hover:text-blue-600 transition-colors">
+                        {project.name || project.name}
+                      </h2>
+                    </Link>
                   </section>
                 );
               })}

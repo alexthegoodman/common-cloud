@@ -68,3 +68,31 @@ export const getPublicProjects = async (
 
   // return projects.sort((a, b) => b.modified.diff(a.modified).milliseconds); // Sort using luxon's diff
 };
+
+export interface SingleProjectResponse {
+  project: ProjectData & {
+    author: string;
+  };
+}
+
+export const getPublicProject = async (
+  projectId: string
+): Promise<SingleProjectResponse> => {
+  const response = await fetch(`/api/projects/public/${projectId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Project request failed: ${response.status} - ${response.statusText} - ${errorText}`
+    );
+  }
+
+  const projectResponse: SingleProjectResponse = await response.json();
+
+  return projectResponse;
+};
