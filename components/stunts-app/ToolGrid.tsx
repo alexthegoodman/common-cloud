@@ -229,7 +229,22 @@ export const ToolGrid = ({
     }
 
     try {
-      let response = await saveImage(authToken.token, file.name, blob);
+      // Use Vercel blob client-side upload for images
+      const newBlob = await upload(file.name, blob, {
+        access: "public",
+        handleUploadUrl: "/api/image/upload",
+        clientPayload: JSON.stringify({
+          token: authToken.token,
+        }),
+      });
+
+      let response = {
+        url: newBlob.url,
+        fileName: file.name,
+        size: file.size,
+        mimeType: file.type,
+        dimensions: { width: 100, height: 100 },
+      };
 
       if (response) {
         let url = response.url;

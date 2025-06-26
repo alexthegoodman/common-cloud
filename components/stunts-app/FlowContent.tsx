@@ -241,8 +241,34 @@ export default function FlowContent({
             mimeType: file.type,
             dimensions: { width, height },
           };
+        } else if (file.type.includes("image/")) {
+          // Use Vercel blob client-side upload for images
+          const newBlob = await upload(file.name, blob, {
+            access: "public",
+            handleUploadUrl: "/api/image/upload",
+            clientPayload: JSON.stringify({
+              token: authToken.token,
+            }),
+          });
+
+          // Get image dimensions from the DOM if available
+          const imgElement = document.querySelector(`img[src*="${file.name}"]`) as HTMLImageElement;
+          let width = 100;
+          let height = 100;
+          if (imgElement && imgElement.naturalWidth && imgElement.naturalHeight) {
+            width = imgElement.naturalWidth;
+            height = imgElement.naturalHeight;
+          }
+
+          response = {
+            url: newBlob.url,
+            fileName: file.name,
+            size: file.size,
+            mimeType: file.type,
+            dimensions: { width, height },
+          };
         } else {
-          // Use existing saveImage for other file types
+          // Use existing saveImage for other file types (text, PDF, DOCX)
           response = await saveImage(authToken.token, file.name, blob);
         }
 
