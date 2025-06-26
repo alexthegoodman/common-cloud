@@ -327,7 +327,7 @@ export default function FlowQuestions({
                   templateSequence.activePolygons[index];
                 if (templateVideoItem) {
                   // Check if the video item is 200 pixels or wider
-                  const videoWidth = videoItem.dimensions?.[0] || 0;
+                  const videoWidth = templateVideoItem.dimensions?.[0] || 0;
                   if (videoWidth >= 200) {
                     return {
                       ...videoItem,
