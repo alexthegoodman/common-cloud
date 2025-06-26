@@ -64,6 +64,8 @@ export const ToolGrid = ({
   const videoInputRef = useRef<HTMLInputElement | null>(null);
 
   const [generateImageModalOpen, setGenerateImageModalOpen] = useState(false);
+  const [generateImagePrompt, setGenerateImagePrompt] = useState("");
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const handleStartCapture = async () => {
     let webCapture = webCaptureRef.current;
@@ -618,6 +620,45 @@ export const ToolGrid = ({
     [import_video]
   );
 
+  const handleGenerateImage = async () => {
+    if (!generateImagePrompt.trim() || !currentSequenceId) {
+      return;
+    }
+
+    setIsGeneratingImage(true);
+
+    try {
+      const response = await fetch("/api/image/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt: generateImagePrompt }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate image");
+      }
+
+      const imageBlob = await response.blob();
+      
+      const file = new File([imageBlob], `generated-${Date.now()}.jpg`, {
+        type: "image/jpeg",
+      });
+
+      await on_add_image(currentSequenceId, file);
+      
+      setGenerateImageModalOpen(false);
+      setGenerateImagePrompt("");
+      toast.success("Image generated and added successfully!");
+    } catch (error: any) {
+      console.error("Image generation error:", error);
+      toast.error(error.message || "Failed to generate image");
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
   return (
     <>
       {uploadProgress > 0 && uploadProgress < 99 ? (
@@ -761,8 +802,9 @@ export const ToolGrid = ({
               onClose={() => setGenerateImageModalOpen(false)}
               className="relative z-50"
             >
+              <div className="fixed inset-0 bg-black/25" />
               <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-                <DialogPanel className="max-w-lg space-y-4 border bg-white p-12">
+                <DialogPanel className="max-w-lg space-y-4 border bg-white p-12 rounded-lg">
                   <DialogTitle className="font-bold">
                     Generate New Image
                   </DialogTitle>
@@ -773,15 +815,27 @@ export const ToolGrid = ({
                   <div>
                     <textarea
                       placeholder="A dog eating food with delight..."
-                      rows={2}
-                    ></textarea>
+                      rows={3}
+                      className="w-full p-3 border border-gray-300 rounded-md resize-none"
+                      value={generateImagePrompt}
+                      onChange={(e) => setGenerateImagePrompt(e.target.value)}
+                      disabled={isGeneratingImage}
+                    />
                   </div>
                   <div className="flex gap-4">
-                    <button onClick={() => setGenerateImageModalOpen(false)}>
+                    <button 
+                      onClick={() => setGenerateImageModalOpen(false)}
+                      disabled={isGeneratingImage}
+                      className="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50"
+                    >
                       Cancel
                     </button>
-                    <button onClick={() => setGenerateImageModalOpen(false)}>
-                      Generate
+                    <button 
+                      onClick={handleGenerateImage}
+                      disabled={isGeneratingImage || !generateImagePrompt.trim()}
+                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isGeneratingImage ? "Generating..." : "Generate"}
                     </button>
                   </div>
                 </DialogPanel>
