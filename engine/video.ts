@@ -833,7 +833,7 @@ export class StVideo {
 
       this.videoDecoder.configure(config);
 
-      console.info("decoder configured");
+      // console.info("decoder configured");
 
       resolve();
     });
@@ -887,25 +887,25 @@ export class StVideo {
         data: sample.data,
       });
 
-      console.log(
-        "EncodedVideoChunk:",
-        chunk.type,
-        chunk.timestamp,
-        chunk.duration,
-        chunk.byteLength
-      );
+      // console.log(
+      //   "EncodedVideoChunk:",
+      //   chunk.type,
+      //   chunk.timestamp,
+      //   chunk.duration,
+      //   chunk.byteLength
+      // );
 
-      console.info(
-        "decode chunk",
-        this.samples.length,
-        chunk.type,
-        this.currentSampleIndex,
-        sample.is_sync
-      );
+      // console.info(
+      //   "decode chunk",
+      //   this.samples.length,
+      //   chunk.type,
+      //   this.currentSampleIndex,
+      //   sample.is_sync
+      // );
 
       this.videoDecoder!.decode(chunk);
 
-      console.info("chunk decoded");
+      // console.info("chunk decoded");
 
       this.currentSampleIndex++;
     });
