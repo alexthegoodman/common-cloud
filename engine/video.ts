@@ -478,9 +478,23 @@ export class StVideo {
       //   this.drawVideoFrame(device, queue).catch(console.error); // Handle potential errors
       // });
 
-      // async/await
-      await this.initializeDecoder();
-      await this.drawVideoFrame(device, queue);
+      console.info("prep to decode video");
+
+      try {
+        await this.initializeDecoder();
+      } catch (error) {
+        console.error("Error initializing video decoder:", error);
+        throw new Error("Failed to initialize video decoder");
+      }
+
+      console.info("prep to draw video frame");
+
+      try {
+        await this.drawVideoFrame(device, queue);
+      } catch (error) {
+        console.error("Error drawing video frame:", error);
+        throw new Error("Failed to draw video frame");
+      }
 
       this.hidden = loadedHidden;
 
