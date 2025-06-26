@@ -826,8 +826,8 @@ export class StVideo {
         // optimizeForLatency: true,
         // hardwareAcceleration: "prefer-hardware",
         // testing settings for taller videos...
-        optimizeForLatency: false,
-        hardwareAcceleration: "prefer-software",
+        optimizeForLatency: true,
+        hardwareAcceleration: "no-preference",
         // colorSpace: colorSpace,
 
         // Add description for AVC/H.264
