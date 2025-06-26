@@ -50,7 +50,8 @@ export default function FlowContent({
     () => files.filter((file) => file.type.includes("image/")).length,
     [files]
   );
-  const requirementsMet = videoCount >= 1 && imageCount >= 4;
+  // const requirementsMet = videoCount >= 1 && imageCount >= 4;
+  const requirementsMet = videoCount + imageCount >= 4; // At least 4 files, either video or image, to lessen friction
 
   // Handle file drop
   const handleDrop: DragEventHandler<HTMLDivElement> = (e) => {
