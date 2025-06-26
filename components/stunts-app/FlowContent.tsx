@@ -6,6 +6,7 @@ import {
   ChangeEvent,
   DragEventHandler,
   useMemo,
+  useEffect,
 } from "react";
 import { Spinner } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
@@ -18,6 +19,8 @@ import { fileToBlob } from "@/engine/image";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { upload } from "@vercel/blob/client";
+import { getFlow, FlowData } from "@/fetchers/flows";
+import useSWR from "swr";
 
 export default function FlowContent({
   flowId = null,
@@ -42,16 +45,62 @@ export default function FlowContent({
   const [linkData, setLinkData] = useState<DataInterface[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // State for flow data and image generation
+  // const [flowData, setFlowData] = useState<FlowData | null>(null);
+  const [isGeneratingImages, setIsGeneratingImages] = useState(false);
+  const [generatedImages, setGeneratedImages] = useState<File[]>([]);
+
+  // // Load flow data on component mount
+  // useEffect(() => {
+  //   const loadFlowData = async () => {
+  //     if (flowId && authToken) {
+  //       try {
+  //         const response = await getFlow(authToken, flowId);
+  //         if (response) {
+  //           setFlowData(response.flow);
+  //         }
+  //       } catch (error) {
+  //         console.error("Failed to load flow data:", error);
+  //       }
+  //     }
+  //   };
+
+  //   loadFlowData();
+  // }, [flowId, authToken]);
+
+  let {
+    data: flowResponse,
+    isLoading,
+    error,
+  } = useSWR("flow" + flowId, () => getFlow(authToken, flowId as string));
+
+  const flowData = flowResponse?.flow as FlowData | null;
+
+  // Auto-generate images when files change and we have flow data
+  useEffect(() => {
+    if (
+      flowData?.prompt &&
+      files.length > 0 &&
+      files.length < 5 &&
+      !isGeneratingImages
+    ) {
+      autoGenerateImages(files.length);
+    }
+  }, [files.length, flowData?.prompt]);
+
   const videoCount = useMemo(
     () => files.filter((file) => file.type.includes("video/")).length,
     [files]
   );
   const imageCount = useMemo(
-    () => files.filter((file) => file.type.includes("image/")).length,
-    [files]
+    () =>
+      files.filter((file) => file.type.includes("image/")).length +
+      generatedImages.length,
+    [files, generatedImages]
   );
   // const requirementsMet = videoCount >= 1 && imageCount >= 4;
-  const requirementsMet = videoCount + imageCount >= 4; // At least 4 files, either video or image, to lessen friction
+  const totalFiles = files.length + generatedImages.length;
+  const requirementsMet = totalFiles >= 4; // At least 4 files total (uploaded + generated)
 
   // Handle file drop
   const handleDrop: DragEventHandler<HTMLDivElement> = (e) => {
@@ -116,6 +165,76 @@ export default function FlowContent({
   // Handle removing a file
   const removeFile = (index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Handle removing a generated image
+  const removeGeneratedImage = (index: number) => {
+    setGeneratedImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Auto-generate images to fill up to 5 total files
+  const autoGenerateImages = async (uploadedFilesCount: number) => {
+    if (!flowData?.prompt || isGeneratingImages) {
+      return;
+    }
+
+    const neededImages = Math.max(0, 5 - uploadedFilesCount);
+
+    if (neededImages === 0) {
+      return;
+    }
+
+    setIsGeneratingImages(true);
+
+    try {
+      const response = await fetch("/api/image/generate-bulk", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: flowData.prompt,
+          count: neededImages,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate images");
+      }
+
+      const data = await response.json();
+
+      // Convert base64 images to File objects
+      const newImages: File[] = [];
+      for (const imageData of data.images) {
+        const binaryString = atob(imageData.data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        const blob = new Blob([bytes], { type: "image/jpeg" });
+        const file = new File(
+          [blob],
+          `generated-${Date.now()}-${imageData.index}.jpg`,
+          {
+            type: "image/jpeg",
+          }
+        );
+
+        newImages.push(file);
+      }
+
+      setGeneratedImages(newImages);
+      toast.success(
+        `Generated ${newImages.length} images to complete your collection!`
+      );
+    } catch (error: any) {
+      console.error("Image generation error:", error);
+      toast.error(error.message || "Failed to generate images");
+    } finally {
+      setIsGeneratingImages(false);
+    }
   };
 
   // Handle link input change
@@ -199,8 +318,9 @@ export default function FlowContent({
       links: [],
     };
 
-    // add files to flow's content object
-    for (let file of files) {
+    // add files (both uploaded and generated) to flow's content object
+    const allFiles = [...files, ...generatedImages];
+    for (let file of allFiles) {
       let blob = await fileToBlob(file);
 
       if (!blob) {
@@ -252,10 +372,16 @@ export default function FlowContent({
           });
 
           // Get image dimensions from the DOM if available
-          const imgElement = document.querySelector(`img[src*="${file.name}"]`) as HTMLImageElement;
+          const imgElement = document.querySelector(
+            `img[src*="${file.name}"]`
+          ) as HTMLImageElement;
           let width = 100;
           let height = 100;
-          if (imgElement && imgElement.naturalWidth && imgElement.naturalHeight) {
+          if (
+            imgElement &&
+            imgElement.naturalWidth &&
+            imgElement.naturalHeight
+          ) {
             width = imgElement.naturalWidth;
             height = imgElement.naturalHeight;
           }
@@ -318,9 +444,8 @@ export default function FlowContent({
                   />
                 </svg>
                 <span className="text-blue-800 font-medium">
-                  {t("Required")}:{" "}
                   {t(
-                    "Upload at least 1 video and 4 images to complete your flow"
+                    "Upload your files - we'll automatically generate additional images based on your prompt to reach 5 total files"
                   )}
                 </span>
               </div>
@@ -351,14 +476,68 @@ export default function FlowContent({
               </p>
               <p className="text-sm">
                 {t(
-                  "Required: 1 video + 4 images minimum. Accepts PNG, JPG, MP4"
+                  "Upload any combination of images, videos, or documents. AI will fill the rest to reach 5 files total."
                 )}
               </p>
             </div>
           </div>
 
+          {/* Auto-generation Status */}
+          {isGeneratingImages && (
+            <div className="mt-6">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <Spinner className="w-5 h-5 text-blue-600 animate-spin" />
+                  <span className="text-blue-800 font-medium">
+                    {t("Generating images based on your prompt")}...
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Generated Images Display */}
+          {generatedImages.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-medium mb-2 text-purple-800">
+                {t("AI Generated Images")} ({generatedImages.length})
+              </h3>
+              <div className="space-y-3">
+                {generatedImages.map((file, index) => (
+                  <div
+                    key={`generated-${index}`}
+                    className="flex items-center p-3 border border-purple-200 rounded-lg bg-purple-50"
+                  >
+                    <div className="h-16 w-16 relative">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={file.name}
+                        className="h-full w-full object-cover rounded"
+                      />
+                      <div className="absolute top-0 right-0 bg-purple-500 text-white text-xs px-1 rounded">
+                        AI
+                      </div>
+                    </div>
+                    <div className="ml-4 flex-grow">
+                      <p className="font-medium truncate">{file.name}</p>
+                      <p className="text-sm text-purple-600">
+                        {(file.size / 1024).toFixed(1)} KB - AI Generated
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => removeGeneratedImage(index)}
+                      className="text-gray-500 hover:text-red-500 p-1"
+                    >
+                      {t("Remove")}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Media Requirements Status */}
-          {files.length > 0 && (
+          {(files.length > 0 || generatedImages.length > 0) && (
             <div className="mt-6">
               <div className="mb-4">
                 {(() => {
@@ -375,14 +554,13 @@ export default function FlowContent({
                       }`}
                     >
                       <div className="text-sm font-medium">
-                        {t("Media Status")}: {videoCount} video(s), {imageCount}{" "}
-                        image(s)
+                        {t("Files Status")}: {files.length} uploaded,{" "}
+                        {generatedImages.length} AI generated ({totalFiles}{" "}
+                        total)
                         {requirementsMet
                           ? ` - ${t("Requirements met!")}`
-                          : ` - ${t("Need")} ${Math.max(0, 1 - videoCount)} ${t(
-                              "more video(s)"
-                            )} ${Math.max(0, 4 - imageCount)} ${t(
-                              "more image(s)"
+                          : ` - ${t("Need")} ${Math.max(0, 4 - totalFiles)} ${t(
+                              "more files"
                             )}`}
                       </div>
                     </div>
@@ -419,7 +597,7 @@ export default function FlowContent({
         </div>
 
         {/* Link Analysis Section */}
-        <div className="w-full max-w-[600px]">
+        {/* <div className="w-full max-w-[600px]">
           <h2 className="text-xl font-semibold mb-2">{t("Analyze Links")}</h2>
           <span className="block text-slate-500 mb-4">
             {t("Optional - Add context from web links")}
@@ -439,7 +617,7 @@ export default function FlowContent({
               />
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
 
       <button
