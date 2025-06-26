@@ -823,8 +823,11 @@ export class StVideo {
 
       const config: VideoDecoderConfig = {
         codec: this.codecString,
-        optimizeForLatency: true,
-        hardwareAcceleration: "prefer-hardware",
+        // optimizeForLatency: true,
+        // hardwareAcceleration: "prefer-hardware",
+        // testing settings for taller videos...
+        optimizeForLatency: false,
+        hardwareAcceleration: "prefer-software",
         // colorSpace: colorSpace,
 
         // Add description for AVC/H.264
