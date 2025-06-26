@@ -747,6 +747,7 @@ export class StVideo {
     // console.info("initializeDecoder");
 
     if (this.videoDecoder) {
+      console.warn("Video decoder already initialized");
       return;
     }
 
@@ -759,6 +760,7 @@ export class StVideo {
         output: async (frame: VideoFrame) => {
           try {
             if (!this.bytesPerFrame) {
+              console.error("No bytesPerFrame set");
               throw new Error("No bytesPerFrame");
             }
 
@@ -792,7 +794,7 @@ export class StVideo {
               height: frame.displayHeight,
             };
 
-            console.info("this.frameCallback", this.frameCallback);
+            // console.info("this.frameCallback", this.frameCallback);
 
             this.frameCallback?.(frameInfo);
             // frame.close();
@@ -831,7 +833,7 @@ export class StVideo {
 
       this.videoDecoder.configure(config);
 
-      // console.info("decoder configured");
+      console.info("decoder configured");
 
       resolve();
     });
@@ -885,25 +887,25 @@ export class StVideo {
         data: sample.data,
       });
 
-      // console.log(
-      //   "EncodedVideoChunk:",
-      //   chunk.type,
-      //   chunk.timestamp,
-      //   chunk.duration,
-      //   chunk.byteLength
-      // );
+      console.log(
+        "EncodedVideoChunk:",
+        chunk.type,
+        chunk.timestamp,
+        chunk.duration,
+        chunk.byteLength
+      );
 
-      // console.info(
-      //   "decode chunk",
-      //   this.samples.length,
-      //   chunk.type,
-      //   this.currentSampleIndex,
-      //   sample.is_sync
-      // );
+      console.info(
+        "decode chunk",
+        this.samples.length,
+        chunk.type,
+        this.currentSampleIndex,
+        sample.is_sync
+      );
 
       this.videoDecoder!.decode(chunk);
 
-      // console.info("chunk decoded");
+      console.info("chunk decoded");
 
       this.currentSampleIndex++;
     });
