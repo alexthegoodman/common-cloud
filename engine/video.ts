@@ -858,17 +858,17 @@ export class StVideo {
   }
 
   async decodeNextFrame(): Promise<DecodedFrameInfo> {
-    // console.info("decodeNextFrame 1");
+    console.info("decodeNextFrame 1");
 
     if (!this.isInitialized || this.currentSampleIndex >= this.samples.length) {
       throw new Error("No more frames to decode");
     }
 
     return new Promise((resolve, reject) => {
-      // console.info("decodeNextFrame 2");
+      console.info("decodeNextFrame 2");
 
       this.frameCallback = (frameInfo: DecodedFrameInfo) => {
-        // console.info("decodeNextFrame 3");
+        console.info("decodeNextFrame 3");
 
         this.frameCallback = undefined;
         resolve(frameInfo);
@@ -883,25 +883,24 @@ export class StVideo {
         data: sample.data,
       });
 
-      // console.log(
-      //   "EncodedVideoChunk:",
-      //   chunk.type,
-      //   chunk.timestamp,
-      //   chunk.duration,
-      //   chunk.byteLength
-      // );
+      console.log(
+        "EncodedVideoChunk:",
+        chunk.type,
+        chunk.timestamp,
+        chunk.duration,
+        chunk.byteLength
+      );
 
-      // console.info(
-      //   "decode chunk",
-      //   this.samples.length,
-      //   chunk.type,
-      //   this.currentSampleIndex,
-      //   sample.is_sync
-      // );
+      console.info(
+        "decode info",
+        this.samples.length,
+        this.currentSampleIndex,
+        sample.is_sync
+      );
 
       this.videoDecoder!.decode(chunk);
 
-      // console.info("chunk decoded");
+      console.info("chunk decoded");
 
       this.currentSampleIndex++;
     });
@@ -920,13 +919,13 @@ export class StVideo {
 
     const frameInfo = await this.decodeNextFrame();
 
-    console.info(
-      "frame info",
-      frameInfo.width,
-      frameInfo.height,
-      frameInfo.frame.displayWidth,
-      frameInfo.frame.displayHeight
-    );
+    // console.info(
+    //   "frame info",
+    //   frameInfo.width,
+    //   frameInfo.height,
+    //   frameInfo.frame.displayWidth,
+    //   frameInfo.frame.displayHeight
+    // );
 
     // this.bindGroup = device.createBindGroup({
     //   layout: this.bindGroupLayout,
@@ -970,12 +969,12 @@ export class StVideo {
       }
     );
 
-    console.info("close frame");
+    // console.info("close frame");
 
     frameInfo.frame.close();
 
-    console.info("texture write succesful");
-    console.log("Texture format:", this.texture.format); // Log texture format
+    // console.info("texture write succesful");
+    // console.log("Texture format:", this.texture.format); // Log texture format
 
     return frameInfo;
   }
