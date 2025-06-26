@@ -11,7 +11,12 @@ import {
 import { Spinner } from "@phosphor-icons/react";
 import toast from "react-hot-toast";
 import { IFlowContent, scrapeLink, updateFlowContent } from "@/fetchers/flows";
-import { AuthToken, saveImage, UploadResponse } from "@/fetchers/projects";
+import {
+  AuthToken,
+  resizeVideo,
+  saveImage,
+  UploadResponse,
+} from "@/fetchers/projects";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { AnalyzeLink } from "./AnalyzeLink";
 import { DataInterface } from "@/def/ai";
@@ -331,8 +336,11 @@ export default function FlowContent({
         let response;
 
         if (file.type.includes("video/")) {
+          // send File to resizeVideo function
+          const resizedVideoBlob = await resizeVideo(file);
+
           // Use Vercel blob client-side upload for videos
-          const newBlob = await upload(file.name, blob, {
+          const newBlob = await upload(file.name, resizedVideoBlob, {
             access: "public",
             handleUploadUrl: "/api/video/upload",
             clientPayload: JSON.stringify({

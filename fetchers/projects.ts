@@ -513,3 +513,25 @@ export async function getUploadedVideoData(filename: string): Promise<Blob> {
     // return { success: false, message: error.message }; // Example
   }
 }
+
+export const resizeVideo = async (
+  videoFile: File | Blob,
+  maxWidth = 1200,
+  maxHeight = 900
+) => {
+  const response = await fetch("http://your-server:8000/resize-video", {
+    method: "POST",
+    headers: {
+      "X-Max-Width": maxWidth.toString(),
+      "X-Max-Height": maxHeight.toString(),
+    },
+    body: videoFile,
+  });
+
+  if (response.ok) {
+    return await response.blob();
+  } else {
+    const error = await response.json();
+    throw new Error(error.details);
+  }
+};

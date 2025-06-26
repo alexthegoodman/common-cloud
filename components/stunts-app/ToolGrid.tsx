@@ -13,7 +13,12 @@ import React, { useCallback, useRef, useState } from "react";
 import { WebCapture } from "@/engine/capture";
 import { v4 as uuidv4 } from "uuid";
 import { fileToBlob, StImageConfig } from "@/engine/image";
-import { AuthToken, saveImage, saveVideo } from "@/fetchers/projects";
+import {
+  AuthToken,
+  resizeVideo,
+  saveImage,
+  saveVideo,
+} from "@/fetchers/projects";
 import { Sequence } from "@/engine/animations";
 import { PolygonConfig } from "@/engine/polygon";
 import { useLocalStorage } from "@uidotdev/usehooks";
@@ -467,8 +472,11 @@ export const ToolGrid = ({
       }
 
       try {
+        // send File to resizeVideo function
+        const resizedVideoBlob = await resizeVideo(blob);
+
         // let response = await saveVideo(authToken.token, name, blob);
-        const newBlob = await upload(name, blob, {
+        const newBlob = await upload(name, resizedVideoBlob, {
           access: "public",
           handleUploadUrl: "/api/video/upload",
           clientPayload: JSON.stringify({
@@ -641,13 +649,13 @@ export const ToolGrid = ({
       }
 
       const imageBlob = await response.blob();
-      
+
       const file = new File([imageBlob], `generated-${Date.now()}.jpg`, {
         type: "image/jpeg",
       });
 
       await on_add_image(currentSequenceId, file);
-      
+
       setGenerateImageModalOpen(false);
       setGenerateImagePrompt("");
       toast.success("Image generated and added successfully!");
@@ -823,16 +831,18 @@ export const ToolGrid = ({
                     />
                   </div>
                   <div className="flex gap-4">
-                    <button 
+                    <button
                       onClick={() => setGenerateImageModalOpen(false)}
                       disabled={isGeneratingImage}
                       className="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50"
                     >
                       Cancel
                     </button>
-                    <button 
+                    <button
                       onClick={handleGenerateImage}
-                      disabled={isGeneratingImage || !generateImagePrompt.trim()}
+                      disabled={
+                        isGeneratingImage || !generateImagePrompt.trim()
+                      }
                       className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isGeneratingImage ? "Generating..." : "Generate"}
