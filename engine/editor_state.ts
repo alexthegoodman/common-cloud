@@ -1282,11 +1282,19 @@ export default class EditorState {
     }
 
     let scale_prop = current_keyframes.properties.find(
-      (p) => p.propertyPath === "scale"
+      (p) => p.propertyPath === "scalex"
     );
 
     if (scale_prop) {
       properties.push(scale_prop);
+    }
+
+    let scale_y_prop = current_keyframes.properties.find(
+      (p) => p.propertyPath === "scaley"
+    );
+
+    if (scale_y_prop) {
+      properties.push(scale_y_prop);
     }
 
     let opacity_keyframes: UIKeyframe[] = [];
@@ -1537,11 +1545,19 @@ export default class EditorState {
     }
 
     let scale_prop = current_keyframes.properties.find(
-      (p) => p.propertyPath === "scale"
+      (p) => p.propertyPath === "scalex"
     );
 
     if (scale_prop) {
       properties.push(scale_prop);
+    }
+
+    let scale_y_prop = current_keyframes.properties.find(
+      (p) => p.propertyPath === "scaley"
+    );
+
+    if (scale_y_prop) {
+      properties.push(scale_y_prop);
     }
 
     let opacity_keyframes: UIKeyframe[] = [];
@@ -2136,7 +2152,7 @@ export default class EditorState {
     let time_step = durationMs / num_points;
 
     for (let i = 0; i <= num_points; i++) {
-      let angle = (i / num_points) * 2 * Math.PI + (rotation * Math.PI / 180);
+      let angle = (i / num_points) * 2 * Math.PI + (rotation * Math.PI) / 180;
       let x = center_x + radius * Math.cos(angle);
       let y = center_y + radius * Math.sin(angle);
 
@@ -2172,6 +2188,1042 @@ export default class EditorState {
     };
 
     return new_motion_path;
+  }
+
+  // NEW ANIMATION TEMPLATE - 1. PENDULUM SWING - Hypnotic back-and-forth rhythm
+  save_pendulum_swing_keyframes(
+    savable_item_id: string,
+    object_type: ObjectType,
+    current_keyframes: AnimationData,
+    current_position: [number, number],
+    swing_width: number,
+    swing_periods: number = 2
+  ): AnimationData {
+    let durationMs = current_keyframes.duration;
+    let properties: AnimationProperty[] = [];
+
+    let non_position_props = current_keyframes.properties.filter(
+      (p) => p.propertyPath !== "position"
+    );
+
+    if (non_position_props) {
+      non_position_props.forEach((prop) => {
+        properties.push(prop);
+      });
+    }
+
+    let position_keyframes: UIKeyframe[] = [];
+    let center_x = current_position[0];
+    let center_y = current_position[1];
+    let num_points = 60;
+    let time_step = durationMs / num_points;
+
+    for (let i = 0; i <= num_points; i++) {
+      // Pendulum motion: sinusoidal with damping for realism
+      let t = i / num_points;
+      let angle = Math.sin(t * swing_periods * 2 * Math.PI);
+      let damping = Math.exp(-t * 0.5); // Gentle damping over time
+      let x = center_x + swing_width * angle * damping;
+      let y = center_y;
+
+      position_keyframes.push({
+        id: uuidv4().toString(),
+        time: i * time_step,
+        value: { type: "Position", value: [x, y] },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    }
+
+    let position_prop = {
+      name: "Position",
+      propertyPath: "position",
+      children: [],
+      keyframes: position_keyframes,
+      depth: 0,
+    };
+
+    properties.push(position_prop);
+
+    let new_motion_path: AnimationData = {
+      id: uuidv4().toString(),
+      objectType: object_type,
+      polygonId: savable_item_id,
+      duration: durationMs,
+      startTimeMs: current_keyframes.startTimeMs,
+      position: current_keyframes.position,
+      properties: properties,
+    };
+
+    return new_motion_path;
+  }
+
+  // NEW ANIMATION TEMPLATE - 2. FIGURE-8 INFINITY - Smooth infinity symbol motion
+  save_figure_eight_keyframes(
+    savable_item_id: string,
+    object_type: ObjectType,
+    current_keyframes: AnimationData,
+    current_position: [number, number],
+    width: number,
+    height: number,
+    loops: number = 1
+  ): AnimationData {
+    let durationMs = current_keyframes.duration;
+    let properties: AnimationProperty[] = [];
+
+    let non_position_props = current_keyframes.properties.filter(
+      (p) => p.propertyPath !== "position"
+    );
+
+    if (non_position_props) {
+      non_position_props.forEach((prop) => {
+        properties.push(prop);
+      });
+    }
+
+    let position_keyframes: UIKeyframe[] = [];
+    let center_x = current_position[0];
+    let center_y = current_position[1];
+    let num_points = 80;
+    let time_step = durationMs / num_points;
+
+    for (let i = 0; i <= num_points; i++) {
+      let t = (i / num_points) * loops * 2 * Math.PI;
+      // Lissajous curve with 2:1 frequency ratio creates figure-8
+      let x = center_x + (width / 2) * Math.sin(t);
+      let y = center_y + (height / 2) * Math.sin(2 * t);
+
+      position_keyframes.push({
+        id: uuidv4().toString(),
+        time: i * time_step,
+        value: { type: "Position", value: [x, y] },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    }
+
+    let position_prop = {
+      name: "Position",
+      propertyPath: "position",
+      children: [],
+      keyframes: position_keyframes,
+      depth: 0,
+    };
+
+    properties.push(position_prop);
+
+    let new_motion_path: AnimationData = {
+      id: uuidv4().toString(),
+      objectType: object_type,
+      polygonId: savable_item_id,
+      duration: durationMs,
+      startTimeMs: current_keyframes.startTimeMs,
+      position: current_keyframes.position,
+      properties: properties,
+    };
+
+    return new_motion_path;
+  }
+
+  // NEW ANIMATION TEMPLATE - 3. RIPPLE EFFECT - Concentric expansion with scale
+  save_ripple_effect_keyframes(
+    savable_item_id: string,
+    object_type: ObjectType,
+    current_keyframes: AnimationData,
+    current_position: [number, number],
+    max_scale: number = 3,
+    ripple_count: number = 2
+  ): AnimationData {
+    let durationMs = current_keyframes.duration;
+    let properties: AnimationProperty[] = [];
+
+    // Keep non-scale/position properties
+    let non_ripple_props = current_keyframes.properties.filter(
+      (p) =>
+        p.propertyPath !== "scalex" &&
+        p.propertyPath !== "scaley" &&
+        p.propertyPath !== "position"
+    );
+
+    if (non_ripple_props) {
+      non_ripple_props.forEach((prop) => {
+        properties.push(prop);
+      });
+    }
+
+    // Position stays constant
+    let position_keyframes: UIKeyframe[] = [
+      {
+        id: uuidv4().toString(),
+        time: 0,
+        value: { type: "Position", value: current_position },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      },
+    ];
+
+    let position_prop = {
+      name: "Position",
+      propertyPath: "position",
+      children: [],
+      keyframes: position_keyframes,
+      depth: 0,
+    };
+
+    // Scale creates the ripple effect
+    let scale_keyframes: UIKeyframe[] = [];
+    let scale_y_keyframes: UIKeyframe[] = [];
+    let num_points = 40;
+    let time_step = durationMs / num_points;
+
+    for (let i = 0; i <= num_points; i++) {
+      let t = i / num_points;
+      // Multiple ripples with phase shifts
+      let scale = 1;
+      for (let r = 0; r < ripple_count; r++) {
+        let phase = (r / ripple_count) * Math.PI * 2;
+        let ripple_t = t * ripple_count * Math.PI * 2 + phase;
+        scale += (max_scale - 1) * Math.sin(ripple_t) * Math.exp(-t * 2);
+      }
+      scale = Math.max(0.1, scale); // Prevent negative scaling
+
+      scale_keyframes.push({
+        id: uuidv4().toString(),
+        time: i * time_step,
+        value: { type: "ScaleX", value: scale },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      scale_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: i * time_step,
+        value: { type: "ScaleY", value: scale },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    }
+
+    let scale_prop = {
+      name: "Scale X",
+      propertyPath: "scalex",
+      children: [],
+      keyframes: scale_keyframes,
+      depth: 0,
+    };
+
+    let scale_y_prop = {
+      name: "Scale Y",
+      propertyPath: "scaley",
+      children: [],
+      keyframes: scale_y_keyframes,
+      depth: 0,
+    };
+
+    properties.push(position_prop);
+    properties.push(scale_prop);
+    properties.push(scale_y_prop);
+
+    let new_motion_path: AnimationData = {
+      id: uuidv4().toString(),
+      objectType: object_type,
+      polygonId: savable_item_id,
+      duration: durationMs,
+      startTimeMs: current_keyframes.startTimeMs,
+      position: current_keyframes.position,
+      properties: properties,
+    };
+
+    return new_motion_path;
+  }
+
+  // NEW ANIMATION TEMPLATE - 4. SPIRAL MOTION - Expanding/contracting spiral
+  save_spiral_motion_keyframes(
+    savable_item_id: string,
+    object_type: ObjectType,
+    current_keyframes: AnimationData,
+    current_position: [number, number],
+    max_radius: number,
+    spiral_turns: number = 3,
+    direction: "outward" | "inward" = "outward"
+  ): AnimationData {
+    let durationMs = current_keyframes.duration;
+    let properties: AnimationProperty[] = [];
+
+    let non_position_props = current_keyframes.properties.filter(
+      (p) => p.propertyPath !== "position"
+    );
+
+    if (non_position_props) {
+      non_position_props.forEach((prop) => {
+        properties.push(prop);
+      });
+    }
+
+    let position_keyframes: UIKeyframe[] = [];
+    let center_x = current_position[0];
+    let center_y = current_position[1];
+    let num_points = 60;
+    let time_step = durationMs / num_points;
+
+    for (let i = 0; i <= num_points; i++) {
+      let t = i / num_points;
+      let angle = t * spiral_turns * 2 * Math.PI;
+
+      let radius;
+      if (direction === "outward") {
+        radius = t * max_radius;
+      } else {
+        radius = (1 - t) * max_radius;
+      }
+
+      let x = center_x + radius * Math.cos(angle);
+      let y = center_y + radius * Math.sin(angle);
+
+      position_keyframes.push({
+        id: uuidv4().toString(),
+        time: i * time_step,
+        value: { type: "Position", value: [x, y] },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    }
+
+    let position_prop = {
+      name: "Position",
+      propertyPath: "position",
+      children: [],
+      keyframes: position_keyframes,
+      depth: 0,
+    };
+
+    properties.push(position_prop);
+
+    let new_motion_path: AnimationData = {
+      id: uuidv4().toString(),
+      objectType: object_type,
+      polygonId: savable_item_id,
+      duration: durationMs,
+      startTimeMs: current_keyframes.startTimeMs,
+      position: current_keyframes.position,
+      properties: properties,
+    };
+
+    return new_motion_path;
+  }
+
+  // NEW ANIMATION TEMPLATE - 5. BOUNCING BALL - Physics-based bounce with gravity
+  save_bouncing_ball_keyframes(
+    savable_item_id: string,
+    object_type: ObjectType,
+    current_keyframes: AnimationData,
+    current_position: [number, number],
+    bounce_height: number,
+    bounces: number = 3,
+    gravity_strength: number = 1
+  ): AnimationData {
+    let durationMs = current_keyframes.duration;
+    let properties: AnimationProperty[] = [];
+
+    let non_position_props = current_keyframes.properties.filter(
+      (p) => p.propertyPath !== "position"
+    );
+
+    if (non_position_props) {
+      non_position_props.forEach((prop) => {
+        properties.push(prop);
+      });
+    }
+
+    let position_keyframes: UIKeyframe[] = [];
+    let start_x = current_position[0];
+    let ground_y = current_position[1];
+    let num_points = 60;
+    let time_step = durationMs / num_points;
+
+    for (let i = 0; i <= num_points; i++) {
+      let t = i / num_points;
+
+      // Calculate which bounce we're in
+      let bounce_duration = 1 / bounces;
+      let current_bounce = Math.floor(t / bounce_duration);
+      let bounce_t = (t % bounce_duration) / bounce_duration;
+
+      // Height decreases with each bounce
+      let current_height = bounce_height * Math.pow(0.7, current_bounce);
+
+      // Parabolic motion for each bounce
+      let y = ground_y - current_height * 4 * bounce_t * (1 - bounce_t);
+
+      position_keyframes.push({
+        id: uuidv4().toString(),
+        time: i * time_step,
+        value: { type: "Position", value: [start_x, y] },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    }
+
+    let position_prop = {
+      name: "Position",
+      propertyPath: "position",
+      children: [],
+      keyframes: position_keyframes,
+      depth: 0,
+    };
+
+    properties.push(position_prop);
+
+    let new_motion_path: AnimationData = {
+      id: uuidv4().toString(),
+      objectType: object_type,
+      polygonId: savable_item_id,
+      duration: durationMs,
+      startTimeMs: current_keyframes.startTimeMs,
+      position: current_keyframes.position,
+      properties: properties,
+    };
+
+    return new_motion_path;
+  }
+
+  // NEW ANIMATION TEMPLATE - 6. FLOATING BUBBLES - Gentle rise with subtle drift
+  save_floating_bubbles_keyframes(
+    savable_item_id: string,
+    object_type: ObjectType,
+    current_keyframes: AnimationData,
+    current_position: [number, number],
+    rise_distance: number,
+    drift_amount: number = 50
+  ): AnimationData {
+    let durationMs = current_keyframes.duration;
+    let properties: AnimationProperty[] = [];
+
+    let non_position_props = current_keyframes.properties.filter(
+      (p) => p.propertyPath !== "position"
+    );
+
+    if (non_position_props) {
+      non_position_props.forEach((prop) => {
+        properties.push(prop);
+      });
+    }
+
+    let position_keyframes: UIKeyframe[] = [];
+    let start_x = current_position[0];
+    let start_y = current_position[1];
+    let num_points = 50;
+    let time_step = durationMs / num_points;
+
+    for (let i = 0; i <= num_points; i++) {
+      let t = i / num_points;
+
+      // Gentle upward motion with easing
+      let y = start_y - rise_distance * t;
+
+      // Subtle horizontal drift with multiple sine waves for naturalism
+      let drift =
+        drift_amount *
+        (0.5 * Math.sin(t * Math.PI * 3) +
+          0.3 * Math.sin(t * Math.PI * 5 + 1) +
+          0.2 * Math.sin(t * Math.PI * 7 + 2)) *
+        t; // Drift increases over time
+
+      let x = start_x + drift;
+
+      position_keyframes.push({
+        id: uuidv4().toString(),
+        time: i * time_step,
+        value: { type: "Position", value: [x, y] },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    }
+
+    let position_prop = {
+      name: "Position",
+      propertyPath: "position",
+      children: [],
+      keyframes: position_keyframes,
+      depth: 0,
+    };
+
+    properties.push(position_prop);
+
+    let new_motion_path: AnimationData = {
+      id: uuidv4().toString(),
+      objectType: object_type,
+      polygonId: savable_item_id,
+      duration: durationMs,
+      startTimeMs: current_keyframes.startTimeMs,
+      position: current_keyframes.position,
+      properties: properties,
+    };
+
+    return new_motion_path;
+  }
+
+  // CHOREOGRAPHED TEMPLATE - 1. CONFETTI EXPLOSION - Multiple objects burst and fall with gravity
+  save_confetti_explosion_keyframes(
+    savable_item_ids: string[],
+    object_types: ObjectType[],
+    current_keyframes_array: AnimationData[],
+    explosion_center: [number, number],
+    explosion_force: number = 200,
+    gravity_strength: number = 300
+  ): AnimationData[] {
+    let animations: AnimationData[] = [];
+
+    for (let i = 0; i < savable_item_ids.length; i++) {
+      let durationMs = current_keyframes_array[i].duration;
+      let properties: AnimationProperty[] = [];
+
+      // Keep non-position properties
+      let non_position_props = current_keyframes_array[i].properties.filter(
+        (p) => p.propertyPath !== "position"
+      );
+
+      if (non_position_props) {
+        non_position_props.forEach((prop) => {
+          properties.push(prop);
+        });
+      }
+
+      let position_keyframes: UIKeyframe[] = [];
+      let start_x = explosion_center[0];
+      let start_y = explosion_center[1];
+      let num_points = 60;
+      let time_step = durationMs / num_points;
+
+      // Random explosion direction for each object
+      let angle =
+        (i / savable_item_ids.length) * 2 * Math.PI +
+        (Math.random() - 0.5) * 0.5;
+      let initial_velocity_x =
+        Math.cos(angle) * explosion_force * (0.8 + Math.random() * 0.4);
+      let initial_velocity_y =
+        Math.sin(angle) * explosion_force * (0.8 + Math.random() * 0.4);
+
+      for (let j = 0; j <= num_points; j++) {
+        let t = j / num_points;
+        let time_seconds = (durationMs / 1000) * t;
+
+        // Physics: position = initial_pos + velocity*time + 0.5*acceleration*time^2
+        let x = start_x + initial_velocity_x * time_seconds;
+        let y =
+          start_y +
+          initial_velocity_y * time_seconds +
+          0.5 * gravity_strength * time_seconds * time_seconds;
+
+        position_keyframes.push({
+          id: uuidv4().toString(),
+          time: j * time_step,
+          value: { type: "Position", value: [x, y] },
+          easing: EasingType.Linear,
+          pathType: PathType.Linear,
+          keyType: { type: "Frame" },
+          curveData: null,
+        });
+      }
+
+      let position_prop = {
+        name: "Position",
+        propertyPath: "position",
+        children: [],
+        keyframes: position_keyframes,
+        depth: 0,
+      };
+
+      properties.push(position_prop);
+
+      animations.push({
+        // id: uuidv4().toString(),
+        // Use existing ID from current keyframes
+        id: current_keyframes_array[i].id,
+        objectType: object_types[i],
+        polygonId: savable_item_ids[i],
+        duration: durationMs,
+        startTimeMs: current_keyframes_array[i].startTimeMs,
+        position: current_keyframes_array[i].position,
+        properties: properties,
+      });
+    }
+
+    return animations;
+  }
+
+  // CHOREOGRAPHED TEMPLATE - 2. FLOCK FORMATION - Objects move in coordinated formation like birds
+  save_flock_formation_keyframes(
+    savable_item_ids: string[],
+    object_types: ObjectType[],
+    current_keyframes_array: AnimationData[],
+    formation_center: [number, number],
+    target_position: [number, number],
+    formation_spacing: number = 80
+  ): AnimationData[] {
+    let animations: AnimationData[] = [];
+    let num_objects = savable_item_ids.length;
+
+    for (let i = 0; i < num_objects; i++) {
+      let durationMs = current_keyframes_array[i].duration;
+      let properties: AnimationProperty[] = [];
+
+      let non_position_props = current_keyframes_array[i].properties.filter(
+        (p) => p.propertyPath !== "position"
+      );
+
+      if (non_position_props) {
+        non_position_props.forEach((prop) => {
+          properties.push(prop);
+        });
+      }
+
+      let position_keyframes: UIKeyframe[] = [];
+      let num_points = 50;
+      let time_step = durationMs / num_points;
+
+      // Calculate formation positions (V-shape)
+      let formation_row = Math.floor(i / 2);
+      let formation_side = i % 2 === 0 ? -1 : 1;
+      let formation_offset_x =
+        formation_side * formation_row * formation_spacing * 0.5;
+      let formation_offset_y = formation_row * formation_spacing * 0.8;
+
+      let start_x = formation_center[0] + formation_offset_x;
+      let start_y = formation_center[1] + formation_offset_y;
+      let end_x = target_position[0] + formation_offset_x;
+      let end_y = target_position[1] + formation_offset_y;
+
+      for (let j = 0; j <= num_points; j++) {
+        let t = j / num_points;
+
+        // Smooth interpolation with slight wave motion for organic feel
+        let base_x = start_x + (end_x - start_x) * t;
+        let base_y = start_y + (end_y - start_y) * t;
+
+        // Add subtle wing-flap motion
+        let wave_amplitude = 15 * Math.sin(t * Math.PI * 2); // Decreases over time
+        let wave_x = wave_amplitude * Math.sin(t * Math.PI * 8 + i * 0.5);
+        let wave_y = wave_amplitude * 0.3 * Math.cos(t * Math.PI * 6 + i * 0.3);
+
+        position_keyframes.push({
+          id: uuidv4().toString(),
+          time: j * time_step,
+          value: {
+            type: "Position",
+            value: [base_x + wave_x, base_y + wave_y],
+          },
+          easing: EasingType.Linear,
+          pathType: PathType.Linear,
+          keyType: { type: "Frame" },
+          curveData: null,
+        });
+      }
+
+      let position_prop = {
+        name: "Position",
+        propertyPath: "position",
+        children: [],
+        keyframes: position_keyframes,
+        depth: 0,
+      };
+
+      properties.push(position_prop);
+
+      animations.push({
+        // id: uuidv4().toString(),
+        // Use existing ID from current keyframes
+        id: current_keyframes_array[i].id,
+        objectType: object_types[i],
+        polygonId: savable_item_ids[i],
+        duration: durationMs,
+        startTimeMs: current_keyframes_array[i].startTimeMs,
+        position: current_keyframes_array[i].position,
+        properties: properties,
+      });
+    }
+
+    return animations;
+  }
+
+  // CHOREOGRAPHED TEMPLATE - 3. RIPPLE WAVE - Objects animate in sequence like a wave traveling through
+  save_ripple_wave_keyframes(
+    savable_item_ids: string[],
+    object_types: ObjectType[],
+    current_keyframes_array: AnimationData[],
+    object_positions: [number, number][],
+    wave_amplitude: number = 100,
+    wave_speed: number = 2
+  ): AnimationData[] {
+    let animations: AnimationData[] = [];
+
+    for (let i = 0; i < savable_item_ids.length; i++) {
+      let durationMs = current_keyframes_array[i].duration;
+      let properties: AnimationProperty[] = [];
+
+      let non_position_props = current_keyframes_array[i].properties.filter(
+        (p) => p.propertyPath !== "position"
+      );
+
+      if (non_position_props) {
+        non_position_props.forEach((prop) => {
+          properties.push(prop);
+        });
+      }
+
+      let position_keyframes: UIKeyframe[] = [];
+      let base_x = object_positions[i][0];
+      let base_y = object_positions[i][1];
+      let num_points = 60;
+      let time_step = durationMs / num_points;
+
+      // Phase delay based on object index creates wave effect
+      let phase_delay = (i / savable_item_ids.length) * Math.PI * 2;
+
+      for (let j = 0; j <= num_points; j++) {
+        let t = j / num_points;
+        let wave_time = t * wave_speed * Math.PI * 2 + phase_delay;
+
+        // Vertical wave motion
+        let y_offset =
+          wave_amplitude * Math.sin(wave_time) * Math.exp(-t * 0.5);
+
+        position_keyframes.push({
+          id: uuidv4().toString(),
+          time: j * time_step,
+          value: { type: "Position", value: [base_x, base_y + y_offset] },
+          easing: EasingType.Linear,
+          pathType: PathType.Linear,
+          keyType: { type: "Frame" },
+          curveData: null,
+        });
+      }
+
+      let position_prop = {
+        name: "Position",
+        propertyPath: "position",
+        children: [],
+        keyframes: position_keyframes,
+        depth: 0,
+      };
+
+      properties.push(position_prop);
+
+      animations.push({
+        // id: uuidv4().toString(),
+        // Use existing ID from current keyframes
+        id: current_keyframes_array[i].id,
+        objectType: object_types[i],
+        polygonId: savable_item_ids[i],
+        duration: durationMs,
+        startTimeMs: current_keyframes_array[i].startTimeMs,
+        position: current_keyframes_array[i].position,
+        properties: properties,
+      });
+    }
+
+    return animations;
+  }
+
+  // CHOREOGRAPHED TEMPLATE - 4. DOMINO CASCADE - Objects fall in sequence like dominos
+  save_domino_cascade_keyframes(
+    savable_item_ids: string[],
+    object_types: ObjectType[],
+    current_keyframes_array: AnimationData[],
+    object_positions: [number, number][],
+    cascade_delay_ms: number = 100
+  ): AnimationData[] {
+    let animations: AnimationData[] = [];
+
+    for (let i = 0; i < savable_item_ids.length; i++) {
+      let durationMs = current_keyframes_array[i].duration;
+      let properties: AnimationProperty[] = [];
+
+      // Keep non-rotation properties
+      let non_rotation_props = current_keyframes_array[i].properties.filter(
+        (p) => p.propertyPath !== "rotation" && p.propertyPath !== "position"
+      );
+
+      if (non_rotation_props) {
+        non_rotation_props.forEach((prop) => {
+          properties.push(prop);
+        });
+      }
+
+      // Position stays the same
+      let position_keyframes: UIKeyframe[] = [
+        {
+          id: uuidv4().toString(),
+          time: 0,
+          value: { type: "Position", value: object_positions[i] },
+          easing: EasingType.Linear,
+          pathType: PathType.Linear,
+          keyType: { type: "Frame" },
+          curveData: null,
+        },
+      ];
+
+      // Rotation creates the falling effect
+      let rotation_keyframes: UIKeyframe[] = [];
+      let delay_time = i * cascade_delay_ms;
+      let fall_duration = durationMs - delay_time;
+      let num_points = Math.max(10, Math.floor(fall_duration / 50));
+
+      if (fall_duration > 0) {
+        for (let j = 0; j <= num_points; j++) {
+          let t = j / num_points;
+          let time = delay_time + t * fall_duration;
+
+          if (time <= durationMs) {
+            // Rotation accelerates like gravity
+            let rotation = t < 0.1 ? 0 : 90 * Math.pow((t - 0.1) / 0.9, 1.5);
+
+            rotation_keyframes.push({
+              id: uuidv4().toString(),
+              time: time,
+              value: { type: "Rotation", value: rotation },
+              easing: EasingType.Linear,
+              pathType: PathType.Linear,
+              keyType: { type: "Frame" },
+              curveData: null,
+            });
+          }
+        }
+      }
+
+      // Add initial rotation keyframe if there's a delay
+      if (delay_time > 0) {
+        rotation_keyframes.unshift({
+          id: uuidv4().toString(),
+          time: 0,
+          value: { type: "Rotation", value: 0 },
+          easing: EasingType.Linear,
+          pathType: PathType.Linear,
+          keyType: { type: "Frame" },
+          curveData: null,
+        });
+      }
+
+      let position_prop = {
+        name: "Position",
+        propertyPath: "position",
+        children: [],
+        keyframes: position_keyframes,
+        depth: 0,
+      };
+
+      let rotation_prop = {
+        name: "Rotation",
+        propertyPath: "rotation",
+        children: [],
+        keyframes: rotation_keyframes,
+        depth: 0,
+      };
+
+      properties.push(position_prop);
+      properties.push(rotation_prop);
+
+      animations.push({
+        // id: uuidv4().toString(),
+        // Use existing ID from current keyframes
+        id: current_keyframes_array[i].id,
+        objectType: object_types[i],
+        polygonId: savable_item_ids[i],
+        duration: durationMs,
+        startTimeMs: current_keyframes_array[i].startTimeMs,
+        position: current_keyframes_array[i].position,
+        properties: properties,
+      });
+    }
+
+    return animations;
+  }
+
+  // CHOREOGRAPHED TEMPLATE - 5. ORBIT DANCE - Multiple objects orbit around a center in different patterns
+  save_orbit_dance_keyframes(
+    savable_item_ids: string[],
+    object_types: ObjectType[],
+    current_keyframes_array: AnimationData[],
+    orbit_center: [number, number],
+    base_radius: number = 100
+  ): AnimationData[] {
+    let animations: AnimationData[] = [];
+
+    for (let i = 0; i < savable_item_ids.length; i++) {
+      let durationMs = current_keyframes_array[i].duration;
+      let properties: AnimationProperty[] = [];
+
+      let non_position_props = current_keyframes_array[i].properties.filter(
+        (p) => p.propertyPath !== "position"
+      );
+
+      if (non_position_props) {
+        non_position_props.forEach((prop) => {
+          properties.push(prop);
+        });
+      }
+
+      let position_keyframes: UIKeyframe[] = [];
+      let num_points = 60;
+      let time_step = durationMs / num_points;
+
+      // Each object has different orbital characteristics
+      let orbit_radius = base_radius * (0.5 + (i % 3) * 0.5); // Varying radii
+      let orbit_speed = 1 + (i % 2) * 0.5; // Different speeds
+      let initial_angle = (i / savable_item_ids.length) * 2 * Math.PI; // Distributed start positions
+
+      for (let j = 0; j <= num_points; j++) {
+        let t = j / num_points;
+        let angle = initial_angle + t * orbit_speed * 2 * Math.PI;
+
+        let x = orbit_center[0] + orbit_radius * Math.cos(angle);
+        let y = orbit_center[1] + orbit_radius * Math.sin(angle);
+
+        position_keyframes.push({
+          id: uuidv4().toString(),
+          time: j * time_step,
+          value: { type: "Position", value: [x, y] },
+          easing: EasingType.Linear,
+          pathType: PathType.Linear,
+          keyType: { type: "Frame" },
+          curveData: null,
+        });
+      }
+
+      let position_prop = {
+        name: "Position",
+        propertyPath: "position",
+        children: [],
+        keyframes: position_keyframes,
+        depth: 0,
+      };
+
+      properties.push(position_prop);
+
+      animations.push({
+        // id: uuidv4().toString(),
+        // Use existing ID from current keyframes
+        id: current_keyframes_array[i].id,
+        objectType: object_types[i],
+        polygonId: savable_item_ids[i],
+        duration: durationMs,
+        startTimeMs: current_keyframes_array[i].startTimeMs,
+        position: current_keyframes_array[i].position,
+        properties: properties,
+      });
+    }
+
+    return animations;
+  }
+
+  // CHOREOGRAPHED TEMPLATE - 6. SWARM CONVERGENCE - Objects start scattered and converge to formation
+  save_swarm_convergence_keyframes(
+    savable_item_ids: string[],
+    object_types: ObjectType[],
+    current_keyframes_array: AnimationData[],
+    scatter_center: [number, number],
+    target_formation_center: [number, number],
+    scatter_radius: number = 200,
+    formation_radius: number = 50
+  ): AnimationData[] {
+    let animations: AnimationData[] = [];
+
+    for (let i = 0; i < savable_item_ids.length; i++) {
+      let durationMs = current_keyframes_array[i].duration;
+      let properties: AnimationProperty[] = [];
+
+      let non_position_props = current_keyframes_array[i].properties.filter(
+        (p) => p.propertyPath !== "position"
+      );
+
+      if (non_position_props) {
+        non_position_props.forEach((prop) => {
+          properties.push(prop);
+        });
+      }
+
+      let position_keyframes: UIKeyframe[] = [];
+      let num_points = 50;
+      let time_step = durationMs / num_points;
+
+      // Random start position in scatter area
+      let start_angle =
+        (i / savable_item_ids.length) * 2 * Math.PI + (Math.random() - 0.5) * 1;
+      let start_distance = scatter_radius * (0.3 + Math.random() * 0.7);
+      let start_x = scatter_center[0] + Math.cos(start_angle) * start_distance;
+      let start_y = scatter_center[1] + Math.sin(start_angle) * start_distance;
+
+      // Target position in formation (circular)
+      let target_angle = (i / savable_item_ids.length) * 2 * Math.PI;
+      let target_x =
+        target_formation_center[0] + Math.cos(target_angle) * formation_radius;
+      let target_y =
+        target_formation_center[1] + Math.sin(target_angle) * formation_radius;
+
+      for (let j = 0; j <= num_points; j++) {
+        let t = j / num_points;
+
+        // Smooth convergence with easing
+        let ease_t = 1 - Math.pow(1 - t, 3); // Ease-out cubic
+
+        let x = start_x + (target_x - start_x) * ease_t;
+        let y = start_y + (target_y - start_y) * ease_t;
+
+        // Add some organic movement during convergence
+        let flutter = 20 * Math.sin(t * Math.PI * 4 + i) * (1 - t);
+        x += flutter * 0.5;
+        y += flutter * 0.3;
+
+        position_keyframes.push({
+          id: uuidv4().toString(),
+          time: j * time_step,
+          value: { type: "Position", value: [x, y] },
+          easing: EasingType.Linear,
+          pathType: PathType.Linear,
+          keyType: { type: "Frame" },
+          curveData: null,
+        });
+      }
+
+      let position_prop = {
+        name: "Position",
+        propertyPath: "position",
+        children: [],
+        keyframes: position_keyframes,
+        depth: 0,
+      };
+
+      properties.push(position_prop);
+
+      animations.push({
+        // id: uuidv4().toString(),
+        // Use existing ID from current keyframes
+        id: current_keyframes_array[i].id,
+        objectType: object_types[i],
+        polygonId: savable_item_ids[i],
+        duration: durationMs,
+        startTimeMs: current_keyframes_array[i].startTimeMs,
+        position: current_keyframes_array[i].position,
+        properties: properties,
+      });
+    }
+
+    return animations;
   }
 
   async add_saved_polygon(

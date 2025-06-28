@@ -203,6 +203,34 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
   let [toolbarTab, setToolbarTab] = useState("none");
 
+  // Choreographed template state
+  let [confettiCenterX, setConfettiCenterX] = useState(400);
+  let [confettiCenterY, setConfettiCenterY] = useState(300);
+  let [confettiForce, setConfettiForce] = useState(200);
+  let [confettiGravity, setConfettiGravity] = useState(300);
+
+  let [flockStartX, setFlockStartX] = useState(200);
+  let [flockStartY, setFlockStartY] = useState(200);
+  let [flockTargetX, setFlockTargetX] = useState(600);
+  let [flockTargetY, setFlockTargetY] = useState(400);
+  let [flockSpacing, setFlockSpacing] = useState(80);
+
+  let [rippleAmplitude, setRippleAmplitude] = useState(100);
+  let [rippleSpeed, setRippleSpeed] = useState(2);
+
+  let [orbitCenterX, setOrbitCenterX] = useState(400);
+  let [orbitCenterY, setOrbitCenterY] = useState(300);
+  let [orbitRadius, setOrbitRadius] = useState(100);
+
+  let [dominoDelay, setDominoDelay] = useState(100);
+
+  let [swarmScatterX, setSwarmScatterX] = useState(200);
+  let [swarmScatterY, setSwarmScatterY] = useState(200);
+  let [swarmTargetX, setSwarmTargetX] = useState(600);
+  let [swarmTargetY, setSwarmTargetY] = useState(400);
+  let [swarmScatterRadius, setSwarmScatterRadius] = useState(200);
+  let [swarmFormRadius, setSwarmFormRadius] = useState(50);
+
   let [selected_polygon_id, set_selected_polygon_id] = useState<string | null>(
     null
   );
@@ -1088,6 +1116,144 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     setShowSidebar((prev) => !prev);
   };
 
+  // Template application functions
+  const applyTemplate = (
+    templateName: string,
+    templateFunction: any,
+    ...args: any[]
+  ) => {
+    let editor_state = editorStateRef.current;
+    if (!editor_state || !current_sequence_id) return;
+
+    let sequence = editor_state.savedState.sequences.find(
+      (s) => s.id === current_sequence_id
+    );
+    if (!sequence) return;
+
+    // Get all objects in the current sequence
+    let allObjects = [
+      ...(sequence.activePolygons || []),
+      ...(sequence.activeTextItems || []),
+      ...(sequence.activeImageItems || []),
+      ...(sequence.activeVideoItems || []),
+    ];
+
+    if (allObjects.length === 0) {
+      alert("No objects found in current sequence to animate");
+      return;
+    }
+
+    let objectIds = allObjects.map((obj) => obj.id);
+    let objectTypes: ObjectType[] = allObjects.map((obj) => {
+      if (sequence.activePolygons?.find((p) => p.id === obj.id))
+        return ObjectType.Polygon;
+      if (sequence.activeTextItems?.find((t) => t.id === obj.id))
+        return ObjectType.TextItem;
+      if (sequence.activeImageItems?.find((i) => i.id === obj.id))
+        return ObjectType.ImageItem;
+      if (sequence.activeVideoItems?.find((v) => v.id === obj.id))
+        return ObjectType.VideoItem;
+      return ObjectType.Polygon;
+    });
+
+    // Get current animation data or create default
+    let currentAnimationData = allObjects.map((obj) => {
+      let existingAnimation = sequence.polygonMotionPaths?.find(
+        (mp) => mp.polygonId === obj.id
+      );
+      return (
+        existingAnimation || {
+          id: obj.id,
+          polygonId: obj.id,
+          duration: 3000,
+          properties: [],
+        }
+      );
+    });
+
+    let objectPositions = allObjects.map((obj) => [
+      obj.position?.x || 0,
+      obj.position?.y || 0,
+    ]);
+
+    try {
+      // Call the template function with appropriate parameters
+      let newAnimationData;
+      if (templateName === "confetti") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          [confettiCenterX, confettiCenterY],
+          confettiForce,
+          confettiGravity
+        );
+      } else if (templateName === "flock") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          [flockStartX, flockStartY],
+          [flockTargetX, flockTargetY],
+          flockSpacing
+        );
+      } else if (templateName === "ripple") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          objectPositions,
+          rippleAmplitude,
+          rippleSpeed
+        );
+      } else if (templateName === "orbit") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          [orbitCenterX, orbitCenterY],
+          orbitRadius
+        );
+      } else if (templateName === "domino") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          objectPositions,
+          dominoDelay
+        );
+      } else if (templateName === "swarm") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          [swarmScatterX, swarmScatterY],
+          [swarmTargetX, swarmTargetY],
+          swarmScatterRadius,
+          swarmFormRadius
+        );
+      }
+
+      if (newAnimationData) {
+        // Update the sequence with new animation data
+        sequence.polygonMotionPaths = newAnimationData;
+
+        // Save the updated sequences
+        saveSequencesData(editor_state.savedState.sequences, SaveTarget.Videos);
+
+        // Update the editor if available
+        let editor = editorRef.current;
+        if (editor) {
+          editor.updateMotionPaths(sequence);
+        }
+      }
+    } catch (error) {
+      console.error("Error applying template:", error);
+      // alert("Error applying animation template");
+      toast.error(`Error applying animation template`);
+    }
+  };
+
   return (
     <>
       {/* Alert explaining hub */}
@@ -1305,6 +1471,323 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           >
             {loading ? "Generating..." : "Generate Animation"}
           </button>
+
+          {/* Choreographed Animation Templates */}
+          <div className="mt-4 space-y-3">
+            <h4 className="text-sm font-medium text-gray-700">
+              Animation Templates
+            </h4>
+
+            {/* Confetti Explosion */}
+            <div className="border rounded p-3 space-y-2">
+              <h5 className="text-xs font-medium">Confetti Explosion</h5>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-gray-600">Center X:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={confettiCenterX}
+                    onChange={(e) => setConfettiCenterX(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Center Y:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={confettiCenterY}
+                    onChange={(e) => setConfettiCenterY(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Force:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={confettiForce}
+                    onChange={(e) => setConfettiForce(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Gravity:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={confettiGravity}
+                    onChange={(e) => setConfettiGravity(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+              <button
+                className="w-full py-1 px-2 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={() =>
+                  applyTemplate(
+                    "confetti",
+                    editorStateRef.current?.save_confetti_explosion_keyframes.bind(
+                      editorStateRef.current
+                    )
+                  )
+                }
+              >
+                Apply Confetti
+              </button>
+            </div>
+
+            {/* Flock Formation */}
+            <div className="border rounded p-3 space-y-2">
+              <h5 className="text-xs font-medium">Flock Formation</h5>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-gray-600">Start X:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={flockStartX}
+                    onChange={(e) => setFlockStartX(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Start Y:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={flockStartY}
+                    onChange={(e) => setFlockStartY(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Target X:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={flockTargetX}
+                    onChange={(e) => setFlockTargetX(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Target Y:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={flockTargetY}
+                    onChange={(e) => setFlockTargetY(Number(e.target.value))}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs text-gray-600">Spacing:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={flockSpacing}
+                    onChange={(e) => setFlockSpacing(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+              <button
+                className="w-full py-1 px-2 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                onClick={() =>
+                  applyTemplate(
+                    "flock",
+                    editorStateRef.current?.save_flock_formation_keyframes.bind(
+                      editorStateRef.current
+                    )
+                  )
+                }
+              >
+                Apply Flock
+              </button>
+            </div>
+
+            {/* Ripple Wave */}
+            <div className="border rounded p-3 space-y-2">
+              <h5 className="text-xs font-medium">Ripple Wave</h5>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-gray-600">Amplitude:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={rippleAmplitude}
+                    onChange={(e) => setRippleAmplitude(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Speed:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={rippleSpeed}
+                    onChange={(e) => setRippleSpeed(Number(e.target.value))}
+                    step="0.1"
+                  />
+                </div>
+              </div>
+              <button
+                className="w-full py-1 px-2 text-xs bg-purple-500 text-white rounded hover:bg-purple-600"
+                onClick={() =>
+                  applyTemplate(
+                    "ripple",
+                    editorStateRef.current?.save_ripple_wave_keyframes.bind(
+                      editorStateRef.current
+                    )
+                  )
+                }
+              >
+                Apply Ripple
+              </button>
+            </div>
+
+            {/* Orbit Dance */}
+            <div className="border rounded p-3 space-y-2">
+              <h5 className="text-xs font-medium">Orbit Dance</h5>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-gray-600">Center X:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={orbitCenterX}
+                    onChange={(e) => setOrbitCenterX(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Center Y:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={orbitCenterY}
+                    onChange={(e) => setOrbitCenterY(Number(e.target.value))}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs text-gray-600">Radius:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={orbitRadius}
+                    onChange={(e) => setOrbitRadius(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+              <button
+                className="w-full py-1 px-2 text-xs bg-orange-500 text-white rounded hover:bg-orange-600"
+                onClick={() =>
+                  applyTemplate(
+                    "orbit",
+                    editorStateRef.current?.save_orbit_dance_keyframes.bind(
+                      editorStateRef.current
+                    )
+                  )
+                }
+              >
+                Apply Orbit
+              </button>
+            </div>
+
+            {/* Domino Cascade */}
+            <div className="border rounded p-3 space-y-2">
+              <h5 className="text-xs font-medium">Domino Cascade</h5>
+              <div>
+                <label className="text-xs text-gray-600">Delay (ms):</label>
+                <input
+                  type="number"
+                  className="text-xs border rounded px-2 py-1 w-full"
+                  value={dominoDelay}
+                  onChange={(e) => setDominoDelay(Number(e.target.value))}
+                />
+              </div>
+              <button
+                className="w-full py-1 px-2 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                onClick={() =>
+                  applyTemplate(
+                    "domino",
+                    editorStateRef.current?.save_domino_cascade_keyframes.bind(
+                      editorStateRef.current
+                    )
+                  )
+                }
+              >
+                Apply Domino
+              </button>
+            </div>
+
+            {/* Swarm Convergence */}
+            <div className="border rounded p-3 space-y-2">
+              <h5 className="text-xs font-medium">Swarm Convergence</h5>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-gray-600">Scatter X:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={swarmScatterX}
+                    onChange={(e) => setSwarmScatterX(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Scatter Y:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={swarmScatterY}
+                    onChange={(e) => setSwarmScatterY(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Target X:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={swarmTargetX}
+                    onChange={(e) => setSwarmTargetX(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Target Y:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={swarmTargetY}
+                    onChange={(e) => setSwarmTargetY(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Scatter R:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={swarmScatterRadius}
+                    onChange={(e) =>
+                      setSwarmScatterRadius(Number(e.target.value))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Form R:</label>
+                  <input
+                    type="number"
+                    className="text-xs border rounded px-2 py-1 w-full"
+                    value={swarmFormRadius}
+                    onChange={(e) => setSwarmFormRadius(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+              <button
+                className="w-full py-1 px-2 text-xs bg-teal-500 text-white rounded hover:bg-teal-600"
+                onClick={() =>
+                  applyTemplate(
+                    "swarm",
+                    editorStateRef.current?.save_swarm_convergence_keyframes.bind(
+                      editorStateRef.current
+                    )
+                  )
+                }
+              >
+                Apply Swarm
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
