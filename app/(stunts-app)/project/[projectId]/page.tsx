@@ -2,7 +2,7 @@
 
 import { ClientOnly } from "@/components/ClientOnly";
 import ErrorBoundary from "@/components/stunts-app/ErrorBoundary";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { CreateIcon } from "@/components/stunts-app/icon";
 import { Check, Plus, X } from "@phosphor-icons/react";
@@ -28,6 +28,17 @@ export default function Project() {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [prompt, setPrompt] = useState<string>("");
+
+  // Add a ref and useEffect to focus immediately
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    // Small delay to ensure the component is fully rendered
+    const timer = setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleCreateFlow = async () => {
     if (!authToken?.token) {
@@ -86,12 +97,13 @@ export default function Project() {
               {/* <BrandKitList /> */}
               <div className="flex flex-col justify-center items-center mx-auto w-full md:w-[600px] rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
                 <textarea
+                  ref={textareaRef}
                   className="w-full p-4 rounded-[15px] rounded-b-none placeholder-opacity-100 placeholder-gray-800"
                   rows={4}
                   // placeholder={`Enter a prompt / description. For example, "Let's create a video for Common's dog food campaign"`}
-                  placeholder={t(
-                    "You must enter a prompt / description to begin"
-                  )}
+                  placeholder={
+                    t("You must enter a prompt / description to begin") + "..."
+                  }
                   onChange={(e) => setPrompt(e.target.value)}
                 ></textarea>
                 <button
