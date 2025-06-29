@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 import {
   AuthToken,
   createProject,
+  deleteProject,
   getProjects,
   getSingleProject,
 } from "@/fetchers/projects";
@@ -22,10 +23,12 @@ export const ProjectItem = ({
   project_id,
   project_label,
   icon,
+  user,
 }: {
   project_id: string;
   project_label: string;
   icon: string;
+  user?: { role: string } | null;
 }) => {
   const { t } = useTranslation("common");
 
@@ -76,6 +79,34 @@ export const ProjectItem = ({
     setLoading(false);
   };
 
+  const handleDelete = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+
+    if (!authToken || !user || user.role !== "ADMIN") {
+      return;
+    }
+
+    if (
+      !confirm(
+        `Are you sure you want to delete "${project_label}"? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await deleteProject(authToken.token, project_id);
+      mutate("projects", () => getProjects(authToken));
+      toast.success("Project deleted successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete project");
+    }
+
+    setLoading(false);
+  };
+
   return (
     <div className="flex flex-row gap-2">
       <button
@@ -99,6 +130,17 @@ export const ProjectItem = ({
       >
         {t("Duplicate")}
       </button>
+      {user?.role === "ADMIN" && (
+        <button
+          className="w-24 rounded-xl flex items-center justify-center p-2 bg-red-500
+              border-b border-red-600 hover:bg-red-600 hover:cursor-pointer 
+              active:bg-red-700 transition-colors text-white"
+          disabled={loading}
+          onClick={handleDelete}
+        >
+          {t("Delete")}
+        </button>
+      )}
     </div>
   );
 };

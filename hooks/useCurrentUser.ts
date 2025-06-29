@@ -27,6 +27,7 @@ export interface CurrentUser {
   plan: CurrentPlan;
   cancelAtPeriodEnd: boolean;
   trialEndsAt: string;
+  role: string; // USER, ADMIN, etc.
 }
 
 export const getCurrentUser = async (token: string) => {

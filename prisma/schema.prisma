@@ -13,6 +13,9 @@ model User {
   password  String
   name      String?
   userLanguage String?
+
+  // permissions
+  role      String @default("USER") // USER, ADMIN, etc.
   
   // Google OAuth fields
   googleId  String? @unique

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ProjectItem } from "./items";
 import {
+  AuthToken,
   getProjects,
   ProjectData,
   ProjectInfo,
@@ -12,12 +13,17 @@ import {
 import useSWR from "swr";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { useTranslation } from "react-i18next";
+import { getCurrentUser } from "@/hooks/useCurrentUser";
 
 export const ProjectsList = () => {
   const { t } = useTranslation("common");
 
   const router = useRouter();
-  const [authToken] = useLocalStorage("auth-token", null);
+  const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
+
+  const { data: user } = useSWR("currentUser", () =>
+    getCurrentUser(authToken?.token ? authToken?.token : "")
+  );
 
   let {
     data: projects,
@@ -45,6 +51,7 @@ export const ProjectsList = () => {
           project_id={project.project_id}
           project_label={project.project_name}
           icon="folder-plus"
+          user={user}
         />
       ))}
     </div>

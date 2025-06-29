@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyJWT } from "@/lib/jwt";
 import prisma from "@/lib/prisma";
 
-export async function GET(req: Request) {
+export async function DELETE(req: Request) {
   try {
     const token = req.headers.get("Authorization")?.split(" ")[1];
 
@@ -16,30 +16,37 @@ export async function GET(req: Request) {
       where: { id: decoded.userId },
       select: {
         id: true,
-        email: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
-        userLanguage: true,
-        stripeCustomerId: true,
-        subscriptionId: true,
-        subscriptionStatus: true,
-        currentPeriodEnd: true,
-        plan: true,
-        cancelAtPeriodEnd: true,
-        trialEndsAt: true,
         role: true,
       },
-      // include: {
-      //   plan: true,
-      // },
     });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json(user);
+    if (user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    }
+
+    const { projectId } = await req.json();
+
+    if (!projectId) {
+      return NextResponse.json({ error: "Project ID is required" }, { status: 400 });
+    }
+
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!project) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    await prisma.project.delete({
+      where: { id: projectId },
+    });
+
+    return NextResponse.json({ message: "Project deleted successfully" });
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },

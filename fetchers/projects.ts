@@ -514,6 +514,29 @@ export async function getUploadedVideoData(filename: string): Promise<Blob> {
   }
 }
 
+export const deleteProject = async (
+  token: string,
+  projectId: string
+): Promise<{ message: string }> => {
+  const response = await fetch("/api/projects/delete", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ projectId }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Delete project request failed: ${response.status} - ${response.statusText} - ${errorText}`
+    );
+  }
+
+  return response.json();
+};
+
 export const resizeVideo = async (
   videoFile: File | Blob,
   maxWidth = 1200,
