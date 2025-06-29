@@ -15,6 +15,7 @@ import { v4 as uuidv4 } from "uuid";
 import { fileToBlob, StImageConfig } from "@/engine/image";
 import {
   AuthToken,
+  getUploadedVideoData,
   resizeVideo,
   saveImage,
   saveVideo,
@@ -71,14 +72,30 @@ export const ToolGrid = ({
   const [generateImageModalOpen, setGenerateImageModalOpen] = useState(false);
   const [generateImagePrompt, setGenerateImagePrompt] = useState("");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  
+  const [userMessage, setUserMessage] = useState("");
+
   const [stickerModalOpen, setStickerModalOpen] = useState(false);
-  
+
   const availableStickers = [
-    'airplane1.png', 'balloon1.png', 'candles1.png', 'cloud1.png', 'compass1.png',
-    'fireworks1.png', 'fireworks2.png', 'flower1.png', 'flower2.png', 'heart1.png',
-    'leaf1.png', 'leaf2.png', 'lightbulb1.png', 'lotus1.png', 'lotus2.png',
-    'rangoli1.png', 'rangoli2.png', 'smiley1.png', 'star1.png'
+    "airplane1.png",
+    "balloon1.png",
+    "candles1.png",
+    "cloud1.png",
+    "compass1.png",
+    "fireworks1.png",
+    "fireworks2.png",
+    "flower1.png",
+    "flower2.png",
+    "heart1.png",
+    "leaf1.png",
+    "leaf2.png",
+    "lightbulb1.png",
+    "lotus1.png",
+    "lotus2.png",
+    "rangoli1.png",
+    "rangoli2.png",
+    "smiley1.png",
+    "star1.png",
   ];
 
   const handleStartCapture = async () => {
@@ -226,7 +243,11 @@ export const ToolGrid = ({
     console.info("Square added!");
   };
 
-  let on_add_image = async (sequence_id: string, file: File, isSticker: boolean = false) => {
+  let on_add_image = async (
+    sequence_id: string,
+    file: File,
+    isSticker: boolean = false
+  ) => {
     let editor = editorRef.current;
     let editor_state = editorStateRef.current;
 
@@ -483,8 +504,16 @@ export const ToolGrid = ({
       }
 
       try {
+        setUserMessage(`Resizing video: ${name}...`);
+
         // send File to resizeVideo function
         const resizedVideoBlob = await resizeVideo(blob);
+
+        if (!resizedVideoBlob) {
+          throw new Error("Failed to resize video");
+        }
+
+        setUserMessage(`Uploading video: ${name}...`);
 
         // let response = await saveVideo(authToken.token, name, blob);
         const newBlob = await upload(name, resizedVideoBlob, {
@@ -499,10 +528,14 @@ export const ToolGrid = ({
           },
         });
 
+        setUserMessage("");
+
         if (newBlob) {
           let url = newBlob.url;
 
           console.info("File url:", url);
+
+          // let actualBlob = await getUploadedVideoData(url);
 
           if (!editor.settings) {
             console.error("Editor settings are not defined.");
@@ -542,7 +575,7 @@ export const ToolGrid = ({
 
           await editor.add_video_item(
             video_config,
-            blob,
+            resizedVideoBlob,
             new_id,
             sequence_id,
             [],
@@ -557,7 +590,7 @@ export const ToolGrid = ({
             return;
           }
 
-          editor_state.add_saved_video_item(
+          await editor_state.add_saved_video_item(
             sequence_id,
             {
               id: video_config.id,
@@ -648,7 +681,7 @@ export const ToolGrid = ({
       const stickerUrl = `/stickers/${stickerFileName}`;
       const response = await fetch(stickerUrl);
       const blob = await response.blob();
-      
+
       const file = new File([blob], stickerFileName, {
         type: "image/png",
       });
@@ -703,10 +736,15 @@ export const ToolGrid = ({
 
   return (
     <>
-      {uploadProgress > 0 && uploadProgress < 99 ? (
-        <span>{uploadProgress}%</span>
-      ) : (
-        <></>
+      {userMessage && (
+        <div className="bg-blue-100 text-blue-800 p-2 rounded mb-4">
+          {userMessage}
+          {uploadProgress > 0 && uploadProgress < 99 ? (
+            <span> {uploadProgress}%</span>
+          ) : (
+            <></>
+          )}
+        </div>
       )}
       <div className="flex flex-row flex-wrap gap-2">
         {options.includes("page") && (
@@ -862,7 +900,7 @@ export const ToolGrid = ({
                       >
                         <img
                           src={`/stickers/${sticker}`}
-                          alt={sticker.replace('.png', '')}
+                          alt={sticker.replace(".png", "")}
                           className="w-full h-full object-contain"
                         />
                       </button>

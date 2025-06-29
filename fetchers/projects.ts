@@ -472,22 +472,22 @@ export const getUploadedVideo = async (
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `Get image request failed: ${response.status} - ${response.statusText} - ${errorText}`
+      `Get video request failed: ${response.status} - ${response.statusText} - ${errorText}`
     );
   }
 
-  // let blob = await response.blob();
+  let blob = await response.blob();
 
-  // console.info("blob details", blob.size);
+  console.info("blob details", blob.size);
 
-  // return blob;
+  return blob;
 
-  const arrayBuffer = await response.arrayBuffer();
+  // const arrayBuffer = await response.arrayBuffer();
 
-  // Create a properly typed Blob specifically for image data
-  return new Blob([arrayBuffer], {
-    type: response.headers.get("Content-Type") || "image/jpeg",
-  });
+  // // Create a properly typed Blob specifically for image data
+  // return new Blob([arrayBuffer], {
+  //   type: response.headers.get("Content-Type") || "image/jpeg",
+  // });
 };
 
 export async function getUploadedVideoData(filename: string): Promise<Blob> {
@@ -506,7 +506,7 @@ export async function getUploadedVideoData(filename: string): Promise<Blob> {
     // Call the updateSequences function
     return await getUploadedVideo(authToken.token, filename);
   } catch (error) {
-    console.error("Error getting image data:", error);
+    console.error("Error getting video data:", error);
     // Handle the error appropriately, e.g., return a default response or throw the error
     throw error; // Re-throw if you want the calling function to handle it
     // Or return a default/error response:
