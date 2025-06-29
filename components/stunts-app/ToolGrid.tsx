@@ -71,6 +71,15 @@ export const ToolGrid = ({
   const [generateImageModalOpen, setGenerateImageModalOpen] = useState(false);
   const [generateImagePrompt, setGenerateImagePrompt] = useState("");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  
+  const [stickerModalOpen, setStickerModalOpen] = useState(false);
+  
+  const availableStickers = [
+    'airplane1.png', 'balloon1.png', 'candles1.png', 'cloud1.png', 'compass1.png',
+    'fireworks1.png', 'fireworks2.png', 'flower1.png', 'flower2.png', 'heart1.png',
+    'leaf1.png', 'leaf2.png', 'lightbulb1.png', 'lotus1.png', 'lotus2.png',
+    'rangoli1.png', 'rangoli2.png', 'smiley1.png', 'star1.png'
+  ];
 
   const handleStartCapture = async () => {
     let webCapture = webCaptureRef.current;
@@ -217,7 +226,7 @@ export const ToolGrid = ({
     console.info("Square added!");
   };
 
-  let on_add_image = async (sequence_id: string, file: File) => {
+  let on_add_image = async (sequence_id: string, file: File, isSticker: boolean = false) => {
     let editor = editorRef.current;
     let editor_state = editorStateRef.current;
 
@@ -285,13 +294,14 @@ export const ToolGrid = ({
 
         let image_config = {
           id: new_id,
-          name: "New Image Item",
+          name: isSticker ? "New Sticker" : "New Image Item",
           dimensions: [100, 100] as [number, number],
           position,
           // path: new_path.clone(),
           url: url,
           layer: -layers.length,
           isCircle: false,
+          isSticker: isSticker,
         };
 
         editor.add_image_item(image_config, url, blob, new_id, sequence_id);
@@ -310,6 +320,7 @@ export const ToolGrid = ({
           },
           layer: image_config.layer,
           isCircle: image_config.isCircle,
+          isSticker: image_config.isSticker,
         });
 
         console.info("Saved image!");
@@ -628,6 +639,29 @@ export const ToolGrid = ({
     [import_video]
   );
 
+  const handleStickerSelect = async (stickerFileName: string) => {
+    if (!currentSequenceId) {
+      return;
+    }
+
+    try {
+      const stickerUrl = `/stickers/${stickerFileName}`;
+      const response = await fetch(stickerUrl);
+      const blob = await response.blob();
+      
+      const file = new File([blob], stickerFileName, {
+        type: "image/png",
+      });
+
+      await on_add_image(currentSequenceId, file, true);
+      setStickerModalOpen(false);
+      toast.success("Sticker added successfully!");
+    } catch (error: any) {
+      console.error("Sticker selection error:", error);
+      toast.error("Failed to add sticker");
+    }
+  };
+
   const handleGenerateImage = async () => {
     if (!generateImagePrompt.trim() || !currentSequenceId) {
       return;
@@ -793,6 +827,59 @@ export const ToolGrid = ({
               }
             }}
           />
+        )}
+
+        {options.includes("stickers") && (
+          <>
+            <OptionButton
+              style={{}}
+              label={t("Add Sticker")}
+              icon="sticker"
+              callback={() => {
+                setStickerModalOpen(true);
+              }}
+            />
+            <Dialog
+              open={stickerModalOpen}
+              onClose={() => setStickerModalOpen(false)}
+              className="relative z-50"
+            >
+              <div className="fixed inset-0 bg-black/25" />
+              <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
+                <DialogPanel className="max-w-4xl space-y-4 border bg-white p-8 rounded-lg">
+                  <DialogTitle className="font-bold text-xl">
+                    Choose a Sticker
+                  </DialogTitle>
+                  <Description>
+                    Select a sticker to add to your project.
+                  </Description>
+                  <div className="grid grid-cols-6 gap-4 max-h-96 overflow-y-auto">
+                    {availableStickers.map((sticker) => (
+                      <button
+                        key={sticker}
+                        onClick={() => handleStickerSelect(sticker)}
+                        className="aspect-square border-2 border-gray-200 rounded-lg p-2 hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                      >
+                        <img
+                          src={`/stickers/${sticker}`}
+                          alt={sticker.replace('.png', '')}
+                          className="w-full h-full object-contain"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => setStickerModalOpen(false)}
+                      className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </DialogPanel>
+              </div>
+            </Dialog>
+          </>
         )}
 
         {options.includes("imageGeneration") && (

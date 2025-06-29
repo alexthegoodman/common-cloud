@@ -28,6 +28,7 @@ export interface SavedStImageConfig {
   position: SavedPoint;
   layer: number;
   isCircle: boolean;
+  isSticker?: boolean;
 }
 
 export interface StImageConfig {
@@ -39,6 +40,7 @@ export interface StImageConfig {
   position: SavedPoint;
   layer: number;
   isCircle: boolean;
+  isSticker?: boolean;
 }
 
 export class StImage {
@@ -61,6 +63,7 @@ export class StImage {
   groupBindGroup!: PolyfillBindGroup;
   objectType: ObjectType;
   isCircle: boolean;
+  isSticker: boolean;
 
   constructor(
     device: PolyfillDevice,
@@ -86,6 +89,7 @@ export class StImage {
     this.indices = [];
     this.objectType = ObjectType.ImageItem;
     this.isCircle = imageConfig.isCircle;
+    this.isSticker = imageConfig.isSticker || false;
 
     this.hidden = true; // true till bitmap loaded?
 
@@ -636,6 +640,7 @@ export class StImage {
       },
       layer: this.layer,
       isCircle: this.isCircle,
+      isSticker: this.isSticker,
     };
   }
 

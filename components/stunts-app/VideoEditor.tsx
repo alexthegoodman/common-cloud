@@ -1405,6 +1405,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
               "video",
               "capture",
               "imageGeneration",
+              "stickers",
             ]}
             layers={layers}
             setLayers={set_layers}

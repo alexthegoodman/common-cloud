@@ -50,6 +50,7 @@ import {
   Windmill,
   X,
   Book,
+  Sticker,
 } from "@phosphor-icons/react";
 
 export const CreateIcon = ({ icon, size }: { icon: string; size: string }) => {
@@ -200,6 +201,9 @@ export const CreateIcon = ({ icon, size }: { icon: string; size: string }) => {
     }
     case "check": {
       return <Check weight="thin" size={size} />;
+    }
+    case "sticker": {
+      return <Sticker weight="thin" size={size} />;
     }
     default: {
       return <></>;
