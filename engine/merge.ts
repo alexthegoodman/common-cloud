@@ -23,6 +23,7 @@ interface MergeOptions {
  * - Uses videos for polygons >= 200px wide, otherwise images
  */
 export function mergeTemplateWithUserContent(
+  currentSequenceId: string,
   existingTemplate: SavedState,
   userProject: SavedState,
   options: MergeOptions = {}
@@ -41,6 +42,7 @@ export function mergeTemplateWithUserContent(
   let videoIndex = 0;
 
   // Process each sequence in the template
+  // although only supporting single sequence for now
   const mergedSequences: Sequence[] = existingTemplate.sequences.map(
     (templateSequence, index) => {
       const mergedSequence: Sequence = {
@@ -54,7 +56,7 @@ export function mergeTemplateWithUserContent(
           : [],
         polygonMotionPaths: [...(templateSequence.polygonMotionPaths || [])], // Start with existing motion paths
         // set id to existing sequence id to maintain reference in timeline
-        id: userProject.sequences[index]?.id || templateSequence.id,
+        id: currentSequenceId, // for single sequence support
       };
 
       // Keep track of motion paths that get transferred to new items

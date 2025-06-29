@@ -262,9 +262,11 @@ export default function FlowQuestions({
 
   const mergeTemplateWithContent = (
     templateData: SavedState,
-    existingState: SavedState
+    existingState: SavedState,
+    currentSequenceId: string
   ): SavedState => {
     const mergedProject = mergeTemplateWithUserContent(
+      currentSequenceId,
       templateData,
       existingState,
       {
@@ -554,7 +556,8 @@ export default function FlowQuestions({
     const finalState = selectedTemplate
       ? mergeTemplateWithContent(
           selectedTemplate.fileData,
-          editorState.savedState
+          editorState.savedState,
+          currentSequenceId // main sequence id for now
         )
       : emptyVideoState;
 
