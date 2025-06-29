@@ -383,21 +383,8 @@ export default function FlowQuestions({
           });
         }
 
-        // Add any remaining unused items with their original properties
-        // This preserves items that couldn't be matched to polygons
-        if (availableImageItems.length > 0) {
-          mergedState.sequences[0].activeImageItems!.push(
-            ...availableImageItems
-          );
-        }
-        if (availableVideoItems.length > 0) {
-          mergedState.sequences[0].activeVideoItems!.push(
-            ...availableVideoItems
-          );
-        }
-        if (availableTextItems.length > 0) {
-          mergedState.sequences[0].activeTextItems = availableTextItems;
-        }
+        // Note: We don't add unused items from existing state back
+        // Only template items are preserved + polygon replacements are added
 
         // Copy any remaining template motion paths that weren't processed
         // Template motion paths are already preserved above, so we only need to handle
