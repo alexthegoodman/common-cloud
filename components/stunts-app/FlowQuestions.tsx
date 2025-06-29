@@ -7,6 +7,7 @@ import {
   AuthToken,
   saveSequencesData,
   saveSettingsData,
+  saveTimelineData,
 } from "@/fetchers/projects";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
@@ -766,6 +767,8 @@ export default function FlowQuestions({
       },
       SaveTarget.Videos
     );
+
+    await saveTimelineData(editorState.savedState.timeline_state!);
 
     router.push(`/project/${projectId}/videos`);
 
