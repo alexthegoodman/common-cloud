@@ -52,8 +52,11 @@ export function mergeTemplateWithUserContent(
         activeVideoItems: preserveTemplateVideos
           ? [...templateSequence.activeVideoItems]
           : [],
-        polygonMotionPaths: [], // Will be updated for replaced items
+        polygonMotionPaths: [...(templateSequence.polygonMotionPaths || [])], // Start with existing motion paths
       };
+
+      // Keep track of motion paths that get transferred to new items
+      const transferredMotionPaths: AnimationData[] = [];
 
       // Process each polygon in the template sequence
       templateSequence.activePolygons.forEach((polygon) => {
@@ -77,9 +80,7 @@ export function mergeTemplateWithUserContent(
               convertedVideo.id,
               ObjectType.VideoItem
             );
-            mergedSequence.polygonMotionPaths =
-              mergedSequence.polygonMotionPaths || [];
-            mergedSequence.polygonMotionPaths.push(updatedMotionPath);
+            transferredMotionPaths.push(updatedMotionPath);
           }
 
           videoIndex++;
@@ -100,15 +101,24 @@ export function mergeTemplateWithUserContent(
               convertedImage.id,
               ObjectType.ImageItem
             );
-            mergedSequence.polygonMotionPaths =
-              mergedSequence.polygonMotionPaths || [];
-            mergedSequence.polygonMotionPaths.push(updatedMotionPath);
+            transferredMotionPaths.push(updatedMotionPath);
           }
 
           imageIndex++;
         }
         // If no user content available, polygon is simply removed (not replaced)
       });
+
+      // Remove original polygon motion paths and add the transferred ones
+      const polygonIds = templateSequence.activePolygons.map((p) => p.id);
+      mergedSequence.polygonMotionPaths = [
+        // Keep motion paths that don't belong to replaced polygons
+        ...(mergedSequence.polygonMotionPaths?.filter(
+          (path) => !polygonIds.includes(path.polygonId)
+        ) || []),
+        // Add the transferred motion paths for new items
+        ...transferredMotionPaths,
+      ];
 
       return mergedSequence;
     }
