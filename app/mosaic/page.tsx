@@ -118,7 +118,10 @@ export default function Page() {
                     key={project.id || `project-${i}`}
                     className={isFirstProject ? "mb-8" : "w-96 mb-8"}
                   >
-                    <Link href={`/mosaic/${project.id}`} className="block group">
+                    <Link
+                      href={`/mosaic/${project.id}`}
+                      className="block group"
+                    >
                       <ClientOnly>
                         <VideoPreview
                           project={{
@@ -133,6 +136,16 @@ export default function Page() {
                       <h2 className="text-xl font-bold mt-2 group-hover:text-blue-600 transition-colors">
                         {project.name || project.name}
                       </h2>
+                      {project.fileData?.sequences[0]?.activeVideoItems
+                        .length && (
+                        <p className="text-sm text-gray-600 mt-1">
+                          {
+                            project.fileData.sequences[0].activeVideoItems
+                              .length
+                          }{" "}
+                          clips included
+                        </p>
+                      )}
                     </Link>
                   </section>
                 );
