@@ -111,14 +111,10 @@ export default function FlowQuestions({
     });
   };
 
-  // Merge template with existing content
-  // Merge template with existing content
   // const mergeTemplateWithContent = (
   //   templateData: SavedState,
   //   existingState: SavedState
   // ): SavedState => {
-  //   // TODO: assure polygonMotionPaths have updated polygonIds (which assoiate with all object types)
-
   //   const mergedState = { ...existingState };
 
   //   if (templateData?.sequences) {
@@ -129,44 +125,61 @@ export default function FlowQuestions({
   //       mergedState.sequences[0].activePolygons =
   //         existingState.sequences[0].activePolygons || [];
 
-  //       // Keep template's layout and motion paths but merge with content
-  //       if (templateSequence.polygonMotionPaths) {
-  //         mergedState.sequences[0].polygonMotionPaths =
-  //           templateSequence.polygonMotionPaths;
-
-  //         // TODO: need to update objectType on each path
-  //       }
-
   //       // Keep template's background if it exists
   //       if (templateSequence.backgroundFill) {
   //         mergedState.sequences[0].backgroundFill =
   //           templateSequence.backgroundFill;
   //       }
 
-  //       // Merge positioning of text items from template
-  //       // if (
-  //       //   templateSequence.activeTextItems &&
-  //       //   existingState.sequences[0].activeTextItems
-  //       // ) {
-  //       //   mergedState.sequences[0].activeTextItems =
-  //       //     existingState.sequences[0].activeTextItems.map(
-  //       //       (textItem: any, index: number) => {
-  //       //         const templateTextItem =
-  //       //           templateSequence.activeTextItems[index];
-  //       //         if (templateTextItem) {
-  //       //           return {
-  //       //             ...textItem,
-  //       //             position: templateTextItem.position,
-  //       //             dimensions: templateTextItem.dimensions,
-  //       //             layer: templateTextItem.layer,
-  //       //           };
-  //       //         }
-  //       //         return textItem;
-  //       //       }
-  //       //     );
-  //       // }
+  //       // OPTION 1: Keep original item IDs, update motion paths to match them
+  //       // Create a mapping from template polygon indices to existing object IDs and types
+  //       const createObjectMapping = () => {
+  //         const mapping: Array<{ id: string; objectType: ObjectType } | null> =
+  //           [];
+  //         let currentIndex = 0;
 
-  //       // Merge positioning of image items from template
+  //         // Map image items
+  //         if (existingState.sequences[0].activeImageItems) {
+  //           existingState.sequences[0].activeImageItems.forEach((imageItem) => {
+  //             mapping[currentIndex] = {
+  //               id: imageItem.id, // Keep original ID
+  //               objectType: ObjectType.ImageItem,
+  //             };
+  //             currentIndex++;
+  //           });
+  //         }
+
+  //         // Map video items (only if 200px or wider)
+  //         if (existingState.sequences[0].activeVideoItems) {
+  //           existingState.sequences[0].activeVideoItems.forEach((videoItem) => {
+  //             const videoWidth = videoItem.dimensions?.[0] || 0;
+  //             if (videoWidth >= 200) {
+  //               mapping[currentIndex] = {
+  //                 id: videoItem.id, // Keep original ID
+  //                 objectType: ObjectType.VideoItem,
+  //               };
+  //             } else {
+  //               mapping[currentIndex] = null; // Skip narrow videos
+  //             }
+  //             currentIndex++;
+  //           });
+  //         }
+
+  //         // Map text items
+  //         if (existingState.sequences[0].activeTextItems) {
+  //           existingState.sequences[0].activeTextItems.forEach((textItem) => {
+  //             mapping[currentIndex] = {
+  //               id: textItem.id, // Keep original ID
+  //               objectType: ObjectType.TextItem,
+  //             };
+  //             currentIndex++;
+  //           });
+  //         }
+
+  //         return mapping;
+  //       };
+
+  //       // Merge positioning of image items from template (DON'T change IDs)
   //       if (
   //         templateSequence.activePolygons &&
   //         existingState.sequences[0].activeImageItems
@@ -179,7 +192,7 @@ export default function FlowQuestions({
   //               if (templateImageItem) {
   //                 return {
   //                   ...imageItem,
-  //                   id: templateImageItem.id,
+  //                   // Keep original ID, only update positioning
   //                   position: templateImageItem.position,
   //                   dimensions: templateImageItem.dimensions,
   //                   layer: templateImageItem.layer,
@@ -190,7 +203,7 @@ export default function FlowQuestions({
   //           );
   //       }
 
-  //       // Merge positioning of video items from template - with 200px width check
+  //       // Merge positioning of video items from template (DON'T change IDs)
   //       if (
   //         templateSequence.activePolygons &&
   //         existingState.sequences[0].activeVideoItems
@@ -202,11 +215,11 @@ export default function FlowQuestions({
   //                 templateSequence.activePolygons[index];
   //               if (templateVideoItem) {
   //                 // Check if the video item is 200 pixels or wider
-  //                 const videoWidth = videoItem.dimensions?.[0] || 0;
+  //                 const videoWidth = templateVideoItem.dimensions?.[0] || 0;
   //                 if (videoWidth >= 200) {
   //                   return {
   //                     ...videoItem,
-  //                     id: templateVideoItem.id,
+  //                     // Keep original ID, only update positioning
   //                     position: templateVideoItem.position,
   //                     dimensions: templateVideoItem.dimensions,
   //                     layer: templateVideoItem.layer,
@@ -216,6 +229,29 @@ export default function FlowQuestions({
   //               return videoItem;
   //             }
   //           );
+  //       }
+
+  //       // Update motion paths to use existing object IDs
+  //       if (templateSequence.polygonMotionPaths) {
+  //         const objectMapping = createObjectMapping();
+
+  //         mergedState.sequences[0].polygonMotionPaths =
+  //           templateSequence.polygonMotionPaths
+  //             .map((motionPath: AnimationData, index: number) => {
+  //               const mappedObject = objectMapping[index];
+
+  //               // Skip motion paths for objects that don't exist or narrow videos
+  //               if (!mappedObject) {
+  //                 return null;
+  //               }
+
+  //               return {
+  //                 ...motionPath,
+  //                 polygonId: mappedObject.id, // Use existing object ID
+  //                 objectType: mappedObject.objectType,
+  //               };
+  //             })
+  //             .filter((path): path is AnimationData => path !== null); // Remove null entries
   //       }
   //     }
   //   }
@@ -233,137 +269,158 @@ export default function FlowQuestions({
       // Use the first sequence from template as base
       const templateSequence = templateData.sequences[0];
       if (templateSequence && mergedState.sequences[0]) {
-        // Replace polygons with existing content
-        mergedState.sequences[0].activePolygons =
-          existingState.sequences[0].activePolygons || [];
-
         // Keep template's background if it exists
         if (templateSequence.backgroundFill) {
           mergedState.sequences[0].backgroundFill =
             templateSequence.backgroundFill;
         }
 
-        // OPTION 1: Keep original item IDs, update motion paths to match them
-        // Create a mapping from template polygon indices to existing object IDs and types
-        const createObjectMapping = () => {
-          const mapping: Array<{ id: string; objectType: ObjectType } | null> =
-            [];
-          let currentIndex = 0;
+        // Create pools of available items from existing state
+        const availableImageItems = [
+          ...(existingState.sequences[0].activeImageItems || []),
+        ];
+        const availableVideoItems = [
+          ...(existingState.sequences[0].activeVideoItems || []),
+        ];
+        const availableTextItems = [
+          ...(existingState.sequences[0].activeTextItems || []),
+        ];
 
-          // Map image items
-          if (existingState.sequences[0].activeImageItems) {
-            existingState.sequences[0].activeImageItems.forEach((imageItem) => {
-              mapping[currentIndex] = {
-                id: imageItem.id, // Keep original ID
-                objectType: ObjectType.ImageItem,
-              };
-              currentIndex++;
-            });
-          }
+        // Initialize arrays for the merged state and preserve template items
+        mergedState.sequences[0].activeImageItems = [
+          ...(templateSequence.activeImageItems || []),
+        ];
+        mergedState.sequences[0].activeVideoItems = [
+          ...(templateSequence.activeVideoItems || []),
+        ];
+        mergedState.sequences[0].activeTextItems = [
+          ...(templateSequence.activeTextItems || []),
+        ];
+        mergedState.sequences[0].activePolygons = [];
+        mergedState.sequences[0].polygonMotionPaths = [
+          ...(templateSequence.polygonMotionPaths || []),
+        ];
 
-          // Map video items (only if 200px or wider)
-          if (existingState.sequences[0].activeVideoItems) {
-            existingState.sequences[0].activeVideoItems.forEach((videoItem) => {
-              const videoWidth = videoItem.dimensions?.[0] || 0;
-              if (videoWidth >= 200) {
-                mapping[currentIndex] = {
-                  id: videoItem.id, // Keep original ID
-                  objectType: ObjectType.VideoItem,
-                };
+        // Process each polygon from the template
+        if (templateSequence.activePolygons) {
+          templateSequence.activePolygons.forEach((polygon, index) => {
+            const polygonWidth = polygon.dimensions?.[0] || 0;
+
+            if (polygonWidth >= 200) {
+              // For wide polygons (>=200px), prefer video items, fallback to image items
+              if (availableVideoItems.length > 0) {
+                const videoItem = availableVideoItems.shift()!; // Remove from pool
+                mergedState.sequences[0].activeVideoItems!.push({
+                  ...videoItem,
+                  // Apply template polygon's positioning
+                  position: polygon.position,
+                  dimensions: polygon.dimensions,
+                  layer: polygon.layer,
+                });
+
+                // Create motion path for this video item if template has one
+                const templateMotionPath =
+                  templateSequence.polygonMotionPaths?.[index];
+                if (templateMotionPath) {
+                  mergedState.sequences[0].polygonMotionPaths!.push({
+                    ...templateMotionPath,
+                    polygonId: videoItem.id, // Use video item's ID
+                    objectType: ObjectType.VideoItem,
+                  });
+                }
+              } else if (availableImageItems.length > 0) {
+                // Fallback to image item if no video available
+                const imageItem = availableImageItems.shift()!; // Remove from pool
+                mergedState.sequences[0].activeImageItems!.push({
+                  ...imageItem,
+                  // Apply template polygon's positioning
+                  position: polygon.position,
+                  dimensions: polygon.dimensions,
+                  layer: polygon.layer,
+                });
+
+                // Create motion path for this image item if template has one
+                const templateMotionPath =
+                  templateSequence.polygonMotionPaths?.[index];
+                if (templateMotionPath) {
+                  mergedState.sequences[0].polygonMotionPaths!.push({
+                    ...templateMotionPath,
+                    polygonId: imageItem.id, // Use image item's ID
+                    objectType: ObjectType.ImageItem,
+                  });
+                }
               } else {
-                mapping[currentIndex] = null; // Skip narrow videos
+                // No items available, keep as polygon
+                mergedState.sequences[0].activePolygons!.push(polygon);
               }
-              currentIndex++;
-            });
-          }
+            } else {
+              // For narrow polygons (<200px), use image items
+              if (availableImageItems.length > 0) {
+                const imageItem = availableImageItems.shift()!; // Remove from pool
+                mergedState.sequences[0].activeImageItems!.push({
+                  ...imageItem,
+                  // Apply template polygon's positioning
+                  position: polygon.position,
+                  dimensions: polygon.dimensions,
+                  layer: polygon.layer,
+                });
 
-          // Map text items
-          if (existingState.sequences[0].activeTextItems) {
-            existingState.sequences[0].activeTextItems.forEach((textItem) => {
-              mapping[currentIndex] = {
-                id: textItem.id, // Keep original ID
-                objectType: ObjectType.TextItem,
-              };
-              currentIndex++;
-            });
-          }
-
-          return mapping;
-        };
-
-        // Merge positioning of image items from template (DON'T change IDs)
-        if (
-          templateSequence.activePolygons &&
-          existingState.sequences[0].activeImageItems
-        ) {
-          mergedState.sequences[0].activeImageItems =
-            existingState.sequences[0].activeImageItems.map(
-              (imageItem: SavedStImageConfig, index: number) => {
-                const templateImageItem =
-                  templateSequence.activePolygons[index];
-                if (templateImageItem) {
-                  return {
-                    ...imageItem,
-                    // Keep original ID, only update positioning
-                    position: templateImageItem.position,
-                    dimensions: templateImageItem.dimensions,
-                    layer: templateImageItem.layer,
-                  };
+                // Create motion path for this image item if template has one
+                const templateMotionPath =
+                  templateSequence.polygonMotionPaths?.[index];
+                if (templateMotionPath) {
+                  mergedState.sequences[0].polygonMotionPaths!.push({
+                    ...templateMotionPath,
+                    polygonId: imageItem.id, // Use image item's ID
+                    objectType: ObjectType.ImageItem,
+                  });
                 }
-                return imageItem;
+              } else {
+                // No image items available, keep as polygon
+                mergedState.sequences[0].activePolygons!.push(polygon);
               }
-            );
+            }
+          });
         }
 
-        // Merge positioning of video items from template (DON'T change IDs)
-        if (
-          templateSequence.activePolygons &&
-          existingState.sequences[0].activeVideoItems
-        ) {
-          mergedState.sequences[0].activeVideoItems =
-            existingState.sequences[0].activeVideoItems.map(
-              (videoItem: SavedStVideoConfig, index: number) => {
-                const templateVideoItem =
-                  templateSequence.activePolygons[index];
-                if (templateVideoItem) {
-                  // Check if the video item is 200 pixels or wider
-                  const videoWidth = templateVideoItem.dimensions?.[0] || 0;
-                  if (videoWidth >= 200) {
-                    return {
-                      ...videoItem,
-                      // Keep original ID, only update positioning
-                      position: templateVideoItem.position,
-                      dimensions: templateVideoItem.dimensions,
-                      layer: templateVideoItem.layer,
-                    };
-                  }
-                }
-                return videoItem;
-              }
-            );
+        // Add any remaining unused items with their original properties
+        // This preserves items that couldn't be matched to polygons
+        if (availableImageItems.length > 0) {
+          mergedState.sequences[0].activeImageItems!.push(
+            ...availableImageItems
+          );
+        }
+        if (availableVideoItems.length > 0) {
+          mergedState.sequences[0].activeVideoItems!.push(
+            ...availableVideoItems
+          );
+        }
+        if (availableTextItems.length > 0) {
+          mergedState.sequences[0].activeTextItems = availableTextItems;
         }
 
-        // Update motion paths to use existing object IDs
+        // Copy any remaining template motion paths that weren't processed
+        // Template motion paths are already preserved above, so we only need to handle
+        // motion paths that were added during polygon replacement
         if (templateSequence.polygonMotionPaths) {
-          const objectMapping = createObjectMapping();
+          const existingMotionPathIds = new Set(
+            (templateSequence.polygonMotionPaths || []).map(
+              (mp) => mp.polygonId
+            )
+          );
 
+          // Filter out duplicate motion paths to avoid conflicts
           mergedState.sequences[0].polygonMotionPaths =
-            templateSequence.polygonMotionPaths
-              .map((motionPath: AnimationData, index: number) => {
-                const mappedObject = objectMapping[index];
-
-                // Skip motion paths for objects that don't exist or narrow videos
-                if (!mappedObject) {
-                  return null;
-                }
-
-                return {
-                  ...motionPath,
-                  polygonId: mappedObject.id, // Use existing object ID
-                  objectType: mappedObject.objectType,
-                };
-              })
-              .filter((path): path is AnimationData => path !== null); // Remove null entries
+            mergedState.sequences[0].polygonMotionPaths!.filter(
+              (motionPath, index, array) => {
+                // Keep template motion paths and unique new ones
+                const firstOccurrence =
+                  array.findIndex(
+                    (mp) => mp.polygonId === motionPath.polygonId
+                  ) === index;
+                return firstOccurrence;
+              }
+            );
         }
       }
     }
