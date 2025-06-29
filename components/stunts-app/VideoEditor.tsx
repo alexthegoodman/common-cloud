@@ -231,6 +231,30 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   let [swarmScatterRadius, setSwarmScatterRadius] = useState(200);
   let [swarmFormRadius, setSwarmFormRadius] = useState(50);
 
+  // Collage-style template state
+  let [mosaicCenterX, setMosaicCenterX] = useState(450);
+  let [mosaicCenterY, setMosaicCenterY] = useState(275);
+  let [mosaicSpacing, setMosaicSpacing] = useState(120);
+  let [mosaicStagger, setMosaicStagger] = useState(100);
+
+  let [scatterDropHeight, setScatterDropHeight] = useState(-200);
+  let [scatterBounce, setScatterBounce] = useState(0.3);
+  let [scatterRotation, setScatterRotation] = useState(15);
+
+  let [galleryX, setGalleryX] = useState(100);
+  let [galleryY, setGalleryY] = useState(100);
+  let [galleryWidth, setGalleryWidth] = useState(700);
+  let [galleryHeight, setGalleryHeight] = useState(350);
+  let [galleryDelay, setGalleryDelay] = useState(200);
+  let [galleryScale, setGalleryScale] = useState(true);
+
+  let [carouselY, setCarouselY] = useState(300);
+  let [carouselSpacing, setCarouselSpacing] = useState(150);
+  let [carouselCurve, setCarouselCurve] = useState(50);
+
+  let [polaroidRotation, setPolaroidRotation] = useState(45);
+  let [polaroidSettle, setPolaroidSettle] = useState(0.7);
+
   let [selected_polygon_id, set_selected_polygon_id] = useState<string | null>(
     null
   );
@@ -1232,6 +1256,51 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           swarmScatterRadius,
           swarmFormRadius
         );
+      } else if (templateName === "mosaic") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          args[0], // [mosaicCenterX, mosaicCenterY]
+          args[1], // mosaicSpacing
+          args[2]  // mosaicStagger
+        );
+      } else if (templateName === "scatter") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          args[0], // scatterDropHeight
+          args[1], // scatterBounce
+          args[2]  // scatterRotation
+        );
+      } else if (templateName === "gallery") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          args[0], // [galleryX, galleryY, galleryWidth, galleryHeight]
+          args[1], // galleryDelay
+          args[2]  // galleryScale
+        );
+      } else if (templateName === "carousel") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          args[0], // carouselY
+          args[1], // carouselSpacing
+          args[2]  // carouselCurve
+        );
+      } else if (templateName === "polaroid") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          args[0], // null (tumble_positions)
+          args[1], // polaroidRotation
+          args[2]  // polaroidSettle
+        );
       }
 
       if (newAnimationData) {
@@ -1787,6 +1856,297 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
               >
                 Apply Swarm
               </button>
+            </div>
+
+            {/* Collage-Style Animation Templates */}
+            <div className="mt-6 space-y-3 border-t pt-4">
+              <h4 className="text-sm font-medium text-blue-700">
+                Collage-Style Templates
+              </h4>
+
+              {/* Photo Mosaic Assembly */}
+              <div className="border border-blue-200 rounded p-3 space-y-2">
+                <h5 className="text-xs font-medium text-blue-800">Photo Mosaic Assembly</h5>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-600">Center X:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={mosaicCenterX}
+                      onChange={(e) => setMosaicCenterX(Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Center Y:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={mosaicCenterY}
+                      onChange={(e) => setMosaicCenterY(Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Spacing:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={mosaicSpacing}
+                      onChange={(e) => setMosaicSpacing(Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Stagger (ms):</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={mosaicStagger}
+                      onChange={(e) => setMosaicStagger(Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+                <button
+                  className="w-full py-1 px-2 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                  onClick={() =>
+                    applyTemplate(
+                      "mosaic",
+                      editorStateRef.current?.save_photo_mosaic_keyframes.bind(
+                        editorStateRef.current
+                      ),
+                      [mosaicCenterX, mosaicCenterY],
+                      mosaicSpacing,
+                      mosaicStagger
+                    )
+                  }
+                >
+                  Apply Photo Mosaic
+                </button>
+              </div>
+
+              {/* Scrapbook Scatter */}
+              <div className="border border-blue-200 rounded p-3 space-y-2">
+                <h5 className="text-xs font-medium text-blue-800">Scrapbook Scatter</h5>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-600">Drop Height:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={scatterDropHeight}
+                      onChange={(e) => setScatterDropHeight(Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Bounce:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={scatterBounce}
+                      onChange={(e) => setScatterBounce(Number(e.target.value))}
+                      step="0.1"
+                      min="0"
+                      max="1"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-xs text-gray-600">Rotation Range:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={scatterRotation}
+                      onChange={(e) => setScatterRotation(Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+                <button
+                  className="w-full py-1 px-2 text-xs bg-pink-500 text-white rounded hover:bg-pink-600"
+                  onClick={() =>
+                    applyTemplate(
+                      "scatter",
+                      editorStateRef.current?.save_scrapbook_scatter_keyframes.bind(
+                        editorStateRef.current
+                      ),
+                      scatterDropHeight,
+                      scatterBounce,
+                      scatterRotation
+                    )
+                  }
+                >
+                  Apply Scrapbook Scatter
+                </button>
+              </div>
+
+              {/* Gallery Wall Build */}
+              <div className="border border-blue-200 rounded p-3 space-y-2">
+                <h5 className="text-xs font-medium text-blue-800">Gallery Wall Build</h5>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-600">Wall X:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={galleryX}
+                      onChange={(e) => setGalleryX(Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Wall Y:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={galleryY}
+                      onChange={(e) => setGalleryY(Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Width:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={galleryWidth}
+                      onChange={(e) => setGalleryWidth(Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Height:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={galleryHeight}
+                      onChange={(e) => setGalleryHeight(Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Delay (ms):</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={galleryDelay}
+                      onChange={(e) => setGalleryDelay(Number(e.target.value))}
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="gallery_scale"
+                      checked={galleryScale}
+                      onChange={(e) => setGalleryScale(e.target.checked)}
+                      className="mr-2"
+                    />
+                    <label htmlFor="gallery_scale" className="text-xs text-gray-600">Scale Effect</label>
+                  </div>
+                </div>
+                <button
+                  className="w-full py-1 px-2 text-xs bg-emerald-500 text-white rounded hover:bg-emerald-600"
+                  onClick={() =>
+                    applyTemplate(
+                      "gallery",
+                      editorStateRef.current?.save_gallery_wall_keyframes.bind(
+                        editorStateRef.current
+                      ),
+                      [galleryX, galleryY, galleryWidth, galleryHeight],
+                      galleryDelay,
+                      galleryScale
+                    )
+                  }
+                >
+                  Apply Gallery Wall
+                </button>
+              </div>
+
+              {/* Memory Carousel */}
+              <div className="border border-blue-200 rounded p-3 space-y-2">
+                <h5 className="text-xs font-medium text-blue-800">Memory Carousel</h5>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-600">Carousel Y:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={carouselY}
+                      onChange={(e) => setCarouselY(Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Spacing:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={carouselSpacing}
+                      onChange={(e) => setCarouselSpacing(Number(e.target.value))}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-xs text-gray-600">Curve Intensity:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={carouselCurve}
+                      onChange={(e) => setCarouselCurve(Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+                <button
+                  className="w-full py-1 px-2 text-xs bg-cyan-500 text-white rounded hover:bg-cyan-600"
+                  onClick={() =>
+                    applyTemplate(
+                      "carousel",
+                      editorStateRef.current?.save_memory_carousel_keyframes.bind(
+                        editorStateRef.current
+                      ),
+                      carouselY,
+                      carouselSpacing,
+                      carouselCurve
+                    )
+                  }
+                >
+                  Apply Memory Carousel
+                </button>
+              </div>
+
+              {/* Polaroid Tumble */}
+              <div className="border border-blue-200 rounded p-3 space-y-2">
+                <h5 className="text-xs font-medium text-blue-800">Polaroid Tumble</h5>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-600">Rotation Range:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={polaroidRotation}
+                      onChange={(e) => setPolaroidRotation(Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600">Settle Time:</label>
+                    <input
+                      type="number"
+                      className="text-xs border rounded px-2 py-1 w-full"
+                      value={polaroidSettle}
+                      onChange={(e) => setPolaroidSettle(Number(e.target.value))}
+                      step="0.1"
+                      min="0.1"
+                      max="1"
+                    />
+                  </div>
+                </div>
+                <button
+                  className="w-full py-1 px-2 text-xs bg-amber-500 text-white rounded hover:bg-amber-600"
+                  onClick={() =>
+                    applyTemplate(
+                      "polaroid",
+                      editorStateRef.current?.save_polaroid_tumble_keyframes.bind(
+                        editorStateRef.current
+                      ),
+                      null,
+                      polaroidRotation,
+                      polaroidSettle
+                    )
+                  }
+                >
+                  Apply Polaroid Tumble
+                </button>
+              </div>
             </div>
           </div>
         </div>
