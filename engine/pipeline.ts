@@ -1034,6 +1034,9 @@ export class CanvasPipeline {
     // Draw image items
     for (const image of editor.imageItems || []) {
       if (!image.hidden) {
+        // Disable depth writes for transparent images
+        gl.depthMask(false);
+
         if (editor.draggingImage === image.id || editor.isPlaying) {
           image.transform.updateUniformBuffer(queue, editor.camera.windowSize);
         }
@@ -1049,6 +1052,9 @@ export class CanvasPipeline {
           image.indexBuffer as PolyfillBuffer,
           image.indices.length
         );
+
+        // Re-enable depth writes for subsequent objects
+        gl.depthMask(true);
       }
     }
 
