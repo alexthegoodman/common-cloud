@@ -132,6 +132,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import * as fbq from "../lib/fpixel";
 import { ArrowLeft } from "@phosphor-icons/react";
+import GoogleLoginButton from "./GoogleLoginButton";
 
 interface AuthFormData {
   email: string;
@@ -325,6 +326,17 @@ export default function AuthForm() {
                 "Continue"
               )}
             </button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              </div>
+            </div>
+
+            <GoogleLoginButton onError={setError} />
           </>
         ) : (
           /* Password Step */
@@ -405,12 +417,23 @@ export default function AuthForm() {
               )}
             </button>
 
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              </div>
+            </div>
+
+            <GoogleLoginButton onError={setError} />
+
             <button
               type="button"
               onClick={handleBackToEmail}
-              className="w-full text-slate-500 hover:text-slate-700 text-sm font-medium transition-colors"
+              className="w-full text-slate-500 hover:text-slate-700 text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
-              <ArrowLeft /> Back to email
+              <ArrowLeft size={16} /> Back to email
             </button>
           </>
         )}
