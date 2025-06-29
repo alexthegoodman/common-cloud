@@ -42,7 +42,7 @@ export function mergeTemplateWithUserContent(
 
   // Process each sequence in the template
   const mergedSequences: Sequence[] = existingTemplate.sequences.map(
-    (templateSequence) => {
+    (templateSequence, index) => {
       const mergedSequence: Sequence = {
         ...templateSequence,
         activePolygons: [], // Clear polygons as we're replacing them
@@ -53,6 +53,8 @@ export function mergeTemplateWithUserContent(
           ? [...templateSequence.activeVideoItems]
           : [],
         polygonMotionPaths: [...(templateSequence.polygonMotionPaths || [])], // Start with existing motion paths
+        // set id to existing sequence id to maintain reference in timeline
+        id: userProject.sequences[index]?.id || templateSequence.id,
       };
 
       // Keep track of motion paths that get transferred to new items
