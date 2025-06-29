@@ -1031,33 +1031,6 @@ export class CanvasPipeline {
       }
     }
 
-    // Draw image items
-    for (const image of editor.imageItems || []) {
-      if (!image.hidden) {
-        // Disable depth writes for transparent images
-        gl.depthMask(false);
-
-        if (editor.draggingImage === image.id || editor.isPlaying) {
-          image.transform.updateUniformBuffer(queue, editor.camera.windowSize);
-        }
-
-        // this.bindWebGLBindGroup(gl, image.bindGroup, 1);
-        // this.bindWebGLBindGroup(gl, image.groupBindGroup, 3);
-
-        image.bindGroup.bindWebGLBindGroup(gl);
-        image.groupBindGroup?.bindWebGLBindGroup(gl);
-
-        drawIndexedGeometry(
-          image.vertexBuffer as PolyfillBuffer,
-          image.indexBuffer as PolyfillBuffer,
-          image.indices.length
-        );
-
-        // Re-enable depth writes for subsequent objects
-        gl.depthMask(true);
-      }
-    }
-
     // Draw video items
     for (const video of editor.videoItems || []) {
       if (!video.hidden) {
@@ -1113,6 +1086,33 @@ export class CanvasPipeline {
           video.indexBuffer as PolyfillBuffer,
           video.indices.length
         );
+      }
+    }
+
+    // Draw image items
+    for (const image of editor.imageItems || []) {
+      if (!image.hidden) {
+        // Disable depth writes for transparent images
+        // gl.depthMask(false);
+
+        if (editor.draggingImage === image.id || editor.isPlaying) {
+          image.transform.updateUniformBuffer(queue, editor.camera.windowSize);
+        }
+
+        // this.bindWebGLBindGroup(gl, image.bindGroup, 1);
+        // this.bindWebGLBindGroup(gl, image.groupBindGroup, 3);
+
+        image.bindGroup.bindWebGLBindGroup(gl);
+        image.groupBindGroup?.bindWebGLBindGroup(gl);
+
+        drawIndexedGeometry(
+          image.vertexBuffer as PolyfillBuffer,
+          image.indexBuffer as PolyfillBuffer,
+          image.indices.length
+        );
+
+        // Re-enable depth writes for subsequent objects
+        // gl.depthMask(true);
       }
     }
 
