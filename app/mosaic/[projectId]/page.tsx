@@ -167,6 +167,35 @@ export default function VideoPage() {
                   </div>
                   <div className="text-sm text-gray-600">Last Updated</div>
                 </div>
+                {/** List counts for each object type */}
+                <div className="text-center">
+                  <div className="text-lg font-semibold">
+                    {projectData.fileData?.sequences[0]?.activePolygons
+                      .length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Polygons</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-semibold">
+                    {projectData.fileData?.sequences[0]?.activeImageItems
+                      .length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Images</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-semibold">
+                    {projectData.fileData?.sequences[0]?.activeTextItems
+                      .length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Text Items</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-semibold">
+                    {projectData.fileData?.sequences[0]?.activeVideoItems
+                      .length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Videos</div>
+                </div>
               </div>
             </div>
           </div>
