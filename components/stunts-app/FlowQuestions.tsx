@@ -42,6 +42,7 @@ import { useTranslation } from "react-i18next";
 import { getCurrentUser } from "@/hooks/useCurrentUser";
 import { SavedStVideoConfig } from "@/engine/video";
 import { SavedStImageConfig } from "@/engine/image";
+import { mergeTemplateWithUserContent } from "@/engine/merge";
 
 export default function FlowQuestions({
   flowId = null,
@@ -263,156 +264,17 @@ export default function FlowQuestions({
     templateData: SavedState,
     existingState: SavedState
   ): SavedState => {
-    const mergedState = { ...existingState };
-
-    if (templateData?.sequences) {
-      // Use the first sequence from template as base
-      const templateSequence = templateData.sequences[0];
-      if (templateSequence && mergedState.sequences[0]) {
-        // Keep template's background if it exists
-        if (templateSequence.backgroundFill) {
-          mergedState.sequences[0].backgroundFill =
-            templateSequence.backgroundFill;
-        }
-
-        // Create pools of available items from existing state
-        const availableImageItems = [
-          ...(existingState.sequences[0].activeImageItems || []),
-        ];
-        const availableVideoItems = [
-          ...(existingState.sequences[0].activeVideoItems || []),
-        ];
-        const availableTextItems = [
-          ...(existingState.sequences[0].activeTextItems || []),
-        ];
-
-        // Initialize arrays for the merged state and preserve template items
-        mergedState.sequences[0].activeImageItems = [
-          ...(templateSequence.activeImageItems || []),
-        ];
-        mergedState.sequences[0].activeVideoItems = [
-          ...(templateSequence.activeVideoItems || []),
-        ];
-        mergedState.sequences[0].activeTextItems = [
-          ...(templateSequence.activeTextItems || []),
-        ];
-        mergedState.sequences[0].activePolygons = [];
-        mergedState.sequences[0].polygonMotionPaths = [
-          ...(templateSequence.polygonMotionPaths || []),
-        ];
-
-        // Process each polygon from the template
-        if (templateSequence.activePolygons) {
-          templateSequence.activePolygons.forEach((polygon, index) => {
-            const polygonWidth = polygon.dimensions?.[0] || 0;
-
-            if (polygonWidth >= 200) {
-              // For wide polygons (>=200px), prefer video items, fallback to image items
-              if (availableVideoItems.length > 0) {
-                const videoItem = availableVideoItems.shift()!; // Remove from pool
-                mergedState.sequences[0].activeVideoItems!.push({
-                  ...videoItem,
-                  // Apply template polygon's positioning
-                  position: polygon.position,
-                  dimensions: polygon.dimensions,
-                  layer: polygon.layer,
-                });
-
-                // Create motion path for this video item if template has one
-                const templateMotionPath =
-                  templateSequence.polygonMotionPaths?.[index];
-                if (templateMotionPath) {
-                  mergedState.sequences[0].polygonMotionPaths!.push({
-                    ...templateMotionPath,
-                    polygonId: videoItem.id, // Use video item's ID
-                    objectType: ObjectType.VideoItem,
-                  });
-                }
-              } else if (availableImageItems.length > 0) {
-                // Fallback to image item if no video available
-                const imageItem = availableImageItems.shift()!; // Remove from pool
-                mergedState.sequences[0].activeImageItems!.push({
-                  ...imageItem,
-                  // Apply template polygon's positioning
-                  position: polygon.position,
-                  dimensions: polygon.dimensions,
-                  layer: polygon.layer,
-                });
-
-                // Create motion path for this image item if template has one
-                const templateMotionPath =
-                  templateSequence.polygonMotionPaths?.[index];
-                if (templateMotionPath) {
-                  mergedState.sequences[0].polygonMotionPaths!.push({
-                    ...templateMotionPath,
-                    polygonId: imageItem.id, // Use image item's ID
-                    objectType: ObjectType.ImageItem,
-                  });
-                }
-              } else {
-                // No items available, keep as polygon
-                mergedState.sequences[0].activePolygons!.push(polygon);
-              }
-            } else {
-              // For narrow polygons (<200px), use image items
-              if (availableImageItems.length > 0) {
-                const imageItem = availableImageItems.shift()!; // Remove from pool
-                mergedState.sequences[0].activeImageItems!.push({
-                  ...imageItem,
-                  // Apply template polygon's positioning
-                  position: polygon.position,
-                  dimensions: polygon.dimensions,
-                  layer: polygon.layer,
-                });
-
-                // Create motion path for this image item if template has one
-                const templateMotionPath =
-                  templateSequence.polygonMotionPaths?.[index];
-                if (templateMotionPath) {
-                  mergedState.sequences[0].polygonMotionPaths!.push({
-                    ...templateMotionPath,
-                    polygonId: imageItem.id, // Use image item's ID
-                    objectType: ObjectType.ImageItem,
-                  });
-                }
-              } else {
-                // No image items available, keep as polygon
-                mergedState.sequences[0].activePolygons!.push(polygon);
-              }
-            }
-          });
-        }
-
-        // Note: We don't add unused items from existing state back
-        // Only template items are preserved + polygon replacements are added
-
-        // Copy any remaining template motion paths that weren't processed
-        // Template motion paths are already preserved above, so we only need to handle
-        // motion paths that were added during polygon replacement
-        if (templateSequence.polygonMotionPaths) {
-          const existingMotionPathIds = new Set(
-            (templateSequence.polygonMotionPaths || []).map(
-              (mp) => mp.polygonId
-            )
-          );
-
-          // Filter out duplicate motion paths to avoid conflicts
-          mergedState.sequences[0].polygonMotionPaths =
-            mergedState.sequences[0].polygonMotionPaths!.filter(
-              (motionPath, index, array) => {
-                // Keep template motion paths and unique new ones
-                const firstOccurrence =
-                  array.findIndex(
-                    (mp) => mp.polygonId === motionPath.polygonId
-                  ) === index;
-                return firstOccurrence;
-              }
-            );
-        }
+    const mergedProject = mergeTemplateWithUserContent(
+      templateData,
+      existingState,
+      {
+        videoWidthThreshold: 200,
+        preserveTemplateImages: true,
+        preserveTemplateVideos: true,
       }
-    }
+    );
 
-    return mergedState;
+    return mergedProject;
   };
 
   const generateHandler = async () => {
