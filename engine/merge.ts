@@ -131,6 +131,7 @@ export function mergeTemplateWithUserContent(
   return {
     ...existingTemplate,
     sequences: mergedSequences,
+    timeline_state: userProject.timeline_state,
   };
 }
 
