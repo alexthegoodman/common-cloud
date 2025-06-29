@@ -1263,7 +1263,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           currentAnimationData,
           args[0], // [mosaicCenterX, mosaicCenterY]
           args[1], // mosaicSpacing
-          args[2]  // mosaicStagger
+          args[2] // mosaicStagger
         );
       } else if (templateName === "scatter") {
         newAnimationData = templateFunction(
@@ -1272,7 +1272,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           currentAnimationData,
           args[0], // scatterDropHeight
           args[1], // scatterBounce
-          args[2]  // scatterRotation
+          args[2] // scatterRotation
         );
       } else if (templateName === "gallery") {
         newAnimationData = templateFunction(
@@ -1281,7 +1281,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           currentAnimationData,
           args[0], // [galleryX, galleryY, galleryWidth, galleryHeight]
           args[1], // galleryDelay
-          args[2]  // galleryScale
+          args[2] // galleryScale
         );
       } else if (templateName === "carousel") {
         newAnimationData = templateFunction(
@@ -1290,7 +1290,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           currentAnimationData,
           args[0], // carouselY
           args[1], // carouselSpacing
-          args[2]  // carouselCurve
+          args[2] // carouselCurve
         );
       } else if (templateName === "polaroid") {
         newAnimationData = templateFunction(
@@ -1299,7 +1299,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           currentAnimationData,
           args[0], // null (tumble_positions)
           args[1], // polaroidRotation
-          args[2]  // polaroidSettle
+          args[2] // polaroidSettle
         );
       }
 
@@ -1320,6 +1320,67 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       console.error("Error applying template:", error);
       // alert("Error applying animation template");
       toast.error(`Error applying animation template`);
+    }
+  };
+
+  // Reset animations function
+  const resetAnimations = () => {
+    let editor_state = editorStateRef.current;
+    if (!editor_state || !current_sequence_id) return;
+
+    let sequence = editor_state.savedState.sequences.find(
+      (s) => s.id === current_sequence_id
+    );
+    if (!sequence) return;
+
+    // Get all objects in the current sequence
+    let allObjects = [
+      ...(sequence.activePolygons || []),
+      ...(sequence.activeTextItems || []),
+      ...(sequence.activeImageItems || []),
+      ...(sequence.activeVideoItems || []),
+    ];
+
+    if (allObjects.length === 0) {
+      alert("No objects found in current sequence to reset");
+      return;
+    }
+
+    try {
+      // Create default animations for all objects
+      let resetAnimationData = allObjects.map((obj) => {
+        let objectType = ObjectType.Polygon;
+        if (sequence.activeTextItems?.find((t) => t.id === obj.id))
+          objectType = ObjectType.TextItem;
+        else if (sequence.activeImageItems?.find((i) => i.id === obj.id))
+          objectType = ObjectType.ImageItem;
+        else if (sequence.activeVideoItems?.find((v) => v.id === obj.id))
+          objectType = ObjectType.VideoItem;
+
+        return editor_state.save_default_keyframes(
+          obj.id,
+          objectType,
+          obj.position || { x: 400, y: 300 },
+          20000 // 3 second duration
+        );
+      });
+
+      // Update the sequence with reset animation data
+      sequence.polygonMotionPaths = resetAnimationData;
+
+      // Save the updated sequences
+      saveSequencesData(editor_state.savedState.sequences, SaveTarget.Videos);
+
+      // Update the editor if available
+      let editor = editorRef.current;
+      if (editor) {
+        editor.updateMotionPaths(sequence);
+      }
+
+      toast.success("Animations reset to default");
+    } catch (error) {
+      console.error("Error resetting animations:", error);
+      toast.error("Error resetting animations");
     }
   };
 
@@ -1483,7 +1544,18 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       )}
 
       {toolbarTab === "animations" && (
-        <div>
+        <div className="max-h-[35vh] overflow-scroll">
+          {/* Reset Animations Button */}
+          <div className="mb-4">
+            <button
+              type="button"
+              className="w-full py-2 px-4 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+              onClick={resetAnimations}
+            >
+              Reset All Animations
+            </button>
+          </div>
           <div className="flex flex-row gap-2">
             <label htmlFor="keyframe_count" className="text-xs">
               Choose keyframe count
@@ -1866,7 +1938,9 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
               {/* Photo Mosaic Assembly */}
               <div className="border border-blue-200 rounded p-3 space-y-2">
-                <h5 className="text-xs font-medium text-blue-800">Photo Mosaic Assembly</h5>
+                <h5 className="text-xs font-medium text-blue-800">
+                  Photo Mosaic Assembly
+                </h5>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-xs text-gray-600">Center X:</label>
@@ -1896,7 +1970,9 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-600">Stagger (ms):</label>
+                    <label className="text-xs text-gray-600">
+                      Stagger (ms):
+                    </label>
                     <input
                       type="number"
                       className="text-xs border rounded px-2 py-1 w-full"
@@ -1925,15 +2001,21 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
               {/* Scrapbook Scatter */}
               <div className="border border-blue-200 rounded p-3 space-y-2">
-                <h5 className="text-xs font-medium text-blue-800">Scrapbook Scatter</h5>
+                <h5 className="text-xs font-medium text-blue-800">
+                  Scrapbook Scatter
+                </h5>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs text-gray-600">Drop Height:</label>
+                    <label className="text-xs text-gray-600">
+                      Drop Height:
+                    </label>
                     <input
                       type="number"
                       className="text-xs border rounded px-2 py-1 w-full"
                       value={scatterDropHeight}
-                      onChange={(e) => setScatterDropHeight(Number(e.target.value))}
+                      onChange={(e) =>
+                        setScatterDropHeight(Number(e.target.value))
+                      }
                     />
                   </div>
                   <div>
@@ -1949,12 +2031,16 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="text-xs text-gray-600">Rotation Range:</label>
+                    <label className="text-xs text-gray-600">
+                      Rotation Range:
+                    </label>
                     <input
                       type="number"
                       className="text-xs border rounded px-2 py-1 w-full"
                       value={scatterRotation}
-                      onChange={(e) => setScatterRotation(Number(e.target.value))}
+                      onChange={(e) =>
+                        setScatterRotation(Number(e.target.value))
+                      }
                     />
                   </div>
                 </div>
@@ -1978,7 +2064,9 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
               {/* Gallery Wall Build */}
               <div className="border border-blue-200 rounded p-3 space-y-2">
-                <h5 className="text-xs font-medium text-blue-800">Gallery Wall Build</h5>
+                <h5 className="text-xs font-medium text-blue-800">
+                  Gallery Wall Build
+                </h5>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-xs text-gray-600">Wall X:</label>
@@ -2033,7 +2121,12 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                       onChange={(e) => setGalleryScale(e.target.checked)}
                       className="mr-2"
                     />
-                    <label htmlFor="gallery_scale" className="text-xs text-gray-600">Scale Effect</label>
+                    <label
+                      htmlFor="gallery_scale"
+                      className="text-xs text-gray-600"
+                    >
+                      Scale Effect
+                    </label>
                   </div>
                 </div>
                 <button
@@ -2056,7 +2149,9 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
               {/* Memory Carousel */}
               <div className="border border-blue-200 rounded p-3 space-y-2">
-                <h5 className="text-xs font-medium text-blue-800">Memory Carousel</h5>
+                <h5 className="text-xs font-medium text-blue-800">
+                  Memory Carousel
+                </h5>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-xs text-gray-600">Carousel Y:</label>
@@ -2073,11 +2168,15 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                       type="number"
                       className="text-xs border rounded px-2 py-1 w-full"
                       value={carouselSpacing}
-                      onChange={(e) => setCarouselSpacing(Number(e.target.value))}
+                      onChange={(e) =>
+                        setCarouselSpacing(Number(e.target.value))
+                      }
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="text-xs text-gray-600">Curve Intensity:</label>
+                    <label className="text-xs text-gray-600">
+                      Curve Intensity:
+                    </label>
                     <input
                       type="number"
                       className="text-xs border rounded px-2 py-1 w-full"
@@ -2106,24 +2205,34 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
               {/* Polaroid Tumble */}
               <div className="border border-blue-200 rounded p-3 space-y-2">
-                <h5 className="text-xs font-medium text-blue-800">Polaroid Tumble</h5>
+                <h5 className="text-xs font-medium text-blue-800">
+                  Polaroid Tumble
+                </h5>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs text-gray-600">Rotation Range:</label>
+                    <label className="text-xs text-gray-600">
+                      Rotation Range:
+                    </label>
                     <input
                       type="number"
                       className="text-xs border rounded px-2 py-1 w-full"
                       value={polaroidRotation}
-                      onChange={(e) => setPolaroidRotation(Number(e.target.value))}
+                      onChange={(e) =>
+                        setPolaroidRotation(Number(e.target.value))
+                      }
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-600">Settle Time:</label>
+                    <label className="text-xs text-gray-600">
+                      Settle Time:
+                    </label>
                     <input
                       type="number"
                       className="text-xs border rounded px-2 py-1 w-full"
                       value={polaroidSettle}
-                      onChange={(e) => setPolaroidSettle(Number(e.target.value))}
+                      onChange={(e) =>
+                        setPolaroidSettle(Number(e.target.value))
+                      }
                       step="0.1"
                       min="0.1"
                       max="1"

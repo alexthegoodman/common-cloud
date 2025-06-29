@@ -2396,7 +2396,7 @@ export default class EditorState {
       scale_keyframes.push({
         id: uuidv4().toString(),
         time: i * time_step,
-        value: { type: "ScaleX", value: scale },
+        value: { type: "ScaleX", value: scale * 100 },
         easing: EasingType.Linear,
         pathType: PathType.Linear,
         keyType: { type: "Frame" },
@@ -2405,7 +2405,7 @@ export default class EditorState {
       scale_y_keyframes.push({
         id: uuidv4().toString(),
         time: i * time_step,
-        value: { type: "ScaleY", value: scale },
+        value: { type: "ScaleY", value: scale * 100 },
         easing: EasingType.Linear,
         pathType: PathType.Linear,
         keyType: { type: "Frame" },
@@ -3248,7 +3248,8 @@ export default class EditorState {
         (p) =>
           p.propertyPath !== "position" &&
           p.propertyPath !== "rotation" &&
-          p.propertyPath !== "scale"
+          p.propertyPath !== "scalex" &&
+          p.propertyPath !== "scaley"
       );
 
       if (non_position_props) {
@@ -3291,6 +3292,7 @@ export default class EditorState {
       let position_keyframes: UIKeyframe[] = [];
       let rotation_keyframes: UIKeyframe[] = [];
       let scale_keyframes: UIKeyframe[] = [];
+      let scale_y_keyframes: UIKeyframe[] = [];
 
       let delay = i * stagger_delay;
       let active_duration = durationMs - delay;
@@ -3336,16 +3338,16 @@ export default class EditorState {
         scale_keyframes.push({
           id: uuidv4().toString(),
           time: time,
-          value: { type: "ScaleX", value: scale },
+          value: { type: "ScaleX", value: scale * 100 },
           easing: EasingType.Linear,
           pathType: PathType.Linear,
           keyType: { type: "Frame" },
           curveData: null,
         });
-        scale_keyframes.push({
+        scale_y_keyframes.push({
           id: uuidv4().toString(),
           time: time,
-          value: { type: "ScaleY", value: scale },
+          value: { type: "ScaleY", value: scale * 100 },
           easing: EasingType.Linear,
           pathType: PathType.Linear,
           keyType: { type: "Frame" },
@@ -3370,10 +3372,18 @@ export default class EditorState {
       });
 
       properties.push({
-        name: "Scale",
-        propertyPath: "scale",
+        name: "Scale X",
+        propertyPath: "scalex",
         children: [],
         keyframes: scale_keyframes,
+        depth: 0,
+      });
+
+      properties.push({
+        name: "Scale Y",
+        propertyPath: "scaley",
+        children: [],
+        keyframes: scale_y_keyframes,
         depth: 0,
       });
 
@@ -3538,7 +3548,8 @@ export default class EditorState {
       let non_position_props = current_keyframes_array[i].properties.filter(
         (p) =>
           p.propertyPath !== "position" &&
-          p.propertyPath !== "scale" &&
+          p.propertyPath !== "scalex" &&
+          p.propertyPath !== "scaley" &&
           p.propertyPath !== "opacity"
       );
 
@@ -3556,6 +3567,7 @@ export default class EditorState {
 
       let position_keyframes: UIKeyframe[] = [];
       let scale_keyframes: UIKeyframe[] = [];
+      let scale_y_keyframes: UIKeyframe[] = [];
       let opacity_keyframes: UIKeyframe[] = [];
 
       let delay = i * appear_delay;
@@ -3628,16 +3640,16 @@ export default class EditorState {
           scale_keyframes.push({
             id: uuidv4().toString(),
             time: time,
-            value: { type: "ScaleX", value: scale },
+            value: { type: "ScaleX", value: scale * 100 },
             easing: EasingType.Linear,
             pathType: PathType.Linear,
             keyType: { type: "Frame" },
             curveData: null,
           });
-          scale_keyframes.push({
+          scale_y_keyframes.push({
             id: uuidv4().toString(),
             time: time,
-            value: { type: "ScaleY", value: scale },
+            value: { type: "ScaleY", value: scale * 100 },
             easing: EasingType.Linear,
             pathType: PathType.Linear,
             keyType: { type: "Frame" },
@@ -3648,7 +3660,7 @@ export default class EditorState {
         opacity_keyframes.push({
           id: uuidv4().toString(),
           time: time,
-          value: { type: "Opacity", value: eased_t },
+          value: { type: "Opacity", value: eased_t * 100 },
           easing: EasingType.Linear,
           pathType: PathType.Linear,
           keyType: { type: "Frame" },
@@ -3680,7 +3692,7 @@ export default class EditorState {
             keyType: { type: "Frame" },
             curveData: null,
           });
-          scale_keyframes.push({
+          scale_y_keyframes.push({
             id: uuidv4().toString(),
             time: hold_time,
             value: { type: "ScaleY", value: 1 },
@@ -3694,7 +3706,7 @@ export default class EditorState {
         opacity_keyframes.push({
           id: uuidv4().toString(),
           time: hold_time,
-          value: { type: "Opacity", value: 1 },
+          value: { type: "Opacity", value: 100 },
           easing: EasingType.Linear,
           pathType: PathType.Linear,
           keyType: { type: "Frame" },
@@ -3712,10 +3724,17 @@ export default class EditorState {
 
       if (scale_effect) {
         properties.push({
-          name: "Scale",
-          propertyPath: "scale",
+          name: "Scale X",
+          propertyPath: "scalex",
           children: [],
           keyframes: scale_keyframes,
+          depth: 0,
+        });
+        properties.push({
+          name: "Scale Y",
+          propertyPath: "scaley",
+          children: [],
+          keyframes: scale_y_keyframes,
           depth: 0,
         });
       }
@@ -3758,7 +3777,10 @@ export default class EditorState {
       let properties: AnimationProperty[] = [];
 
       let non_position_props = current_keyframes_array[i].properties.filter(
-        (p) => p.propertyPath !== "position" && p.propertyPath !== "scale"
+        (p) =>
+          p.propertyPath !== "position" &&
+          p.propertyPath !== "scalex" &&
+          p.propertyPath !== "scaley"
       );
 
       if (non_position_props) {
@@ -3769,6 +3791,7 @@ export default class EditorState {
 
       let position_keyframes: UIKeyframe[] = [];
       let scale_keyframes: UIKeyframe[] = [];
+      let scale_y_keyframes: UIKeyframe[] = [];
 
       let num_points = 60;
       let time_step = durationMs / num_points;
@@ -3807,16 +3830,16 @@ export default class EditorState {
         scale_keyframes.push({
           id: uuidv4().toString(),
           time: time,
-          value: { type: "ScaleX", value: scale },
+          value: { type: "ScaleX", value: scale * 100 },
           easing: EasingType.Linear,
           pathType: PathType.Linear,
           keyType: { type: "Frame" },
           curveData: null,
         });
-        scale_keyframes.push({
+        scale_y_keyframes.push({
           id: uuidv4().toString(),
           time: time,
-          value: { type: "ScaleY", value: scale },
+          value: { type: "ScaleY", value: scale * 100 },
           easing: EasingType.Linear,
           pathType: PathType.Linear,
           keyType: { type: "Frame" },
@@ -3833,10 +3856,17 @@ export default class EditorState {
       });
 
       properties.push({
-        name: "Scale",
-        propertyPath: "scale",
+        name: "Scale X",
+        propertyPath: "scalex",
         children: [],
         keyframes: scale_keyframes,
+        depth: 0,
+      });
+      properties.push({
+        name: "Scale Y",
+        propertyPath: "scaley",
+        children: [],
+        keyframes: scale_y_keyframes,
         depth: 0,
       });
 
@@ -3884,7 +3914,8 @@ export default class EditorState {
         (p) =>
           p.propertyPath !== "position" &&
           p.propertyPath !== "rotation" &&
-          p.propertyPath !== "scale"
+          p.propertyPath !== "scalex" &&
+          p.propertyPath !== "scaley"
       );
 
       if (non_position_props) {
@@ -3907,6 +3938,7 @@ export default class EditorState {
       let position_keyframes: UIKeyframe[] = [];
       let rotation_keyframes: UIKeyframe[] = [];
       let scale_keyframes: UIKeyframe[] = [];
+      let scale_y_keyframes: UIKeyframe[] = [];
 
       let num_points = 50;
       let time_step = durationMs / num_points;
@@ -3967,16 +3999,16 @@ export default class EditorState {
         scale_keyframes.push({
           id: uuidv4().toString(),
           time: time,
-          value: { type: "ScaleX", value: scale },
+          value: { type: "ScaleX", value: scale * 100 },
           easing: EasingType.Linear,
           pathType: PathType.Linear,
           keyType: { type: "Frame" },
           curveData: null,
         });
-        scale_keyframes.push({
+        scale_y_keyframes.push({
           id: uuidv4().toString(),
           time: time,
-          value: { type: "ScaleY", value: scale },
+          value: { type: "ScaleY", value: scale * 100 },
           easing: EasingType.Linear,
           pathType: PathType.Linear,
           keyType: { type: "Frame" },
@@ -4001,10 +4033,17 @@ export default class EditorState {
       });
 
       properties.push({
-        name: "Scale",
-        propertyPath: "scale",
+        name: "Scale X",
+        propertyPath: "scalex",
         children: [],
         keyframes: scale_keyframes,
+        depth: 0,
+      });
+      properties.push({
+        name: "Scale Y",
+        propertyPath: "scaley",
+        children: [],
+        keyframes: scale_y_keyframes,
         depth: 0,
       });
 
