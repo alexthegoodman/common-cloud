@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthToken } from "@/fetchers/projects";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { useEffect } from "react";
 import useSWR, { mutate } from "swr";
@@ -52,13 +53,10 @@ export type JwtData = {
 };
 
 export default function useCurrentUser() {
-  const [jwtData, saveJwtData] = useLocalStorage<JwtData | null>(
-    "jwtData",
-    null
-  );
+  const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
   const { data, isLoading, error } = useSWR("currentUser", () =>
-    getCurrentUser(jwtData?.token ? jwtData?.token : "")
+    getCurrentUser(authToken?.token ? authToken?.token : "")
   );
 
   //   useEffect(() => {
