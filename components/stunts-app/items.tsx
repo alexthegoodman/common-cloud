@@ -60,21 +60,29 @@ export const ProjectItem = ({
 
     setLoading(true);
 
-    const { project } = await getSingleProject(authToken.token, project_id);
+    try {
+      const { project } = await getSingleProject(authToken.token, project_id);
 
-    if (!project?.fileData || !project.docData || !project.presData) {
-      return;
+      if (!project?.fileData || !project.docData || !project.presData) {
+        return;
+      }
+
+      await createProject(
+        authToken.token,
+        project?.name + " Duplicate",
+        project?.fileData,
+        project?.docData,
+        project?.presData
+      );
+
+      mutate("projects", () => getProjects(authToken));
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("Project limit reached")) {
+        toast.error("Project limit reached. Upgrade to create more projects.");
+      } else {
+        toast.error("Failed to duplicate project. Please try again.");
+      }
     }
-
-    await createProject(
-      authToken.token,
-      project?.name + " Duplicate",
-      project?.fileData,
-      project?.docData,
-      project?.presData
-    );
-
-    mutate("projects", () => getProjects(authToken));
 
     setLoading(false);
   };

@@ -155,10 +155,10 @@ export const createProject = async (
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Create project request failed: ${response.status} - ${response.statusText} - ${errorText}`
-    );
+    const errorData = await response.json().catch(async () => ({
+      error: await response.text()
+    }));
+    throw new Error(errorData.error || `Create project request failed: ${response.status} - ${response.statusText}`);
   }
 
   return response.json();

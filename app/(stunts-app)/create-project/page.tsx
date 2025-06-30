@@ -20,6 +20,7 @@ const ProjectForm = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setError,
   } = useForm<any>(); // Type the form data
   const [authToken] = useLocalStorage<AuthToken | null>("auth-token", null);
 
@@ -91,6 +92,17 @@ const ProjectForm = () => {
       router.push(`/project/${projectId}`);
     } catch (error) {
       console.error("Error creating project:", error);
+      if (error instanceof Error && error.message.includes("Project limit reached")) {
+        setError("root", { 
+          type: "manual", 
+          message: "Project limit reached. Upgrade to create more projects." 
+        });
+      } else {
+        setError("root", { 
+          type: "manual", 
+          message: "Failed to create project. Please try again." 
+        });
+      }
     }
   };
 
@@ -127,6 +139,12 @@ const ProjectForm = () => {
               )}
             </div>
           </div>
+
+          {errors.root && (
+            <div className="text-red-500 text-sm text-center">
+              {errors.root.message?.toString()}
+            </div>
+          )}
 
           <div>
             <button

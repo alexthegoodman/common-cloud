@@ -23,6 +23,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Check project limit for non-subscribers and non-admins
+    if (user.role !== "ADMIN" && user.subscriptionStatus !== "ACTIVE") {
+      const projectCount = await prisma.project.count({
+        where: { ownerId: user.id },
+      });
+
+      if (projectCount >= 3) {
+        return NextResponse.json(
+          { error: "Project limit reached. Upgrade to create more projects." },
+          { status: 403 }
+        );
+      }
+    }
+
     const { name, emptyVideoData, emptyDocData, emptyPresData } =
       await req.json();
 
