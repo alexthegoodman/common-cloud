@@ -3,10 +3,65 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import prisma from "@/lib/prisma";
 
-// Initialize Stripe with your secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
+
+const fulfillOrder = async (session: Stripe.Checkout.Session) => {
+  const userId = session.client_reference_id;
+  const subscriptionId = session.subscription;
+  const customerId = session.customer;
+
+  if (!userId || typeof customerId !== "string") {
+    console.error("fulfillOrder", "userId or customerId not found");
+    return;
+  }
+
+  console.info("fulfillOrder", userId, customerId);
+
+  await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      stripeCustomerId: customerId,
+      // subscription: "STANDARD",
+      // frequency: "MONTHLY",
+    },
+  });
+};
+
+const updateSubscriptionStatus = async (
+  customerId: string,
+  subscriptionData: {
+    subscriptionId?: string | null;
+    subscriptionStatus?:
+      | "ACTIVE"
+      | "INACTIVE"
+      | "TRIALING"
+      | "PAST_DUE"
+      | "CANCELED"
+      | "UNPAID";
+    currentPeriodEnd?: Date | null;
+    planId?: string | null;
+    cancelAtPeriodEnd?: boolean;
+    trialEndsAt?: Date | null;
+  }
+) => {
+  // Check if user exists first
+  const user = await prisma.user.findFirst({
+    where: { stripeCustomerId: customerId },
+  });
+
+  if (!user) {
+    console.log("User not found for customer:", customerId);
+    return;
+  }
+
+  await prisma.user.update({
+    where: { stripeCustomerId: customerId },
+    data: subscriptionData,
+  });
+};
 
 export async function POST(req: Request) {
   try {
@@ -14,30 +69,40 @@ export async function POST(req: Request) {
     const header = await headers();
     const signature = header.get("stripe-signature")!;
 
-    // Verify the webhook signature
+    console.info("begin stripe handler");
+
     let event: Stripe.Event;
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Webhook signature verification failed:", err);
-      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+      return NextResponse.json(
+        { error: `Webhook Error: ${err.message}` },
+        { status: 400 }
+      );
     }
 
-    // Handle different event types
     switch (event.type) {
       case "checkout.session.completed": {
+        console.info("checkout.session.completed");
         const session = event.data.object as Stripe.Checkout.Session;
 
-        // Should run before customer.subscription.created
-        // If this is a new subscription, update the user with the customer ID
-        if (session.customer && session.client_reference_id) {
-          await prisma.user.update({
-            where: { id: session.client_reference_id },
-            data: {
-              stripeCustomerId: session.customer as string,
-            },
-          });
+        if (session.payment_status === "paid") {
+          await fulfillOrder(session);
         }
+        break;
+      }
+
+      case "checkout.session.async_payment_succeeded": {
+        console.info("checkout.session.async_payment_succeeded");
+        const session = event.data.object as Stripe.Checkout.Session;
+        await fulfillOrder(session);
+        break;
+      }
+
+      case "checkout.session.async_payment_failed": {
+        console.error("checkout.session.async_payment_failed");
+        // Handle failed payment if needed
         break;
       }
 
@@ -46,7 +111,7 @@ export async function POST(req: Request) {
         const subscription = event.data.object as Stripe.Subscription;
         const priceId = subscription.items.data[0].price.id;
 
-        // Find the corresponding plan in your database
+        // Find the corresponding plan
         const plan = await prisma.plan.findFirst({
           where: {
             OR: [{ stripePriceId: priceId }, { stripeDevPriceId: priceId }],
@@ -61,7 +126,7 @@ export async function POST(req: Request) {
           );
         }
 
-        // Map Stripe status to your SubscriptionStatus enum
+        // Map Stripe status to your enum
         const statusMap: Record<
           Stripe.Subscription.Status,
           | "ACTIVE"
@@ -81,19 +146,15 @@ export async function POST(req: Request) {
           paused: "INACTIVE",
         };
 
-        // Update user subscription details
-        await prisma.user.update({
-          where: { stripeCustomerId: subscription.customer as string },
-          data: {
-            subscriptionId: subscription.id,
-            subscriptionStatus: statusMap[subscription.status],
-            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-            planId: plan.id,
-            cancelAtPeriodEnd: subscription.cancel_at_period_end,
-            trialEndsAt: subscription.trial_end
-              ? new Date(subscription.trial_end * 1000)
-              : null,
-          },
+        await updateSubscriptionStatus(subscription.customer as string, {
+          subscriptionId: subscription.id,
+          subscriptionStatus: statusMap[subscription.status],
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          planId: plan.id,
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          trialEndsAt: subscription.trial_end
+            ? new Date(subscription.trial_end * 1000)
+            : null,
         });
         break;
       }
@@ -101,16 +162,13 @@ export async function POST(req: Request) {
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
 
-        await prisma.user.update({
-          where: { stripeCustomerId: subscription.customer as string },
-          data: {
-            subscriptionStatus: "CANCELED",
-            subscriptionId: null,
-            planId: null,
-            currentPeriodEnd: null,
-            cancelAtPeriodEnd: false,
-            trialEndsAt: null,
-          },
+        await updateSubscriptionStatus(subscription.customer as string, {
+          subscriptionStatus: "CANCELED",
+          subscriptionId: null,
+          planId: null,
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false,
+          trialEndsAt: null,
         });
         break;
       }
@@ -119,11 +177,8 @@ export async function POST(req: Request) {
         const invoice = event.data.object as Stripe.Invoice;
 
         if (invoice.subscription) {
-          await prisma.user.update({
-            where: { stripeCustomerId: invoice.customer as string },
-            data: {
-              subscriptionStatus: "ACTIVE",
-            },
+          await updateSubscriptionStatus(invoice.customer as string, {
+            subscriptionStatus: "ACTIVE",
           });
         }
         break;
@@ -133,11 +188,8 @@ export async function POST(req: Request) {
         const invoice = event.data.object as Stripe.Invoice;
 
         if (invoice.subscription) {
-          await prisma.user.update({
-            where: { stripeCustomerId: invoice.customer as string },
-            data: {
-              subscriptionStatus: "PAST_DUE",
-            },
+          await updateSubscriptionStatus(invoice.customer as string, {
+            subscriptionStatus: "PAST_DUE",
           });
         }
         break;
@@ -154,7 +206,6 @@ export async function POST(req: Request) {
   }
 }
 
-// Configure the webhook handler to accept raw body
 export const config = {
   api: {
     bodyParser: false,

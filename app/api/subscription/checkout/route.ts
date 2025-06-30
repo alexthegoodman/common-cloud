@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 export async function POST(req: Request) {
   try {
     const { priceId } = await req.json();
-    
+
     // Get the authenticated user
     const token = req.headers.get("Authorization")?.split(" ")[1];
     if (!token) {
@@ -29,11 +29,8 @@ export async function POST(req: Request) {
     // Validate the price ID exists in your plans
     const plan = await prisma.plan.findFirst({
       where: {
-        OR: [
-          { stripePriceId: priceId },
-          { stripeDevPriceId: priceId }
-        ]
-      }
+        OR: [{ stripePriceId: priceId }, { stripeDevPriceId: priceId }],
+      },
     });
 
     if (!plan) {
@@ -52,7 +49,7 @@ export async function POST(req: Request) {
         },
       ],
       mode: "subscription",
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/projects?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/upgrade`,
       billing_address_collection: "required",
     });
