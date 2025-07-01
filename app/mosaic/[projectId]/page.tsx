@@ -8,6 +8,8 @@ import VideoPreview from "@/components/mosaic/VideoPreview";
 import { getPublicProject, SingleProjectResponse } from "@/fetchers/mosaic";
 import { DateTime } from "luxon";
 import Link from "next/link";
+import { Play } from "@phosphor-icons/react";
+import { VideoPlayer } from "@/components/mosaic/VideoPlayer";
 
 // interface VideoPageProps {
 //   params: {
@@ -21,6 +23,8 @@ export default function VideoPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     if (projectId) {
@@ -122,15 +126,9 @@ export default function VideoPage() {
           {/* Video Player Section */}
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
             <ClientOnly>
-              <VideoPreview
-                project={{
-                  project_id: projectData.id,
-                  project_name: projectData.name,
-                  video_data: projectData.fileData,
-                  created: DateTime.fromISO(projectData.createdAt),
-                  modified: DateTime.fromISO(projectData.updatedAt),
-                }}
-              />
+              <>
+                <VideoPlayer projectId={projectData.id} />
+              </>
             </ClientOnly>
 
             {/* Video Info */}

@@ -77,7 +77,8 @@ export default function VideoPreview({
     await previewManagerRef.current.pipeline?.renderWebglFrame(
       previewManagerRef.current.editor,
       async (_) => {},
-      10 // 10 seconds in
+      // 10 // 10 seconds in
+      5 // 5 seconds in
     );
 
     const previewUrl = await previewManagerRef.current.generatePreview(
