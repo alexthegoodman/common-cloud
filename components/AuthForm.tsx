@@ -302,11 +302,14 @@ export default function AuthForm() {
                   },
                 })}
                 type="email"
+                id="email"
                 placeholder="Enter your email"
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-slate-700 placeholder:text-slate-400"
+                aria-describedby={errors.email ? "email-error" : undefined}
+                aria-invalid={errors.email ? "true" : "false"}
               />
               {errors.email && (
-                <p className="text-red-500 text-sm mt-1">
+                <p id="email-error" className="text-red-500 text-sm mt-1" role="alert">
                   {errors.email.message}
                 </p>
               )}
@@ -380,19 +383,22 @@ export default function AuthForm() {
                   },
                 })}
                 type="password"
+                id="password"
                 placeholder={
                   mode === "login" ? "Enter your password" : "Create a password"
                 }
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-slate-700 placeholder:text-slate-400"
+                aria-describedby={errors.password ? "password-error" : mode === "signup" ? "password-help" : undefined}
+                aria-invalid={errors.password ? "true" : "false"}
                 autoFocus
               />
               {errors.password && (
-                <p className="text-red-500 text-sm mt-1">
+                <p id="password-error" className="text-red-500 text-sm mt-1" role="alert">
                   {errors.password.message}
                 </p>
               )}
               {mode === "signup" && (
-                <p className="text-xs text-slate-500 mt-1">
+                <p id="password-help" className="text-xs text-slate-500 mt-1">
                   Password must be at least 6 characters long
                 </p>
               )}
@@ -439,7 +445,7 @@ export default function AuthForm() {
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm" role="alert" aria-live="polite">
             {error}
           </div>
         )}

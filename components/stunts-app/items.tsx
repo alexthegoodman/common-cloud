@@ -201,6 +201,7 @@ interface OptionButtonProps {
   label: string;
   icon: string;
   callback: () => void;
+  'aria-label'?: string;
 }
 
 export const OptionButton: React.FC<OptionButtonProps> = ({
@@ -208,6 +209,7 @@ export const OptionButton: React.FC<OptionButtonProps> = ({
   label,
   icon,
   callback,
+  'aria-label': ariaLabel,
 }) => {
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -221,6 +223,7 @@ export const OptionButton: React.FC<OptionButtonProps> = ({
         focus-visible:border-2 focus-visible:border-blue-500"
       style={style} // Apply the style string
       onClick={handleClick}
+      aria-label={ariaLabel || label}
     >
       <div className="text-black mb-1">
         <CreateIcon icon={icon} size="24px" />

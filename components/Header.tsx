@@ -47,17 +47,19 @@ export default function Header({ language = "en", showLogo = false }) {
             </Link>
           )}
         </div>
-        <ul className="flex flex-row gap-5 text-white">
-          <li>
-            <Link href="/blog/">{copy?.blog}</Link>
-          </li>
-          <li>
-            <Link href="/login/">{copy?.login}</Link>
-          </li>
-          {/* <li>
-            <Link href="/register/">{copy?.register}</Link>
-          </li> */}
-        </ul>
+        <nav role="navigation" aria-label="Main navigation">
+          <ul className="flex flex-row gap-5 text-white">
+            <li>
+              <Link href="/blog/">{copy?.blog}</Link>
+            </li>
+            <li>
+              <Link href="/login/">{copy?.login}</Link>
+            </li>
+            {/* <li>
+              <Link href="/register/">{copy?.register}</Link>
+            </li> */}
+          </ul>
+        </nav>
       </div>
     </section>
   );

@@ -160,6 +160,8 @@ const LanguagePicker = ({
               `}
               onClick={() => selectLanguage(language.lng)}
               disabled={isLoading}
+              aria-pressed={isSelected}
+              aria-describedby={`lang-desc-${i}`}
             >
               {/* Loading Overlay */}
               {isCurrentlyLoading && (
@@ -173,6 +175,11 @@ const LanguagePicker = ({
                 </div>
               )}
 
+              {/* Add hidden description for screen readers */}
+              <span id={`lang-desc-${i}`} className="sr-only">
+                Select {language.labelNative} as your preferred language. {language.description}
+              </span>
+              
               {/* Language Card Content */}
               <div className="flex items-center space-x-4">
                 {/* Flag and Color Indicator */}

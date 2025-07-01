@@ -493,9 +493,9 @@ export default function FlowContent({
           {/* Auto-generation Status */}
           {isGeneratingImages && (
             <div className="mt-6">
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg" role="status" aria-live="polite">
                 <div className="flex items-center space-x-2">
-                  <Spinner className="w-5 h-5 text-blue-600 animate-spin" />
+                  <Spinner className="w-5 h-5 text-blue-600 animate-spin" aria-hidden="true" />
                   <span className="text-blue-800 font-medium">
                     {t("Generating images based on your prompt")}...
                   </span>
@@ -560,6 +560,8 @@ export default function FlowContent({
                           ? "bg-green-50 border-green-200 text-green-800"
                           : "bg-yellow-50 border-yellow-200 text-yellow-800"
                       }`}
+                      role="status"
+                      aria-live="polite"
                     >
                       <div className="text-sm font-medium">
                         {t("Files Status")}: {files.length} uploaded,{" "}

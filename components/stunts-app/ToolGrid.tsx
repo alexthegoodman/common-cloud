@@ -767,6 +767,7 @@ export const ToolGrid = ({
             style={{}}
             label={t("Add Square")}
             icon="square"
+            aria-label="Add a square shape to the canvas"
             callback={() => {
               if (!currentSequenceId) {
                 return;
@@ -782,6 +783,7 @@ export const ToolGrid = ({
             style={{}}
             label={t("Add Text")}
             icon="text"
+            aria-label="Add a text element to the canvas"
             callback={() => {
               if (!currentSequenceId) {
                 return;
@@ -799,6 +801,7 @@ export const ToolGrid = ({
               ref={fileInputRef}
               accept="image/*"
               style={{ display: "none" }}
+              aria-label="Select image file to upload"
               onChange={(e) => {
                 // Handle the selected file here
                 if (!e.target.files || !currentSequenceId) {
@@ -817,6 +820,7 @@ export const ToolGrid = ({
               style={{}}
               label={t("Add Image")}
               icon="image"
+              aria-label="Browse and add an image file to the canvas"
               callback={() => fileInputRef.current?.click()}
             />
           </>
@@ -829,6 +833,7 @@ export const ToolGrid = ({
               ref={videoInputRef}
               accept="video/*"
               style={{ display: "none" }}
+              aria-label="Select video file to upload"
               onChange={(e) => {
                 // Handle the selected file here
                 if (!e.target.files || !currentSequenceId) {
@@ -847,6 +852,7 @@ export const ToolGrid = ({
               style={{}}
               label={t("Add Video")}
               icon="video"
+              aria-label="Browse and add a video file to the canvas"
               callback={() => videoInputRef.current?.click()}
             />
           </>
@@ -857,6 +863,7 @@ export const ToolGrid = ({
             style={{}}
             label={t("Screen Capture")}
             icon="video"
+            aria-label={isCapturing ? "Stop screen recording" : "Start screen recording"}
             callback={() => {
               if (isCapturing) {
                 handleStopCapture();
