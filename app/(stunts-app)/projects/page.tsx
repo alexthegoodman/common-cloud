@@ -26,9 +26,9 @@ export default function Projects() {
             <div className="flex flex-row gap-2 mb-2 justify-between w-full">
               <h1 className="text-lg">{t("Projects")}</h1>
 
-              {user?.subscriptionStatus === "INACTIVE" && (
+              {/* {user?.subscriptionStatus === "INACTIVE" && (
                 <UpgradeButton onClick={() => router.push("/upgrade")} />
-              )}
+              )} */}
 
               <button
                 onClick={() => router.push("/create-project")}
