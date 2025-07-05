@@ -7,23 +7,25 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 export async function POST(req: Request) {
   try {
-    const { priceId } = await req.json();
+    const { priceId, email } = await req.json();
 
-    // Get the authenticated user
+    // Check if this is an authenticated user or signup flow
     const token = req.headers.get("Authorization")?.split(" ")[1];
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    let user = null;
 
-    const decoded = verifyJWT(token) as { userId: string; email: string };
+    if (token) {
+      // Existing authenticated user flow
+      const decoded = verifyJWT(token) as { userId: string; email: string };
+      user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+      });
 
-    // Find the user in the database
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      if (!user) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+    } else if (!email) {
+      // No token and no email provided
+      return NextResponse.json({ error: "Email is required for signup" }, { status: 400 });
     }
 
     // Validate the price ID exists in your plans
@@ -39,9 +41,9 @@ export async function POST(req: Request) {
 
     // Create Stripe checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
-      customer: user.stripeCustomerId || undefined,
-      customer_email: user.stripeCustomerId ? undefined : user.email,
-      client_reference_id: user.id,
+      customer: user?.stripeCustomerId || undefined,
+      customer_email: user?.stripeCustomerId ? undefined : (user?.email || email),
+      client_reference_id: user?.id || undefined,
       line_items: [
         {
           price: priceId,
@@ -49,9 +51,13 @@ export async function POST(req: Request) {
         },
       ],
       mode: "subscription",
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/projects?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/upgrade`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/complete-signup?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/register`,
       billing_address_collection: "required",
+      metadata: {
+        signup_email: email || "",
+        is_signup: user ? "false" : "true",
+      },
     });
 
     return NextResponse.json({ url: checkoutSession.url });

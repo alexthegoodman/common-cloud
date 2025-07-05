@@ -1,132 +1,3 @@
-// // components/AuthForm.tsx
-// import { useForm } from "react-hook-form";
-// import { useState } from "react";
-// import { useRouter } from "next/navigation";
-// import * as fbq from "../lib/fpixel";
-
-// interface AuthFormData {
-//   email: string;
-//   password: string;
-// }
-
-// export default function AuthForm({ type = "login" }) {
-//   const [error, setError] = useState("");
-//   const [loading, setLoading] = useState(false);
-//   const router = useRouter();
-
-//   const {
-//     register,
-//     handleSubmit,
-//     formState: { errors },
-//   } = useForm<AuthFormData>();
-
-//   const onSubmit = async (data: AuthFormData) => {
-//     try {
-//       setLoading(true);
-//       setError("");
-
-//       let res = null;
-//       if (type === "login") {
-//         res = await fetch("/api/auth/login", {
-//           method: "POST",
-//           headers: { "Content-Type": "application/json" },
-//           body: JSON.stringify(data),
-//         });
-//       } else {
-//         res = await fetch("/api/auth/register", {
-//           method: "POST",
-//           headers: { "Content-Type": "application/json" },
-//           body: JSON.stringify({ name: "Default Name", ...data }),
-//         });
-
-//         fbq.event("SignUp", { email: data.email });
-//       }
-
-//       const json = await res.json();
-
-//       if (!res.ok) throw new Error(json.error || "Authentication failed");
-
-//       console.info(
-//         "json.jwtData",
-//         json.jwtData,
-//         json,
-//         JSON.stringify(json.jwtData)
-//       );
-
-//       localStorage.setItem("auth-token", JSON.stringify(json.jwtData));
-//       router.push("/projects");
-//     } catch (err) {
-//       setError(err instanceof Error ? err.message : "Authentication failed");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <form
-//       onSubmit={handleSubmit(onSubmit)}
-//       className="space-y-4 sm:w-[300px] md:w-[350px] lg:w-[400px] text-left"
-//     >
-//       <div>
-//         <label
-//           htmlFor="email"
-//           className="block text-sm font-medium mb-1 text-slate-400"
-//         >
-//           Email
-//         </label>
-//         <input
-//           {...register("email", {
-//             required: "Email is required",
-//             pattern: {
-//               value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-//               message: "Invalid email address",
-//             },
-//           })}
-//           type="email"
-//           className="w-full p-2 border rounded text-slate-400 placeholder:text-slate-400"
-//         />
-//         {errors.email && (
-//           <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-//         )}
-//       </div>
-
-//       <div>
-//         <label
-//           htmlFor="password"
-//           className="block text-sm font-medium mb-1 text-slate-400"
-//         >
-//           Password
-//         </label>
-//         <input
-//           {...register("password", {
-//             required: "Password is required",
-//             minLength: {
-//               value: 6,
-//               message: "Password must be at least 6 characters",
-//             },
-//           })}
-//           type="password"
-//           className="w-full p-2 border rounded text-slate-400 placeholder:text-slate-400"
-//         />
-//         {errors.password && (
-//           <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
-//         )}
-//       </div>
-
-//       {error && <div className="text-red-500 text-sm">{error}</div>}
-
-//       <button
-//         type="submit"
-//         disabled={loading}
-//         className="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600 disabled:opacity-50"
-//       >
-//         {loading ? "Loading..." : type === "login" ? "Sign in" : "Register"}
-//       </button>
-//     </form>
-//   );
-// }
-
-// components/AuthForm.tsx
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -139,10 +10,10 @@ interface AuthFormData {
   password: string;
 }
 
-type AuthStep = "email" | "password";
+type AuthStep = "email" | "payment" | "password";
 type AuthMode = "login" | "signup";
 
-export default function AuthForm() {
+export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean }) {
   const [step, setStep] = useState<AuthStep>("email");
   const [mode, setMode] = useState<AuthMode | null>(null);
   const [error, setError] = useState("");
@@ -177,8 +48,11 @@ export default function AuthForm() {
       if (!res.ok) throw new Error(json.error || "Failed to check email");
 
       setEmailValue(email);
+      if (loginOnly && !json.userExists) {
+        throw new Error("No account found with this email. Please sign up first.");
+      }
       setMode(json.userExists ? "login" : "signup");
-      setStep("password");
+      setStep(json.userExists ? "password" : loginOnly ? "password" : "payment");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to check email");
     } finally {
@@ -190,6 +64,59 @@ export default function AuthForm() {
     const isValid = await trigger("email");
     if (isValid && watchedEmail) {
       await checkEmail(watchedEmail);
+    }
+  };
+
+  const handlePayment = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      // For signup flow, redirect to Stripe checkout
+      if (mode === "signup") {
+        // Get available plans to find the price ID
+        const plansResponse = await fetch("/api/plans/all");
+        const plansData = await plansResponse.json();
+
+        if (!plansData.plans || plansData.plans.length === 0) {
+          throw new Error("No subscription plans available");
+        }
+
+        const plan = plansData.plans[0]; // Use the first (and only) plan
+        const priceId =
+          process.env.NODE_ENV === "production"
+            ? plan.stripePriceId
+            : plan.stripeDevPriceId;
+
+        if (!priceId) {
+          throw new Error("Subscription plan not configured");
+        }
+
+        const response = await fetch("/api/subscription/checkout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: emailValue,
+            priceId: priceId,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.url) {
+          // Store email for after payment completion
+          sessionStorage.setItem("signup-email", emailValue);
+          window.location.href = data.url;
+        } else {
+          throw new Error(data.error || "Failed to create checkout session");
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Payment failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -249,6 +176,8 @@ export default function AuthForm() {
   const onSubmit = async (data: AuthFormData) => {
     if (step === "email") {
       await handleEmailSubmit();
+    } else if (step === "payment") {
+      await handlePayment();
     } else {
       await handleAuth(data);
     }
@@ -256,11 +185,28 @@ export default function AuthForm() {
 
   return (
     <div className="space-y-6 sm:w-[300px] md:w-[350px] lg:w-[400px] text-left">
-      {/* Progress indicator */}
+      {/* Progress indicator - only show for signup flow */}
+      {!loginOnly && (
       <div className="flex items-center space-x-2 mb-6">
         <div
           className={`w-3 h-3 rounded-full transition-colors ${
             step === "email" ? "bg-red-500" : "bg-green-500"
+          }`}
+        />
+        <div
+          className={`flex-1 h-0.5 transition-colors ${
+            step === "payment" || step === "password"
+              ? "bg-red-500"
+              : "bg-gray-300"
+          }`}
+        />
+        <div
+          className={`w-3 h-3 rounded-full transition-colors ${
+            step === "payment"
+              ? "bg-red-500"
+              : step === "password"
+              ? "bg-green-500"
+              : "bg-gray-300"
           }`}
         />
         <div
@@ -274,6 +220,7 @@ export default function AuthForm() {
           }`}
         />
       </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {step === "email" ? (
@@ -281,9 +228,11 @@ export default function AuthForm() {
           <>
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-slate-700 mb-2">
-                Welcome
+                {loginOnly ? "Welcome Back" : "Welcome"}
               </h2>
-              <p className="text-slate-500">Enter your email to get started</p>
+              <p className="text-slate-500">
+                {loginOnly ? "Enter your email to sign in" : "Enter your email to get started"}
+              </p>
             </div>
 
             <div>
@@ -309,7 +258,11 @@ export default function AuthForm() {
                 aria-invalid={errors.email ? "true" : "false"}
               />
               {errors.email && (
-                <p id="email-error" className="text-red-500 text-sm mt-1" role="alert">
+                <p
+                  id="email-error"
+                  className="text-red-500 text-sm mt-1"
+                  role="alert"
+                >
                   {errors.email.message}
                 </p>
               )}
@@ -325,21 +278,96 @@ export default function AuthForm() {
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <span>Checking...</span>
                 </span>
-              ) : (
+              ) : loginOnly ? (
                 "Continue"
+              ) : (
+                "Proceed To Checkout"
               )}
             </button>
-
+            {/* 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 bg-white text-gray-500">
+                  Or continue with
+                </span>
+              </div>
+            </div> */}
+
+            {/* <GoogleLoginButton onError={setError} /> */}
+          </>
+        ) : step === "payment" ? (
+          /* Payment Step */
+          <>
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-slate-700 mb-2">
+                Subscribe to Continue
+              </h2>
+              <p className="text-slate-500">
+                Complete your subscription to create your account
+              </p>
+              <div className="mt-3 p-2 bg-gray-100 rounded-lg">
+                <p className="text-sm text-slate-600 flex items-center justify-between">
+                  <span>{emailValue}</span>
+                  <button
+                    type="button"
+                    onClick={handleBackToEmail}
+                    className="text-red-500 hover:text-red-600 text-xs font-medium"
+                  >
+                    Change
+                  </button>
+                </p>
               </div>
             </div>
 
-            <GoogleLoginButton onError={setError} />
+            <div className="bg-slate-50 p-6 rounded-lg border mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-slate-700">
+                  Stunts Standard
+                </span>
+                <span className="text-2xl font-bold text-slate-900">$0.99</span>
+              </div>
+              <p className="text-slate-600 text-sm mb-4">per month</p>
+              <div className="space-y-2">
+                <div className="flex items-center text-sm text-slate-600">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  Unlimited Projects
+                </div>
+                <div className="flex items-center text-sm text-slate-600">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  Advanced Video Editing
+                </div>
+                <div className="flex items-center text-sm text-slate-600">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  Premium Export Options
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-red-500 text-white p-3 rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Redirecting to checkout...</span>
+                </span>
+              ) : (
+                "Continue to Payment"
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleBackToEmail}
+              className="w-full text-slate-500 hover:text-slate-700 text-sm font-medium transition-colors flex items-center justify-center gap-2 mt-2"
+            >
+              <ArrowLeft size={16} /> Back to email
+            </button>
           </>
         ) : (
           /* Password Step */
@@ -388,12 +416,22 @@ export default function AuthForm() {
                   mode === "login" ? "Enter your password" : "Create a password"
                 }
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-slate-700 placeholder:text-slate-400"
-                aria-describedby={errors.password ? "password-error" : mode === "signup" ? "password-help" : undefined}
+                aria-describedby={
+                  errors.password
+                    ? "password-error"
+                    : mode === "signup"
+                    ? "password-help"
+                    : undefined
+                }
                 aria-invalid={errors.password ? "true" : "false"}
                 autoFocus
               />
               {errors.password && (
-                <p id="password-error" className="text-red-500 text-sm mt-1" role="alert">
+                <p
+                  id="password-error"
+                  className="text-red-500 text-sm mt-1"
+                  role="alert"
+                >
                   {errors.password.message}
                 </p>
               )}
@@ -423,16 +461,18 @@ export default function AuthForm() {
               )}
             </button>
 
-            <div className="relative">
+            {/* <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 bg-white text-gray-500">
+                  Or continue with
+                </span>
               </div>
             </div>
 
-            <GoogleLoginButton onError={setError} />
+            <GoogleLoginButton onError={setError} /> */}
 
             <button
               type="button"
@@ -445,7 +485,11 @@ export default function AuthForm() {
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm" role="alert" aria-live="polite">
+          <div
+            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
+            role="alert"
+            aria-live="polite"
+          >
             {error}
           </div>
         )}

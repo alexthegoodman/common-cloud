@@ -9,7 +9,7 @@ export default async function seedTypes() {
     data: [
       {
         name: "Stunts",
-        price: 699,
+        price: 99,
         description:
           "This subscription covers access to the Stunts desktop application.",
         stripeDevPriceId: "",

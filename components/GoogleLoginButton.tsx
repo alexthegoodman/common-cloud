@@ -31,7 +31,8 @@ export default function GoogleLoginButton({ onError }: GoogleLoginButtonProps) {
       localStorage.setItem("auth-token", JSON.stringify(json.jwtData));
 
       if (json.isNewUser) {
-        router.push("/select-language");
+        // For new users, redirect to checkout for subscription
+        router.push("/upgrade");
       } else {
         router.push("/projects");
       }

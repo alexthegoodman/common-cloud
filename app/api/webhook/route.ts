@@ -10,24 +10,48 @@ const fulfillOrder = async (session: Stripe.Checkout.Session) => {
   const userId = session.client_reference_id;
   const subscriptionId = session.subscription;
   const customerId = session.customer;
+  const signupEmail = session.metadata?.signup_email;
+  const isSignup = session.metadata?.is_signup === "true";
 
-  if (!userId || typeof customerId !== "string") {
-    console.error("fulfillOrder", "userId or customerId not found");
+  if (typeof customerId !== "string") {
+    console.error("fulfillOrder", "customerId not found");
     return;
   }
 
-  console.info("fulfillOrder", userId, customerId);
+  console.info("fulfillOrder", { userId, customerId, signupEmail, isSignup });
 
-  await prisma.user.update({
-    where: {
-      id: userId,
-    },
-    data: {
-      stripeCustomerId: customerId,
-      // subscription: "STANDARD",
-      // frequency: "MONTHLY",
-    },
-  });
+  if (userId) {
+    // Existing user updating subscription
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        stripeCustomerId: customerId,
+        subscriptionId: subscriptionId as string,
+      },
+    });
+  } else if (isSignup && signupEmail) {
+    // New user signup - check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: signupEmail },
+    });
+
+    if (!existingUser) {
+      console.log("User will complete signup via complete-signup page");
+      // User will be created when they complete the signup flow
+      // We just log this for now
+    } else {
+      // User exists but went through signup flow, update their subscription
+      await prisma.user.update({
+        where: { email: signupEmail },
+        data: {
+          stripeCustomerId: customerId,
+          subscriptionId: subscriptionId as string,
+        },
+      });
+    }
+  }
 };
 
 const updateSubscriptionStatus = async (
