@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as fbq from "@/lib/fpixel";
 
@@ -16,7 +16,9 @@ export default function CompleteSignupPage() {
   const [email, setEmail] = useState("");
   const [sessionId, setSessionId] = useState("");
   const router = useRouter();
-  const searchParams = useSearchParams();
+  // const searchParams = useSearchParams();
+  // get searchParams from the URL
+  const searchParams = new URLSearchParams(window.location.search);
 
   const {
     register,
@@ -93,7 +95,9 @@ export default function CompleteSignupPage() {
       // Redirect to projects
       router.push("/projects");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to complete signup");
+      setError(
+        err instanceof Error ? err.message : "Failed to complete signup"
+      );
     } finally {
       setLoading(false);
     }
@@ -104,7 +108,9 @@ export default function CompleteSignupPage() {
       <div className="min-h-screen bg-slate-100 flex items-center justify-center">
         <div className="bg-white p-8 rounded-lg shadow-lg">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500 mx-auto"></div>
-          <p className="text-center mt-4 text-slate-600">Verifying your payment...</p>
+          <p className="text-center mt-4 text-slate-600">
+            Verifying your payment...
+          </p>
         </div>
       </div>
     );
@@ -115,11 +121,23 @@ export default function CompleteSignupPage() {
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <svg
+              className="w-8 h-8 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-2">Payment Successful!</h1>
+          <h1 className="text-2xl font-bold text-slate-800 mb-2">
+            Payment Successful!
+          </h1>
           <p className="text-slate-600 mb-4">
             Complete your account setup by creating a password
           </p>
@@ -130,7 +148,10 @@ export default function CompleteSignupPage() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-slate-700 mb-2"
+            >
               Create Password
             </label>
             <input
@@ -147,18 +168,24 @@ export default function CompleteSignupPage() {
               className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
             />
             {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password.message}
+              </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-2">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-slate-700 mb-2"
+            >
               Confirm Password
             </label>
             <input
               {...register("confirmPassword", {
                 required: "Please confirm your password",
-                validate: (value) => value === password || "Passwords do not match",
+                validate: (value) =>
+                  value === password || "Passwords do not match",
               })}
               type="password"
               id="confirmPassword"
@@ -166,7 +193,9 @@ export default function CompleteSignupPage() {
               className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
             />
             {errors.confirmPassword && (
-              <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>
+              <p className="text-red-500 text-sm mt-1">
+                {errors.confirmPassword.message}
+              </p>
             )}
           </div>
 
