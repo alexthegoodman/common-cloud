@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as fbq from "@/lib/fpixel";
 
@@ -10,15 +10,13 @@ interface CompleteSignupFormData {
   confirmPassword: string;
 }
 
-export default function CompleteSignupPage() {
+function CompleteSignupContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [sessionId, setSessionId] = useState("");
   const router = useRouter();
-  // const searchParams = useSearchParams();
-  // get searchParams from the URL
-  const searchParams = new URLSearchParams(window.location.search);
+  const searchParams = useSearchParams();
 
   const {
     register,
@@ -222,5 +220,13 @@ export default function CompleteSignupPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function CompleteSignupPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CompleteSignupContent />
+    </Suspense>
   );
 }
