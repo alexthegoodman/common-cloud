@@ -171,34 +171,83 @@ const AddKeyframesSchema = {
   projectId: z.string().describe("ID of the project"),
   sequenceId: z.string().describe("ID of the sequence"),
   objectId: z.string().describe("ID of the object to add keyframes to"),
-  propertyName: z.string().describe("Name of the property (position, scaleX, scaleY, rotation, opacity, etc.)"),
-  keyframes: z.array(z.object({
-    time: z.number().describe("Time in milliseconds"),
-    value: z.union([
-      z.array(z.number()).length(2), // Position [x, y]
-      z.number(), // Single value for rotation, scale, opacity, etc.
-    ]).describe("Keyframe value"),
-    easing: z.enum(["Linear", "EaseIn", "EaseOut", "EaseInOut"]).default("Linear").describe("Easing type"),
-    pathType: z.enum(["Linear", "Bezier"]).default("Linear").describe("Path type"),
-  })).describe("Array of keyframes to add"),
+  propertyName: z
+    .string()
+    .describe(
+      "Name of the property (position, scaleX, scaleY, rotation, opacity, etc.)"
+    ),
+  keyframes: z
+    .array(
+      z.object({
+        time: z.number().describe("Time in milliseconds"),
+        value: z
+          .union([
+            z.array(z.number()).length(2), // Position [x, y]
+            z.number(), // Single value for rotation, scale, opacity, etc.
+          ])
+          .describe("Keyframe value"),
+        easing: z
+          .enum(["Linear", "EaseIn", "EaseOut", "EaseInOut"])
+          .default("Linear")
+          .describe("Easing type"),
+        pathType: z
+          .enum(["Linear", "Bezier"])
+          .default("Linear")
+          .describe("Path type"),
+      })
+    )
+    .describe("Array of keyframes to add"),
 };
 
 const BulkAddKeyframesSchema = {
   projectId: z.string().describe("ID of the project"),
   sequenceId: z.string().describe("ID of the sequence"),
-  keyframeData: z.array(z.object({
-    objectId: z.string().describe("ID of the object"),
-    propertyName: z.string().describe("Name of the property"),
-    keyframes: z.array(z.object({
-      time: z.number().describe("Time in milliseconds"),
-      value: z.union([
-        z.array(z.number()).length(2), // Position [x, y]
-        z.number(), // Single value for rotation, scale, opacity, etc.
-      ]).describe("Keyframe value"),
-      easing: z.enum(["Linear", "EaseIn", "EaseOut", "EaseInOut"]).default("Linear").describe("Easing type"),
-      pathType: z.enum(["Linear", "Bezier"]).default("Linear").describe("Path type"),
-    })).describe("Array of keyframes"),
-  })).describe("Array of keyframe data for multiple objects and properties"),
+  keyframeData: z
+    .array(
+      z.object({
+        objectId: z.string().describe("ID of the object"),
+        propertyName: z.string().describe("Name of the property"),
+        keyframes: z
+          .array(
+            z.object({
+              time: z.number().describe("Time in milliseconds"),
+              value: z
+                .union([
+                  z.array(z.number()).length(2), // Position [x, y]
+                  z.number(), // Single value for rotation, scale, opacity, etc.
+                ])
+                .describe("Keyframe value"),
+              easing: z
+                .enum(["Linear", "EaseIn", "EaseOut", "EaseInOut"])
+                .default("Linear")
+                .describe("Easing type"),
+              pathType: z
+                .enum(["Linear", "Bezier"])
+                .default("Linear")
+                .describe("Path type"),
+            })
+          )
+          .describe("Array of keyframes"),
+      })
+    )
+    .describe("Array of keyframe data for multiple objects and properties"),
+};
+
+const CreateProjectSchema = {
+  userId: z.string().describe("ID of the user who will own the project"),
+  name: z.string().describe("Name of the new project"),
+  public: z
+    .boolean()
+    .default(false)
+    .describe("Whether the project should be public"),
+  isTemplate: z
+    .boolean()
+    .default(false)
+    .describe("Whether the project is a template"),
+  isFeatured: z
+    .boolean()
+    .default(false)
+    .describe("Whether the project is featured"),
 };
 
 class VideoProjectMCPServer {
@@ -328,11 +377,23 @@ class VideoProjectMCPServer {
     this.server.registerTool(
       "bulk_add_keyframes",
       {
-        description: "Add keyframes in bulk for multiple objects and properties",
+        description:
+          "Add keyframes in bulk for multiple objects and properties",
         inputSchema: BulkAddKeyframesSchema,
       },
       async (args) => {
         return (await this.bulkAddKeyframes(args)) as any;
+      }
+    );
+
+    this.server.registerTool(
+      "create_project",
+      {
+        description: "Create a new video project",
+        inputSchema: CreateProjectSchema,
+      },
+      async (args) => {
+        return (await this.createProject(args)) as any;
       }
     );
   }
@@ -466,7 +527,9 @@ class VideoProjectMCPServer {
     }
 
     // Use placeholder image if no URL provided or if URL is empty
-    const imageUrl = params.url || "https://via.placeholder.com/300x200/cccccc/666666?text=Placeholder";
+    const imageUrl =
+      params.url ||
+      "https://via.placeholder.com/300x200/cccccc/666666?text=Placeholder";
 
     const imageItem: SavedStImageConfig = {
       id: uuidv4(),
@@ -670,60 +733,64 @@ class VideoProjectMCPServer {
 
   private createKeyframeValue(propertyName: string, value: any): KeyframeValue {
     const lowerProperty = propertyName.toLowerCase();
-    
+
     if (lowerProperty === "position") {
       if (Array.isArray(value) && value.length === 2) {
         return { type: "Position", value: [value[0], value[1]] };
       }
       throw new Error("Position property requires [x, y] array");
     }
-    
+
     if (lowerProperty === "rotation") {
       if (typeof value === "number") {
         return { type: "Rotation", value: value };
       }
       throw new Error("Rotation property requires a number value");
     }
-    
+
     if (lowerProperty === "scalex") {
       if (typeof value === "number") {
         return { type: "ScaleX", value: value };
       }
       throw new Error("ScaleX property requires a number value");
     }
-    
+
     if (lowerProperty === "scaley") {
       if (typeof value === "number") {
         return { type: "ScaleY", value: value };
       }
       throw new Error("ScaleY property requires a number value");
     }
-    
+
     if (lowerProperty === "perspectivex") {
       if (typeof value === "number") {
         return { type: "PerspectiveX", value: value };
       }
       throw new Error("PerspectiveX property requires a number value");
     }
-    
+
     if (lowerProperty === "perspectivey") {
       if (typeof value === "number") {
         return { type: "PerspectiveY", value: value };
       }
       throw new Error("PerspectiveY property requires a number value");
     }
-    
+
     if (lowerProperty === "opacity") {
       if (typeof value === "number") {
         return { type: "Opacity", value: value };
       }
       throw new Error("Opacity property requires a number value");
     }
-    
+
     throw new Error(`Unsupported property: ${propertyName}`);
   }
 
-  private findOrCreateAnimationData(savedState: SavedState, sequenceId: string, objectId: string): AnimationData {
+  private findOrCreateAnimationData(
+    savedState: SavedState,
+    sequenceId: string,
+    objectId: string
+  ): AnimationData {
     const sequence = this.findSequence(savedState, sequenceId);
     if (!sequence) {
       throw new Error(`Sequence with ID ${sequenceId} not found`);
@@ -733,8 +800,10 @@ class VideoProjectMCPServer {
       sequence.polygonMotionPaths = [];
     }
 
-    let animationData = sequence.polygonMotionPaths.find(path => path.polygonId === objectId);
-    
+    let animationData = sequence.polygonMotionPaths.find(
+      (path) => path.polygonId === objectId
+    );
+
     if (!animationData) {
       const objectType = this.determineObjectType(savedState, objectId);
       if (!objectType) {
@@ -750,34 +819,42 @@ class VideoProjectMCPServer {
         properties: [],
         position: [0, 0],
       };
-      
+
       sequence.polygonMotionPaths.push(animationData);
     }
 
     return animationData;
   }
 
-  private determineObjectType(savedState: SavedState, objectId: string): ObjectType | null {
+  private determineObjectType(
+    savedState: SavedState,
+    objectId: string
+  ): ObjectType | null {
     for (const sequence of savedState.sequences) {
-      if (sequence.activePolygons.some(p => p.id === objectId)) {
+      if (sequence.activePolygons.some((p) => p.id === objectId)) {
         return ObjectType.Polygon;
       }
-      if (sequence.activeTextItems.some(t => t.id === objectId)) {
+      if (sequence.activeTextItems.some((t) => t.id === objectId)) {
         return ObjectType.TextItem;
       }
-      if (sequence.activeImageItems.some(i => i.id === objectId)) {
+      if (sequence.activeImageItems.some((i) => i.id === objectId)) {
         return ObjectType.ImageItem;
       }
-      if (sequence.activeVideoItems.some(v => v.id === objectId)) {
+      if (sequence.activeVideoItems.some((v) => v.id === objectId)) {
         return ObjectType.VideoItem;
       }
     }
     return null;
   }
 
-  private findOrCreateAnimationProperty(animationData: AnimationData, propertyName: string): AnimationProperty {
-    let property = animationData.properties.find(p => p.name === propertyName);
-    
+  private findOrCreateAnimationProperty(
+    animationData: AnimationData,
+    propertyName: string
+  ): AnimationProperty {
+    let property = animationData.properties.find(
+      (p) => p.name === propertyName
+    );
+
     if (!property) {
       property = {
         name: propertyName,
@@ -788,20 +865,30 @@ class VideoProjectMCPServer {
       };
       animationData.properties.push(property);
     }
-    
+
     return property;
   }
 
   private async addKeyframes(params: any) {
     const savedState = await this.loadProject(params.projectId);
-    const animationData = this.findOrCreateAnimationData(savedState, params.sequenceId, params.objectId);
-    const property = this.findOrCreateAnimationProperty(animationData, params.propertyName);
+    const animationData = this.findOrCreateAnimationData(
+      savedState,
+      params.sequenceId,
+      params.objectId
+    );
+    const property = this.findOrCreateAnimationProperty(
+      animationData,
+      params.propertyName
+    );
 
     let addedCount = 0;
-    
+
     for (const keyframeData of params.keyframes) {
-      const keyframeValue = this.createKeyframeValue(params.propertyName, keyframeData.value);
-      
+      const keyframeValue = this.createKeyframeValue(
+        params.propertyName,
+        keyframeData.value
+      );
+
       const keyframe: UIKeyframe = {
         id: uuidv4(),
         time: keyframeData.time,
@@ -836,14 +923,24 @@ class VideoProjectMCPServer {
     const results: string[] = [];
 
     for (const keyframeDataGroup of params.keyframeData) {
-      const animationData = this.findOrCreateAnimationData(savedState, params.sequenceId, keyframeDataGroup.objectId);
-      const property = this.findOrCreateAnimationProperty(animationData, keyframeDataGroup.propertyName);
+      const animationData = this.findOrCreateAnimationData(
+        savedState,
+        params.sequenceId,
+        keyframeDataGroup.objectId
+      );
+      const property = this.findOrCreateAnimationProperty(
+        animationData,
+        keyframeDataGroup.propertyName
+      );
 
       let addedCount = 0;
-      
+
       for (const keyframeData of keyframeDataGroup.keyframes) {
-        const keyframeValue = this.createKeyframeValue(keyframeDataGroup.propertyName, keyframeData.value);
-        
+        const keyframeValue = this.createKeyframeValue(
+          keyframeDataGroup.propertyName,
+          keyframeData.value
+        );
+
         const keyframe: UIKeyframe = {
           id: uuidv4(),
           time: keyframeData.time,
@@ -860,7 +957,9 @@ class VideoProjectMCPServer {
       }
 
       property.keyframes.sort((a, b) => a.time - b.time);
-      results.push(`Added ${addedCount} keyframes for property "${keyframeDataGroup.propertyName}" on object ${keyframeDataGroup.objectId}`);
+      results.push(
+        `Added ${addedCount} keyframes for property "${keyframeDataGroup.propertyName}" on object ${keyframeDataGroup.objectId}`
+      );
     }
 
     await this.saveProject(params.projectId, savedState);
@@ -869,10 +968,54 @@ class VideoProjectMCPServer {
       content: [
         {
           type: "text",
-          text: `Bulk keyframe operation completed. Total: ${totalAddedCount} keyframes added.\n${results.join('\n')}`,
+          text: `Bulk keyframe operation completed. Total: ${totalAddedCount} keyframes added.\n${results.join(
+            "\n"
+          )}`,
         },
       ],
     };
+  }
+
+  private async createProject(params: any) {
+    try {
+      const defaultSavedState: SavedState = {
+        sequences: [],
+        settings: {
+          dimensions: {
+            width: 500,
+            height: 900,
+          },
+        },
+        timeline_state: null,
+      };
+
+      const project = await this.prisma.project.create({
+        data: {
+          id: uuidv4(),
+          name: params.name,
+          ownerId: params.userId,
+          public: params.public,
+          isTemplate: params.isTemplate,
+          isFeatured: params.isFeatured,
+          fileData: defaultSavedState as any,
+        },
+      });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Created project "${params.name}" with ID ${project.id}`,
+          },
+        ],
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to create project: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
   }
 
   async cleanup() {
