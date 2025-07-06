@@ -12,6 +12,7 @@ import {
   Shapes,
   TextAUnderline,
   Layout,
+  ArrowRight,
 } from "@phosphor-icons/react";
 import PricingTable from "@/components/PricingTable";
 import Link from "next/link";
@@ -21,6 +22,8 @@ import ComingSoonSection from "@/components/ComingSoon";
 import Competition from "@/components/Competition";
 import Features from "@/components/Features";
 import Header from "@/components/Header";
+import CreatorCarousel from "@/components/CreatorCarousel";
+import SocialProof from "@/components/SocialProof";
 
 const HomePage = () => {
   const [formVisible, setFormVisible] = useState(false);
@@ -48,18 +51,23 @@ const HomePage = () => {
             />
           </motion.div>
           <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-red-500 to-orange-500 text-transparent bg-clip-text">
-            Motion Graphics Made Simple
+            Go Viral with Pro Animations
           </h1>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Create stunning animated videos in minutes with smart motion paths
-            and intuitive keyframe generation.
+          <p className="text-xl text-gray-300 mb-4 max-w-2xl mx-auto">
+            TikTok & Reels creators: Stop using basic templates. Get
+            Netflix-quality animations that make your content impossible to
+            ignore.
+          </p>
+          <p className="text-lg text-gray-400 mb-8 max-w-2xl mx-auto">
+            Perfect for viral content, brand partnerships, personal stories, and
+            private memories. Professional results in minutes.
           </p>
           <div className="flex justify-center gap-4">
             <button
               className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full flex items-center"
               onClick={handleGetStarted}
             >
-              Get Started <ShieldChevron className="ml-2" />
+              Start Creating Viral Content <ArrowRight className="ml-2" />
             </button>
             <a
               href="https://www.youtube.com/shorts/LuXI2KxavjU"
@@ -85,7 +93,11 @@ const HomePage = () => {
         </div>
       </header>
 
+      <CreatorCarousel />
+
       <Features />
+
+      <SocialProof />
 
       <ComingSoonSection />
 
@@ -105,17 +117,17 @@ const HomePage = () => {
       <section className="container mx-auto px-4 py-16">
         <div className="bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-2xl p-12 text-center">
           <h2 className="text-3xl font-bold mb-4 text-white">
-            Ready to Transform Your Videos?
+            Ready to Get Your First Viral Video?
           </h2>
           <p className="text-xl text-gray-300 mb-8">
-            Join creators who are already making stunning motion graphics with
-            Stunts.
+            Join 600+ creators already using Stunts to create scroll-stopping
+            content.
           </p>
           <Link
             href="/register"
             className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full inline-flex items-center"
           >
-            Start Creating <ShieldChevron className="ml-2" />
+            Get Your First Viral Video <ShieldChevron className="ml-2" />
           </Link>
         </div>
       </section>

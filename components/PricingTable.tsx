@@ -69,41 +69,43 @@ const PricingTable = ({ language = "en" }) => {
   switch (language) {
     case "en":
       copy = {
-        title: "Start Your Creative Journey",
-        subtitle: "Get unlimited access to all features for just $0.99/month",
+        title: "Go Viral for Less Than 1 Sponsored Post",
+        subtitle: "Professional animations that get you noticed - ROI guaranteed",
         features: [
-          "Unlimited Projects",
-          "Advanced Video Editing",
-          "Keyframe Generation & Management",
-          "MP4 Video Import & Export",
-          "Text, Shapes, and Images",
-          "HD Export Quality",
-          "Priority Support",
+          "Unlimited Viral Content Creation",
+          "AI-Powered Keyframe Generation",
+          "TikTok & Reels Optimization",
+          "Brand Partnership Ready Export",
+          "Private Content for Personal Use",
+          "Professional Quality (Netflix-level)",
+          "Creator Community Access",
         ],
         emailPlaceholder: "Enter your email address",
-        buttonText: "Proceed to Checkout",
+        buttonText: "Get Your First Viral Video",
         priceText: "$0.99/month",
-        badge: "SPECIAL LAUNCH PRICE",
+        badge: "CREATOR LAUNCH SPECIAL",
+        comparison: "Less than 2 coffees per month"
       };
       break;
 
     case "hi":
       copy = {
-        title: "अपनी क्रिएटिव यात्रा शुरू करें",
-        subtitle: "सिर्फ $0.99/महीना में सभी फीचर्स का असीमित एक्सेस पाएं",
+        title: "1 स्पॉन्सर्ड पोस्ट से कम में वायरल हो जाएं",
+        subtitle: "प्रोफेशनल एनिमेशन जो आपको नोटिस दिलवाते हैं - ROI गारंटीड",
         features: [
-          "अनलिमिटेड प्रोजेक्ट्स",
-          "एडवांस्ड वीडियो एडिटिंग",
-          "कीफ्रेम जेनरेशन और मैनेजमेंट",
-          "MP4 वीडियो इम्पोर्ट और एक्सपोर्ट",
-          "टेक्स्ट, शेप्स और इमेज",
-          "HD एक्सपोर्ट क्वालिटी",
-          "प्राथमिकता सपोर्ट",
+          "अनलिमिटेड वायरल कंटेंट क्रिएशन",
+          "AI-पावर्ड कीफ्रेम जेनरेशन",
+          "TikTok और Reels ऑप्टिमाइज़ेशन",
+          "ब्रांड पार्टनरशिप रेडी एक्सपोर्ट",
+          "पर्सनल यूज़ के लिए प्राइवेट कंटेंट",
+          "प्रोफेशनल क्वालिटी (Netflix-लेवल)",
+          "क्रिएटर कम्युनिटी एक्सेस",
         ],
         emailPlaceholder: "अपना ईमेल पता दर्ज करें",
-        buttonText: "चेकआउट पर जाएं",
+        buttonText: "अपना पहला वायरल वीडियो बनाएं",
         priceText: "$0.99/महीना",
-        badge: "स्पेशल लॉन्च प्राइस",
+        badge: "क्रिएटर लॉन्च स्पेशल",
+        comparison: "महीने में 2 चाय से भी कम"
       };
       break;
 
@@ -128,7 +130,8 @@ const PricingTable = ({ language = "en" }) => {
             <div className="text-5xl font-bold text-white mb-2">
               {copy?.priceText}
             </div>
-            <p className="text-gray-400">Cancel anytime • No setup fees</p>
+            <p className="text-gray-400">{copy?.comparison}</p>
+            <p className="text-gray-500 text-sm mt-1">Cancel anytime • No setup fees</p>
           </div>
 
           <div className="space-y-4 mb-8">

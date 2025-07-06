@@ -19,34 +19,34 @@ export default function Features({ language = "en", grid = 3, py = 16 }) {
       copy = {
         features: [
           {
-            title: "Smart Path Generation",
+            title: "Viral Text Animations",
             description:
-              "Automatically generate logical motion paths with our intelligent keyframe system. No more template-look!",
+              "Make your captions impossible to ignore with AI-powered keyframe generation. Perfect for hooks and viral moments.",
           },
           {
-            title: "Screen Capture & Smooth Zooms",
+            title: "Product Drop Reveals",
             description:
-              "Record your screen to enable dynamic product showcases with beautiful zooms!",
+              "Screen capture + auto-zoom creates perfect product showcases for brand partnerships and personal recommendations.",
           },
           {
-            title: "Create with Text, Images, and Shapes",
+            title: "Logo Stings & Branding",
             description:
-              "Build stunning compositions using our comprehensive toolkit of text editing, image manipulation, and vector shape tools.",
+              "Professional channel branding in seconds. Stand out from basic creators with Netflix-quality animations.",
           },
           {
-            title: "Over 35 Fonts Included",
+            title: "Private & Personal Content",
             description:
-              "Express your creativity with our extensive collection of carefully curated professional fonts, ready to use in your projects.",
+              "Not just for going viral - perfect for family memories, personal stories, and private content that deserves professional quality.",
           },
           {
-            title: "Your Content",
+            title: "Trend-Ready Templates",
             description:
-              "Import your own media and transform it with our powerful animation tools.",
+              "Jump on viral formats fast with smart motion paths that adapt to any content. No more manual keyframe placement.",
           },
           {
-            title: "Video Import",
+            title: "High-Quality Export",
             description:
-              "Import your existing video content with desktop-class performance on the web",
+              "Export HD videos optimized for TikTok, Reels, and YouTube Shorts. Professional results that get noticed.",
           },
         ],
       };
@@ -56,34 +56,34 @@ export default function Features({ language = "en", grid = 3, py = 16 }) {
       copy = {
         features: [
           {
-            title: "स्मार्ट पाथ जेनरेशन",
+            title: "वायरल टेक्स्ट एनिमेशन",
             description:
-              "हमारे इंटेलिजेंट कीफ्रेम सिस्टम के साथ ऑटोमेटिकली लॉजिकल मोशन पाथ जेनरेट करें। अब कोई टेम्प्लेट लुक नहीं!",
+              "AI-पावर्ड कीफ्रेम जेनरेशन के साथ अपने कैप्शन को इग्नोर करना असंभव बनाएं। हुक्स और वायरल मोमेंट्स के लिए परफेक्ट।",
           },
           {
-            title: "स्क्रीन कैप्चर और स्मूथ जूम",
+            title: "प्रोडक्ट ड्रॉप रिवील्स",
             description:
-              "खूबसूरत जूम के साथ डायनामिक प्रोडक्ट शोकेस को इनेबल करने के लिए अपनी स्क्रीन रिकॉर्ड करें!",
+              "स्क्रीन कैप्चर + ऑटो-जूम ब्रांड पार्टनरशिप और पर्सनल रिकमेंडेशन के लिए परफेक्ट प्रोडक्ट शोकेस बनाता है।",
           },
           {
-            title: "टेक्स्ट, इमेज और शेप्स के साथ बनाएं",
+            title: "लोगो स्टिंग्स और ब्रांडिंग",
             description:
-              "टेक्स्ट एडिटिंग, इमेज मैनिपुलेशन, और वेक्टर शेप टूल्स के हमारे कॉम्प्रिहेंसिव टूलकिट का उपयोग करके शानदार कॉम्पोजिशन बनाएं।",
+              "सेकंड में प्रोफेशनल चैनल ब्रांडिंग। Netflix-क्वालिटी एनिमेशन के साथ बेसिक क्रिएटर्स से अलग दिखें।",
           },
           {
-            title: "35+ फॉन्ट्स शामिल",
+            title: "प्राइवेट और पर्सनल कंटेंट",
             description:
-              "सावधानी से चुने गए प्रोफेशनल फॉन्ट्स के हमारे व्यापक कलेक्शन के साथ अपनी क्रिएटिविटी को एक्सप्रेस करें, जो आपके प्रोजेक्ट्स में उपयोग के लिए तैयार हैं।",
+              "सिर्फ वायरल होने के लिए नहीं - फैमिली मेमोरीज, पर्सनल स्टोरीज और प्राइवेट कंटेंट के लिए भी परफेक्ट जो प्रोफेशनल क्वालिटी डिजर्व करता है।",
           },
           {
-            title: "आपका कंटेंट",
+            title: "ट्रेंड-रेडी टेम्प्लेट्स",
             description:
-              "अपनी खुद की मीडिया इम्पोर्ट करें और हमारे पावरफुल एनिमेशन टूल्स के साथ इसे ट्रांसफॉर्म करें।",
+              "स्मार्ट मोशन पाथ्स के साथ वायरल फॉर्मेट्स पर तेजी से जंप करें जो किसी भी कंटेंट के साथ एडाप्ट होते हैं। अब कोई मैनुअल कीफ्रेम प्लेसमेंट नहीं।",
           },
           {
-            title: "वीडियो इम्पोर्ट",
+            title: "हाई-क्वालिटी एक्सपोर्ट",
             description:
-              "वेब पर डेस्कटॉप-क्लास परफॉर्मेंस के साथ अपना मौजूदा वीडियो कंटेंट इम्पोर्ट करें",
+              "TikTok, Reels और YouTube Shorts के लिए ऑप्टिमाइज्ड HD वीडियो एक्सपोर्ट करें। प्रोफेशनल रिजल्ट्स जो नोटिस किए जाते हैं।",
           },
         ],
       };
