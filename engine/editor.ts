@@ -3195,7 +3195,7 @@ export class Editor {
       (anim) => anim.polygonId === objectId
     );
     if (!animationData) {
-      console.error(`Couldn't find animation data for object ${objectId}`);
+      console.warn(`Couldn't find animation data for object ${objectId}`);
       return;
     }
 

@@ -79,7 +79,10 @@ const AddTextSchema = {
     .array(z.number())
     .length(2)
     .describe("Width and height [width, height]"),
-  fontFamily: z.string().default("Arial").describe("Font family"),
+  fontFamily: z
+    .string()
+    .default("Aleo")
+    .describe("Font family (Please use Aleo, Amiko, or Ballet)"),
   fontSize: z.number().default(24).describe("Font size"),
   color: z
     .array(z.number())
@@ -185,7 +188,9 @@ const AddKeyframesSchema = {
             z.array(z.number()).length(2), // Position [x, y]
             z.number(), // Single value for rotation, scale, opacity, etc.
           ])
-          .describe("Keyframe value"),
+          .describe(
+            "Keyframe value (scale and opacity are out from 0 to 100+ rather than decimal)"
+          ),
         easing: z
           .enum(["Linear", "EaseIn", "EaseOut", "EaseInOut"])
           .default("Linear")
