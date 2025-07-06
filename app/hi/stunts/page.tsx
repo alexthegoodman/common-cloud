@@ -99,7 +99,7 @@ const HomePage = () => {
 
       <Features language="hi" />
 
-      <SocialProof language="hi" />
+      {/* <SocialProof language="hi" /> */}
 
       <ComingSoonSection language="hi" />
 

@@ -108,7 +108,7 @@ const HomePage = () => {
         <TextAnimationDemo />
       </div> */}
 
-      <SocialProof />
+      {/* <SocialProof /> */}
 
       <ComingSoonSection />
 
