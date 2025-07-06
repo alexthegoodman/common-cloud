@@ -8,7 +8,7 @@ export default function Header({ language = "en", showLogo = false }) {
     case "en":
       copy = {
         blog: "Blog",
-        login: "Login / Register",
+        login: "Login",
         register: "Register",
       };
       break;
@@ -16,7 +16,7 @@ export default function Header({ language = "en", showLogo = false }) {
     case "hi":
       copy = {
         blog: "ब्लॉग",
-        login: "लॉगिन / रजिस्टर",
+        login: "लॉगिन",
         register: "रजिस्टर",
       };
       break;

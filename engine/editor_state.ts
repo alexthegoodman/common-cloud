@@ -22,6 +22,7 @@ import {
   getRandomNumber,
   InputValue,
 } from "./editor";
+import { TextAnimationConfig } from "./textAnimations";
 
 export enum SaveTarget {
   Videos = "Videos",
@@ -4119,6 +4120,21 @@ export default class EditorState {
     await saveSequencesData(sequences, this.saveTarget);
 
     this.savedState = saved_state;
+  }
+
+  updateTextAnimation(
+    objectId: string,
+    animationConfig: TextAnimationConfig | null
+  ) {
+    this.savedState.sequences.forEach((s) => {
+      s.activeTextItems.forEach((t) => {
+        if (t.id === objectId) {
+          t.textAnimation = animationConfig;
+        }
+      });
+    });
+
+    saveSequencesData(this.savedState.sequences, this.saveTarget);
   }
 
   async add_saved_image_item(

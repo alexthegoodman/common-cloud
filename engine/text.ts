@@ -21,6 +21,8 @@ import {
   PolyfillQueue,
   PolyfillTexture,
 } from "./polyfill";
+import { TextAnimator, TextAnimationConfig } from "./textAnimator";
+import { TextAnimationManager } from "./textAnimationManager";
 
 export interface TextRendererConfig {
   id: string;
@@ -50,6 +52,8 @@ export interface SavedTextRendererConfig {
   // backgroundFill?: [number, number, number, number];
   backgroundFill: BackgroundFill;
   isCircle: boolean;
+  // Text Animation Properties
+  textAnimation?: TextAnimationConfig | null;
 }
 
 export interface GlyphRasterConfig {
@@ -107,6 +111,11 @@ export class TextRenderer {
   // textureView: GPUTextureView;
   isCircle: boolean;
   // gradientBindGroup: PolyfillBindGroup;
+  
+  // Text Animation Properties
+  private textAnimator: TextAnimator | null = null;
+  private animationConfig: TextAnimationConfig | null = null;
+  public animationManager: TextAnimationManager;
 
   constructor(
     device: PolyfillDevice,
@@ -282,6 +291,9 @@ export class TextRenderer {
     );
 
     this.groupBindGroup = tmp_group_bind_group;
+
+    // Initialize text animation manager
+    this.animationManager = new TextAnimationManager();
   }
 
   addAreaGlyphToAtlas(
@@ -622,6 +634,11 @@ export class TextRenderer {
     // Store vertices and indices for later use
     this.vertices = vertices;
     this.indices = indices;
+    
+    // Re-initialize text animations if they exist
+    if (this.textAnimator) {
+      this.textAnimator.updateConfig({ ...this.textAnimator.getConfig() });
+    }
   }
 
   addGlyphToAtlas(
@@ -1059,6 +1076,11 @@ export class TextRenderer {
     // Store vertices and indices for later use
     this.vertices = vertices;
     this.indices = indices;
+    
+    // Re-initialize text animations if they exist
+    if (this.textAnimator) {
+      this.textAnimator.updateConfig({ ...this.textAnimator.getConfig() });
+    }
   }
 
   update(
@@ -1398,6 +1420,26 @@ export class TextRenderer {
     };
   }
 
+  toSavedConfig(): SavedTextRendererConfig {
+    return {
+      id: this.id,
+      name: this.name,
+      text: this.text,
+      fontFamily: this.fontFamily,
+      dimensions: this.dimensions,
+      position: {
+        x: this.transform.position[0] - CANVAS_HORIZ_OFFSET,
+        y: this.transform.position[1] - CANVAS_VERT_OFFSET,
+      },
+      layer: this.layer,
+      color: this.color,
+      fontSize: this.fontSize,
+      backgroundFill: this.backgroundPolygon.backgroundFill,
+      isCircle: this.backgroundPolygon.isCircle,
+      textAnimation: this.animationConfig,
+    };
+  }
+
   static fromConfig(
     config: TextRendererConfig,
     windowSize: WindowSize,
@@ -1424,6 +1466,102 @@ export class TextRenderer {
       camera,
       isTextArea
     );
+  }
+
+  // Text Animation Methods
+  public setTextAnimation(config: TextAnimationConfig): void {
+    this.animationConfig = config;
+    this.textAnimator = this.animationManager.createAnimator(this, config);
+  }
+
+  public setTextAnimationFromTemplate(templateId: string, overrides?: Partial<TextAnimationConfig>): boolean {
+    const animator = this.animationManager.createAnimatorFromTemplate(this, templateId, overrides);
+    if (animator) {
+      this.textAnimator = animator;
+      this.animationConfig = animator.getConfig();
+      return true;
+    }
+    return false;
+  }
+
+  public startTextAnimation(startTime: number = 0): void {
+    if (this.textAnimator) {
+      this.textAnimator.startAnimation(startTime);
+    }
+  }
+
+  public stopTextAnimation(): void {
+    if (this.textAnimator) {
+      this.textAnimator.stopAnimation();
+    }
+  }
+
+  public pauseTextAnimation(): void {
+    if (this.textAnimator) {
+      this.textAnimator.pauseAnimation();
+    }
+  }
+
+  public resumeTextAnimation(): void {
+    if (this.textAnimator) {
+      this.textAnimator.resumeAnimation();
+    }
+  }
+
+  public updateTextAnimation(currentTime: number, queue: PolyfillQueue): void {
+    console.info("TextRenderer.updateTextAnimation called for:", this.id, "textAnimator exists:", !!this.textAnimator);
+    if (this.textAnimator) {
+      this.textAnimator.updateAnimation(currentTime, queue);
+    }
+  }
+
+  public removeTextAnimation(): void {
+    if (this.textAnimator && this.animationConfig) {
+      this.animationManager.removeAnimator(this.animationConfig.id);
+      this.textAnimator = null;
+      this.animationConfig = null;
+    }
+  }
+
+  public hasTextAnimation(): boolean {
+    return this.textAnimator !== null;
+  }
+
+  public getTextAnimationConfig(): TextAnimationConfig | null {
+    return this.animationConfig;
+  }
+
+  public isTextAnimationPlaying(): boolean {
+    return this.textAnimator ? this.textAnimator.isAnimationPlaying() : false;
+  }
+
+  // Quick preset methods for common viral animations
+  public applyViralTypewriter(): void {
+    this.setTextAnimationFromTemplate("viral-typewriter");
+  }
+
+  public applyTikTokBounce(): void {
+    this.setTextAnimationFromTemplate("tiktok-bounce");
+  }
+
+  public applyInstagramPop(): void {
+    this.setTextAnimationFromTemplate("instagram-pop");
+  }
+
+  public applyYouTubeWave(): void {
+    this.setTextAnimationFromTemplate("youtube-wave");
+  }
+
+  public applyNeonGlow(): void {
+    this.setTextAnimationFromTemplate("neon-glow");
+  }
+
+  public applyGlitchMatrix(): void {
+    this.setTextAnimationFromTemplate("glitch-matrix");
+  }
+
+  public applyRainbowFlow(): void {
+    this.setTextAnimationFromTemplate("rainbow-flow");
   }
 }
 

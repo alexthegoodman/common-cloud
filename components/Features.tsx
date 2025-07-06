@@ -19,9 +19,9 @@ export default function Features({ language = "en", grid = 3, py = 16 }) {
       copy = {
         features: [
           {
-            title: "Viral Text Animations",
+            title: "🔥 Beautiful Text Animators",
             description:
-              "Make your captions impossible to ignore with AI-powered keyframe generation. Perfect for hooks and viral moments.",
+              "20+ viral text animations including typewriter, bounce, glow, and rainbow effects. Make your captions impossible to ignore with one-click presets.",
           },
           {
             title: "Product Drop Reveals",

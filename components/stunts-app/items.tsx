@@ -369,6 +369,13 @@ export const PlaySequenceButton: React.FC<{
           editor.isPlaying = false;
           editor.startPlayingTime = null;
 
+          // Stop all text animations
+          for (const textItem of editor.textItems) {
+            if (textItem.hasTextAnimation()) {
+              textItem.stopTextAnimation();
+            }
+          }
+
           // should return objects to the startup positions and state
           editor.reset_sequence_objects();
 
@@ -389,6 +396,13 @@ export const PlaySequenceButton: React.FC<{
 
           editor.currentSequenceData = selected_sequence_data;
           editor.isPlaying = true;
+
+          // Start all text animations with relative time (0 = start of sequence)
+          for (const textItem of editor.textItems) {
+            if (!textItem.hidden && textItem.hasTextAnimation()) {
+              textItem.startTextAnimation(0);
+            }
+          }
 
           setIsPlaying(true);
         }

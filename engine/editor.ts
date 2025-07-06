@@ -300,6 +300,7 @@ import {
   PolyfillBindGroupLayout,
   PolyfillBuffer,
   PolyfillDevice,
+  PolyfillQueue,
   PolyfillRenderPipeline,
   WebGpuResources,
 } from "./polyfill";
@@ -1455,6 +1456,12 @@ export class Editor {
 
       restored_text.hidden = hidden;
       restored_text.renderText(device!, queue!);
+
+      // Restore text animation if it exists
+      if (t.textAnimation) {
+        console.log("Restoring text animation for:", t.id, t.textAnimation);
+        restored_text.setTextAnimation(t.textAnimation);
+      }
 
       this.textItems.push(restored_text);
 
@@ -3094,6 +3101,10 @@ export class Editor {
         }
       }
     }
+
+    // Update text animations
+    console.info("About to call updateTextAnimations, totalDt:", totalDt);
+    this.updateTextAnimations(totalDt * 1000, gpuResources.queue!);
   }
 
   getSurroundingKeyframes(
@@ -3424,6 +3435,19 @@ export class Editor {
     text_item.renderText(device!, queue!);
 
     this.textItems.push(text_item);
+  }
+
+  // Update text animations for all text items
+  updateTextAnimations(currentTimeMs: number, queue: PolyfillQueue): void {
+    console.info("Editor.updateTextAnimations called with", this.textItems.length, "text items");
+    
+    for (const textItem of this.textItems) {
+      console.info("Checking text item:", textItem.id, "hidden:", textItem.hidden, "hasAnimation:", textItem.hasTextAnimation());
+      if (!textItem.hidden && textItem.hasTextAnimation()) {
+        console.info("Calling updateTextAnimation for:", textItem.id);
+        textItem.updateTextAnimation(currentTimeMs, queue);
+      }
+    }
   }
 
   async add_image_item(

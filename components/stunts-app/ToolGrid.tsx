@@ -440,22 +440,32 @@ export const ToolGrid = ({
 
     await editor.add_text_item(text_config, new_text, new_id, sequence_id);
 
-    editor_state.add_saved_text_item(sequence_id, {
-      id: text_config.id,
-      name: text_config.name,
-      text: new_text,
-      fontFamily: text_config.fontFamily,
-      dimensions: [text_config.dimensions[0], text_config.dimensions[1]],
-      position: {
-        x: position.x,
-        y: position.y,
-      },
-      layer: text_config.layer,
-      color: text_config.color,
-      fontSize: text_config.fontSize,
-      backgroundFill: text_config.backgroundFill,
-      isCircle: text_config.isCircle,
-    });
+    // Find the created text renderer and save with animation data
+    const textRenderer = editor.textItems.find((t) => t.id === text_config.id);
+    const savedConfig = textRenderer
+      ? textRenderer.toSavedConfig()
+      : {
+          id: text_config.id,
+          name: text_config.name,
+          text: new_text,
+          fontFamily: text_config.fontFamily,
+          dimensions: [
+            text_config.dimensions[0],
+            text_config.dimensions[1],
+          ] as [number, number],
+          position: {
+            x: position.x,
+            y: position.y,
+          },
+          layer: text_config.layer,
+          color: text_config.color,
+          fontSize: text_config.fontSize,
+          backgroundFill: text_config.backgroundFill,
+          isCircle: text_config.isCircle,
+          textAnimation: null,
+        };
+
+    editor_state.add_saved_text_item(sequence_id, savedConfig);
 
     let saved_state = editor_state.savedState;
     let updated_sequence = saved_state.sequences.find(
@@ -863,7 +873,9 @@ export const ToolGrid = ({
             style={{}}
             label={t("Screen Capture")}
             icon="video"
-            aria-label={isCapturing ? "Stop screen recording" : "Start screen recording"}
+            aria-label={
+              isCapturing ? "Stop screen recording" : "Start screen recording"
+            }
             callback={() => {
               if (isCapturing) {
                 handleStopCapture();

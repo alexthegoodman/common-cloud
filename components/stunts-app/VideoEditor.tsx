@@ -75,6 +75,7 @@ import {
   ArrowRight,
   Check,
   Hamburger,
+  MagicWand,
   Palette,
   Stack,
   Toolbox,
@@ -85,6 +86,11 @@ import { useTranslation } from "react-i18next";
 import { FlowArrow } from "@phosphor-icons/react/dist/ssr";
 import useSWR from "swr";
 import { getCurrentUser } from "@/hooks/useCurrentUser";
+import { 
+  TextAnimationManager, 
+  VIRAL_PRESETS 
+} from "@/engine/textAnimations";
+import TextAnimationPanel from "./TextAnimationPanel";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -241,6 +247,10 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   let [scatterBounce, setScatterBounce] = useState(0.3);
   let [scatterRotation, setScatterRotation] = useState(15);
 
+  // Text Animation state
+  let [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+  let [animationManager] = useState(() => new TextAnimationManager());
+
   let [galleryX, setGalleryX] = useState(100);
   let [galleryY, setGalleryY] = useState(100);
   let [galleryWidth, setGalleryWidth] = useState(700);
@@ -349,6 +359,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     set_selected_text_id(text_id);
     set_selected_image_id(null);
     set_selected_video_id(null);
+    // Also set for text animations
+    setSelectedTextId(text_id);
   };
 
   let select_image = (image_id: string) => {
@@ -1140,6 +1152,38 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     setShowSidebar((prev) => !prev);
   };
 
+  // Text Animation handlers
+  const handleTextAnimationSelect = (templateId: string) => {
+    if (!selectedTextId) {
+      toast.error("Please select a text element first");
+      return;
+    }
+
+    const editor = editorRef.current;
+    const editorState = editorStateRef.current;
+
+    if (!editor || !editorState) return;
+
+    // Find the text renderer
+    const textRenderer = editor.textItems.find(t => t.id === selectedTextId);
+    if (!textRenderer) {
+      toast.error("Text element not found");
+      return;
+    }
+
+    // Apply the animation template
+    const success = textRenderer.setTextAnimationFromTemplate(templateId);
+    
+    if (success) {
+      // Save animation data to editor state using the new method
+      editorState.updateTextAnimation(selectedTextId, textRenderer.getTextAnimationConfig());
+      toast.success("Text animation applied!");
+    } else {
+      toast.error("Failed to apply text animation");
+    }
+  };
+
+
   // Template application functions
   const applyTemplate = (
     templateName: string,
@@ -1613,6 +1657,110 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           >
             {loading ? "Generating..." : "Generate Animation"}
           </button>
+
+          {/* Text Animations Section */}
+          <div className="mt-6 border-t pt-4">
+            <div className="flex items-center gap-2 mb-3">
+              <MagicWand size={20} className="text-red-500" />
+              <h4 className="text-sm font-medium text-gray-700">
+                🔥 Text Animations
+              </h4>
+            </div>
+            
+            {/* Text Selection */}
+            <div className="mb-4 space-y-2">
+              <label className="text-xs text-gray-600">Select Text Element:</label>
+              <select
+                className="text-xs border rounded px-2 py-1 w-full"
+                value={selectedTextId || ""}
+                onChange={(e) => setSelectedTextId(e.target.value || null)}
+              >
+                <option value="">Choose text element...</option>
+                {editorRef.current?.textItems
+                  .filter(t => !t.hidden)
+                  .map(text => (
+                    <option key={text.id} value={text.id}>
+                      {text.name} - "{text.text.slice(0, 20)}..."
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {selectedTextId && (
+              <div className="space-y-3">
+                {/* Quick Viral Presets */}
+                <div>
+                  <label className="text-xs text-gray-600 mb-2 block">
+                    🔥 Viral Presets:
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.TIKTOK_HOOK)}
+                      className="text-xs py-2 px-3 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                    >
+                      🎯 TikTok Hook
+                    </button>
+                    <button
+                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.INSTAGRAM_POP)}
+                      className="text-xs py-2 px-3 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
+                    >
+                      💥 Instagram Pop
+                    </button>
+                    <button
+                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.YOUTUBE_WAVE)}
+                      className="text-xs py-2 px-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                    >
+                      🌊 YouTube Wave
+                    </button>
+                    <button
+                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.ATTENTION_GRABBER)}
+                      className="text-xs py-2 px-3 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors"
+                    >
+                      ⚡ Bounce
+                    </button>
+                  </div>
+                </div>
+
+                {/* Stylish Effects */}
+                <div>
+                  <label className="text-xs text-gray-600 mb-2 block">
+                    ✨ Stylish Effects:
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.NEON_STYLE)}
+                      className="text-xs py-2 px-3 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors"
+                    >
+                      ✨ Neon Glow
+                    </button>
+                    <button
+                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.MATRIX_EFFECT)}
+                      className="text-xs py-2 px-3 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                    >
+                      🎯 Matrix Glitch
+                    </button>
+                    <button
+                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.RAINBOW_FLOW)}
+                      className="text-xs py-2 px-3 bg-pink-500 text-white rounded hover:bg-pink-600 transition-colors"
+                    >
+                      🌈 Rainbow Flow
+                    </button>
+                    <button
+                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.ELASTIC_BOUNCE)}
+                      className="text-xs py-2 px-3 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
+                    >
+                      🎪 Elastic
+                    </button>
+                  </div>
+                </div>
+
+
+                <div className="text-xs text-gray-500 text-center">
+                  Perfect for TikTok, Instagram Reels & YouTube Shorts!
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Choreographed Animation Templates */}
           <div className="mt-4 space-y-3">

@@ -24,6 +24,7 @@ import Features from "@/components/Features";
 import Header from "@/components/Header";
 import CreatorCarousel from "@/components/CreatorCarousel";
 import SocialProof from "@/components/SocialProof";
+// import TextAnimationDemo from "@/components/stunts-app/TextAnimationDemo";
 
 const HomePage = () => {
   const [formVisible, setFormVisible] = useState(false);
@@ -96,6 +97,13 @@ const HomePage = () => {
       <CreatorCarousel />
 
       <Features />
+
+      {/* <div
+        className="bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-2xl p-12 text-center mb-16 mx-auto"
+        style={{ maxWidth: "800px" }}
+      >
+        <TextAnimationDemo />
+      </div> */}
 
       <SocialProof />
 
