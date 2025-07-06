@@ -1,4 +1,4 @@
-import { saveSequencesData } from "@/fetchers/projects";
+import { saveSequencesData } from "../fetchers/projects";
 import {
   AnimationData,
   AnimationProperty,
@@ -4188,7 +4188,7 @@ export default class EditorState {
             name: "Position",
             propertyPath: "position",
             children: [],
-            keyframes: position_keyframes,
+            keyframes: position_keyframes as any,
             depth: 0,
           },
           {
@@ -4233,10 +4233,10 @@ export default class EditorState {
     let animations: AnimationData[] = [];
     const canvasWidth = 900;
     const canvasHeight = 550;
-    
+
     // Calculate grid dimensions
-    const gridWidth = canvasWidth - (2 * margin);
-    const gridHeight = canvasHeight - (2 * margin);
+    const gridWidth = canvasWidth - 2 * margin;
+    const gridHeight = canvasHeight - 2 * margin;
     const cellWidth = gridWidth / cols;
     const cellHeight = gridHeight / rows;
 
@@ -4259,9 +4259,9 @@ export default class EditorState {
       let gridIndex = i % (cols * rows);
       let col = gridIndex % cols;
       let row = Math.floor(gridIndex / cols);
-      
-      let x = margin + (col * cellWidth) + (cellWidth / 2);
-      let y = margin + (row * cellHeight) + (cellHeight / 2);
+
+      let x = margin + col * cellWidth + cellWidth / 2;
+      let y = margin + row * cellHeight + cellHeight / 2;
 
       // Calculate scale to fit in grid cell
       let scaleX = (cellWidth * 0.8) / 200; // Assume object is ~200px wide
@@ -4364,7 +4364,7 @@ export default class EditorState {
             name: "Position",
             propertyPath: "position",
             children: [],
-            keyframes: position_keyframes,
+            keyframes: position_keyframes as any,
             depth: 0,
           },
           {
@@ -4430,12 +4430,12 @@ export default class EditorState {
 
       let animationStartTime = i * enter_delay;
       let slideInTime = animationStartTime + slide_speed;
-      let stayTime = slideInTime + (slide_speed * 2);
+      let stayTime = slideInTime + slide_speed * 2;
       let slideOutTime = stayTime + slide_speed;
 
       // Start position (from left or right alternating)
-      let startX = (i % 2 === 0) ? -200 : canvasWidth + 200;
-      let endX = (i % 2 === 0) ? canvasWidth + 200 : -200;
+      let startX = i % 2 === 0 ? -200 : canvasWidth + 200;
+      let endX = i % 2 === 0 ? canvasWidth + 200 : -200;
 
       // Enter from side
       position_keyframes.push({
@@ -4523,7 +4523,7 @@ export default class EditorState {
             name: "Position",
             propertyPath: "position",
             children: [],
-            keyframes: position_keyframes,
+            keyframes: position_keyframes as any,
             depth: 0,
           },
           {
@@ -4587,7 +4587,8 @@ export default class EditorState {
       let rotation_keyframes = [];
 
       // Calculate maximum scale that fits in screen
-      let maxScale = Math.min(canvasWidth / 200, canvasHeight / 200) * scale_factor * 100;
+      let maxScale =
+        Math.min(canvasWidth / 200, canvasHeight / 200) * scale_factor * 100;
 
       let animationStartTime = i * stagger;
       let scaleUpTime = animationStartTime + 600;
@@ -4680,7 +4681,7 @@ export default class EditorState {
       rotation_keyframes.push({
         id: uuidv4().toString(),
         time: showcaseTime,
-        value: { type: "Rotation", value: (i % 2 === 0) ? 2 : -2 },
+        value: { type: "Rotation", value: i % 2 === 0 ? 2 : -2 },
         easing: EasingType.EaseInOut,
         pathType: PathType.Linear,
         keyType: { type: "Frame" },
@@ -4740,7 +4741,7 @@ export default class EditorState {
             name: "Position",
             propertyPath: "position",
             children: [],
-            keyframes: position_keyframes,
+            keyframes: position_keyframes as any,
             depth: 0,
           },
           {

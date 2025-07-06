@@ -3,9 +3,9 @@ import {
   SavedState,
   SavedTimelineStateConfig,
   Sequence,
-} from "@/engine/animations";
-import { DocState } from "@/engine/data";
-import { SaveTarget } from "@/engine/editor_state";
+} from "../engine/animations";
+import { DocState } from "../engine/data";
+import { SaveTarget } from "../engine/editor_state";
 import { DateTime } from "luxon";
 
 export interface AuthToken {
@@ -156,9 +156,12 @@ export const createProject = async (
 
   if (!response.ok) {
     const errorData = await response.json().catch(async () => ({
-      error: await response.text()
+      error: await response.text(),
     }));
-    throw new Error(errorData.error || `Create project request failed: ${response.status} - ${response.statusText}`);
+    throw new Error(
+      errorData.error ||
+        `Create project request failed: ${response.status} - ${response.statusText}`
+    );
   }
 
   return response.json();

@@ -283,7 +283,7 @@ import {
   getUploadedImage,
   getUploadedImageData,
   getUploadedVideoData,
-} from "@/fetchers/projects";
+} from "../fetchers/projects";
 import { RepeatManager } from "./repeater";
 import {
   DocumentSize,
@@ -2098,7 +2098,8 @@ export class Editor {
 
         if (objectType === ObjectType.VideoItem) {
           let keyframes = [] as UIKeyframe[];
-          timestamps.entries().forEach(([i, t]) =>
+          let entries = timestamps.entries() as any;
+          entries.forEach(([i, t]: [number, number]) =>
             keyframes.push({
               id: uuidv4(),
               time: t,

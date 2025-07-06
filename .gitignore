@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/mcp/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -42,3 +43,6 @@ next-env.d.ts
 
 public/image-uploads/
 public/video-uploads/
+
+dist
+mcp-dist
