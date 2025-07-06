@@ -80,17 +80,16 @@ import {
   Stack,
   Toolbox,
   WaveSawtooth,
+  ArrowDown,
   X,
 } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
 import { FlowArrow } from "@phosphor-icons/react/dist/ssr";
 import useSWR from "swr";
 import { getCurrentUser } from "@/hooks/useCurrentUser";
-import { 
-  TextAnimationManager, 
-  VIRAL_PRESETS 
-} from "@/engine/textAnimations";
+import { TextAnimationManager, VIRAL_PRESETS } from "@/engine/textAnimations";
 import TextAnimationPanel from "./TextAnimationPanel";
+import { Disclosure } from "@headlessui/react";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -1165,7 +1164,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     if (!editor || !editorState) return;
 
     // Find the text renderer
-    const textRenderer = editor.textItems.find(t => t.id === selectedTextId);
+    const textRenderer = editor.textItems.find((t) => t.id === selectedTextId);
     if (!textRenderer) {
       toast.error("Text element not found");
       return;
@@ -1173,16 +1172,18 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
     // Apply the animation template
     const success = textRenderer.setTextAnimationFromTemplate(templateId);
-    
+
     if (success) {
       // Save animation data to editor state using the new method
-      editorState.updateTextAnimation(selectedTextId, textRenderer.getTextAnimationConfig());
+      editorState.updateTextAnimation(
+        selectedTextId,
+        textRenderer.getTextAnimationConfig()
+      );
       toast.success("Text animation applied!");
     } else {
       toast.error("Failed to apply text animation");
     }
   };
-
 
   // Template application functions
   const applyTemplate = (
@@ -1600,812 +1601,1035 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
               Reset All Animations
             </button>
           </div>
-          <div className="flex flex-row gap-2">
-            <label htmlFor="keyframe_count" className="text-xs">
-              Choose keyframe count
-            </label>
-            <select
-              id="keyframe_count"
-              name="keyframe_count"
-              className="text-xs"
-              value={keyframe_count}
-              onChange={(ev) => set_keyframe_count(parseInt(ev.target.value))}
-            >
-              <option value="4">4</option>
-              <option value="6">6</option>
-            </select>
-            <input
-              type="checkbox"
-              id="is_curved"
-              name="is_curved"
-              checked={is_curved}
-              onChange={(ev) => set_is_curved(ev.target.checked)}
-            />
-            <label htmlFor="is_curved" className="text-xs">
-              Is Curved
-            </label>
-          </div>
-          <div className="flex flex-row gap-2">
-            <input
-              type="checkbox"
-              id="auto_choreograph"
-              name="auto_choreograph"
-              checked={auto_choreograph}
-              onChange={(ev) => set_auto_choreograph(ev.target.checked)}
-            />
-            <label htmlFor="auto_choreograph" className="text-xs">
-              Auto-Choreograph
-            </label>
-            <input
-              type="checkbox"
-              id="auto_fade"
-              name="auto_fade"
-              checked={auto_fade}
-              onChange={(ev) => set_auto_fade(ev.target.checked)}
-            />
-            <label htmlFor="auto_fade" className="text-xs">
-              Auto-Fade
-            </label>
-          </div>
-          <button
-            type="submit"
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={loading}
-            onClick={() => {
-              on_generate_animation();
-            }}
-          >
-            {loading ? "Generating..." : "Generate Animation"}
-          </button>
 
-          {/* Text Animations Section */}
-          <div className="mt-6 border-t pt-4">
-            <div className="flex items-center gap-2 mb-3">
-              <MagicWand size={20} className="text-red-500" />
-              <h4 className="text-sm font-medium text-gray-700">
-                🔥 Text Animations
-              </h4>
-            </div>
-            
-            {/* Text Selection */}
-            <div className="mb-4 space-y-2">
-              <label className="text-xs text-gray-600">Select Text Element:</label>
-              <select
-                className="text-xs border rounded px-2 py-1 w-full"
-                value={selectedTextId || ""}
-                onChange={(e) => setSelectedTextId(e.target.value || null)}
-              >
-                <option value="">Choose text element...</option>
-                {editorRef.current?.textItems
-                  .filter(t => !t.hidden)
-                  .map(text => (
-                    <option key={text.id} value={text.id}>
-                      {text.name} - "{text.text.slice(0, 20)}..."
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            {selectedTextId && (
-              <div className="space-y-3">
-                {/* Quick Viral Presets */}
-                <div>
-                  <label className="text-xs text-gray-600 mb-2 block">
-                    🔥 Viral Presets:
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
+          {/* Animation Settings Accordion */}
+          <Disclosure as="div">
+            {({ open }) => (
+              <>
+                <Disclosure.Button className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
+                  <span>⚙️ Animation Settings</span>
+                  <ArrowDown
+                    className={`${
+                      open ? "rotate-180 transform" : ""
+                    } h-5 w-5 text-gray-500`}
+                  />
+                </Disclosure.Button>
+                <Disclosure.Panel className="px-4 pt-4 pb-2 text-sm text-gray-500">
+                  <div className="space-y-3">
+                    <div className="flex flex-row gap-2">
+                      <label htmlFor="keyframe_count" className="text-xs">
+                        Choose keyframe count
+                      </label>
+                      <select
+                        id="keyframe_count"
+                        name="keyframe_count"
+                        className="text-xs"
+                        value={keyframe_count}
+                        onChange={(ev) =>
+                          set_keyframe_count(parseInt(ev.target.value))
+                        }
+                      >
+                        <option value="4">4</option>
+                        <option value="6">6</option>
+                      </select>
+                      <input
+                        type="checkbox"
+                        id="is_curved"
+                        name="is_curved"
+                        checked={is_curved}
+                        onChange={(ev) => set_is_curved(ev.target.checked)}
+                      />
+                      <label htmlFor="is_curved" className="text-xs">
+                        Is Curved
+                      </label>
+                    </div>
+                    <div className="flex flex-row gap-2">
+                      <input
+                        type="checkbox"
+                        id="auto_choreograph"
+                        name="auto_choreograph"
+                        checked={auto_choreograph}
+                        onChange={(ev) =>
+                          set_auto_choreograph(ev.target.checked)
+                        }
+                      />
+                      <label htmlFor="auto_choreograph" className="text-xs">
+                        Auto-Choreograph
+                      </label>
+                      <input
+                        type="checkbox"
+                        id="auto_fade"
+                        name="auto_fade"
+                        checked={auto_fade}
+                        onChange={(ev) => set_auto_fade(ev.target.checked)}
+                      />
+                      <label htmlFor="auto_fade" className="text-xs">
+                        Auto-Fade
+                      </label>
+                    </div>
                     <button
-                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.TIKTOK_HOOK)}
-                      className="text-xs py-2 px-3 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                      type="submit"
+                      className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white stunts-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={loading}
+                      onClick={() => {
+                        on_generate_animation();
+                      }}
                     >
-                      🎯 TikTok Hook
-                    </button>
-                    <button
-                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.INSTAGRAM_POP)}
-                      className="text-xs py-2 px-3 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
-                    >
-                      💥 Instagram Pop
-                    </button>
-                    <button
-                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.YOUTUBE_WAVE)}
-                      className="text-xs py-2 px-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                    >
-                      🌊 YouTube Wave
-                    </button>
-                    <button
-                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.ATTENTION_GRABBER)}
-                      className="text-xs py-2 px-3 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors"
-                    >
-                      ⚡ Bounce
+                      {loading ? "Generating..." : "Generate Animation"}
                     </button>
                   </div>
-                </div>
-
-                {/* Stylish Effects */}
-                <div>
-                  <label className="text-xs text-gray-600 mb-2 block">
-                    ✨ Stylish Effects:
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.NEON_STYLE)}
-                      className="text-xs py-2 px-3 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors"
-                    >
-                      ✨ Neon Glow
-                    </button>
-                    <button
-                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.MATRIX_EFFECT)}
-                      className="text-xs py-2 px-3 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-                    >
-                      🎯 Matrix Glitch
-                    </button>
-                    <button
-                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.RAINBOW_FLOW)}
-                      className="text-xs py-2 px-3 bg-pink-500 text-white rounded hover:bg-pink-600 transition-colors"
-                    >
-                      🌈 Rainbow Flow
-                    </button>
-                    <button
-                      onClick={() => handleTextAnimationSelect(VIRAL_PRESETS.ELASTIC_BOUNCE)}
-                      className="text-xs py-2 px-3 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
-                    >
-                      🎪 Elastic
-                    </button>
-                  </div>
-                </div>
-
-
-                <div className="text-xs text-gray-500 text-center">
-                  Perfect for TikTok, Instagram Reels & YouTube Shorts!
-                </div>
-              </div>
+                </Disclosure.Panel>
+              </>
             )}
-          </div>
+          </Disclosure>
 
-          {/* Choreographed Animation Templates */}
-          <div className="mt-4 space-y-3">
-            <h4 className="text-sm font-medium text-gray-700">
-              Animation Templates
-            </h4>
-
-            {/* Confetti Explosion */}
-            <div className="border rounded p-3 space-y-2">
-              <h5 className="text-xs font-medium">Confetti Explosion</h5>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs text-gray-600">Center X:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={confettiCenterX}
-                    onChange={(e) => setConfettiCenterX(Number(e.target.value))}
+          {/* Text Animations Accordion */}
+          <Disclosure as="div" className="mt-4">
+            {({ open }) => (
+              <>
+                <Disclosure.Button className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
+                  <span className="flex items-center gap-2">
+                    <MagicWand size={16} className="text-red-500" />
+                    🔥 Text Animations
+                  </span>
+                  <ArrowDown
+                    className={`${
+                      open ? "rotate-180 transform" : ""
+                    } h-5 w-5 text-gray-500`}
                   />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Center Y:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={confettiCenterY}
-                    onChange={(e) => setConfettiCenterY(Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Force:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={confettiForce}
-                    onChange={(e) => setConfettiForce(Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Gravity:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={confettiGravity}
-                    onChange={(e) => setConfettiGravity(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-              <button
-                className="w-full py-1 px-2 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
-                onClick={() =>
-                  applyTemplate(
-                    "confetti",
-                    editorStateRef.current?.save_confetti_explosion_keyframes.bind(
-                      editorStateRef.current
-                    )
-                  )
-                }
-              >
-                Apply Confetti
-              </button>
-            </div>
-
-            {/* Flock Formation */}
-            <div className="border rounded p-3 space-y-2">
-              <h5 className="text-xs font-medium">Flock Formation</h5>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs text-gray-600">Start X:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={flockStartX}
-                    onChange={(e) => setFlockStartX(Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Start Y:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={flockStartY}
-                    onChange={(e) => setFlockStartY(Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Target X:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={flockTargetX}
-                    onChange={(e) => setFlockTargetX(Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Target Y:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={flockTargetY}
-                    onChange={(e) => setFlockTargetY(Number(e.target.value))}
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-xs text-gray-600">Spacing:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={flockSpacing}
-                    onChange={(e) => setFlockSpacing(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-              <button
-                className="w-full py-1 px-2 text-xs bg-green-500 text-white rounded hover:bg-green-600"
-                onClick={() =>
-                  applyTemplate(
-                    "flock",
-                    editorStateRef.current?.save_flock_formation_keyframes.bind(
-                      editorStateRef.current
-                    )
-                  )
-                }
-              >
-                Apply Flock
-              </button>
-            </div>
-
-            {/* Ripple Wave */}
-            <div className="border rounded p-3 space-y-2">
-              <h5 className="text-xs font-medium">Ripple Wave</h5>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs text-gray-600">Amplitude:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={rippleAmplitude}
-                    onChange={(e) => setRippleAmplitude(Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Speed:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={rippleSpeed}
-                    onChange={(e) => setRippleSpeed(Number(e.target.value))}
-                    step="0.1"
-                  />
-                </div>
-              </div>
-              <button
-                className="w-full py-1 px-2 text-xs bg-purple-500 text-white rounded hover:bg-purple-600"
-                onClick={() =>
-                  applyTemplate(
-                    "ripple",
-                    editorStateRef.current?.save_ripple_wave_keyframes.bind(
-                      editorStateRef.current
-                    )
-                  )
-                }
-              >
-                Apply Ripple
-              </button>
-            </div>
-
-            {/* Orbit Dance */}
-            <div className="border rounded p-3 space-y-2">
-              <h5 className="text-xs font-medium">Orbit Dance</h5>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs text-gray-600">Center X:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={orbitCenterX}
-                    onChange={(e) => setOrbitCenterX(Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Center Y:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={orbitCenterY}
-                    onChange={(e) => setOrbitCenterY(Number(e.target.value))}
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-xs text-gray-600">Radius:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={orbitRadius}
-                    onChange={(e) => setOrbitRadius(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-              <button
-                className="w-full py-1 px-2 text-xs bg-orange-500 text-white rounded hover:bg-orange-600"
-                onClick={() =>
-                  applyTemplate(
-                    "orbit",
-                    editorStateRef.current?.save_orbit_dance_keyframes.bind(
-                      editorStateRef.current
-                    )
-                  )
-                }
-              >
-                Apply Orbit
-              </button>
-            </div>
-
-            {/* Domino Cascade */}
-            <div className="border rounded p-3 space-y-2">
-              <h5 className="text-xs font-medium">Domino Cascade</h5>
-              <div>
-                <label className="text-xs text-gray-600">Delay (ms):</label>
-                <input
-                  type="number"
-                  className="text-xs border rounded px-2 py-1 w-full"
-                  value={dominoDelay}
-                  onChange={(e) => setDominoDelay(Number(e.target.value))}
-                />
-              </div>
-              <button
-                className="w-full py-1 px-2 text-xs bg-red-500 text-white rounded hover:bg-red-600"
-                onClick={() =>
-                  applyTemplate(
-                    "domino",
-                    editorStateRef.current?.save_domino_cascade_keyframes.bind(
-                      editorStateRef.current
-                    )
-                  )
-                }
-              >
-                Apply Domino
-              </button>
-            </div>
-
-            {/* Swarm Convergence */}
-            <div className="border rounded p-3 space-y-2">
-              <h5 className="text-xs font-medium">Swarm Convergence</h5>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs text-gray-600">Scatter X:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={swarmScatterX}
-                    onChange={(e) => setSwarmScatterX(Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Scatter Y:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={swarmScatterY}
-                    onChange={(e) => setSwarmScatterY(Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Target X:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={swarmTargetX}
-                    onChange={(e) => setSwarmTargetX(Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Target Y:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={swarmTargetY}
-                    onChange={(e) => setSwarmTargetY(Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Scatter R:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={swarmScatterRadius}
-                    onChange={(e) =>
-                      setSwarmScatterRadius(Number(e.target.value))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Form R:</label>
-                  <input
-                    type="number"
-                    className="text-xs border rounded px-2 py-1 w-full"
-                    value={swarmFormRadius}
-                    onChange={(e) => setSwarmFormRadius(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-              <button
-                className="w-full py-1 px-2 text-xs bg-teal-500 text-white rounded hover:bg-teal-600"
-                onClick={() =>
-                  applyTemplate(
-                    "swarm",
-                    editorStateRef.current?.save_swarm_convergence_keyframes.bind(
-                      editorStateRef.current
-                    )
-                  )
-                }
-              >
-                Apply Swarm
-              </button>
-            </div>
-
-            {/* Collage-Style Animation Templates */}
-            <div className="mt-6 space-y-3 border-t pt-4">
-              <h4 className="text-sm font-medium text-blue-700">
-                Collage-Style Templates
-              </h4>
-
-              {/* Photo Mosaic Assembly */}
-              <div className="border border-blue-200 rounded p-3 space-y-2">
-                <h5 className="text-xs font-medium text-blue-800">
-                  Photo Mosaic Assembly
-                </h5>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-gray-600">Center X:</label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={mosaicCenterX}
-                      onChange={(e) => setMosaicCenterX(Number(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-600">Center Y:</label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={mosaicCenterY}
-                      onChange={(e) => setMosaicCenterY(Number(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-600">Spacing:</label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={mosaicSpacing}
-                      onChange={(e) => setMosaicSpacing(Number(e.target.value))}
-                    />
-                  </div>
-                  <div>
+                </Disclosure.Button>
+                <Disclosure.Panel className="px-4 pt-4 pb-2">
+                  {/* Text Selection */}
+                  <div className="mb-4 space-y-2">
                     <label className="text-xs text-gray-600">
-                      Stagger (ms):
+                      Select Text Element:
                     </label>
-                    <input
-                      type="number"
+                    <select
                       className="text-xs border rounded px-2 py-1 w-full"
-                      value={mosaicStagger}
-                      onChange={(e) => setMosaicStagger(Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-                <button
-                  className="w-full py-1 px-2 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
-                  onClick={() =>
-                    applyTemplate(
-                      "mosaic",
-                      editorStateRef.current?.save_photo_mosaic_keyframes.bind(
-                        editorStateRef.current
-                      ),
-                      [mosaicCenterX, mosaicCenterY],
-                      mosaicSpacing,
-                      mosaicStagger
-                    )
-                  }
-                >
-                  Apply Photo Mosaic
-                </button>
-              </div>
-
-              {/* Scrapbook Scatter */}
-              <div className="border border-blue-200 rounded p-3 space-y-2">
-                <h5 className="text-xs font-medium text-blue-800">
-                  Scrapbook Scatter
-                </h5>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-gray-600">
-                      Drop Height:
-                    </label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={scatterDropHeight}
+                      value={selectedTextId || ""}
                       onChange={(e) =>
-                        setScatterDropHeight(Number(e.target.value))
+                        setSelectedTextId(e.target.value || null)
                       }
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-600">Bounce:</label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={scatterBounce}
-                      onChange={(e) => setScatterBounce(Number(e.target.value))}
-                      step="0.1"
-                      min="0"
-                      max="1"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="text-xs text-gray-600">
-                      Rotation Range:
-                    </label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={scatterRotation}
-                      onChange={(e) =>
-                        setScatterRotation(Number(e.target.value))
-                      }
-                    />
-                  </div>
-                </div>
-                <button
-                  className="w-full py-1 px-2 text-xs bg-pink-500 text-white rounded hover:bg-pink-600"
-                  onClick={() =>
-                    applyTemplate(
-                      "scatter",
-                      editorStateRef.current?.save_scrapbook_scatter_keyframes.bind(
-                        editorStateRef.current
-                      ),
-                      scatterDropHeight,
-                      scatterBounce,
-                      scatterRotation
-                    )
-                  }
-                >
-                  Apply Scrapbook Scatter
-                </button>
-              </div>
-
-              {/* Gallery Wall Build */}
-              <div className="border border-blue-200 rounded p-3 space-y-2">
-                <h5 className="text-xs font-medium text-blue-800">
-                  Gallery Wall Build
-                </h5>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-gray-600">Wall X:</label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={galleryX}
-                      onChange={(e) => setGalleryX(Number(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-600">Wall Y:</label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={galleryY}
-                      onChange={(e) => setGalleryY(Number(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-600">Width:</label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={galleryWidth}
-                      onChange={(e) => setGalleryWidth(Number(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-600">Height:</label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={galleryHeight}
-                      onChange={(e) => setGalleryHeight(Number(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-600">Delay (ms):</label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={galleryDelay}
-                      onChange={(e) => setGalleryDelay(Number(e.target.value))}
-                    />
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="gallery_scale"
-                      checked={galleryScale}
-                      onChange={(e) => setGalleryScale(e.target.checked)}
-                      className="mr-2"
-                    />
-                    <label
-                      htmlFor="gallery_scale"
-                      className="text-xs text-gray-600"
                     >
-                      Scale Effect
-                    </label>
+                      <option value="">Choose text element...</option>
+                      {editorRef.current?.textItems
+                        .filter((t) => !t.hidden)
+                        .map((text) => (
+                          <option key={text.id} value={text.id}>
+                            {text.name} - "{text.text.slice(0, 20)}..."
+                          </option>
+                        ))}
+                    </select>
                   </div>
-                </div>
-                <button
-                  className="w-full py-1 px-2 text-xs bg-emerald-500 text-white rounded hover:bg-emerald-600"
-                  onClick={() =>
-                    applyTemplate(
-                      "gallery",
-                      editorStateRef.current?.save_gallery_wall_keyframes.bind(
-                        editorStateRef.current
-                      ),
-                      [galleryX, galleryY, galleryWidth, galleryHeight],
-                      galleryDelay,
-                      galleryScale
-                    )
-                  }
-                >
-                  Apply Gallery Wall
-                </button>
-              </div>
 
-              {/* Memory Carousel */}
-              <div className="border border-blue-200 rounded p-3 space-y-2">
-                <h5 className="text-xs font-medium text-blue-800">
-                  Memory Carousel
-                </h5>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-gray-600">Carousel Y:</label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={carouselY}
-                      onChange={(e) => setCarouselY(Number(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-600">Spacing:</label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={carouselSpacing}
-                      onChange={(e) =>
-                        setCarouselSpacing(Number(e.target.value))
-                      }
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="text-xs text-gray-600">
-                      Curve Intensity:
-                    </label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={carouselCurve}
-                      onChange={(e) => setCarouselCurve(Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-                <button
-                  className="w-full py-1 px-2 text-xs bg-cyan-500 text-white rounded hover:bg-cyan-600"
-                  onClick={() =>
-                    applyTemplate(
-                      "carousel",
-                      editorStateRef.current?.save_memory_carousel_keyframes.bind(
-                        editorStateRef.current
-                      ),
-                      carouselY,
-                      carouselSpacing,
-                      carouselCurve
-                    )
-                  }
-                >
-                  Apply Memory Carousel
-                </button>
-              </div>
+                  {selectedTextId && (
+                    <div className="space-y-3">
+                      {/* Quick Viral Presets */}
+                      <div>
+                        <label className="text-xs text-gray-600 mb-2 block">
+                          🔥 Viral Presets:
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() =>
+                              handleTextAnimationSelect(
+                                VIRAL_PRESETS.TIKTOK_HOOK
+                              )
+                            }
+                            className="text-xs py-2 px-3 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                          >
+                            🎯 TikTok Hook
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleTextAnimationSelect(
+                                VIRAL_PRESETS.INSTAGRAM_POP
+                              )
+                            }
+                            className="text-xs py-2 px-3 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
+                          >
+                            💥 Instagram Pop
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleTextAnimationSelect(
+                                VIRAL_PRESETS.YOUTUBE_WAVE
+                              )
+                            }
+                            className="text-xs py-2 px-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                          >
+                            🌊 YouTube Wave
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleTextAnimationSelect(
+                                VIRAL_PRESETS.ATTENTION_GRABBER
+                              )
+                            }
+                            className="text-xs py-2 px-3 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors"
+                          >
+                            ⚡ Bounce
+                          </button>
+                        </div>
+                      </div>
 
-              {/* Polaroid Tumble */}
-              <div className="border border-blue-200 rounded p-3 space-y-2">
-                <h5 className="text-xs font-medium text-blue-800">
-                  Polaroid Tumble
-                </h5>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs text-gray-600">
-                      Rotation Range:
-                    </label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={polaroidRotation}
-                      onChange={(e) =>
-                        setPolaroidRotation(Number(e.target.value))
-                      }
-                    />
+                      {/* Stylish Effects */}
+                      <div>
+                        <label className="text-xs text-gray-600 mb-2 block">
+                          ✨ Stylish Effects:
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() =>
+                              handleTextAnimationSelect(
+                                VIRAL_PRESETS.NEON_STYLE
+                              )
+                            }
+                            className="text-xs py-2 px-3 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors"
+                          >
+                            ✨ Neon Glow
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleTextAnimationSelect(
+                                VIRAL_PRESETS.MATRIX_EFFECT
+                              )
+                            }
+                            className="text-xs py-2 px-3 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                          >
+                            🎯 Matrix Glitch
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleTextAnimationSelect(
+                                VIRAL_PRESETS.RAINBOW_FLOW
+                              )
+                            }
+                            className="text-xs py-2 px-3 bg-pink-500 text-white rounded hover:bg-pink-600 transition-colors"
+                          >
+                            🌈 Rainbow Flow
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleTextAnimationSelect(
+                                VIRAL_PRESETS.ELASTIC_BOUNCE
+                              )
+                            }
+                            className="text-xs py-2 px-3 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
+                          >
+                            🎪 Elastic
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="text-xs text-gray-500 text-center">
+                        Perfect for TikTok, Instagram Reels & YouTube Shorts!
+                      </div>
+                    </div>
+                  )}
+                </Disclosure.Panel>
+              </>
+            )}
+          </Disclosure>
+
+          {/* Choreographed Animation Templates Accordion */}
+          <Disclosure as="div" className="mt-4">
+            {({ open }) => (
+              <>
+                <Disclosure.Button className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
+                  <span>🎭 Choreographed Templates</span>
+                  <ArrowDown
+                    className={`${
+                      open ? "rotate-180 transform" : ""
+                    } h-5 w-5 text-gray-500`}
+                  />
+                </Disclosure.Button>
+                <Disclosure.Panel className="px-4 pt-4 pb-2">
+                  <div className="space-y-3">
+                    {/* Confetti Explosion */}
+                    <div className="border rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium">
+                        Confetti Explosion
+                      </h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Center X:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={confettiCenterX}
+                            onChange={(e) =>
+                              setConfettiCenterX(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Center Y:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={confettiCenterY}
+                            onChange={(e) =>
+                              setConfettiCenterY(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Force:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={confettiForce}
+                            onChange={(e) =>
+                              setConfettiForce(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Gravity:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={confettiGravity}
+                            onChange={(e) =>
+                              setConfettiGravity(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "confetti",
+                            editorStateRef.current?.save_confetti_explosion_keyframes.bind(
+                              editorStateRef.current
+                            )
+                          )
+                        }
+                      >
+                        Apply Confetti
+                      </button>
+                    </div>
+
+                    {/* Flock Formation */}
+                    <div className="border rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium">Flock Formation</h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Start X:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={flockStartX}
+                            onChange={(e) =>
+                              setFlockStartX(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Start Y:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={flockStartY}
+                            onChange={(e) =>
+                              setFlockStartY(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Target X:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={flockTargetX}
+                            onChange={(e) =>
+                              setFlockTargetX(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Target Y:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={flockTargetY}
+                            onChange={(e) =>
+                              setFlockTargetY(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="text-xs text-gray-600">
+                            Spacing:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={flockSpacing}
+                            onChange={(e) =>
+                              setFlockSpacing(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "flock",
+                            editorStateRef.current?.save_flock_formation_keyframes.bind(
+                              editorStateRef.current
+                            )
+                          )
+                        }
+                      >
+                        Apply Flock
+                      </button>
+                    </div>
+
+                    {/* Ripple Wave */}
+                    <div className="border rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium">Ripple Wave</h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Amplitude:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={rippleAmplitude}
+                            onChange={(e) =>
+                              setRippleAmplitude(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Speed:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={rippleSpeed}
+                            onChange={(e) =>
+                              setRippleSpeed(Number(e.target.value))
+                            }
+                            step="0.1"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-purple-500 text-white rounded hover:bg-purple-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "ripple",
+                            editorStateRef.current?.save_ripple_wave_keyframes.bind(
+                              editorStateRef.current
+                            )
+                          )
+                        }
+                      >
+                        Apply Ripple
+                      </button>
+                    </div>
+
+                    {/* Orbit Dance */}
+                    <div className="border rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium">Orbit Dance</h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Center X:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={orbitCenterX}
+                            onChange={(e) =>
+                              setOrbitCenterX(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Center Y:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={orbitCenterY}
+                            onChange={(e) =>
+                              setOrbitCenterY(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="text-xs text-gray-600">
+                            Radius:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={orbitRadius}
+                            onChange={(e) =>
+                              setOrbitRadius(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-orange-500 text-white rounded hover:bg-orange-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "orbit",
+                            editorStateRef.current?.save_orbit_dance_keyframes.bind(
+                              editorStateRef.current
+                            )
+                          )
+                        }
+                      >
+                        Apply Orbit
+                      </button>
+                    </div>
+
+                    {/* Domino Cascade */}
+                    <div className="border rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium">Domino Cascade</h5>
+                      <div>
+                        <label className="text-xs text-gray-600">
+                          Delay (ms):
+                        </label>
+                        <input
+                          type="number"
+                          className="text-xs border rounded px-2 py-1 w-full"
+                          value={dominoDelay}
+                          onChange={(e) =>
+                            setDominoDelay(Number(e.target.value))
+                          }
+                        />
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "domino",
+                            editorStateRef.current?.save_domino_cascade_keyframes.bind(
+                              editorStateRef.current
+                            )
+                          )
+                        }
+                      >
+                        Apply Domino
+                      </button>
+                    </div>
+
+                    {/* Swarm Convergence */}
+                    <div className="border rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium">Swarm Convergence</h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Scatter X:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={swarmScatterX}
+                            onChange={(e) =>
+                              setSwarmScatterX(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Scatter Y:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={swarmScatterY}
+                            onChange={(e) =>
+                              setSwarmScatterY(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Target X:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={swarmTargetX}
+                            onChange={(e) =>
+                              setSwarmTargetX(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Target Y:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={swarmTargetY}
+                            onChange={(e) =>
+                              setSwarmTargetY(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Scatter R:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={swarmScatterRadius}
+                            onChange={(e) =>
+                              setSwarmScatterRadius(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Form R:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={swarmFormRadius}
+                            onChange={(e) =>
+                              setSwarmFormRadius(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-teal-500 text-white rounded hover:bg-teal-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "swarm",
+                            editorStateRef.current?.save_swarm_convergence_keyframes.bind(
+                              editorStateRef.current
+                            )
+                          )
+                        }
+                      >
+                        Apply Swarm
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-xs text-gray-600">
-                      Settle Time:
-                    </label>
-                    <input
-                      type="number"
-                      className="text-xs border rounded px-2 py-1 w-full"
-                      value={polaroidSettle}
-                      onChange={(e) =>
-                        setPolaroidSettle(Number(e.target.value))
-                      }
-                      step="0.1"
-                      min="0.1"
-                      max="1"
-                    />
+                </Disclosure.Panel>
+              </>
+            )}
+          </Disclosure>
+
+          {/* Collage-Style Animation Templates Accordion */}
+          <Disclosure as="div" className="mt-4 mb-4">
+            {({ open }) => (
+              <>
+                <Disclosure.Button className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
+                  <span>📸 Collage Templates</span>
+                  <ArrowDown
+                    className={`${
+                      open ? "rotate-180 transform" : ""
+                    } h-5 w-5 text-gray-500`}
+                  />
+                </Disclosure.Button>
+                <Disclosure.Panel className="px-4 pt-4 pb-2">
+                  <div className="space-y-3">
+                    {/* Photo Mosaic Assembly */}
+                    <div className="border border-blue-200 rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium text-blue-800">
+                        Photo Mosaic Assembly
+                      </h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Center X:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={mosaicCenterX}
+                            onChange={(e) =>
+                              setMosaicCenterX(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Center Y:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={mosaicCenterY}
+                            onChange={(e) =>
+                              setMosaicCenterY(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Spacing:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={mosaicSpacing}
+                            onChange={(e) =>
+                              setMosaicSpacing(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Stagger (ms):
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={mosaicStagger}
+                            onChange={(e) =>
+                              setMosaicStagger(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "mosaic",
+                            editorStateRef.current?.save_photo_mosaic_keyframes.bind(
+                              editorStateRef.current
+                            ),
+                            [mosaicCenterX, mosaicCenterY],
+                            mosaicSpacing,
+                            mosaicStagger
+                          )
+                        }
+                      >
+                        Apply Photo Mosaic
+                      </button>
+                    </div>
+
+                    {/* Scrapbook Scatter */}
+                    <div className="border border-blue-200 rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium text-blue-800">
+                        Scrapbook Scatter
+                      </h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Drop Height:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={scatterDropHeight}
+                            onChange={(e) =>
+                              setScatterDropHeight(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Bounce:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={scatterBounce}
+                            onChange={(e) =>
+                              setScatterBounce(Number(e.target.value))
+                            }
+                            step="0.1"
+                            min="0"
+                            max="1"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="text-xs text-gray-600">
+                            Rotation Range:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={scatterRotation}
+                            onChange={(e) =>
+                              setScatterRotation(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-pink-500 text-white rounded hover:bg-pink-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "scatter",
+                            editorStateRef.current?.save_scrapbook_scatter_keyframes.bind(
+                              editorStateRef.current
+                            ),
+                            scatterDropHeight,
+                            scatterBounce,
+                            scatterRotation
+                          )
+                        }
+                      >
+                        Apply Scrapbook Scatter
+                      </button>
+                    </div>
+
+                    {/* Gallery Wall Build */}
+                    <div className="border border-blue-200 rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium text-blue-800">
+                        Gallery Wall Build
+                      </h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Wall X:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={galleryX}
+                            onChange={(e) =>
+                              setGalleryX(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Wall Y:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={galleryY}
+                            onChange={(e) =>
+                              setGalleryY(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Width:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={galleryWidth}
+                            onChange={(e) =>
+                              setGalleryWidth(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Height:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={galleryHeight}
+                            onChange={(e) =>
+                              setGalleryHeight(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Delay (ms):
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={galleryDelay}
+                            onChange={(e) =>
+                              setGalleryDelay(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id="gallery_scale"
+                            checked={galleryScale}
+                            onChange={(e) => setGalleryScale(e.target.checked)}
+                            className="mr-2"
+                          />
+                          <label
+                            htmlFor="gallery_scale"
+                            className="text-xs text-gray-600"
+                          >
+                            Scale Effect
+                          </label>
+                        </div>
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-emerald-500 text-white rounded hover:bg-emerald-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "gallery",
+                            editorStateRef.current?.save_gallery_wall_keyframes.bind(
+                              editorStateRef.current
+                            ),
+                            [galleryX, galleryY, galleryWidth, galleryHeight],
+                            galleryDelay,
+                            galleryScale
+                          )
+                        }
+                      >
+                        Apply Gallery Wall
+                      </button>
+                    </div>
+
+                    {/* Memory Carousel */}
+                    <div className="border border-blue-200 rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium text-blue-800">
+                        Memory Carousel
+                      </h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Carousel Y:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={carouselY}
+                            onChange={(e) =>
+                              setCarouselY(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Spacing:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={carouselSpacing}
+                            onChange={(e) =>
+                              setCarouselSpacing(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="text-xs text-gray-600">
+                            Curve Intensity:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={carouselCurve}
+                            onChange={(e) =>
+                              setCarouselCurve(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-cyan-500 text-white rounded hover:bg-cyan-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "carousel",
+                            editorStateRef.current?.save_memory_carousel_keyframes.bind(
+                              editorStateRef.current
+                            ),
+                            carouselY,
+                            carouselSpacing,
+                            carouselCurve
+                          )
+                        }
+                      >
+                        Apply Memory Carousel
+                      </button>
+                    </div>
+
+                    {/* Polaroid Tumble */}
+                    <div className="border border-blue-200 rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium text-blue-800">
+                        Polaroid Tumble
+                      </h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Rotation Range:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={polaroidRotation}
+                            onChange={(e) =>
+                              setPolaroidRotation(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Settle Time:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={polaroidSettle}
+                            onChange={(e) =>
+                              setPolaroidSettle(Number(e.target.value))
+                            }
+                            step="0.1"
+                            min="0.1"
+                            max="1"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-amber-500 text-white rounded hover:bg-amber-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "polaroid",
+                            editorStateRef.current?.save_polaroid_tumble_keyframes.bind(
+                              editorStateRef.current
+                            ),
+                            null,
+                            polaroidRotation,
+                            polaroidSettle
+                          )
+                        }
+                      >
+                        Apply Polaroid Tumble
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <button
-                  className="w-full py-1 px-2 text-xs bg-amber-500 text-white rounded hover:bg-amber-600"
-                  onClick={() =>
-                    applyTemplate(
-                      "polaroid",
-                      editorStateRef.current?.save_polaroid_tumble_keyframes.bind(
-                        editorStateRef.current
-                      ),
-                      null,
-                      polaroidRotation,
-                      polaroidSettle
-                    )
-                  }
-                >
-                  Apply Polaroid Tumble
-                </button>
-              </div>
-            </div>
-          </div>
+                </Disclosure.Panel>
+              </>
+            )}
+          </Disclosure>
         </div>
       )}
 

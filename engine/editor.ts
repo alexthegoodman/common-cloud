@@ -2541,7 +2541,10 @@ export class Editor {
             progress = 1.0 - (1.0 - progress) * (1.0 - progress);
             break;
           case EasingType.EaseInOut:
-            progress = progress < 0.5 ? 2.0 * progress * progress : 1.0 - Math.pow(-2.0 * progress + 2.0, 2) / 2.0;
+            progress =
+              progress < 0.5
+                ? 2.0 * progress * progress
+                : 1.0 - Math.pow(-2.0 * progress + 2.0, 2) / 2.0;
             break;
           default:
             break; // Default to linear
@@ -3103,7 +3106,7 @@ export class Editor {
     }
 
     // Update text animations
-    console.info("About to call updateTextAnimations, totalDt:", totalDt);
+    // console.info("About to call updateTextAnimations, totalDt:", totalDt);
     this.updateTextAnimations(totalDt * 1000, gpuResources.queue!);
   }
 
@@ -3439,12 +3442,12 @@ export class Editor {
 
   // Update text animations for all text items
   updateTextAnimations(currentTimeMs: number, queue: PolyfillQueue): void {
-    console.info("Editor.updateTextAnimations called with", this.textItems.length, "text items");
-    
+    // console.info("Editor.updateTextAnimations called with", this.textItems.length, "text items");
+
     for (const textItem of this.textItems) {
-      console.info("Checking text item:", textItem.id, "hidden:", textItem.hidden, "hasAnimation:", textItem.hasTextAnimation());
+      // console.info("Checking text item:", textItem.id, "hidden:", textItem.hidden, "hasAnimation:", textItem.hasTextAnimation());
       if (!textItem.hidden && textItem.hasTextAnimation()) {
-        console.info("Calling updateTextAnimation for:", textItem.id);
+        // console.info("Calling updateTextAnimation for:", textItem.id);
         textItem.updateTextAnimation(currentTimeMs, queue);
       }
     }
