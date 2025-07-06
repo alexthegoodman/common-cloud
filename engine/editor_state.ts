@@ -4062,6 +4062,723 @@ export default class EditorState {
     return animations;
   }
 
+  // SCREEN-FILLING TEMPLATE - 1. FULL-SCREEN SLIDESHOW
+  save_fullscreen_slideshow_keyframes(
+    savable_item_ids: string[],
+    object_types: ObjectType[],
+    current_keyframes_array: AnimationData[],
+    slide_duration: number,
+    transition_duration: number
+  ): AnimationData[] {
+    let animations: AnimationData[] = [];
+    const canvasWidth = 900;
+    const canvasHeight = 550;
+    const centerX = canvasWidth / 2;
+    const centerY = canvasHeight / 2;
+
+    for (let i = 0; i < savable_item_ids.length; i++) {
+      let duration = current_keyframes_array[i].duration;
+      let existing_properties = current_keyframes_array[i].properties.filter(
+        (prop) =>
+          prop.name !== "Position" &&
+          prop.name !== "ScaleX" &&
+          prop.name !== "ScaleY" &&
+          prop.name !== "Opacity"
+      );
+
+      let position_keyframes = [];
+      let scale_keyframes = [];
+      let scale_y_keyframes = [];
+      let opacity_keyframes = [];
+
+      // Calculate optimal scale to fill screen while maintaining aspect ratio
+      let scaleX = canvasWidth / 200; // Assume object is ~200px wide
+      let scaleY = canvasHeight / 200; // Assume object is ~200px tall
+      let scale = Math.min(scaleX, scaleY) * 90; // 90% of screen size
+
+      // Each slide gets its time slot
+      let slideStartTime = i * slide_duration;
+      let slideEndTime = slideStartTime + slide_duration;
+      let fadeInEnd = slideStartTime + transition_duration;
+      let fadeOutStart = slideEndTime - transition_duration;
+
+      // Start invisible and off-screen
+      position_keyframes.push({
+        id: uuidv4().toString(),
+        time: slideStartTime,
+        value: { type: "Position", value: [centerX, centerY] },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      scale_keyframes.push({
+        id: uuidv4().toString(),
+        time: slideStartTime,
+        value: { type: "ScaleX", value: scale },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      scale_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: slideStartTime,
+        value: { type: "ScaleY", value: scale },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: slideStartTime,
+        value: { type: "Opacity", value: 0 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      // Fade in
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: fadeInEnd,
+        value: { type: "Opacity", value: 100 },
+        easing: EasingType.EaseIn,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      // Stay visible
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: fadeOutStart,
+        value: { type: "Opacity", value: 100 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      // Fade out
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: slideEndTime,
+        value: { type: "Opacity", value: 0 },
+        easing: EasingType.EaseOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      animations.push({
+        id: current_keyframes_array[i].id,
+        objectType: object_types[i],
+        polygonId: savable_item_ids[i],
+        duration: duration,
+        startTimeMs: 0,
+        properties: [
+          ...existing_properties,
+          {
+            name: "Position",
+            propertyPath: "position",
+            children: [],
+            keyframes: position_keyframes,
+            depth: 0,
+          },
+          {
+            name: "ScaleX",
+            propertyPath: "scale.x",
+            children: [],
+            keyframes: scale_keyframes,
+            depth: 0,
+          },
+          {
+            name: "ScaleY",
+            propertyPath: "scale.y",
+            children: [],
+            keyframes: scale_y_keyframes,
+            depth: 0,
+          },
+          {
+            name: "Opacity",
+            propertyPath: "opacity",
+            children: [],
+            keyframes: opacity_keyframes,
+            depth: 0,
+          },
+        ],
+        position: [centerX, centerY],
+      });
+    }
+
+    return animations;
+  }
+
+  // SCREEN-FILLING TEMPLATE - 2. ADAPTIVE GRID LAYOUT
+  save_adaptive_grid_keyframes(
+    savable_item_ids: string[],
+    object_types: ObjectType[],
+    current_keyframes_array: AnimationData[],
+    cols: number,
+    rows: number,
+    margin: number,
+    stagger: number
+  ): AnimationData[] {
+    let animations: AnimationData[] = [];
+    const canvasWidth = 900;
+    const canvasHeight = 550;
+    
+    // Calculate grid dimensions
+    const gridWidth = canvasWidth - (2 * margin);
+    const gridHeight = canvasHeight - (2 * margin);
+    const cellWidth = gridWidth / cols;
+    const cellHeight = gridHeight / rows;
+
+    for (let i = 0; i < savable_item_ids.length; i++) {
+      let duration = current_keyframes_array[i].duration;
+      let existing_properties = current_keyframes_array[i].properties.filter(
+        (prop) =>
+          prop.name !== "Position" &&
+          prop.name !== "ScaleX" &&
+          prop.name !== "ScaleY" &&
+          prop.name !== "Opacity"
+      );
+
+      let position_keyframes = [];
+      let scale_keyframes = [];
+      let scale_y_keyframes = [];
+      let opacity_keyframes = [];
+
+      // Calculate grid position
+      let gridIndex = i % (cols * rows);
+      let col = gridIndex % cols;
+      let row = Math.floor(gridIndex / cols);
+      
+      let x = margin + (col * cellWidth) + (cellWidth / 2);
+      let y = margin + (row * cellHeight) + (cellHeight / 2);
+
+      // Calculate scale to fit in grid cell
+      let scaleX = (cellWidth * 0.8) / 200; // Assume object is ~200px wide
+      let scaleY = (cellHeight * 0.8) / 200; // Assume object is ~200px tall
+      let scale = Math.min(scaleX, scaleY) * 100;
+
+      let animationStartTime = i * stagger;
+
+      // Start from center, scaled down and invisible
+      position_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime,
+        value: { type: "Position", value: [canvasWidth / 2, canvasHeight / 2] },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      scale_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime,
+        value: { type: "ScaleX", value: 10 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      scale_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime,
+        value: { type: "ScaleY", value: 10 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime,
+        value: { type: "Opacity", value: 0 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      // Animate to grid position
+      position_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime + 800,
+        value: { type: "Position", value: [x, y] },
+        easing: EasingType.EaseOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      scale_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime + 800,
+        value: { type: "ScaleX", value: scale },
+        easing: EasingType.EaseOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      scale_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime + 800,
+        value: { type: "ScaleY", value: scale },
+        easing: EasingType.EaseOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime + 400,
+        value: { type: "Opacity", value: 100 },
+        easing: EasingType.EaseIn,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      animations.push({
+        id: current_keyframes_array[i].id,
+        objectType: object_types[i],
+        polygonId: savable_item_ids[i],
+        duration: duration,
+        startTimeMs: 0,
+        properties: [
+          ...existing_properties,
+          {
+            name: "Position",
+            propertyPath: "position",
+            children: [],
+            keyframes: position_keyframes,
+            depth: 0,
+          },
+          {
+            name: "ScaleX",
+            propertyPath: "scale.x",
+            children: [],
+            keyframes: scale_keyframes,
+            depth: 0,
+          },
+          {
+            name: "ScaleY",
+            propertyPath: "scale.y",
+            children: [],
+            keyframes: scale_y_keyframes,
+            depth: 0,
+          },
+          {
+            name: "Opacity",
+            propertyPath: "opacity",
+            children: [],
+            keyframes: opacity_keyframes,
+            depth: 0,
+          },
+        ],
+        position: [x, y],
+      });
+    }
+
+    return animations;
+  }
+
+  // SCREEN-FILLING TEMPLATE - 3. SCREEN-FILLING CAROUSEL
+  save_screen_carousel_keyframes(
+    savable_item_ids: string[],
+    object_types: ObjectType[],
+    current_keyframes_array: AnimationData[],
+    enter_delay: number,
+    slide_speed: number
+  ): AnimationData[] {
+    let animations: AnimationData[] = [];
+    const canvasWidth = 900;
+    const canvasHeight = 550;
+    const centerX = canvasWidth / 2;
+    const centerY = canvasHeight / 2;
+
+    for (let i = 0; i < savable_item_ids.length; i++) {
+      let duration = current_keyframes_array[i].duration;
+      let existing_properties = current_keyframes_array[i].properties.filter(
+        (prop) =>
+          prop.name !== "Position" &&
+          prop.name !== "ScaleX" &&
+          prop.name !== "ScaleY" &&
+          prop.name !== "Opacity"
+      );
+
+      let position_keyframes = [];
+      let scale_keyframes = [];
+      let scale_y_keyframes = [];
+      let opacity_keyframes = [];
+
+      // Calculate optimal scale to fill most of the screen
+      let scale = Math.min(canvasWidth / 250, canvasHeight / 250) * 80;
+
+      let animationStartTime = i * enter_delay;
+      let slideInTime = animationStartTime + slide_speed;
+      let stayTime = slideInTime + (slide_speed * 2);
+      let slideOutTime = stayTime + slide_speed;
+
+      // Start position (from left or right alternating)
+      let startX = (i % 2 === 0) ? -200 : canvasWidth + 200;
+      let endX = (i % 2 === 0) ? canvasWidth + 200 : -200;
+
+      // Enter from side
+      position_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime,
+        value: { type: "Position", value: [startX, centerY] },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      scale_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime,
+        value: { type: "ScaleX", value: scale },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      scale_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime,
+        value: { type: "ScaleY", value: scale },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime,
+        value: { type: "Opacity", value: 100 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      // Slide to center
+      position_keyframes.push({
+        id: uuidv4().toString(),
+        time: slideInTime,
+        value: { type: "Position", value: [centerX, centerY] },
+        easing: EasingType.EaseOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      // Stay at center
+      position_keyframes.push({
+        id: uuidv4().toString(),
+        time: stayTime,
+        value: { type: "Position", value: [centerX, centerY] },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      // Slide out to opposite side
+      position_keyframes.push({
+        id: uuidv4().toString(),
+        time: slideOutTime,
+        value: { type: "Position", value: [endX, centerY] },
+        easing: EasingType.EaseIn,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      animations.push({
+        id: current_keyframes_array[i].id,
+        objectType: object_types[i],
+        polygonId: savable_item_ids[i],
+        duration: duration,
+        startTimeMs: 0,
+        properties: [
+          ...existing_properties,
+          {
+            name: "Position",
+            propertyPath: "position",
+            children: [],
+            keyframes: position_keyframes,
+            depth: 0,
+          },
+          {
+            name: "ScaleX",
+            propertyPath: "scale.x",
+            children: [],
+            keyframes: scale_keyframes,
+            depth: 0,
+          },
+          {
+            name: "ScaleY",
+            propertyPath: "scale.y",
+            children: [],
+            keyframes: scale_y_keyframes,
+            depth: 0,
+          },
+          {
+            name: "Opacity",
+            propertyPath: "opacity",
+            children: [],
+            keyframes: opacity_keyframes,
+            depth: 0,
+          },
+        ],
+        position: [centerX, centerY],
+      });
+    }
+
+    return animations;
+  }
+
+  // SCREEN-FILLING TEMPLATE - 4. MAXIMIZE & SHOWCASE
+  save_maximize_showcase_keyframes(
+    savable_item_ids: string[],
+    object_types: ObjectType[],
+    current_keyframes_array: AnimationData[],
+    scale_factor: number,
+    stagger: number
+  ): AnimationData[] {
+    let animations: AnimationData[] = [];
+    const canvasWidth = 900;
+    const canvasHeight = 550;
+    const centerX = canvasWidth / 2;
+    const centerY = canvasHeight / 2;
+
+    for (let i = 0; i < savable_item_ids.length; i++) {
+      let duration = current_keyframes_array[i].duration;
+      let existing_properties = current_keyframes_array[i].properties.filter(
+        (prop) =>
+          prop.name !== "Position" &&
+          prop.name !== "ScaleX" &&
+          prop.name !== "ScaleY" &&
+          prop.name !== "Opacity" &&
+          prop.name !== "Rotation"
+      );
+
+      let position_keyframes = [];
+      let scale_keyframes = [];
+      let scale_y_keyframes = [];
+      let opacity_keyframes = [];
+      let rotation_keyframes = [];
+
+      // Calculate maximum scale that fits in screen
+      let maxScale = Math.min(canvasWidth / 200, canvasHeight / 200) * scale_factor * 100;
+
+      let animationStartTime = i * stagger;
+      let scaleUpTime = animationStartTime + 600;
+      let showcaseTime = scaleUpTime + 800;
+      let scaleDownTime = showcaseTime + 400;
+
+      // Start small and centered
+      position_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime,
+        value: { type: "Position", value: [centerX, centerY] },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      scale_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime,
+        value: { type: "ScaleX", value: 10 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      scale_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime,
+        value: { type: "ScaleY", value: 10 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime,
+        value: { type: "Opacity", value: 0 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      rotation_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime,
+        value: { type: "Rotation", value: 0 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      // Fade in and scale up dramatically
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: animationStartTime + 200,
+        value: { type: "Opacity", value: 100 },
+        easing: EasingType.EaseIn,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      scale_keyframes.push({
+        id: uuidv4().toString(),
+        time: scaleUpTime,
+        value: { type: "ScaleX", value: maxScale },
+        easing: EasingType.EaseOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      scale_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: scaleUpTime,
+        value: { type: "ScaleY", value: maxScale },
+        easing: EasingType.EaseOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      // Slight rotation for showcase effect
+      rotation_keyframes.push({
+        id: uuidv4().toString(),
+        time: showcaseTime,
+        value: { type: "Rotation", value: (i % 2 === 0) ? 2 : -2 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      // Scale down and fade out
+      scale_keyframes.push({
+        id: uuidv4().toString(),
+        time: scaleDownTime,
+        value: { type: "ScaleX", value: 10 },
+        easing: EasingType.EaseIn,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      scale_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: scaleDownTime,
+        value: { type: "ScaleY", value: 10 },
+        easing: EasingType.EaseIn,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: scaleDownTime,
+        value: { type: "Opacity", value: 0 },
+        easing: EasingType.EaseOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      rotation_keyframes.push({
+        id: uuidv4().toString(),
+        time: scaleDownTime,
+        value: { type: "Rotation", value: 0 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      animations.push({
+        id: current_keyframes_array[i].id,
+        objectType: object_types[i],
+        polygonId: savable_item_ids[i],
+        duration: duration,
+        startTimeMs: 0,
+        properties: [
+          ...existing_properties,
+          {
+            name: "Position",
+            propertyPath: "position",
+            children: [],
+            keyframes: position_keyframes,
+            depth: 0,
+          },
+          {
+            name: "ScaleX",
+            propertyPath: "scale.x",
+            children: [],
+            keyframes: scale_keyframes,
+            depth: 0,
+          },
+          {
+            name: "ScaleY",
+            propertyPath: "scale.y",
+            children: [],
+            keyframes: scale_y_keyframes,
+            depth: 0,
+          },
+          {
+            name: "Opacity",
+            propertyPath: "opacity",
+            children: [],
+            keyframes: opacity_keyframes,
+            depth: 0,
+          },
+          {
+            name: "Rotation",
+            propertyPath: "rotation",
+            children: [],
+            keyframes: rotation_keyframes,
+            depth: 0,
+          },
+        ],
+        position: [centerX, centerY],
+      });
+    }
+
+    return animations;
+  }
+
   async add_saved_polygon(
     selected_sequence_id: string,
     savable_polygon: SavedPolygonConfig

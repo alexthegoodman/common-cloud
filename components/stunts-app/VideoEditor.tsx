@@ -264,6 +264,21 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   let [polaroidRotation, setPolaroidRotation] = useState(45);
   let [polaroidSettle, setPolaroidSettle] = useState(0.7);
 
+  // New Screen-Filling Animation parameters
+  let [slideshowDuration, setSlideshowDuration] = useState(2000);
+  let [slideshowTransition, setSlideshowTransition] = useState(500);
+
+  let [gridCols, setGridCols] = useState(3);
+  let [gridRows, setGridRows] = useState(2);
+  let [gridMargin, setGridMargin] = useState(20);
+  let [gridStagger, setGridStagger] = useState(150);
+
+  let [carouselEnterDelay, setCarouselEnterDelay] = useState(200);
+  let [carouselSlideSpeed, setCarouselSlideSpeed] = useState(800);
+
+  let [showcaseScale, setShowcaseScale] = useState(0.9);
+  let [showcaseStagger, setShowcaseStagger] = useState(300);
+
   let [selected_polygon_id, set_selected_polygon_id] = useState<string | null>(
     null
   );
@@ -1345,6 +1360,40 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           args[0], // null (tumble_positions)
           args[1], // polaroidRotation
           args[2] // polaroidSettle
+        );
+      } else if (templateName === "slideshow") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          args[0], // slideshowDuration
+          args[1] // slideshowTransition
+        );
+      } else if (templateName === "grid") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          args[0], // cols
+          args[1], // rows
+          args[2], // marger
+          args[3] // stagger
+        );
+      } else if (templateName === "carousel-screen") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          args[0], // enterDelay
+          args[1] // slideSpeed
+        );
+      } else if (templateName === "showcase") {
+        newAnimationData = templateFunction(
+          objectIds,
+          objectTypes,
+          currentAnimationData,
+          args[0], // showcaseScale
+          args[1] //stagger
         );
       }
 
@@ -2623,6 +2672,262 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                         }
                       >
                         Apply Polaroid Tumble
+                      </button>
+                    </div>
+                  </div>
+                </Disclosure.Panel>
+              </>
+            )}
+          </Disclosure>
+
+          {/* Screen-Filling Animation Templates Accordion */}
+          <Disclosure as="div" className="mt-4 mb-4">
+            {({ open }) => (
+              <>
+                <Disclosure.Button className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-green-100 rounded-lg hover:bg-green-200 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
+                  <span>🖼️ Screen-Filling Templates</span>
+                  <ArrowDown
+                    className={`${
+                      open ? "rotate-180 transform" : ""
+                    } h-5 w-5 text-gray-500`}
+                  />
+                </Disclosure.Button>
+                <Disclosure.Panel className="px-4 pt-4 pb-2">
+                  <div className="space-y-3">
+                    {/* Full-Screen Slideshow */}
+                    <div className="border border-green-200 rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium text-green-800">
+                        Full-Screen Slideshow
+                      </h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Duration (ms):
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={slideshowDuration}
+                            onChange={(e) =>
+                              setSlideshowDuration(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Transition (ms):
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={slideshowTransition}
+                            onChange={(e) =>
+                              setSlideshowTransition(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "slideshow",
+                            editorStateRef.current?.save_fullscreen_slideshow_keyframes.bind(
+                              editorStateRef.current
+                            ),
+                            null,
+                            slideshowDuration,
+                            slideshowTransition
+                          )
+                        }
+                      >
+                        Apply Full-Screen Slideshow
+                      </button>
+                    </div>
+
+                    {/* Adaptive Grid Layout */}
+                    <div className="border border-green-200 rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium text-green-800">
+                        Adaptive Grid Layout
+                      </h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Columns:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={gridCols}
+                            onChange={(e) =>
+                              setGridCols(Number(e.target.value))
+                            }
+                            min="1"
+                            max="5"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">Rows:</label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={gridRows}
+                            onChange={(e) =>
+                              setGridRows(Number(e.target.value))
+                            }
+                            min="1"
+                            max="4"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Margin:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={gridMargin}
+                            onChange={(e) =>
+                              setGridMargin(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Stagger (ms):
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={gridStagger}
+                            onChange={(e) =>
+                              setGridStagger(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "grid",
+                            editorStateRef.current?.save_adaptive_grid_keyframes.bind(
+                              editorStateRef.current
+                            ),
+                            null,
+                            gridCols,
+                            gridRows,
+                            gridMargin,
+                            gridStagger
+                          )
+                        }
+                      >
+                        Apply Adaptive Grid
+                      </button>
+                    </div>
+
+                    {/* Screen-Filling Carousel */}
+                    <div className="border border-green-200 rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium text-green-800">
+                        Screen-Filling Carousel
+                      </h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Enter Delay (ms):
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={carouselEnterDelay}
+                            onChange={(e) =>
+                              setCarouselEnterDelay(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Slide Speed (ms):
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={carouselSlideSpeed}
+                            onChange={(e) =>
+                              setCarouselSlideSpeed(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "carousel-screen",
+                            editorStateRef.current?.save_screen_carousel_keyframes.bind(
+                              editorStateRef.current
+                            ),
+                            null,
+                            carouselEnterDelay,
+                            carouselSlideSpeed
+                          )
+                        }
+                      >
+                        Apply Screen-Filling Carousel
+                      </button>
+                    </div>
+
+                    {/* Maximize & Showcase */}
+                    <div className="border border-green-200 rounded p-3 space-y-2">
+                      <h5 className="text-xs font-medium text-green-800">
+                        Maximize & Showcase
+                      </h5>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Scale Factor:
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={showcaseScale}
+                            onChange={(e) =>
+                              setShowcaseScale(Number(e.target.value))
+                            }
+                            step="0.1"
+                            min="0.1"
+                            max="2"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">
+                            Stagger (ms):
+                          </label>
+                          <input
+                            type="number"
+                            className="text-xs border rounded px-2 py-1 w-full"
+                            value={showcaseStagger}
+                            onChange={(e) =>
+                              setShowcaseStagger(Number(e.target.value))
+                            }
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="w-full py-1 px-2 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                        onClick={() =>
+                          applyTemplate(
+                            "showcase",
+                            editorStateRef.current?.save_maximize_showcase_keyframes.bind(
+                              editorStateRef.current
+                            ),
+                            null,
+                            showcaseScale,
+                            showcaseStagger
+                          )
+                        }
+                      >
+                        Apply Maximize & Showcase
                       </button>
                     </div>
                   </div>
