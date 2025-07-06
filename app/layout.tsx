@@ -4,6 +4,7 @@ import "./globals.css";
 import FacebookPixel from "@/components/FacebookPixel";
 import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
+import { LogRocketProvider } from "@/components/LogRocketProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,15 +32,15 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {/* Skip link for keyboard navigation */}
-        <a 
-          href="#main-content" 
+        <a
+          href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-blue-600 text-white p-2 z-50 rounded-br-md"
         >
           Skip to main content
         </a>
-        <main id="main-content">
-          {children}
-        </main>
+        <LogRocketProvider>
+          <main id="main-content">{children}</main>
+        </LogRocketProvider>
         <FacebookPixel />
         <Analytics />
         <Script
