@@ -219,11 +219,11 @@ export class TextAnimator {
       }
     }
 
-    console.info("Updating text animation:", this.animationConfig.id, {
-      elapsedTime,
-      isPlaying: this.isPlaying,
-      totalDuration: this.getTotalAnimationDuration(),
-    });
+    // console.info("Updating text animation:", this.animationConfig.id, {
+    //   elapsedTime,
+    //   isPlaying: this.isPlaying,
+    //   totalDuration: this.getTotalAnimationDuration(),
+    // });
   }
 
   private updateCharacterAnimation(char: AnimatedCharacter): void {

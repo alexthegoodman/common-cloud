@@ -111,7 +111,7 @@ export class TextRenderer {
   // textureView: GPUTextureView;
   isCircle: boolean;
   // gradientBindGroup: PolyfillBindGroup;
-  
+
   // Text Animation Properties
   private textAnimator: TextAnimator | null = null;
   private animationConfig: TextAnimationConfig | null = null;
@@ -634,7 +634,7 @@ export class TextRenderer {
     // Store vertices and indices for later use
     this.vertices = vertices;
     this.indices = indices;
-    
+
     // Re-initialize text animations if they exist
     if (this.textAnimator) {
       this.textAnimator.updateConfig({ ...this.textAnimator.getConfig() });
@@ -655,7 +655,7 @@ export class TextRenderer {
     const scale = rasterConfig.fontSize / this.font.unitsPerEm;
     const boundingBox = glyph.bbox;
 
-    console.info("character", rasterConfig.character, boundingBox);
+    // console.info("character", rasterConfig.character, boundingBox);
 
     const metrics = {
       width: position.xAdvance * scale,
@@ -710,12 +710,12 @@ export class TextRenderer {
     const fontFamily = this.font.familyName || this.fontFamily || "Arial";
     ctx.font = `${scaledFontSize}px "${fontFamily}"`;
 
-    console.info(
-      "Rendering with font:",
-      fontFamily,
-      "for character:",
-      rasterConfig.character
-    );
+    // console.info(
+    //   "Rendering with font:",
+    //   fontFamily,
+    //   "for character:",
+    //   rasterConfig.character
+    // );
 
     ctx.textBaseline = "alphabetic";
     ctx.textAlign = "left";
@@ -1076,7 +1076,7 @@ export class TextRenderer {
     // Store vertices and indices for later use
     this.vertices = vertices;
     this.indices = indices;
-    
+
     // Re-initialize text animations if they exist
     if (this.textAnimator) {
       this.textAnimator.updateConfig({ ...this.textAnimator.getConfig() });
@@ -1474,8 +1474,15 @@ export class TextRenderer {
     this.textAnimator = this.animationManager.createAnimator(this, config);
   }
 
-  public setTextAnimationFromTemplate(templateId: string, overrides?: Partial<TextAnimationConfig>): boolean {
-    const animator = this.animationManager.createAnimatorFromTemplate(this, templateId, overrides);
+  public setTextAnimationFromTemplate(
+    templateId: string,
+    overrides?: Partial<TextAnimationConfig>
+  ): boolean {
+    const animator = this.animationManager.createAnimatorFromTemplate(
+      this,
+      templateId,
+      overrides
+    );
     if (animator) {
       this.textAnimator = animator;
       this.animationConfig = animator.getConfig();
@@ -1509,7 +1516,7 @@ export class TextRenderer {
   }
 
   public updateTextAnimation(currentTime: number, queue: PolyfillQueue): void {
-    console.info("TextRenderer.updateTextAnimation called for:", this.id, "textAnimator exists:", !!this.textAnimator);
+    // console.info("TextRenderer.updateTextAnimation called for:", this.id, "textAnimator exists:", !!this.textAnimator);
     if (this.textAnimator) {
       this.textAnimator.updateAnimation(currentTime, queue);
     }
