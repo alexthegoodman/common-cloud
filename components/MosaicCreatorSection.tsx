@@ -8,7 +8,10 @@ import {
   Play,
   ArrowUpRight,
 } from "@phosphor-icons/react";
-import { getPublicProjects } from "@/fetchers/mosaic";
+import {
+  getPublicFeaturedProjects,
+  getPublicProjects,
+} from "@/fetchers/mosaic";
 import useSWR from "swr";
 import { DateTime } from "luxon";
 import Link from "next/link";
@@ -30,7 +33,7 @@ export default function MosaicCreatorSection({
     isLoading,
     error,
   } = useSWR(`mosaic-creator-section-${limit}`, () =>
-    getPublicProjects(1, limit)
+    getPublicFeaturedProjects(1, limit)
   );
 
   const copy =

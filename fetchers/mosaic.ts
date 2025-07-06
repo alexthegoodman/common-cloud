@@ -69,6 +69,45 @@ export const getPublicProjects = async (
   // return projects.sort((a, b) => b.modified.diff(a.modified).milliseconds); // Sort using luxon's diff
 };
 
+export const getPublicFeaturedProjects = async (
+  page: number = 1,
+  limit: number = 6
+): Promise<ProjectsResponse> => {
+  const response = await fetch(
+    `/api/projects/public-featured?page=${page}&limit=${limit}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        // Authorization: `Bearer ${authToken.token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Projects request failed: ${response.status} - ${response.statusText} - ${errorText}`
+    );
+  }
+
+  const projectsResponse: ProjectsResponse = await response.json();
+
+  return projectsResponse;
+
+  // const projects: PublicProjectInfo[] = projectsResponse.projects.map(
+  //   (data) => ({
+  //     project_id: data.id,
+  //     project_name: data.name,
+  //     video_data: data.fileData,
+  //     created: DateTime.fromISO(data.createdAt), // Handle nulls and parse with DateTime
+  //     modified: DateTime.fromISO(data.updatedAt),
+  //   })
+  // );
+
+  // return projects.sort((a, b) => b.modified.diff(a.modified).milliseconds); // Sort using luxon's diff
+};
+
 export interface SingleProjectResponse {
   project: ProjectData & {
     author: string;
