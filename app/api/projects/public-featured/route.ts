@@ -13,7 +13,7 @@ export async function GET(req: Request) {
       SELECT COUNT(*)::int as count
       FROM "Project" 
       WHERE public = true 
-      AND isFeatured = true
+      AND "isFeatured" = true
       AND EXISTS (
         SELECT 1 
         FROM jsonb_array_elements("fileData"->'sequences') AS seq
@@ -29,7 +29,7 @@ export async function GET(req: Request) {
       SELECT id, name, "fileData", "createdAt", "updatedAt"
       FROM "Project" 
       WHERE public = true
-      AND isFeatured = true 
+      AND "isFeatured" = true 
       AND EXISTS (
         SELECT 1 
         FROM jsonb_array_elements("fileData"->'sequences') AS seq
