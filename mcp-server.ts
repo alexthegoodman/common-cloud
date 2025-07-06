@@ -30,6 +30,7 @@ import {
   PathType,
   CurveData,
   KeyType,
+  TrackType,
 } from "./engine/animations.js";
 import { SavedPolygonConfig } from "./engine/polygon.js";
 import { SavedTextRendererConfig } from "./engine/text.js";
@@ -635,6 +636,14 @@ class VideoProjectMCPServer {
     };
 
     savedState.sequences.push(sequence);
+
+    savedState.timeline_state?.timeline_sequences.push({
+      id: uuidv4(),
+      sequenceId: sequence.id,
+      trackType: TrackType.Video,
+      startTimeMs: 0,
+    });
+
     await this.saveProject(params.projectId, savedState);
 
     return {
