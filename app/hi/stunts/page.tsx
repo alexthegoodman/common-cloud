@@ -24,6 +24,8 @@ import Features from "@/components/Features";
 import Header from "@/components/Header";
 import CreatorCarousel from "@/components/CreatorCarousel";
 import SocialProof from "@/components/SocialProof";
+import MosaicCreatorSection from "@/components/MosaicCreatorSection";
+import { ClientOnly } from "@/components/ClientOnly";
 
 const HomePage = () => {
   const [formVisible, setFormVisible] = useState(false);
@@ -90,7 +92,10 @@ const HomePage = () => {
         </div>
       </header>
 
-      <CreatorCarousel language="hi" />
+      {/* <CreatorCarousel language="hi" /> */}
+      <ClientOnly>
+        <MosaicCreatorSection />
+      </ClientOnly>
 
       <Features language="hi" />
 

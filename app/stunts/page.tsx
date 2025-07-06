@@ -22,8 +22,9 @@ import ComingSoonSection from "@/components/ComingSoon";
 import Competition from "@/components/Competition";
 import Features from "@/components/Features";
 import Header from "@/components/Header";
-import CreatorCarousel from "@/components/CreatorCarousel";
+import MosaicCreatorSection from "@/components/MosaicCreatorSection";
 import SocialProof from "@/components/SocialProof";
+import { ClientOnly } from "@/components/ClientOnly";
 // import TextAnimationDemo from "@/components/stunts-app/TextAnimationDemo";
 
 const HomePage = () => {
@@ -94,7 +95,9 @@ const HomePage = () => {
         </div>
       </header>
 
-      <CreatorCarousel />
+      <ClientOnly>
+        <MosaicCreatorSection />
+      </ClientOnly>
 
       <Features />
 
