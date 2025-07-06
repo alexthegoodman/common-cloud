@@ -243,7 +243,19 @@ export default function MosaicCreatorSection({
       {/* Call to action */}
       <div className="text-center mt-12">
         <p className="text-gray-300 text-lg mb-6">{copy.readyToCreate}</p>
-        <button className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full font-semibold transition-all transform hover:scale-105">
+        <button
+          className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full font-semibold transition-all transform hover:scale-105"
+          onClick={() => {
+            // animate page scroll to the pricing table
+            const pricingSection = document.querySelector("#pricing-table");
+            if (pricingSection) {
+              pricingSection.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }
+          }}
+        >
           {copy.startCreating}
         </button>
       </div>

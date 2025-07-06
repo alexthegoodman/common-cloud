@@ -31,7 +31,16 @@ const HomePage = () => {
   const [formVisible, setFormVisible] = useState(false);
 
   const handleGetStarted = () => {
-    setFormVisible(true);
+    // setFormVisible(true);
+
+    // animate page scroll to the pricing table
+    const pricingSection = document.querySelector("#pricing-table");
+    if (pricingSection) {
+      pricingSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
   };
 
   return (

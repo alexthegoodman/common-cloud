@@ -70,7 +70,8 @@ const PricingTable = ({ language = "en" }) => {
     case "en":
       copy = {
         title: "Go Viral for Less Than 1 Sponsored Post",
-        subtitle: "Professional animations that get you noticed - ROI guaranteed",
+        subtitle:
+          "Professional animations that get you noticed - ROI guaranteed",
         features: [
           "Unlimited Viral Content Creation",
           "AI-Powered Keyframe Generation",
@@ -84,7 +85,7 @@ const PricingTable = ({ language = "en" }) => {
         buttonText: "Get Your First Viral Video",
         priceText: "$0.99/month",
         badge: "CREATOR LAUNCH SPECIAL",
-        comparison: "Less than 2 coffees per month"
+        comparison: "Less than 2 coffees per month",
       };
       break;
 
@@ -105,7 +106,7 @@ const PricingTable = ({ language = "en" }) => {
         buttonText: "अपना पहला वायरल वीडियो बनाएं",
         priceText: "$0.99/महीना",
         badge: "क्रिएटर लॉन्च स्पेशल",
-        comparison: "महीने में 2 चाय से भी कम"
+        comparison: "महीने में 2 चाय से भी कम",
       };
       break;
 
@@ -114,7 +115,7 @@ const PricingTable = ({ language = "en" }) => {
   }
 
   return (
-    <section className="container mx-auto px-4">
+    <section className="container mx-auto px-4" id="pricing-table">
       <div className="text-center mb-12">
         <h2 className="text-4xl font-bold text-white mb-4">{copy?.title}</h2>
         <p className="text-gray-400 text-lg">{copy?.subtitle}</p>
@@ -131,7 +132,9 @@ const PricingTable = ({ language = "en" }) => {
               {copy?.priceText}
             </div>
             <p className="text-gray-400">{copy?.comparison}</p>
-            <p className="text-gray-500 text-sm mt-1">Cancel anytime • No setup fees</p>
+            <p className="text-gray-500 text-sm mt-1">
+              Cancel anytime • No setup fees
+            </p>
           </div>
 
           <div className="space-y-4 mb-8">
