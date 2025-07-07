@@ -33,6 +33,7 @@ export class MotionPath {
   public transform: Transform;
   public bindGroup: PolyfillBindGroup;
   public staticPolygons: Polygon[];
+  public associatedPolygonId: string;
 
   constructor(
     device: PolyfillDevice,
@@ -289,6 +290,7 @@ export class MotionPath {
 
     this.id = newId;
     this.transform = groupTransform;
+    this.associatedPolygonId = associatedPolygonId;
     // this.dimensions = dynamicDimensions;
   }
 

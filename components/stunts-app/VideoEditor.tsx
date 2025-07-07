@@ -423,6 +423,13 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     object_id: string,
     point: Point
   ): [Sequence, string[]] | null => {
+    let editor = editorRef.current;
+
+    if (!editor) {
+      console.warn("Editor not initialized");
+      return null;
+    }
+
     let last_saved_state = editorStateRef.current?.savedState;
 
     if (!last_saved_state) {
@@ -490,6 +497,16 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             break;
           }
         }
+
+        // Update motion path positions when objects are moved
+        if (s.polygonMotionPaths) {
+          s.polygonMotionPaths.forEach((motionPath) => {
+            if (motionPath.polygonId === object_id) {
+              // Update the motion path position
+              motionPath.position = [point.x, point.y];
+            }
+          });
+        }
       }
     });
 
@@ -498,6 +515,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     saveSequencesData(last_saved_state.sequences, SaveTarget.Videos);
 
     console.info("Position updated!");
+
+    editor?.updateMotionPaths(last_saved_state.sequences[0]);
 
     let current_sequence_data = last_saved_state.sequences.find(
       (s) => s.id === current_sequence_id
