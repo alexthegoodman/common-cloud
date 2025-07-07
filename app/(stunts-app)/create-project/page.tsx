@@ -89,7 +89,7 @@ const ProjectForm = () => {
         JSON.stringify({ project_id: projectId })
       );
 
-      router.push(`/project/${projectId}`);
+      router.push(`/project/${projectId}/choose-path`);
     } catch (error) {
       console.error("Error creating project:", error);
       if (error instanceof Error && error.message.includes("Project limit reached")) {
