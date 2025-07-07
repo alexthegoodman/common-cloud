@@ -48,8 +48,11 @@ export default function Project() {
         return;
       }
 
+      let projectName = project?.project?.name as string;
+
       textareaRef.current?.focus();
-      textareaRef.current.value = project?.project?.name as string;
+      textareaRef.current.value = projectName;
+      setPrompt(projectName);
     }, 250);
     return () => clearTimeout(timer);
   }, [project]);
