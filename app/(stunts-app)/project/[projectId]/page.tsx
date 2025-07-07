@@ -44,7 +44,7 @@ export default function Project() {
   useEffect(() => {
     // Small delay to ensure the component is fully rendered
     const timer = setTimeout(() => {
-      if (!textareaRef.current) {
+      if (!textareaRef.current || !project || isLoading || error) {
         return;
       }
 
@@ -52,7 +52,7 @@ export default function Project() {
       textareaRef.current.value = project?.project?.name as string;
     }, 250);
     return () => clearTimeout(timer);
-  }, []);
+  }, [project]);
 
   const handleCreateFlow = async () => {
     if (!authToken?.token) {
