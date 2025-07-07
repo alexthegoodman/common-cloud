@@ -30,12 +30,13 @@ export default function GoogleLoginButton({ onError }: GoogleLoginButtonProps) {
 
       localStorage.setItem("auth-token", JSON.stringify(json.jwtData));
 
-      if (json.isNewUser) {
-        // For new users, redirect to checkout for subscription
-        router.push("/upgrade");
-      } else {
-        router.push("/projects");
-      }
+      // if (json.isNewUser) {
+      //   // For new users, redirect to checkout for subscription
+      //   router.push("/upgrade");
+      // } else {
+      //   router.push("/projects");
+      // }
+      router.push("/projects");
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Google login failed";

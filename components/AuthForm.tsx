@@ -13,7 +13,11 @@ interface AuthFormData {
 type AuthStep = "email" | "password";
 type AuthMode = "login" | "signup";
 
-export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean }) {
+export default function AuthForm({
+  loginOnly = false,
+}: {
+  loginOnly?: boolean;
+}) {
   const [step, setStep] = useState<AuthStep>("email");
   const [mode, setMode] = useState<AuthMode | null>(null);
   const [error, setError] = useState("");
@@ -49,7 +53,9 @@ export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean })
 
       setEmailValue(email);
       if (loginOnly && !json.userExists) {
-        throw new Error("No account found with this email. Please sign up first.");
+        throw new Error(
+          "No account found with this email. Please sign up first."
+        );
       }
       setMode(json.userExists ? "login" : "signup");
       setStep("password");
@@ -66,7 +72,6 @@ export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean })
       await checkEmail(watchedEmail);
     }
   };
-
 
   const handleAuth = async (data: AuthFormData) => {
     try {
@@ -133,23 +138,23 @@ export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean })
     <div className="space-y-6 sm:w-[300px] md:w-[350px] lg:w-[400px] text-left">
       {/* Progress indicator - only show for signup flow */}
       {!loginOnly && (
-      <div className="flex items-center space-x-2 mb-6">
-        <div
-          className={`w-3 h-3 rounded-full transition-colors ${
-            step === "email" ? "bg-red-500" : "bg-green-500"
-          }`}
-        />
-        <div
-          className={`flex-1 h-0.5 transition-colors ${
-            step === "password" ? "bg-red-500" : "bg-gray-300"
-          }`}
-        />
-        <div
-          className={`w-3 h-3 rounded-full transition-colors ${
-            step === "password" ? "bg-red-500" : "bg-gray-300"
-          }`}
-        />
-      </div>
+        <div className="flex items-center space-x-2 mb-6">
+          <div
+            className={`w-3 h-3 rounded-full transition-colors ${
+              step === "email" ? "bg-red-500" : "bg-green-500"
+            }`}
+          />
+          <div
+            className={`flex-1 h-0.5 transition-colors ${
+              step === "password" ? "bg-red-500" : "bg-gray-300"
+            }`}
+          />
+          <div
+            className={`w-3 h-3 rounded-full transition-colors ${
+              step === "password" ? "bg-red-500" : "bg-gray-300"
+            }`}
+          />
+        </div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -161,7 +166,9 @@ export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean })
                 {loginOnly ? "Welcome Back" : "Welcome"}
               </h2>
               <p className="text-slate-500">
-                {loginOnly ? "Enter your email to sign in" : "Enter your email to get started"}
+                {loginOnly
+                  ? "Enter your email to sign in"
+                  : "Enter your email to get started"}
               </p>
             </div>
 
@@ -320,7 +327,7 @@ export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean })
               )}
             </button>
 
-            {/* <div className="relative">
+            <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
               </div>
@@ -331,7 +338,7 @@ export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean })
               </div>
             </div>
 
-            <GoogleLoginButton onError={setError} /> */}
+            <GoogleLoginButton onError={setError} />
 
             <button
               type="button"
