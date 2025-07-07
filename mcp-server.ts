@@ -106,7 +106,9 @@ const AddImageSchema = {
   projectId: z.string().describe("ID of the project to add the image to"),
   sequenceId: z.string().describe("ID of the sequence to add the image to"),
   name: z.string().describe("Name of the image item"),
-  url: z.string().describe("URL or path to the image"),
+  url: z
+    .string()
+    .describe("URL or path to the image (please use picsum.photos)"),
   position: z
     .object({
       x: z.number(),
@@ -222,7 +224,9 @@ const BulkAddKeyframesSchema = {
                   z.array(z.number()).length(2), // Position [x, y]
                   z.number(), // Single value for rotation, scale, opacity, etc.
                 ])
-                .describe("Keyframe value"),
+                .describe(
+                  "Keyframe value (scale and opacity are out from 0 to 100+ rather than decimal)"
+                ),
               easing: z
                 .enum(["Linear", "EaseIn", "EaseOut", "EaseInOut"])
                 .default("Linear")
@@ -240,8 +244,16 @@ const BulkAddKeyframesSchema = {
 };
 
 const CreateProjectSchema = {
-  userId: z.string().describe("ID of the user who will own the project"),
-  name: z.string().describe("Name of the new project"),
+  userId: z
+    .string()
+    .describe(
+      "ID of the user who will own the project (use user id: cm8cczd3l00003pbl34v2yd0c)"
+    ),
+  name: z
+    .string()
+    .describe(
+      "Name of the new project (canvas size will be vertical 550x900, keep objects within dimensions)"
+    ),
   public: z
     .boolean()
     .default(false)
@@ -533,9 +545,7 @@ class VideoProjectMCPServer {
     }
 
     // Use placeholder image if no URL provided or if URL is empty
-    const imageUrl =
-      params.url ||
-      "https://via.placeholder.com/300x200/cccccc/666666?text=Placeholder";
+    const imageUrl = params.url || "https://picsum.photos/300/200";
 
     const imageItem: SavedStImageConfig = {
       id: uuidv4(),
@@ -637,12 +647,16 @@ class VideoProjectMCPServer {
 
     savedState.sequences.push(sequence);
 
-    savedState.timeline_state?.timeline_sequences.push({
-      id: uuidv4(),
-      sequenceId: sequence.id,
-      trackType: TrackType.Video,
-      startTimeMs: 0,
-    });
+    savedState.timeline_state = {
+      timeline_sequences: [
+        {
+          id: uuidv4(),
+          sequenceId: sequence.id,
+          trackType: TrackType.Video,
+          startTimeMs: 0,
+        },
+      ],
+    };
 
     await this.saveProject(params.projectId, savedState);
 
