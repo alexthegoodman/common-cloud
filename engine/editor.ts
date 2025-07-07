@@ -5635,6 +5635,19 @@ export class Editor {
       y: roundToGrid(originalY + dy, this.gridSnap),
     };
 
+    // Get the original group position for associated motion paths
+    const originalPathX =
+      this.motionPaths.filter((p) => p.associatedPolygonId === poly_id)[0]
+        ?.transform.startPosition[0] || 0;
+    const originalPathY =
+      this.motionPaths.filter((p) => p.associatedPolygonId === poly_id)[0]
+        ?.transform.startPosition[1] || 0;
+
+    let new_path_position = {
+      x: roundToGrid(originalPathX + dx, this.gridSnap),
+      y: roundToGrid(originalPathY + dy, this.gridSnap),
+    };
+
     // console.info("move_polygon {:?}", new_position);
 
     polygon.updateDataFromPosition(
@@ -5652,27 +5665,27 @@ export class Editor {
           windowSize,
           device!,
           this.modelBindGroupLayout!,
-          new_position,
+          new_path_position,
           camera
         );
       }
     });
 
     // Also check video items for motion paths
-    this.videoItems.forEach((videoItem) => {
-      if (
-        videoItem.mousePath &&
-        videoItem.mousePath.associatedPolygonId === poly_id
-      ) {
-        videoItem.mousePath.updateDataFromPosition(
-          windowSize,
-          device!,
-          this.modelBindGroupLayout!,
-          new_position,
-          camera
-        );
-      }
-    });
+    // this.videoItems.forEach((videoItem) => {
+    //   if (
+    //     videoItem.mousePath &&
+    //     videoItem.mousePath.associatedPolygonId === poly_id
+    //   ) {
+    //     videoItem.mousePath.updateDataFromPosition(
+    //       windowSize,
+    //       device!,
+    //       this.modelBindGroupLayout!,
+    //       new_position,
+    //       camera
+    //     );
+    //   }
+    // });
 
     // this.dragStart = mouse_pos;
     // this.update_guide_lines(poly_index, windowSize);
@@ -5878,6 +5891,19 @@ export class Editor {
       windowSize
     );
 
+    // Get the original group position for associated motion paths
+    const originalPathX =
+      this.motionPaths.filter((p) => p.associatedPolygonId === text_id)[0]
+        ?.transform.startPosition[0] || 0;
+    const originalPathY =
+      this.motionPaths.filter((p) => p.associatedPolygonId === text_id)[0]
+        ?.transform.startPosition[1] || 0;
+
+    let new_path_position = {
+      x: roundToGrid(originalPathX + dx, this.gridSnap),
+      y: roundToGrid(originalPathY + dy, this.gridSnap),
+    };
+
     // Move associated motion paths when text object is moved
     this.motionPaths.forEach((motionPath) => {
       if (motionPath.associatedPolygonId === text_id) {
@@ -5885,27 +5911,27 @@ export class Editor {
           windowSize,
           device!,
           this.modelBindGroupLayout!,
-          new_position,
+          new_path_position,
           camera
         );
       }
     });
 
     // Also check video items for motion paths
-    this.videoItems.forEach((videoItem) => {
-      if (
-        videoItem.mousePath &&
-        videoItem.mousePath.associatedPolygonId === text_id
-      ) {
-        videoItem.mousePath.updateDataFromPosition(
-          windowSize,
-          device!,
-          this.modelBindGroupLayout!,
-          new_position,
-          camera
-        );
-      }
-    });
+    // this.videoItems.forEach((videoItem) => {
+    //   if (
+    //     videoItem.mousePath &&
+    //     videoItem.mousePath.associatedPolygonId === text_id
+    //   ) {
+    //     videoItem.mousePath.updateDataFromPosition(
+    //       windowSize,
+    //       device!,
+    //       this.modelBindGroupLayout!,
+    //       new_position,
+    //       camera
+    //     );
+    //   }
+    // });
 
     // this.dragStart = mouse_pos;
   }
@@ -5972,6 +5998,19 @@ export class Editor {
       windowSize
     );
 
+    // Get the original group position for associated motion paths
+    const originalPathX =
+      this.motionPaths.filter((p) => p.associatedPolygonId === image_id)[0]
+        ?.transform.startPosition[0] || 0;
+    const originalPathY =
+      this.motionPaths.filter((p) => p.associatedPolygonId === image_id)[0]
+        ?.transform.startPosition[1] || 0;
+
+    let new_path_position = {
+      x: roundToGrid(originalPathX + dx, this.gridSnap),
+      y: roundToGrid(originalPathY + dy, this.gridSnap),
+    };
+
     // Move associated motion paths when image object is moved
     this.motionPaths.forEach((motionPath) => {
       if (motionPath.associatedPolygonId === image_id) {
@@ -5979,27 +6018,27 @@ export class Editor {
           windowSize,
           device!,
           this.modelBindGroupLayout!,
-          new_position,
+          new_path_position,
           camera
         );
       }
     });
 
     // Also check video items for motion paths
-    this.videoItems.forEach((videoItem) => {
-      if (
-        videoItem.mousePath &&
-        videoItem.mousePath.associatedPolygonId === image_id
-      ) {
-        videoItem.mousePath.updateDataFromPosition(
-          windowSize,
-          device!,
-          this.modelBindGroupLayout!,
-          new_position,
-          camera
-        );
-      }
-    });
+    // this.videoItems.forEach((videoItem) => {
+    //   if (
+    //     videoItem.mousePath &&
+    //     videoItem.mousePath.associatedPolygonId === image_id
+    //   ) {
+    //     videoItem.mousePath.updateDataFromPosition(
+    //       windowSize,
+    //       device!,
+    //       this.modelBindGroupLayout!,
+    //       new_position,
+    //       camera
+    //     );
+    //   }
+    // });
 
     // this.dragStart = mouse_pos;
     // this.update_guide_lines(poly_index, windowSize);
@@ -6068,6 +6107,19 @@ export class Editor {
       windowSize
     );
 
+    // Get the original group position for associated motion paths
+    const originalPathX =
+      this.motionPaths.filter((p) => p.associatedPolygonId === video_id)[0]
+        ?.transform.startPosition[0] || 0;
+    const originalPathY =
+      this.motionPaths.filter((p) => p.associatedPolygonId === video_id)[0]
+        ?.transform.startPosition[1] || 0;
+
+    let new_path_position = {
+      x: roundToGrid(originalPathX + dx, this.gridSnap),
+      y: roundToGrid(originalPathY + dy, this.gridSnap),
+    };
+
     // Move associated motion paths when video object is moved
     this.motionPaths.forEach((motionPath) => {
       if (motionPath.associatedPolygonId === video_id) {
@@ -6075,27 +6127,27 @@ export class Editor {
           windowSize,
           device!,
           this.modelBindGroupLayout!,
-          new_position,
+          new_path_position,
           camera
         );
       }
     });
 
     // Also check video items for motion paths (self-reference case)
-    this.videoItems.forEach((videoItem) => {
-      if (
-        videoItem.mousePath &&
-        videoItem.mousePath.associatedPolygonId === video_id
-      ) {
-        videoItem.mousePath.updateDataFromPosition(
-          windowSize,
-          device!,
-          this.modelBindGroupLayout!,
-          new_position,
-          camera
-        );
-      }
-    });
+    // this.videoItems.forEach((videoItem) => {
+    //   if (
+    //     videoItem.mousePath &&
+    //     videoItem.mousePath.associatedPolygonId === video_id
+    //   ) {
+    //     videoItem.mousePath.updateDataFromPosition(
+    //       windowSize,
+    //       device!,
+    //       this.modelBindGroupLayout!,
+    //       new_position,
+    //       camera
+    //     );
+    //   }
+    // });
 
     // this.dragStart = mouse_pos;
     // this.update_guide_lines(poly_index, windowSize);

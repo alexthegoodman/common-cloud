@@ -449,6 +449,10 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
     last_saved_state.sequences.forEach((s) => {
       if (s.id == current_sequence_id) {
+        // let hasAssociatedPath = s.polygonMotionPaths?.some(
+        //   (motionPath) => motionPath.polygonId === object_id
+        // );
+
         switch (object_type) {
           case ObjectType.Polygon: {
             s.activePolygons.forEach((ap) => {
@@ -502,8 +506,19 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
         if (s.polygonMotionPaths) {
           s.polygonMotionPaths.forEach((motionPath) => {
             if (motionPath.polygonId === object_id) {
-              // Update the motion path position
-              motionPath.position = [point.x, point.y];
+              let livePath = editor.motionPaths.find(
+                (mp) => mp.associatedPolygonId === object_id
+              );
+
+              let pathPosition = livePath?.transform.position;
+
+              if (pathPosition) {
+                // Update the motion path position
+                motionPath.position = [
+                  pathPosition[0] || 0,
+                  pathPosition[1] || 0,
+                ];
+              }
             }
           });
         }

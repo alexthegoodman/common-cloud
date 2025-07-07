@@ -925,11 +925,18 @@ export class CanvasPipeline {
     // Draw motion paths
     for (const path of editor.motionPaths || []) {
       // Update path transform if being dragged
-      if (editor.draggingPath === path.id) {
+      if (
+        editor.draggingPath === path.id ||
+        editor.draggingPolygon === path.associatedPolygonId ||
+        editor.draggingImage === path.associatedPolygonId ||
+        editor.draggingText === path.associatedPolygonId ||
+        editor.draggingVideo === path.associatedPolygonId
+      ) {
         path.transform.updateUniformBuffer(queue, editor.camera.windowSize);
       }
 
       // this.bindWebGLBindGroup(gl, path.bindGroup, 3);
+      path.bindGroup.bindWebGLBindGroup(gl);
 
       // Draw static polygons in this path
       for (const polygon of path.staticPolygons || []) {
@@ -943,7 +950,7 @@ export class CanvasPipeline {
         // this.bindWebGLBindGroup(gl, polygon.bindGroup, 1);
 
         polygon.bindGroup.bindWebGLBindGroup(gl);
-        polygon.groupBindGroup?.bindWebGLBindGroup(gl);
+        // polygon.groupBindGroup?.bindWebGLBindGroup(gl);
 
         drawIndexedGeometry(
           polygon.vertexBuffer as PolyfillBuffer,

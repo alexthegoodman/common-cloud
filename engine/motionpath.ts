@@ -304,6 +304,7 @@ export class MotionPath {
     this.transform.updatePosition([position.x, position.y], windowSize);
 
     this.staticPolygons.forEach((p) => {
+      // simply provides info to the polygon about its position, does not change the polygon's position
       p.updateGroupPosition([position.x, position.y]);
     });
   }
