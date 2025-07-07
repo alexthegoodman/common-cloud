@@ -1,0 +1,34 @@
+{
+  "carousel": {
+    "welcome": {
+      "title": "Stunts mein aapka swagat hai",
+      "description": "AI sahayata ya professional editing tools ke saath shandar videos banayein",
+      "next": "Agla"
+    },
+    "flow": {
+      "title": "Flow se miliye - AI Video Creation",
+      "description": "3 aasan steps mein videos banayein:",
+      "step1": "Apna prompt daliye aur content upload kariye",
+      "step2": "Smart questions ke jawab dijiye", 
+      "step3": "Apna AI-generated video paayiye"
+    },
+    "editor": {
+      "title": "Professional Video Editor",
+      "description": "Powerful tools ke saath poora creative control:",
+      "tools": "Timeline, Canvas, Text, Images, Shapes",
+      "animations": "Keyframes, Transitions, Effects",
+      "export": "Multiple formats aur resolutions"
+    },
+    "ready": {
+      "title": "Apna path choose kariye",
+      "description": "AI assistance se start kariye ya editing mein jaayiye",
+      "cta": "Shuru Kariye"
+    },
+    "navigation": {
+      "next": "Agla",
+      "previous": "Pichla",
+      "skip": "Skip",
+      "getStarted": "Shuru Kariye"
+    }
+  }
+}

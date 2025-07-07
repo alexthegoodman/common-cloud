@@ -1,0 +1,34 @@
+{
+  "carousel": {
+    "welcome": {
+      "title": "Welcome to Stunts",
+      "description": "Create stunning videos with AI assistance or professional editing tools",
+      "next": "Next"
+    },
+    "flow": {
+      "title": "Meet Flow - AI Video Creation",
+      "description": "Generate videos in 3 simple steps:",
+      "step1": "Enter your prompt & upload content",
+      "step2": "Answer intelligent questions", 
+      "step3": "Get your AI-generated video"
+    },
+    "editor": {
+      "title": "Professional Video Editor",
+      "description": "Full creative control with powerful tools:",
+      "tools": "Timeline, Canvas, Text, Images, Shapes",
+      "animations": "Keyframes, Transitions, Effects",
+      "export": "Multiple formats and resolutions"
+    },
+    "ready": {
+      "title": "Choose Your Path",
+      "description": "Start with AI assistance or jump into editing",
+      "cta": "Get Started"
+    },
+    "navigation": {
+      "next": "Next",
+      "previous": "Previous",
+      "skip": "Skip",
+      "getStarted": "Get Started"
+    }
+  }
+}

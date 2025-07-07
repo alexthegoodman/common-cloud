@@ -110,11 +110,11 @@ const LanguagePicker = ({
       // Add a small delay for better UX feedback
       setTimeout(() => {
         // location.reload();
-        // router.push("/projects");
+        // router.push("/onboarding-carousel");
         window.location.href =
           process.env.NODE_ENV === "production"
-            ? "https://madebycommon.com/projects"
-            : "http://localhost:3000/projects";
+            ? "https://madebycommon.com/onboarding-carousel"
+            : "http://localhost:3000/onboarding-carousel";
       }, 400);
     } catch (error) {
       setIsLoading(false);
