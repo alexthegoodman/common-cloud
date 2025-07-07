@@ -4,7 +4,7 @@ import "./globals.css";
 import FacebookPixel from "@/components/FacebookPixel";
 import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
-import { LogRocketProvider } from "@/components/LogRocketProvider";
+// import { LogRocketProvider } from "@/components/LogRocketProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,9 +38,9 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <LogRocketProvider>
-          <main id="main-content">{children}</main>
-        </LogRocketProvider>
+        {/* <LogRocketProvider> */}
+        <main id="main-content">{children}</main>
+        {/* </LogRocketProvider> */}
         <FacebookPixel />
         <Analytics />
         <Script
