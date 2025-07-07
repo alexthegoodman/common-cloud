@@ -12,6 +12,7 @@ import {
 import { CreateIcon } from "./icon";
 import {
   AnimationData,
+  AnimationProperty,
   BackgroundFill,
   findObjectType,
   GradientStop,
@@ -22,6 +23,9 @@ import {
   TimelineSequence,
   TrackType,
   UIKeyframe,
+  KeyframeValue,
+  EasingType,
+  PathType,
 } from "@/engine/animations";
 import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/navigation";
@@ -200,6 +204,12 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   let [is_curved, set_is_curved] = useState(false);
   let [auto_choreograph, set_auto_choreograph] = useState(true);
   let [auto_fade, set_auto_fade] = useState(true);
+
+  // AI Animation Generation states
+  let [aiAnimationPrompt, setAiAnimationPrompt] = useState("");
+  let [aiAnimationDuration, setAiAnimationDuration] = useState(3000);
+  let [aiAnimationStyle, setAiAnimationStyle] = useState("smooth");
+  let [aiLoading, setAiLoading] = useState(false);
   let [layers, set_layers] = useState<Layer[]>([]);
   let [dragger_id, set_dragger_id] = useState(null);
   let [current_sequence_id, set_current_sequence_id] = useState<string | null>(
@@ -1140,6 +1150,289 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     set_loading(false);
   };
 
+  // Helper methods for raw AnimationData manipulation (similar to MCP server)
+  let findOrCreateAnimationData = (
+    savedState: SavedState,
+    sequenceId: string,
+    objectId: string
+  ): AnimationData => {
+    let sequence = savedState.sequences.find((s) => s.id === sequenceId);
+    if (!sequence) {
+      throw new Error(`Sequence with ID ${sequenceId} not found`);
+    }
+
+    if (!sequence.polygonMotionPaths) {
+      sequence.polygonMotionPaths = [];
+    }
+
+    let animationData = sequence.polygonMotionPaths.find(
+      (path) => path.polygonId === objectId
+    );
+
+    if (!animationData) {
+      let objectType = findObjectType(savedState, objectId);
+      if (!objectType) {
+        throw new Error(`Object with ID ${objectId} not found in sequence`);
+      }
+
+      animationData = {
+        id: uuidv4(),
+        objectType: objectType,
+        polygonId: objectId,
+        duration: 5000,
+        startTimeMs: 0,
+        properties: [],
+        position: [0, 0],
+      };
+      sequence.polygonMotionPaths.push(animationData);
+    }
+
+    return animationData;
+  };
+
+  let findOrCreateAnimationProperty = (
+    animationData: AnimationData,
+    propertyName: string
+  ): AnimationProperty => {
+    let property = animationData.properties.find(
+      (p) => p.name === propertyName
+    );
+
+    if (!property) {
+      property = {
+        name: propertyName,
+        propertyPath: propertyName,
+        children: [],
+        keyframes: [],
+        depth: 0,
+      };
+      animationData.properties.push(property);
+    }
+
+    return property;
+  };
+
+  let createKeyframeValue = (
+    propertyName: string,
+    value: any
+  ): KeyframeValue => {
+    let lowerProperty = propertyName.toLowerCase();
+
+    if (lowerProperty === "position") {
+      if (Array.isArray(value) && value.length === 2) {
+        return { type: "Position", value: [value[0], value[1]] };
+      }
+      throw new Error("Position property requires [x, y] array");
+    }
+
+    if (lowerProperty === "rotation") {
+      if (typeof value === "number") {
+        return { type: "Rotation", value: value };
+      }
+      throw new Error("Rotation property requires a number value");
+    }
+
+    if (lowerProperty === "scalex") {
+      if (typeof value === "number") {
+        return { type: "ScaleX", value: value };
+      }
+      throw new Error("ScaleX property requires a number value");
+    }
+
+    if (lowerProperty === "scaley") {
+      if (typeof value === "number") {
+        return { type: "ScaleY", value: value };
+      }
+      throw new Error("ScaleY property requires a number value");
+    }
+
+    if (lowerProperty === "opacity") {
+      if (typeof value === "number") {
+        return { type: "Opacity", value: value };
+      }
+      throw new Error("Opacity property requires a number value");
+    }
+
+    throw new Error(`Unsupported property: ${propertyName}`);
+  };
+
+  let onGenerateAIAnimation = async () => {
+    let editor = editorRef.current;
+    let editor_state = editorStateRef.current;
+
+    if (!editor || !editor_state) {
+      return;
+    }
+
+    if (!aiAnimationPrompt.trim()) {
+      toast.error("Please describe the animation you want to create");
+      return;
+    }
+
+    if (!current_sequence_id) {
+      return;
+    }
+
+    setAiLoading(true);
+
+    try {
+      // Get all visible objects in the current sequence
+      let objectIds: string[] = [];
+
+      // Add text objects
+      if (editor.textItems) {
+        objectIds.push(
+          ...editor.textItems
+            .filter((item) => !item.hidden)
+            .map((item) => item.id)
+        );
+      }
+
+      // Add polygon objects
+      if (editor.polygons) {
+        objectIds.push(
+          ...editor.polygons
+            .filter((item) => !item.hidden)
+            .map((item) => item.id)
+        );
+      }
+
+      // Add image objects
+      if (editor.imageItems) {
+        objectIds.push(
+          ...editor.imageItems
+            .filter((item) => !item.hidden)
+            .map((item) => item.id)
+        );
+      }
+
+      if (objectIds.length === 0) {
+        toast.error(
+          "No objects available for animation. Please add some text, shapes, or images first."
+        );
+        setAiLoading(false);
+        return;
+      }
+
+      // Get canvas size
+      let canvasSize = editor.camera
+        ? {
+            width: editor.camera.windowSize.width,
+            height: editor.camera.windowSize.height,
+          }
+        : { width: 550, height: 900 };
+
+      // Call the AI API
+      let response = await fetch("/api/projects/generate-animation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken?.token}`,
+        },
+        body: JSON.stringify({
+          prompt: aiAnimationPrompt,
+          duration: aiAnimationDuration,
+          style: aiAnimationStyle,
+          objectIds: objectIds,
+          canvasSize: canvasSize,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to generate animation: ${response.statusText}`);
+      }
+
+      let result = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error("Invalid response from AI animation generator");
+      }
+
+      // Apply the generated animation to the editor
+      let animationData = result.data;
+
+      // Apply keyframes for each animated object using raw AnimationData structure
+      for (let animation of animationData.animations) {
+        // Find or create AnimationData for this object
+        let animationDataItem = findOrCreateAnimationData(
+          editor_state.savedState,
+          current_sequence_id,
+          animation.objectId
+        );
+
+        for (let property of animation.properties) {
+          // Find or create AnimationProperty for this property
+          let animationProperty = findOrCreateAnimationProperty(
+            animationDataItem,
+            property.propertyName
+          );
+
+          // reset this property's keyframes before adding new ones
+          animationProperty.keyframes = [];
+
+          // Sort keyframes by time to ensure proper order
+          let sortedKeyframes = property.keyframes.sort(
+            (a: any, b: any) => a.time - b.time
+          );
+
+          // Add keyframes to the property
+          for (let kf of sortedKeyframes) {
+            let keyframeValue = createKeyframeValue(
+              property.propertyName,
+              kf.value
+            );
+
+            let keyframe: UIKeyframe = {
+              id: uuidv4(),
+              time: kf.time,
+              value: keyframeValue,
+              easing: (kf.easing || "Linear") as EasingType,
+              pathType: "Linear" as PathType,
+              curveData: null,
+              keyType: { type: "Frame" },
+            };
+
+            animationProperty.keyframes.push(keyframe);
+          }
+
+          // Sort keyframes by time
+          animationProperty.keyframes.sort((a, b) => a.time - b.time);
+        }
+      }
+
+      // Update the sequence duration if needed
+      if (animationData.duration > 0) {
+        editor_state.savedState.sequences.forEach((s) => {
+          if (s.id === current_sequence_id) {
+            s.durationMs = Math.max(
+              s.durationMs || 5000,
+              animationData.duration
+            );
+          }
+        });
+      }
+
+      // Save the updated sequences
+      saveSequencesData(editor_state.savedState.sequences, SaveTarget.Videos);
+
+      // update motion paths
+      editor.updateMotionPaths(editor_state.savedState.sequences[0]);
+
+      // Refresh the timeline to show the new keyframes
+      setRefreshTimeline(Date.now());
+
+      toast.success("AI animation generated successfully!");
+
+      // Clear the prompt for next use
+      setAiAnimationPrompt("");
+    } catch (error: any) {
+      console.error("AI animation generation error:", error);
+      toast.error(error.message || "Failed to generate AI animation");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   let on_open_capture = () => {};
 
   let on_items_updated = () => {};
@@ -1726,7 +2019,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 {({ open }) => (
                   <>
                     <Disclosure.Button className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
-                      <span>⚙️ Animation Settings</span>
+                      <span>🪄 Generate Animation</span>
                       <ArrowDown
                         className={`${
                           open ? "rotate-180 transform" : ""
@@ -1735,7 +2028,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                     </Disclosure.Button>
                     <Disclosure.Panel className="px-4 pt-4 pb-2 text-sm text-gray-500">
                       <div className="space-y-3">
-                        <div className="flex flex-row gap-2">
+                        {/* <div className="flex flex-row gap-2">
                           <label htmlFor="keyframe_count" className="text-xs">
                             Choose keyframe count
                           </label>
@@ -1795,7 +2088,94 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                           }}
                         >
                           {loading ? "Generating..." : "Generate Animation"}
-                        </button>
+                        </button> */}
+
+                        {/* AI-Powered Animation Generation */}
+                        <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                          <div className="flex items-center gap-2 mb-3">
+                            <MagicWand size={16} className="text-purple-600" />
+                            <h4 className="text-sm font-medium text-purple-900">
+                              AI Animation Generator
+                            </h4>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-xs text-gray-600 block mb-1">
+                                Describe your animation:
+                              </label>
+                              <textarea
+                                className="w-full text-xs border rounded px-2 py-1 h-16 resize-none"
+                                placeholder="e.g., Make the text bounce excitedly, then fade out slowly..."
+                                value={aiAnimationPrompt}
+                                onChange={(e) =>
+                                  setAiAnimationPrompt(e.target.value)
+                                }
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-xs text-gray-600 block mb-1">
+                                  Duration
+                                </label>
+                                <select
+                                  className="text-xs border rounded px-2 py-1 w-full"
+                                  value={aiAnimationDuration}
+                                  onChange={(e) =>
+                                    setAiAnimationDuration(
+                                      Number(e.target.value)
+                                    )
+                                  }
+                                >
+                                  <option value={1000}>1 second</option>
+                                  <option value={2000}>2 seconds</option>
+                                  <option value={3000}>3 seconds</option>
+                                  <option value={5000}>5 seconds</option>
+                                  <option value={8000}>8 seconds</option>
+                                </select>
+                              </div>
+
+                              <div>
+                                <label className="text-xs text-gray-600 block mb-1">
+                                  Style
+                                </label>
+                                <select
+                                  className="text-xs border rounded px-2 py-1 w-full"
+                                  value={aiAnimationStyle}
+                                  onChange={(e) =>
+                                    setAiAnimationStyle(e.target.value)
+                                  }
+                                >
+                                  <option value="smooth">Smooth</option>
+                                  <option value="bouncy">Bouncy</option>
+                                  <option value="quick">Quick</option>
+                                  <option value="dramatic">Dramatic</option>
+                                  <option value="subtle">Subtle</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={aiLoading || !aiAnimationPrompt.trim()}
+                              onClick={onGenerateAIAnimation}
+                            >
+                              {aiLoading ? (
+                                <span className="flex items-center gap-2">
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                  Generating...
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-2">
+                                  <MagicWand size={16} />
+                                  Generate AI Animation
+                                </span>
+                              )}
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </Disclosure.Panel>
                   </>
@@ -1808,7 +2188,6 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                   <>
                     <Disclosure.Button className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
                       <span className="flex items-center gap-2">
-                        <MagicWand size={16} className="text-red-500" />
                         🔥 Text Animations
                       </span>
                       <ArrowDown
