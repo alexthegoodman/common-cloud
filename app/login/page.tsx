@@ -14,10 +14,13 @@ const LoginPage = () => {
             className="max-w-[200px] w-full mb-8"
           />
           <h1 className="text-4xl font-bold mb-8">Login</h1>
-          <AuthForm loginOnly={true} />
+          <AuthForm />
           <p className="mt-4 text-center">
             <span className="text-gray-600">Need to sign up? </span>
-            <Link href="/register" className="text-red-500 hover:text-red-600 font-medium">
+            <Link
+              href="/register"
+              className="text-red-500 hover:text-red-600 font-medium"
+            >
               Create an account
             </Link>
           </p>
