@@ -36,16 +36,18 @@ export default function ChoosePath() {
 
             <div className="flex flex-col md:flex-row gap-8 w-full max-w-4xl">
               {/* Flow Option */}
-              <div className="flex-1 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow p-8 border-2 border-gray-100 hover:border-blue-200">
+              <div className="flex-1 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow p-4 border-2 border-gray-100 hover:border-blue-200">
                 <div className="text-center">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Play className="w-8 h-8 text-blue-600" />
                   </div>
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
                     {t("Start with Flow")}
                   </h2>
-                  <p className="text-gray-600 mb-6 leading-relaxed">
-                    {t("Use AI to generate content based on your prompt. Upload files, answer questions, and let our AI create your video.")}
+                  <p className="text-xs text-gray-600 mb-6 leading-relaxed">
+                    {t(
+                      "Use AI to generate content based on your prompt. Upload files, answer questions, and let our AI create your video."
+                    )}
                   </p>
                   <button
                     onClick={handleFlowChoice}
@@ -58,16 +60,18 @@ export default function ChoosePath() {
               </div>
 
               {/* Editor Option */}
-              <div className="flex-1 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow p-8 border-2 border-gray-100 hover:border-green-200">
+              <div className="flex-1 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow p-4 border-2 border-gray-100 hover:border-green-200">
                 <div className="text-center">
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <PencilSimple className="w-8 h-8 text-green-600" />
                   </div>
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
                     {t("Go to Editor")}
                   </h2>
-                  <p className="text-gray-600 mb-6 leading-relaxed">
-                    {t("Jump straight into the video editor to create your content manually with full creative control.")}
+                  <p className="text-xs text-gray-600 mb-6 leading-relaxed">
+                    {t(
+                      "Jump straight into the video editor to create your content manually with full creative control."
+                    )}
                   </p>
                   <button
                     onClick={handleEditorChoice}
