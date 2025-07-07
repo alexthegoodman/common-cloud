@@ -9,10 +9,11 @@ import { Check, Plus, X } from "@phosphor-icons/react";
 import { BrandKitList } from "@/components/stunts-app/BrandKitList";
 import { FlowSteps } from "@/components/stunts-app/FlowSteps";
 import { createFlow } from "@/fetchers/flows";
-import { AuthToken } from "@/fetchers/projects";
+import { AuthToken, getSingleProject } from "@/fetchers/projects";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import useSWR from "swr";
 
 export default function Project() {
   const { t } = useTranslation("flow");
@@ -26,6 +27,14 @@ export default function Project() {
     true
   );
 
+  const {
+    data: project,
+    isLoading,
+    error,
+  } = useSWR(`project-${projectId}`, () =>
+    getSingleProject(authToken?.token || "", projectId as string)
+  );
+
   const [loading, setLoading] = useState<boolean>(false);
   const [prompt, setPrompt] = useState<string>("");
 
@@ -35,8 +44,13 @@ export default function Project() {
   useEffect(() => {
     // Small delay to ensure the component is fully rendered
     const timer = setTimeout(() => {
+      if (!textareaRef.current) {
+        return;
+      }
+
       textareaRef.current?.focus();
-    }, 100);
+      textareaRef.current.value = project?.project?.name as string;
+    }, 250);
     return () => clearTimeout(timer);
   }, []);
 
