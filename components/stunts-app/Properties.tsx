@@ -17,6 +17,30 @@ import { saveSequencesData } from "@/fetchers/projects";
 import { ColorPicker } from "./ColorPicker";
 import { ColorService, IColor, useColor } from "react-color-palette";
 import { update_keyframe } from "./VideoEditor";
+import {
+  updateBackground,
+  updateBorderRadius,
+  updateFontSize,
+  updateHeight,
+  updateIsCircle,
+  updatePositionX,
+  updatePositionY,
+  updateTextContent,
+  updateWidth,
+} from "@/engine/state/properties";
+import {
+  remove_position_keyframes,
+  save_bouncing_ball_keyframes,
+  save_circular_motion_keyframes,
+  save_figure_eight_keyframes,
+  save_floating_bubbles_keyframes,
+  save_pendulum_swing_keyframes,
+  save_perspective_x_keyframes,
+  save_perspective_y_keyframes,
+  save_pulse_keyframes,
+  save_ripple_effect_keyframes,
+  save_spiral_motion_keyframes,
+} from "@/engine/state/keyframes";
 
 const RepeatProperties = ({
   editorRef,
@@ -400,14 +424,16 @@ export const ColorProperties = ({
           };
 
           if (objectType === ObjectType.Polygon) {
-            editorState.updateBackground(
+            updateBackground(
+              editorState,
               editor,
               currentObjectId,
               ObjectType.Polygon,
               value
             );
           } else if (objectType === ObjectType.TextItem) {
-            editorState.updateBackground(
+            updateBackground(
+              editorState,
               editor,
               currentObjectId,
               ObjectType.TextItem,
@@ -427,14 +453,16 @@ export const ColorProperties = ({
           };
 
           if (objectType === ObjectType.Polygon) {
-            editorState.updateBackground(
+            updateBackground(
+              editorState,
               editor,
               currentObjectId,
               ObjectType.Polygon,
               value
             );
           } else if (objectType === ObjectType.TextItem) {
-            editorState.updateBackground(
+            updateBackground(
+              editorState,
               editor,
               currentObjectId,
               ObjectType.Polygon,
@@ -515,14 +543,16 @@ export const ColorProperties = ({
           };
 
           if (objectType === ObjectType.Polygon) {
-            editorState.updateBackground(
+            updateBackground(
+              editorState,
               editor,
               currentObjectId,
               ObjectType.Polygon,
               value
             );
           } else if (objectType === ObjectType.TextItem) {
-            editorState.updateBackground(
+            updateBackground(
+              editorState,
               editor,
               currentObjectId,
               ObjectType.TextItem,
@@ -542,14 +572,16 @@ export const ColorProperties = ({
           };
 
           if (objectType === ObjectType.Polygon) {
-            editorState.updateBackground(
+            updateBackground(
+              editorState,
               editor,
               currentObjectId,
               ObjectType.Polygon,
               value
             );
           } else if (objectType === ObjectType.TextItem) {
-            editorState.updateBackground(
+            updateBackground(
+              editorState,
               editor,
               currentObjectId,
               ObjectType.Polygon,
@@ -612,7 +644,8 @@ export const ColorProperties = ({
                 value: rgbToWgpu(255, 255, 255, 255),
               };
 
-              editorState.updateBackground(
+              updateBackground(
+                editorState,
                 editor,
                 currentObjectId,
                 objectType,
@@ -624,7 +657,8 @@ export const ColorProperties = ({
                 value: rgbToWgpu(200, 200, 200, 255),
               };
 
-              editorState.updateBackground(
+              updateBackground(
+                editorState,
                 editor,
                 currentObjectId,
                 objectType,
@@ -656,7 +690,8 @@ export const ColorProperties = ({
                 value: rgbToWgpu(255, 255, 255, 0),
               };
 
-              editorState.updateBackground(
+              updateBackground(
+                editorState,
                 editor,
                 currentObjectId,
                 objectType,
@@ -668,7 +703,8 @@ export const ColorProperties = ({
                 value: rgbToWgpu(200, 200, 200, 255),
               };
 
-              editorState.updateBackground(
+              updateBackground(
+                editorState,
                 editor,
                 currentObjectId,
                 objectType,
@@ -793,7 +829,8 @@ export const PolygonProperties = ({
                 return;
               }
 
-              editorState.updatePositionX(
+              updatePositionX(
+                editorState,
                 editor,
                 currentPolygonId,
                 ObjectType.Polygon,
@@ -814,7 +851,8 @@ export const PolygonProperties = ({
                 return;
               }
 
-              editorState.updatePositionY(
+              updatePositionY(
+                editorState,
                 editor,
                 currentPolygonId,
                 ObjectType.Polygon,
@@ -837,7 +875,8 @@ export const PolygonProperties = ({
                 return;
               }
 
-              editorState.updateWidth(
+              updateWidth(
+                editorState,
                 editor,
                 currentPolygonId,
                 ObjectType.Polygon,
@@ -858,7 +897,8 @@ export const PolygonProperties = ({
                 return;
               }
 
-              editorState.updateHeight(
+              updateHeight(
+                editorState,
                 editor,
                 currentPolygonId,
                 ObjectType.Polygon,
@@ -887,7 +927,8 @@ export const PolygonProperties = ({
               return;
             }
 
-            editorState.updateBorderRadius(
+            updateBorderRadius(
+              editorState,
               editor,
               currentPolygonId,
               ObjectType.Polygon,
@@ -908,7 +949,8 @@ export const PolygonProperties = ({
               return;
             }
 
-            editorState.updateIsCircle(
+            updateIsCircle(
+              editorState,
               editor,
               currentPolygonId,
               ObjectType.Polygon,
@@ -1043,7 +1085,8 @@ export const TextProperties = ({
 
             console.info("double call?");
 
-            editorState.updateFontSize(
+            updateFontSize(
+              editorState,
               editor,
               currentTextId,
               ObjectType.TextItem,
@@ -1064,7 +1107,7 @@ export const TextProperties = ({
               return;
             }
 
-            editorState.updateTextContent(editor, currentTextId, value);
+            updateTextContent(editorState, editor, currentTextId, value);
           }}
         />
         <div className="flex flex-row gap-2">
@@ -1083,7 +1126,8 @@ export const TextProperties = ({
 
               console.info("double call?");
 
-              editorState.updateWidth(
+              updateWidth(
+                editorState,
                 editor,
                 currentTextId,
                 ObjectType.TextItem,
@@ -1106,7 +1150,8 @@ export const TextProperties = ({
 
               console.info("height debounce");
 
-              editorState.updateHeight(
+              updateHeight(
+                editorState,
                 editor,
                 currentTextId,
                 ObjectType.TextItem,
@@ -1156,7 +1201,8 @@ export const TextProperties = ({
               return;
             }
 
-            editorState.updateIsCircle(
+            updateIsCircle(
+              editorState,
               editor,
               currentTextId,
               ObjectType.TextItem,
@@ -1275,7 +1321,8 @@ export const ImageProperties = ({
                 return;
               }
 
-              editorState.updateWidth(
+              updateWidth(
+                editorState,
                 editor,
                 currentImageId,
                 ObjectType.ImageItem,
@@ -1296,7 +1343,8 @@ export const ImageProperties = ({
                 return;
               }
 
-              editorState.updateHeight(
+              updateHeight(
+                editorState,
                 editor,
                 currentImageId,
                 ObjectType.ImageItem,
@@ -1325,7 +1373,8 @@ export const ImageProperties = ({
               return;
             }
 
-            editorState.updateIsCircle(
+            updateIsCircle(
+              editorState,
               editor,
               currentImageId,
               ObjectType.ImageItem,
@@ -1431,7 +1480,8 @@ export const VideoProperties = ({
                 return;
               }
 
-              editorState.updateWidth(
+              updateWidth(
+                editorState,
                 editor,
                 currentVideoId,
                 ObjectType.VideoItem,
@@ -1452,7 +1502,8 @@ export const VideoProperties = ({
                 return;
               }
 
-              editorState.updateHeight(
+              updateHeight(
+                editorState,
                 editor,
                 currentVideoId,
                 ObjectType.VideoItem,
@@ -1546,7 +1597,8 @@ export const AnimationOptions = ({
             return;
           }
 
-          let newAnimationData = editorState.remove_position_keyframes(
+          let newAnimationData = remove_position_keyframes(
+            editorState,
             currentObjectId,
             objectType,
             current_animation_data
@@ -1607,7 +1659,8 @@ export const AnimationOptions = ({
             return;
           }
 
-          let newAnimationData = editorState.save_perspective_x_keyframes(
+          let newAnimationData = save_perspective_x_keyframes(
+            editorState,
             currentObjectId,
             objectType,
             current_animation_data
@@ -1657,7 +1710,8 @@ export const AnimationOptions = ({
             return;
           }
 
-          let newAnimationData = editorState.save_perspective_y_keyframes(
+          let newAnimationData = save_perspective_y_keyframes(
+            editorState,
             currentObjectId,
             objectType,
             current_animation_data
@@ -1707,7 +1761,8 @@ export const AnimationOptions = ({
             return;
           }
 
-          let newAnimationData = editorState.save_pulse_keyframes(
+          let newAnimationData = save_pulse_keyframes(
+            editorState,
             currentObjectId,
             objectType,
             current_animation_data
@@ -1806,7 +1861,8 @@ export const AnimationOptions = ({
               return;
             }
 
-            let newAnimationData = editorState.save_circular_motion_keyframes(
+            let newAnimationData = save_circular_motion_keyframes(
+              editorState,
               currentObjectId,
               objectType,
               current_animation_data,
@@ -1922,7 +1978,8 @@ export const AnimationOptions = ({
               return;
             }
 
-            let newAnimationData = editorState.save_pendulum_swing_keyframes(
+            let newAnimationData = save_pendulum_swing_keyframes(
+              editorState,
               currentObjectId,
               objectType,
               current_animation_data,
@@ -2048,7 +2105,8 @@ export const AnimationOptions = ({
               return;
             }
 
-            let newAnimationData = editorState.save_figure_eight_keyframes(
+            let newAnimationData = save_figure_eight_keyframes(
+              editorState,
               currentObjectId,
               objectType,
               current_animation_data,
@@ -2165,7 +2223,8 @@ export const AnimationOptions = ({
               return;
             }
 
-            let newAnimationData = editorState.save_ripple_effect_keyframes(
+            let newAnimationData = save_ripple_effect_keyframes(
+              editorState,
               currentObjectId,
               objectType,
               current_animation_data,
@@ -2292,7 +2351,8 @@ export const AnimationOptions = ({
               return;
             }
 
-            let newAnimationData = editorState.save_spiral_motion_keyframes(
+            let newAnimationData = save_spiral_motion_keyframes(
+              editorState,
               currentObjectId,
               objectType,
               current_animation_data,
@@ -2420,7 +2480,8 @@ export const AnimationOptions = ({
               return;
             }
 
-            let newAnimationData = editorState.save_bouncing_ball_keyframes(
+            let newAnimationData = save_bouncing_ball_keyframes(
+              editorState,
               currentObjectId,
               objectType,
               current_animation_data,
@@ -2548,7 +2609,8 @@ export const AnimationOptions = ({
               return;
             }
 
-            let newAnimationData = editorState.save_floating_bubbles_keyframes(
+            let newAnimationData = save_floating_bubbles_keyframes(
+              editorState,
               currentObjectId,
               objectType,
               current_animation_data,
