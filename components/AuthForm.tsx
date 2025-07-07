@@ -10,7 +10,7 @@ interface AuthFormData {
   password: string;
 }
 
-type AuthStep = "email" | "payment" | "password";
+type AuthStep = "email" | "password";
 type AuthMode = "login" | "signup";
 
 export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean }) {
@@ -52,7 +52,7 @@ export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean })
         throw new Error("No account found with this email. Please sign up first.");
       }
       setMode(json.userExists ? "login" : "signup");
-      setStep(json.userExists ? "password" : loginOnly ? "password" : "payment");
+      setStep("password");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to check email");
     } finally {
@@ -67,58 +67,6 @@ export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean })
     }
   };
 
-  const handlePayment = async () => {
-    try {
-      setLoading(true);
-      setError("");
-
-      // For signup flow, redirect to Stripe checkout
-      if (mode === "signup") {
-        // Get available plans to find the price ID
-        const plansResponse = await fetch("/api/plans/all");
-        const plansData = await plansResponse.json();
-
-        if (!plansData.plans || plansData.plans.length === 0) {
-          throw new Error("No subscription plans available");
-        }
-
-        const plan = plansData.plans[0]; // Use the first (and only) plan
-        const priceId =
-          process.env.NODE_ENV === "production"
-            ? plan.stripePriceId
-            : plan.stripeDevPriceId;
-
-        if (!priceId) {
-          throw new Error("Subscription plan not configured");
-        }
-
-        const response = await fetch("/api/subscription/checkout", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: emailValue,
-            priceId: priceId,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (data.url) {
-          // Store email for after payment completion
-          sessionStorage.setItem("signup-email", emailValue);
-          window.location.href = data.url;
-        } else {
-          throw new Error(data.error || "Failed to create checkout session");
-        }
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Payment failed");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAuth = async (data: AuthFormData) => {
     try {
@@ -176,8 +124,6 @@ export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean })
   const onSubmit = async (data: AuthFormData) => {
     if (step === "email") {
       await handleEmailSubmit();
-    } else if (step === "payment") {
-      await handlePayment();
     } else {
       await handleAuth(data);
     }
@@ -191,22 +137,6 @@ export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean })
         <div
           className={`w-3 h-3 rounded-full transition-colors ${
             step === "email" ? "bg-red-500" : "bg-green-500"
-          }`}
-        />
-        <div
-          className={`flex-1 h-0.5 transition-colors ${
-            step === "payment" || step === "password"
-              ? "bg-red-500"
-              : "bg-gray-300"
-          }`}
-        />
-        <div
-          className={`w-3 h-3 rounded-full transition-colors ${
-            step === "payment"
-              ? "bg-red-500"
-              : step === "password"
-              ? "bg-green-500"
-              : "bg-gray-300"
           }`}
         />
         <div
@@ -281,7 +211,7 @@ export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean })
               ) : loginOnly ? (
                 "Continue"
               ) : (
-                "Proceed To Checkout"
+                "Continue"
               )}
             </button>
             {/* 
@@ -297,77 +227,6 @@ export default function AuthForm({ loginOnly = false }: { loginOnly?: boolean })
             </div> */}
 
             {/* <GoogleLoginButton onError={setError} /> */}
-          </>
-        ) : step === "payment" ? (
-          /* Payment Step */
-          <>
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-slate-700 mb-2">
-                Subscribe to Continue
-              </h2>
-              <p className="text-slate-500">
-                Complete your subscription to create your account
-              </p>
-              <div className="mt-3 p-2 bg-gray-100 rounded-lg">
-                <p className="text-sm text-slate-600 flex items-center justify-between">
-                  <span>{emailValue}</span>
-                  <button
-                    type="button"
-                    onClick={handleBackToEmail}
-                    className="text-red-500 hover:text-red-600 text-xs font-medium"
-                  >
-                    Change
-                  </button>
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-slate-50 p-6 rounded-lg border mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium text-slate-700">
-                  Stunts Standard
-                </span>
-                <span className="text-2xl font-bold text-slate-900">$0.99</span>
-              </div>
-              <p className="text-slate-600 text-sm mb-4">per month</p>
-              <div className="space-y-2">
-                <div className="flex items-center text-sm text-slate-600">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                  Unlimited Projects
-                </div>
-                <div className="flex items-center text-sm text-slate-600">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                  Advanced Video Editing
-                </div>
-                <div className="flex items-center text-sm text-slate-600">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                  Premium Export Options
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-red-500 text-white p-3 rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Redirecting to checkout...</span>
-                </span>
-              ) : (
-                "Continue to Payment"
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleBackToEmail}
-              className="w-full text-slate-500 hover:text-slate-700 text-sm font-medium transition-colors flex items-center justify-center gap-2 mt-2"
-            >
-              <ArrowLeft size={16} /> Back to email
-            </button>
           </>
         ) : (
           /* Password Step */

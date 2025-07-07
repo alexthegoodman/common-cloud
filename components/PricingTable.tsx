@@ -69,44 +69,69 @@ const PricingTable = ({ language = "en" }) => {
   switch (language) {
     case "en":
       copy = {
-        title: "Go Viral for Less Than 1 Sponsored Post",
-        subtitle:
-          "Professional animations that get you noticed - ROI guaranteed",
-        features: [
-          "Unlimited Viral Content Creation",
-          "AI-Powered Keyframe Generation",
-          "TikTok & Reels Optimization",
-          "Brand Partnership Ready Export",
-          "Private Content for Personal Use",
-          "Professional Quality (Netflix-level)",
-          "Creator Community Access",
-        ],
+        title: "Choose Your Plan",
+        subtitle: "Start free, upgrade when you're ready",
+        freeTier: {
+          name: "Free",
+          price: "$0",
+          period: "forever",
+          features: [
+            "Up to 3 projects",
+            "Basic video editing",
+            "Standard export quality",
+            "Community support"
+          ],
+          buttonText: "Get Started Free"
+        },
+        proTier: {
+          name: "Pro",
+          price: "$0.99",
+          period: "per month",
+          features: [
+            "Unlimited projects",
+            "Advanced video editing",
+            "Premium export options",
+            "Priority support",
+            "AI-powered keyframes",
+            "Professional templates"
+          ],
+          buttonText: "Upgrade to Pro"
+        },
         emailPlaceholder: "Enter your email address",
-        buttonText: "Get Your First Viral Video",
-        priceText: "$0.99/month",
-        badge: "CREATOR LAUNCH SPECIAL",
-        comparison: "Less than 2 coffees per month",
       };
       break;
 
     case "hi":
       copy = {
-        title: "1 स्पॉन्सर्ड पोस्ट से कम में वायरल हो जाएं",
-        subtitle: "प्रोफेशनल एनिमेशन जो आपको नोटिस दिलवाते हैं - ROI गारंटीड",
-        features: [
-          "अनलिमिटेड वायरल कंटेंट क्रिएशन",
-          "AI-पावर्ड कीफ्रेम जेनरेशन",
-          "TikTok और Reels ऑप्टिमाइज़ेशन",
-          "ब्रांड पार्टनरशिप रेडी एक्सपोर्ट",
-          "पर्सनल यूज़ के लिए प्राइवेट कंटेंट",
-          "प्रोफेशनल क्वालिटी (Netflix-लेवल)",
-          "क्रिएटर कम्युनिटी एक्सेस",
-        ],
+        title: "अपना प्लान चुनें",
+        subtitle: "फ्री में शुरू करें, तैयार हों तो अपग्रेड करें",
+        freeTier: {
+          name: "फ्री",
+          price: "$0",
+          period: "हमेशा के लिए",
+          features: [
+            "3 प्रोजेक्ट्स तक",
+            "बेसिक वीडियो एडिटिंग",
+            "स्टैंडर्ड एक्सपोर्ट क्वालिटी",
+            "कम्युनिटी सपोर्ट"
+          ],
+          buttonText: "फ्री में शुरू करें"
+        },
+        proTier: {
+          name: "Pro",
+          price: "$0.99",
+          period: "प्रति महीने",
+          features: [
+            "अनलिमिटेड प्रोजेक्ट्स",
+            "एडवांस्ड वीडियो एडिटिंग",
+            "प्रीमियम एक्सपोर्ट विकल्प",
+            "प्राथमिकता सपोर्ट",
+            "AI-पावर्ड कीफ्रेम्स",
+            "प्रोफेशनल टेम्प्लेट्स"
+          ],
+          buttonText: "Pro में अपग्रेड करें"
+        },
         emailPlaceholder: "अपना ईमेल पता दर्ज करें",
-        buttonText: "अपना पहला वायरल वीडियो बनाएं",
-        priceText: "$0.99/महीना",
-        badge: "क्रिएटर लॉन्च स्पेशल",
-        comparison: "महीने में 2 चाय से भी कम",
       };
       break;
 
@@ -121,69 +146,106 @@ const PricingTable = ({ language = "en" }) => {
         <p className="text-gray-400 text-lg">{copy?.subtitle}</p>
       </div>
 
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-slate-800/50 rounded-xl p-8 border border-amber-500/50 relative">
-          <div className="absolute top-0 right-0 bg-amber-500 text-black text-xs font-semibold px-3 py-1 rounded-bl-lg rounded-tr-xl">
-            {copy?.badge}
-          </div>
-
-          <div className="text-center mb-8">
-            <div className="text-5xl font-bold text-white mb-2">
-              {copy?.priceText}
-            </div>
-            <p className="text-gray-400">{copy?.comparison}</p>
-            <p className="text-gray-500 text-sm mt-1">
-              Cancel anytime • No setup fees
-            </p>
-          </div>
-
-          <div className="space-y-4 mb-8">
-            {copy?.features.map((feature, index) => (
-              <div key={index} className="flex items-center">
-                <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-                <span className="text-gray-300">{feature}</span>
+      <div className="max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Free Tier */}
+          <div className="bg-slate-800/50 rounded-xl p-8 border border-gray-600">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-white mb-2">
+                {copy?.freeTier.name}
+              </h3>
+              <div className="text-4xl font-bold text-white mb-2">
+                {copy?.freeTier.price}
               </div>
-            ))}
-          </div>
-
-          <form onSubmit={handleSubscription} className="space-y-4">
-            <div>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={copy?.emailPlaceholder}
-                required
-                className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all text-slate-900 placeholder:text-slate-400"
-                disabled={loading}
-              />
+              <p className="text-gray-400">{copy?.freeTier.period}</p>
             </div>
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
+            <div className="space-y-4 mb-8">
+              {copy?.freeTier.features.map((feature, index) => (
+                <div key={index} className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                  <span className="text-gray-300">{feature}</span>
+                </div>
+              ))}
+            </div>
 
-            <button
-              type="submit"
-              disabled={loading || !email}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold py-4 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center space-x-2">
-                  <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                  <span>Processing...</span>
-                </span>
-              ) : (
-                copy?.buttonText
+            <form onSubmit={(e) => { e.preventDefault(); router.push('/register'); }} className="space-y-4">
+              <button
+                type="submit"
+                className="w-full bg-gray-600 hover:bg-gray-500 text-white font-semibold py-4 px-6 rounded-lg transition-colors"
+              >
+                {copy?.freeTier.buttonText}
+              </button>
+            </form>
+          </div>
+
+          {/* Pro Tier */}
+          <div className="bg-slate-800/50 rounded-xl p-8 border border-amber-500/50 relative">
+            <div className="absolute top-0 right-0 bg-amber-500 text-black text-xs font-semibold px-3 py-1 rounded-bl-lg rounded-tr-xl">
+              POPULAR
+            </div>
+
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-white mb-2">
+                {copy?.proTier.name}
+              </h3>
+              <div className="text-4xl font-bold text-white mb-2">
+                {copy?.proTier.price}
+              </div>
+              <p className="text-gray-400">{copy?.proTier.period}</p>
+              <p className="text-gray-500 text-sm mt-1">
+                Cancel anytime • No setup fees
+              </p>
+            </div>
+
+            <div className="space-y-4 mb-8">
+              {copy?.proTier.features.map((feature, index) => (
+                <div key={index} className="flex items-center">
+                  <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
+                  <span className="text-gray-300">{feature}</span>
+                </div>
+              ))}
+            </div>
+
+            <form onSubmit={handleSubscription} className="space-y-4">
+              <div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={copy?.emailPlaceholder}
+                  required
+                  className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all text-slate-900 placeholder:text-slate-400"
+                  disabled={loading}
+                />
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
               )}
-            </button>
-          </form>
 
-          <div className="mt-6 text-center text-sm text-gray-400">
-            <p>Secure payment processing by Stripe</p>
-            <p>🔒 Your data is protected and encrypted</p>
+              <button
+                type="submit"
+                disabled={loading || !email}
+                className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold py-4 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center space-x-2">
+                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    <span>Processing...</span>
+                  </span>
+                ) : (
+                  copy?.proTier.buttonText
+                )}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center text-sm text-gray-400">
+              <p>Secure payment processing by Stripe</p>
+              <p>🔒 Your data is protected and encrypted</p>
+            </div>
           </div>
         </div>
       </div>
