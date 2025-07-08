@@ -269,37 +269,95 @@ export default function AnimationTab({
     setAiLoading(true);
 
     try {
-      // Get all visible objects in the current sequence
-      let objectIds: string[] = [];
+      // Get all visible objects in the current sequence with their metadata
+      let objectsData: Array<{
+        id: string;
+        objectType: string;
+        dimensions: { width: number; height: number };
+        position: { x: number; y: number };
+      }> = [];
 
       // Add text objects
       if (editor.textItems) {
-        objectIds.push(
+        objectsData.push(
           ...editor.textItems
             .filter((item) => !item.hidden)
-            .map((item) => item.id)
+            .map((item) => ({
+              id: item.id,
+              objectType: "text",
+              dimensions: {
+                width: item.dimensions[0] || 100,
+                height: item.dimensions[1] || 50,
+              },
+              position: {
+                x: item.transform.position[0] || 0,
+                y: item.transform.position[1] || 0,
+              },
+            }))
         );
       }
 
       // Add polygon objects
       if (editor.polygons) {
-        objectIds.push(
+        objectsData.push(
           ...editor.polygons
             .filter((item) => !item.hidden)
-            .map((item) => item.id)
+            .map((item) => ({
+              id: item.id,
+              objectType: "polygon",
+              dimensions: {
+                width: item.dimensions[0] || 100,
+                height: item.dimensions[1] || 50,
+              },
+              position: {
+                x: item.transform.position[0] || 0,
+                y: item.transform.position[1] || 0,
+              },
+            }))
         );
       }
 
       // Add image objects
       if (editor.imageItems) {
-        objectIds.push(
+        objectsData.push(
           ...editor.imageItems
             .filter((item) => !item.hidden)
-            .map((item) => item.id)
+            .map((item) => ({
+              id: item.id,
+              objectType: "image",
+              dimensions: {
+                width: item.dimensions[0] || 100,
+                height: item.dimensions[1] || 50,
+              },
+              position: {
+                x: item.transform.position[0] || 0,
+                y: item.transform.position[1] || 0,
+              },
+            }))
         );
       }
 
-      if (objectIds.length === 0) {
+      // Add video objects
+      if (editor.videoItems) {
+        objectsData.push(
+          ...editor.videoItems
+            .filter((item) => !item.hidden)
+            .map((item) => ({
+              id: item.id,
+              objectType: "video",
+              dimensions: {
+                width: item.dimensions[0] || 100,
+                height: item.dimensions[1] || 50,
+              },
+              position: {
+                x: item.transform.position[0] || 0,
+                y: item.transform.position[1] || 0,
+              },
+            }))
+        );
+      }
+
+      if (objectsData.length === 0) {
         toast.error(
           "No objects available for animation. Please add some text, shapes, or images first."
         );
@@ -326,7 +384,7 @@ export default function AnimationTab({
           prompt: aiAnimationPrompt,
           duration: aiAnimationDuration,
           style: aiAnimationStyle,
-          objectIds: objectIds,
+          objectsData: objectsData,
           canvasSize: canvasSize,
         }),
       });

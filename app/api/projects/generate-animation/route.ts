@@ -26,18 +26,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { prompt, duration, style, objectIds, canvasSize } = await req.json();
+    const { prompt, duration, style, objectsData, canvasSize } =
+      await req.json();
 
     // Validate required fields
     if (
       !prompt ||
-      !objectIds ||
-      !Array.isArray(objectIds) ||
-      objectIds.length === 0
+      !objectsData ||
+      !Array.isArray(objectsData) ||
+      objectsData.length === 0
     ) {
       return NextResponse.json(
         {
-          error: "Missing required fields: prompt and objectIds",
+          error: "Missing required fields: prompt and objectsData",
         },
         { status: 400 }
       );
@@ -48,9 +49,18 @@ export async function POST(req: Request) {
     const animationStyle = style || "smooth";
 
     // Create a comprehensive prompt for the AI
+    const objectsInfo = objectsData
+      .map(
+        (obj: any) =>
+          `ID: ${obj.id}, Type: ${obj.objectType}, Dimensions: ${obj.dimensions.width}x${obj.dimensions.height}, Position: (${obj.position.x}, ${obj.position.y})`
+      )
+      .join("\n- ");
+
     const systemPrompt = `You are an expert animation designer. Create engaging keyframe animations based on the user's description.
 
-Available objects to animate: ${objectIds.join(", ")}
+Available objects to animate:
+- ${objectsInfo}
+
 Canvas size: ${
       canvasSize ? `${canvasSize.width}x${canvasSize.height}` : "550x900"
     }
@@ -72,6 +82,10 @@ Guidelines:
 - Consider the canvas size when setting position values
 - Create at least 2-3 keyframes per property for smooth motion
 - Match the animation style (smooth = gentle curves, bouncy = overshoot, quick = fast transitions, dramatic = large movements, subtle = small changes)
+- Use object types to inform animation choices (text objects may need different animations than images or shapes)
+- Consider object dimensions when creating scale animations (larger objects may need different scaling than smaller ones)
+- Use current positions as ending points for animations
+- Ensure animations keep objects within canvas boundaries based on their dimensions
 
 User Request: ${prompt}`;
 
