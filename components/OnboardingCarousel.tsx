@@ -12,6 +12,7 @@ import {
   Timer,
   PaintBrush,
 } from "@phosphor-icons/react";
+import { createDemoProject } from "@/fetchers/projects";
 
 interface CarouselSlide {
   id: string;
@@ -22,6 +23,7 @@ export default function OnboardingCarousel() {
   const { t } = useTranslation("onboarding");
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isCreatingDemo, setIsCreatingDemo] = useState(false);
 
   const slides: CarouselSlide[] = [
     {
@@ -183,10 +185,39 @@ export default function OnboardingCarousel() {
     router.push("/projects");
   };
 
-  const handleGetStarted = () => {
+  const handleGetStarted = async () => {
     // Mark onboarding as completed
     localStorage.setItem("onboarding-completed", "true");
-    router.push("/projects");
+
+    // Check if user is authenticated
+    const authTokenString = localStorage.getItem("auth-token");
+    if (!authTokenString) {
+      // If not authenticated, redirect to projects page
+      router.push("/projects");
+      return;
+    }
+
+    try {
+      setIsCreatingDemo(true);
+      const authToken = JSON.parse(authTokenString);
+
+      // Create a demo project from a template
+      const demoProject = await createDemoProject(authToken.token);
+
+      // Store the demo project and navigate to it
+      localStorage.setItem(
+        "stored-project",
+        JSON.stringify({ project_id: demoProject.newProject.id })
+      );
+
+      router.push(`/project/${demoProject.newProject.id}/videos`);
+    } catch (error) {
+      console.error("Error creating demo project:", error);
+      // Fall back to projects page if demo creation fails
+      router.push("/projects");
+    } finally {
+      setIsCreatingDemo(false);
+    }
   };
 
   const isLastSlide = currentSlide === slides.length - 1;
@@ -245,9 +276,12 @@ export default function OnboardingCarousel() {
           {/* Next/Get Started Button */}
           <button
             onClick={isLastSlide ? handleGetStarted : nextSlide}
-            className="flex items-center gap-2 px-6 py-2 stunts-gradient text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            disabled={isCreatingDemo}
+            className="flex items-center gap-2 px-6 py-2 stunts-gradient text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLastSlide
+            {isLastSlide && isCreatingDemo
+              ? "Creating Demo..."
+              : isLastSlide
               ? t("carousel.navigation.getStarted")
               : t("carousel.navigation.next")}
             <ArrowRight className="w-5 h-5" />

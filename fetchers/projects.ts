@@ -540,6 +540,30 @@ export const deleteProject = async (
   return response.json();
 };
 
+export const createDemoProject = async (
+  token: string
+): Promise<CreateProjectResponse> => {
+  const response = await fetch("/api/projects/create-demo", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(async () => ({
+      error: await response.text(),
+    }));
+    throw new Error(
+      errorData.error ||
+        `Create demo project request failed: ${response.status} - ${response.statusText}`
+    );
+  }
+
+  return response.json();
+};
+
 export const resizeVideo = async (
   videoFile: File | Blob,
   maxWidth = 1200,
