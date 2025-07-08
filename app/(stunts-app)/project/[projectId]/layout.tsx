@@ -37,6 +37,11 @@ export default function ProjectLayout({ children = null }) {
             destination={`/project/${projectId}`}
           /> */}
           <NavButton
+            label={t("Projects")}
+            icon="shapes"
+            destination={`/projects/`}
+          />
+          <NavButton
             label={t("Video")}
             icon="video"
             destination={`/project/${projectId}/videos`}
