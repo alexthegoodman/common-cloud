@@ -183,14 +183,18 @@ export default function AnimationTab({
     animationData: AnimationData,
     propertyName: string
   ): AnimationProperty => {
-    let property = animationData.properties.find(
-      (p) => p.name === propertyName
-    );
+    let visibleName =
+      propertyName === "ScaleX"
+        ? "Scale X"
+        : propertyName === "ScaleY"
+        ? "Scale Y"
+        : propertyName;
+    let property = animationData.properties.find((p) => p.name === visibleName);
 
     if (!property) {
       property = {
-        name: propertyName,
-        propertyPath: propertyName,
+        name: visibleName,
+        propertyPath: propertyName.toLowerCase(),
         children: [],
         keyframes: [],
         depth: 0,
