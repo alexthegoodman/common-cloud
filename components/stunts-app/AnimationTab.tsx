@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import {
   AnimationData,
   AnimationProperty,
+  capitalizeFirstLetter,
   EasingType,
   findObjectType,
   KeyframeValue,
@@ -352,7 +353,7 @@ export default function AnimationTab({
           // Find or create AnimationProperty for this property
           let animationProperty = findOrCreateAnimationProperty(
             animationDataItem,
-            property.propertyName
+            capitalizeFirstLetter(property.propertyName as string)
           );
 
           // reset this property's keyframes before adding new ones
