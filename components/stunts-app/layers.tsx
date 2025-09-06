@@ -201,7 +201,9 @@ export const LayerPanel: React.FC<{
 
     // sort layers by layer_index property, lower values should come first in the list
     // but reverse the order because the UI outputs the first one first, thus it displays last
-    new_layers.sort((a, b) => b.initial_layer_index - a.initial_layer_index);
+    new_layers
+      .sort((a, b) => b.initial_layer_index - a.initial_layer_index)
+      .reverse();
 
     setLayers(new_layers);
   };
