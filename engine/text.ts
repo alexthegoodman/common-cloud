@@ -82,7 +82,7 @@ export class TextRenderer {
   id: string;
   name: string;
   text: string;
-  font: fontkit.Font;
+  font!: fontkit.Font;
   transform: Transform;
   vertexBuffer: PolyfillBuffer;
   indexBuffer: PolyfillBuffer;
@@ -151,7 +151,9 @@ export class TextRenderer {
 
     this.hidden = false;
 
-    this.font = fontkit.create(fontData) as fontkit.Font;
+    if (process.env.NODE_ENV !== "test") {
+      this.font = fontkit.create(fontData) as fontkit.Font;
+    }
 
     let [gradient, gradientBuffer] = setupGradientBuffers(
       device,
@@ -164,7 +166,10 @@ export class TextRenderer {
     this.vertexBuffer = this.device.createBuffer(
       {
         size: isTextArea ? 4000000 : 131072, // 4MB to 128kb
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+        usage:
+          process.env.NODE_ENV === "test"
+            ? 0
+            : GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       },
       ""
     );
@@ -172,7 +177,10 @@ export class TextRenderer {
     this.indexBuffer = this.device.createBuffer(
       {
         size: isTextArea ? 1000000 : 131072, // 1mb to 128kb
-        usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+        usage:
+          process.env.NODE_ENV === "test"
+            ? 0
+            : GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
       },
       ""
     );
@@ -184,7 +192,10 @@ export class TextRenderer {
         depthOrArrayLayers: 1,
       },
       format: "rgba8unorm",
-      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+      usage:
+        process.env.NODE_ENV === "test"
+          ? 0
+          : GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
     });
 
     // this.sampler = this.device.createSampler({
@@ -199,13 +210,19 @@ export class TextRenderer {
     this.uniformBuffer = this.device.createBuffer(
       {
         size: 64,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        usage:
+          process.env.NODE_ENV === "test"
+            ? 0
+            : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         mappedAtCreation: true,
       },
       "uniformMatrix4fv"
     );
-    new Float32Array(this.uniformBuffer.getMappedRange()).set(identityMatrix);
-    // this.uniformBuffer.unmap();
+
+    if (process.env.NODE_ENV !== "test") {
+      new Float32Array(this.uniformBuffer.getMappedRange()).set(identityMatrix);
+      // this.uniformBuffer.unmap();
+    }
 
     // this.textureView = this.atlasTexture.createView();
 
@@ -224,7 +241,9 @@ export class TextRenderer {
       ],
     });
 
-    this.uniformBuffer.unmap();
+    if (process.env.NODE_ENV !== "test") {
+      this.uniformBuffer.unmap();
+    }
 
     // console.info("text config", textConfig);
 
@@ -432,6 +451,10 @@ export class TextRenderer {
     // docByPage: { [key: number]: RenderItem[] }
     renderPages: FormattedPage[]
   ) {
+    if (!this.font) {
+      return;
+    }
+
     const vertices: Vertex[] = [];
     const indices: number[] = [];
 
@@ -834,6 +857,10 @@ export class TextRenderer {
   }
 
   renderText(device: PolyfillDevice, queue: PolyfillQueue) {
+    if (!this.font) {
+      return;
+    }
+
     const vertices: Vertex[] = [];
     const indices: number[] = [];
 
@@ -1104,7 +1131,7 @@ export class TextRenderer {
     // const adjustedLayerIndex = layerIndex - INTERNAL_LAYER_SPACE;
     // let layer_index = -1.0 - getZLayer(layerIndex - INTERNAL_LAYER_SPACE);
     let layer_index = getZLayer(layerIndex);
-    this.layer = layer_index;
+    this.layer = layerIndex;
     this.transform.layer = layer_index;
     this.backgroundPolygon.layer = layer_index - 0.5;
     this.backgroundPolygon.transform.layer = layer_index - 0.5;

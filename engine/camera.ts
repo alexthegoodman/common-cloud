@@ -174,7 +174,10 @@ export class CameraBinding {
       {
         label: "Camera Uniform Buffer",
         size: 16 * 4, // 4x4 matrix of floats
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        usage:
+          process.env.NODE_ENV === "test"
+            ? 0
+            : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         mappedAtCreation: true, // Map the buffer for initialization
       },
       "uniformMatrix4fv"

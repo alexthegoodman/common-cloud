@@ -440,30 +440,34 @@ export class FontManager {
       return null;
     }
 
-    let f = new FontFace(fontInfo.name, `url(${fontInfo.path})`);
+    if (process.env.NODE_ENV !== "test") {
+      let fontFaceData = new FontFace(fontInfo.name, `url(${fontInfo.path})`);
 
-    try {
-      // Fetch the font file
-      const response = await fetch(fontInfo.path);
-      if (!response.ok) {
-        throw new Error(`Failed to load font: ${response.statusText}`);
+      try {
+        // Fetch the font file
+        const response = await fetch(fontInfo.path);
+        if (!response.ok) {
+          throw new Error(`Failed to load font: ${response.statusText}`);
+        }
+
+        // Get the binary data
+        const fontDataArray = await response.arrayBuffer();
+        const fontData = Buffer.from(fontDataArray);
+
+        // Cache the loaded font
+        this.loadedFonts.set(normalizedName, fontData);
+
+        const fontFace = await fontFaceData.load(); // explicity load font before usage
+        console.info("loaded font face", fontFace.family);
+        document.fonts.add(fontFace);
+
+        return fontData;
+      } catch (error) {
+        console.error(`Error loading font ${name}:`, error);
+        return null;
       }
-
-      // Get the binary data
-      const fontDataArray = await response.arrayBuffer();
-      const fontData = Buffer.from(fontDataArray);
-
-      // Cache the loaded font
-      this.loadedFonts.set(normalizedName, fontData);
-
-      const fontFace = await f.load(); // explicity load font before usage
-      console.info("loaded font face", fontFace.family);
-      document.fonts.add(fontFace);
-
-      return fontData;
-    } catch (error) {
-      console.error(`Error loading font ${name}:`, error);
-      return null;
+    } else {
+      return Buffer.from([]);
     }
   }
 

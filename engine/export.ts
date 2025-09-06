@@ -162,7 +162,10 @@ class WebGPUVideoEncoder {
     const outputBuffer = this.device.createBuffer(
       {
         size: bufferSize,
-        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+        usage:
+          process.env.NODE_ENV === "test"
+            ? 0
+            : GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
       },
       "" // uniformMatrix4fv, uniform1f, UBO, etc
     );

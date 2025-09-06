@@ -65,7 +65,10 @@ export class RepeatObject {
     this.vertexBuffer = device.createBuffer(
       {
         size: 65536,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+        usage:
+          process.env.NODE_ENV === "test"
+            ? 0
+            : GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       },
       ""
     );
@@ -73,7 +76,10 @@ export class RepeatObject {
     this.indexBuffer = device.createBuffer(
       {
         size: 65536,
-        usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+        usage:
+          process.env.NODE_ENV === "test"
+            ? 0
+            : GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
       },
       ""
     );
@@ -165,13 +171,19 @@ export class RepeatObject {
     let uniformBuffer = device.createBuffer(
       {
         size: 64,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        usage:
+          process.env.NODE_ENV === "test"
+            ? 0
+            : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         mappedAtCreation: true,
       },
       "uniformMatrix4fv"
     );
-    new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
-    // uniformBuffer.unmap();
+
+    if (process.env.NODE_ENV !== "test") {
+      new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
+      // uniformBuffer.unmap();
+    }
 
     // let sampler = device.createSampler({
     //   addressModeU: "clamp-to-edge",

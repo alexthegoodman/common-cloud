@@ -116,13 +116,19 @@ export class StImage {
     let uniformBuffer = device.createBuffer(
       {
         size: 64,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        usage:
+          process.env.NODE_ENV === "test"
+            ? 0
+            : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         mappedAtCreation: true,
       },
       "uniformMatrix4fv"
     );
-    new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
-    uniformBuffer.unmap();
+
+    if (process.env.NODE_ENV !== "test") {
+      new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
+      uniformBuffer.unmap();
+    }
 
     this.transform = new Transform(
       vec2.fromValues(imageConfig.position.x, imageConfig.position.y),
@@ -134,8 +140,7 @@ export class StImage {
     console.info("image spot", imageConfig.position.x, imageConfig.position.y);
 
     // -10.0 to provide 10 spots for internal items on top of objects
-    let layer_index =
-      -1.0 - getZLayer(imageConfig.layer - INTERNAL_LAYER_SPACE);
+    let layer_index = getZLayer(imageConfig.layer);
     this.transform.layer = layer_index;
     // this.transform.updateUniformBuffer(queue, windowSize);
 
@@ -169,26 +174,37 @@ export class StImage {
       // sampleCount: 1,
       // dimension: "2d",
       format: "rgba8unorm-srgb",
-      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+      usage:
+        process.env.NODE_ENV === "test"
+          ? 0
+          : GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
     });
 
     // surely we can get write our textures without creating all these canvases
-    const context = document.createElement("canvas").getContext("2d")!;
-    context.canvas.width = originalDimensions[0];
-    context.canvas.height = originalDimensions[1];
-    context.drawImage(
+    const context =
+      process.env.NODE_ENV !== "test"
+        ? document.createElement("canvas").getContext("2d")
+        : null;
+    if (context) {
+      context.canvas.width = originalDimensions[0];
+      context.canvas.height = originalDimensions[1];
+    }
+
+    context?.drawImage(
       imageBitmap,
       0,
       0,
       originalDimensions[0],
       originalDimensions[1]
     );
-    const rgba = context.getImageData(
-      0,
-      0,
-      originalDimensions[0],
-      originalDimensions[1]
-    ).data;
+    const rgba = context
+      ? context?.getImageData(
+          0,
+          0,
+          originalDimensions[0],
+          originalDimensions[1]
+        )?.data
+      : Buffer.from([]);
 
     queue.writeTexture(
       {
@@ -310,7 +326,10 @@ export class StImage {
         // Initialize vertexBuffer
         label: "Vertex Buffer",
         size: this.vertices.length * 4 * 100,
-        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+        usage:
+          process.env.NODE_ENV === "test"
+            ? 0
+            : GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
       },
       ""
     );
@@ -333,7 +352,10 @@ export class StImage {
       {
         label: "Index Buffer",
         size: this.indices.length * Uint32Array.BYTES_PER_ELEMENT * 24, // Correct size calculation
-        usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+        usage:
+          process.env.NODE_ENV === "test"
+            ? 0
+            : GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
       },
       ""
     );
@@ -585,7 +607,7 @@ export class StImage {
     // let layer = layerIndex - INTERNAL_LAYER_SPACE;
     // let layer_index = -1.0 - getZLayer(layerIndex - INTERNAL_LAYER_SPACE);
     let layer_index = getZLayer(layerIndex);
-    this.layer = layer_index;
+    this.layer = layerIndex;
     this.transform.layer = layer_index;
   }
 

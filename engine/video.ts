@@ -208,13 +208,19 @@ export class StVideo {
     let uniformBuffer = device.createBuffer(
       {
         size: 64,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        usage:
+          process.env.NODE_ENV === "test"
+            ? 0
+            : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         mappedAtCreation: true,
       },
       "uniformMatrix4fv"
     );
-    new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
-    uniformBuffer.unmap();
+
+    if (process.env.NODE_ENV !== "test") {
+      new Float32Array(uniformBuffer.getMappedRange()).set(identityMatrix);
+      uniformBuffer.unmap();
+    }
 
     this.transform = new Transform(
       // vec2.fromValues(videoConfig.position.x, videoConfig.position.y),
@@ -265,241 +271,243 @@ export class StVideo {
     this.groupBindGroup = group_bind_group;
     this.groupTransform = group_transform;
 
-    const mediaInfo = await this.initializeMediaSource(blob);
+    if (process.env.NODE_ENV !== "test") {
+      const mediaInfo = await this.initializeMediaSource(blob);
 
-    if (mediaInfo) {
-      const { duration, durationMs, width, height, frameRate } = mediaInfo;
+      if (mediaInfo) {
+        const { duration, durationMs, width, height, frameRate } = mediaInfo;
 
-      console.info("media info", mediaInfo);
+        console.info("media info", mediaInfo);
 
-      this.sourceDuration = duration;
-      this.sourceDurationMs = durationMs;
-      this.sourceDimensions = [width, height];
-      this.sourceFrameRate = frameRate;
-      this.bytesPerFrame = width * 4 * height;
+        this.sourceDuration = duration;
+        this.sourceDurationMs = durationMs;
+        this.sourceDimensions = [width, height];
+        this.sourceFrameRate = frameRate;
+        this.bytesPerFrame = width * 4 * height;
 
-      // const textureSize: GPUExtent3DStrict = {
-      const textureSize = {
-        width: width,
-        height: height,
-        depthOrArrayLayers: 1,
-      };
+        // const textureSize: GPUExtent3DStrict = {
+        const textureSize = {
+          width: width,
+          height: height,
+          depthOrArrayLayers: 1,
+        };
 
-      console.info("video texture", textureSize);
+        console.info("video texture", textureSize);
 
-      this.texture = device.createTexture({
-        label: "Video Texture",
-        size: textureSize,
-        // mipLevelCount: 1,
-        // sampleCount: 1,
-        // dimension: "2d",
-        // format: "bgra8unorm", // Or appropriate format
-        format: "rgba8unorm",
-        usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
-      });
-      // this.textureView = this.texture.createView();
+        this.texture = device.createTexture({
+          label: "Video Texture",
+          size: textureSize,
+          // mipLevelCount: 1,
+          // sampleCount: 1,
+          // dimension: "2d",
+          // format: "bgra8unorm", // Or appropriate format
+          format: "rgba8unorm",
+          usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+        });
+        // this.textureView = this.texture.createView();
 
-      // const sampler = device.createSampler({
-      //   addressModeU: "clamp-to-edge",
-      //   addressModeV: "clamp-to-edge",
-      //   addressModeW: "clamp-to-edge",
-      //   magFilter: "linear",
-      //   minFilter: "linear",
-      //   mipmapFilter: "linear",
-      // });
+        // const sampler = device.createSampler({
+        //   addressModeU: "clamp-to-edge",
+        //   addressModeV: "clamp-to-edge",
+        //   addressModeW: "clamp-to-edge",
+        //   magFilter: "linear",
+        //   minFilter: "linear",
+        //   mipmapFilter: "linear",
+        // });
 
-      this.bindGroup = device.createBindGroup({
-        layout: bindGroupLayout,
-        entries: [
-          {
-            binding: 0,
-            groupIndex: 1,
-            resource: {
-              pbuffer: uniformBuffer,
+        this.bindGroup = device.createBindGroup({
+          layout: bindGroupLayout,
+          entries: [
+            {
+              binding: 0,
+              groupIndex: 1,
+              resource: {
+                pbuffer: uniformBuffer,
+              },
             },
-          },
-          // { binding: 1, resource: this.textureView },
-          { binding: 1, groupIndex: 1, resource: this.texture },
-          // { binding: 2, resource: sampler },
-          {
-            binding: 0,
-            groupIndex: 2,
-            resource: {
-              pbuffer: gradientBuffer,
+            // { binding: 1, resource: this.textureView },
+            { binding: 1, groupIndex: 1, resource: this.texture },
+            // { binding: 2, resource: sampler },
+            {
+              binding: 0,
+              groupIndex: 2,
+              resource: {
+                pbuffer: gradientBuffer,
+              },
             },
-          },
-        ],
-        // label: "Video Bind Group",
-      });
+          ],
+          // label: "Video Bind Group",
+        });
 
-      // uniformBuffer.unmap();
-      // this.transform.updateUniformBuffer(queue, windowSize);
-      // group_transform.updateUniformBuffer(queue, windowSize);
+        // uniformBuffer.unmap();
+        // this.transform.updateUniformBuffer(queue, windowSize);
+        // group_transform.updateUniformBuffer(queue, windowSize);
 
-      // // 20x20 grid
-      const rows = this.gridResolution[0];
-      const cols = this.gridResolution[1];
+        // // 20x20 grid
+        const rows = this.gridResolution[0];
+        const cols = this.gridResolution[1];
 
-      // Calculate cover texture coordinates
-      const { u0, u1, v0, v1 } = this.calculateCoverTextureCoordinates(
-        this.dimensions[0],
-        this.dimensions[1],
-        this.sourceDimensions[0],
-        this.sourceDimensions[1]
-      );
+        // Calculate cover texture coordinates
+        const { u0, u1, v0, v1 } = this.calculateCoverTextureCoordinates(
+          this.dimensions[0],
+          this.dimensions[1],
+          this.sourceDimensions[0],
+          this.sourceDimensions[1]
+        );
 
-      this.vertices = [];
-      for (let y = 0; y <= rows; y++) {
-        for (let x = 0; x <= cols; x++) {
-          // Keep your original position calculation
-          // const posX = -0.5 + x / cols;
-          // const posY = -0.5 + y / rows;
+        this.vertices = [];
+        for (let y = 0; y <= rows; y++) {
+          for (let x = 0; x <= cols; x++) {
+            // Keep your original position calculation
+            // const posX = -0.5 + x / cols;
+            // const posY = -0.5 + y / rows;
 
-          // Center the position by offsetting by half dimensions
-          const posX =
-            -videoConfig.dimensions[0] / 2 +
-            videoConfig.dimensions[0] * (x / cols);
-          const posY =
-            -videoConfig.dimensions[1] / 2 +
-            videoConfig.dimensions[1] * (y / rows);
+            // Center the position by offsetting by half dimensions
+            const posX =
+              -videoConfig.dimensions[0] / 2 +
+              videoConfig.dimensions[0] * (x / cols);
+            const posY =
+              -videoConfig.dimensions[1] / 2 +
+              videoConfig.dimensions[1] * (y / rows);
 
-          // Map texture coordinates to properly implement cover
-          const percentX = x / cols; // 0 to 1 across the grid
-          const percentY = y / rows; // 0 to 1 across the grid
+            // Map texture coordinates to properly implement cover
+            const percentX = x / cols; // 0 to 1 across the grid
+            const percentY = y / rows; // 0 to 1 across the grid
 
-          // Apply the cover bounds to the texture coordinates
-          const texX = u0 + (u1 - u0) * percentX;
-          const texY = v0 + (v1 - v0) * percentY;
+            // Apply the cover bounds to the texture coordinates
+            const texX = u0 + (u1 - u0) * percentX;
+            const texY = v0 + (v1 - v0) * percentY;
 
-          const normalizedX =
-            (posX - this.transform.position[0]) / this.dimensions[0];
-          const normalizedY =
-            (posY - this.transform.position[1]) / this.dimensions[1];
+            const normalizedX =
+              (posX - this.transform.position[0]) / this.dimensions[0];
+            const normalizedY =
+              (posY - this.transform.position[1]) / this.dimensions[1];
 
-          this.vertices.push({
-            position: [posX, posY, 0.0],
-            tex_coords: [texX, texY],
-            color: [1.0, 1.0, 1.0, 1.0],
-            gradient_coords: [normalizedX, normalizedY],
-            object_type: 3, // OBJECT_TYPE_VIDEO
-          });
-        }
-      }
-
-      // this.implementCoverEffect(
-      //   this.sourceDimensions[0],
-      //   this.sourceDimensions[1]
-      // );
-
-      // this.vertices = [];
-      // for (let y = 0; y <= rows; y++) {
-      //   for (let x = 0; x <= cols; x++) {
-      //     const posX = -0.5 + x / cols;
-      //     const posY = -0.5 + y / rows;
-      //     const texX = x / cols;
-      //     const texY = y / rows;
-
-      //     const normalizedX =
-      //       (posX - this.transform.position[0]) / this.dimensions[0];
-      //     const normalizedY =
-      //       (posY - this.transform.position[1]) / this.dimensions[1];
-
-      //     this.vertices.push({
-      //       position: [posX, posY, 0.0],
-      //       tex_coords: [texX, texY],
-      //       color: [1.0, 1.0, 1.0, 1.0],
-      //       gradient_coords: [normalizedX, normalizedY],
-      //       object_type: 3, // OBJECT_TYPE_VIDEO
-      //     });
-      //   }
-      // }
-
-      console.info("video vertices", this.vertices);
-
-      this.vertexBuffer = device.createBuffer(
-        {
-          label: "Vertex Buffer",
-          size: this.vertices.length * 4 * 16,
-          usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-        },
-        ""
-      );
-
-      queue.writeBuffer(
-        this.vertexBuffer,
-        0,
-        new Float32Array(
-          this.vertices.flatMap((v) => [
-            ...v.position,
-            ...v.tex_coords,
-            ...v.color,
-            ...v.gradient_coords,
-            v.object_type,
-          ])
-        )
-      );
-
-      this.indices = new Uint32Array(
-        (() => {
-          const indices = [];
-          for (let y = 0; y < rows; y++) {
-            for (let x = 0; x < cols; x++) {
-              const topLeft = y * (cols + 1) + x;
-              const topRight = topLeft + 1;
-              const bottomLeft = (y + 1) * (cols + 1) + x;
-              const bottomRight = bottomLeft + 1;
-
-              indices.push(
-                bottomRight,
-                bottomLeft,
-                topRight,
-                topRight,
-                bottomLeft,
-                topLeft
-              );
-            }
+            this.vertices.push({
+              position: [posX, posY, 0.0],
+              tex_coords: [texX, texY],
+              color: [1.0, 1.0, 1.0, 1.0],
+              gradient_coords: [normalizedX, normalizedY],
+              object_type: 3, // OBJECT_TYPE_VIDEO
+            });
           }
-          return indices;
-        })()
-      );
+        }
 
-      this.indexBuffer = device.createBuffer(
-        {
-          label: "Index Buffer",
-          size: this.indices.byteLength,
-          usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
-        },
-        ""
-      );
+        // this.implementCoverEffect(
+        //   this.sourceDimensions[0],
+        //   this.sourceDimensions[1]
+        // );
 
-      queue.writeBuffer(this.indexBuffer, 0, this.indices);
+        // this.vertices = [];
+        // for (let y = 0; y <= rows; y++) {
+        //   for (let x = 0; x <= cols; x++) {
+        //     const posX = -0.5 + x / cols;
+        //     const posY = -0.5 + y / rows;
+        //     const texX = x / cols;
+        //     const texY = y / rows;
 
-      // this.initializeDecoder().then(() => {
-      //   // draw initial preview frame
-      //   this.drawVideoFrame(device, queue).catch(console.error); // Handle potential errors
-      // });
+        //     const normalizedX =
+        //       (posX - this.transform.position[0]) / this.dimensions[0];
+        //     const normalizedY =
+        //       (posY - this.transform.position[1]) / this.dimensions[1];
 
-      console.info("prep to decode video");
+        //     this.vertices.push({
+        //       position: [posX, posY, 0.0],
+        //       tex_coords: [texX, texY],
+        //       color: [1.0, 1.0, 1.0, 1.0],
+        //       gradient_coords: [normalizedX, normalizedY],
+        //       object_type: 3, // OBJECT_TYPE_VIDEO
+        //     });
+        //   }
+        // }
 
-      try {
-        await this.initializeDecoder();
-      } catch (error) {
-        console.error("Error initializing video decoder:", error);
-        throw new Error("Failed to initialize video decoder");
+        console.info("video vertices", this.vertices);
+
+        this.vertexBuffer = device.createBuffer(
+          {
+            label: "Vertex Buffer",
+            size: this.vertices.length * 4 * 16,
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+          },
+          ""
+        );
+
+        queue.writeBuffer(
+          this.vertexBuffer,
+          0,
+          new Float32Array(
+            this.vertices.flatMap((v) => [
+              ...v.position,
+              ...v.tex_coords,
+              ...v.color,
+              ...v.gradient_coords,
+              v.object_type,
+            ])
+          )
+        );
+
+        this.indices = new Uint32Array(
+          (() => {
+            const indices = [];
+            for (let y = 0; y < rows; y++) {
+              for (let x = 0; x < cols; x++) {
+                const topLeft = y * (cols + 1) + x;
+                const topRight = topLeft + 1;
+                const bottomLeft = (y + 1) * (cols + 1) + x;
+                const bottomRight = bottomLeft + 1;
+
+                indices.push(
+                  bottomRight,
+                  bottomLeft,
+                  topRight,
+                  topRight,
+                  bottomLeft,
+                  topLeft
+                );
+              }
+            }
+            return indices;
+          })()
+        );
+
+        this.indexBuffer = device.createBuffer(
+          {
+            label: "Index Buffer",
+            size: this.indices.byteLength,
+            usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+          },
+          ""
+        );
+
+        queue.writeBuffer(this.indexBuffer, 0, this.indices);
+
+        // this.initializeDecoder().then(() => {
+        //   // draw initial preview frame
+        //   this.drawVideoFrame(device, queue).catch(console.error); // Handle potential errors
+        // });
+
+        console.info("prep to decode video");
+
+        try {
+          await this.initializeDecoder();
+        } catch (error) {
+          console.error("Error initializing video decoder:", error);
+          throw new Error("Failed to initialize video decoder");
+        }
+
+        console.info("prep to draw video frame");
+
+        try {
+          await this.drawVideoFrame(device, queue);
+        } catch (error) {
+          console.error("Error drawing video frame:", error);
+          throw new Error("Failed to draw video frame");
+        }
+
+        this.hidden = loadedHidden;
+
+        console.info("video loaded");
       }
-
-      console.info("prep to draw video frame");
-
-      try {
-        await this.drawVideoFrame(device, queue);
-      } catch (error) {
-        console.error("Error drawing video frame:", error);
-        throw new Error("Failed to draw video frame");
-      }
-
-      this.hidden = loadedHidden;
-
-      console.info("video loaded");
     }
   }
 

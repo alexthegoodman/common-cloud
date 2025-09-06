@@ -3398,6 +3398,7 @@ export class Editor {
     let camera = this.camera;
 
     if (!gpuResources || !camera) {
+      console.warn("No resources or camera");
       return;
     }
 
@@ -3406,6 +3407,7 @@ export class Editor {
       !this.groupBindGroupLayout
       // !this.gradientBindGroupLayout
     ) {
+      console.warn("No binding layouts");
       return;
     }
 
@@ -3419,6 +3421,7 @@ export class Editor {
     );
 
     if (!default_fontFamily) {
+      console.warn("Cannot load default font family");
       return;
     }
 

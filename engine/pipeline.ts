@@ -174,7 +174,10 @@ export class CanvasPipeline {
       {
         label: "Window Size Buffer",
         size: 8, // 2 floats, 4 bytes each
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        usage:
+          process.env.NODE_ENV === "test"
+            ? 0
+            : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         mappedAtCreation: true,
       },
       "uniform2f"
