@@ -429,7 +429,7 @@ export const RTEEditor: React.FC<any> = ({ projectId }) => {
         x: 0,
         y: 0,
       },
-      layer: -2,
+      layer: 2,
       color: [20, 20, 20, 255] as [number, number, number, number],
       fontSize: 16,
       backgroundFill: { type: "Color", value: rgbToWgpu(200, 200, 200, 255) },

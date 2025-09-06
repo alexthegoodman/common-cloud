@@ -54,6 +54,7 @@ import {
   Sticker,
   Play,
   Pause,
+  Circle,
 } from "@phosphor-icons/react";
 
 export const CreateIcon = ({ icon, size }: { icon: string; size: string }) => {
@@ -182,6 +183,9 @@ export const CreateIcon = ({ icon, size }: { icon: string; size: string }) => {
       return (
         <Broadcast data-testid={`icon-${icon}`} weight="thin" size={size} />
       );
+    }
+    case "circle": {
+      return <Circle data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "circles": {
       return (

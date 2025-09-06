@@ -405,7 +405,7 @@ export default function FlowQuestions({
         fontFamily: font_family,
         dimensions: [200.0, 300.0] as [number, number],
         position,
-        layer: -1,
+        layer: 1,
         // color: rgbToWgpu(20, 20, 200, 255) as [number, number, number, number],
         color: [20, 20, 200, 255] as [number, number, number, number],
         fontSize: 18,
@@ -461,7 +461,7 @@ export default function FlowQuestions({
             position,
             path: file.url,
             mousePath: "",
-            layer: -2,
+            layer: 2,
           };
 
           // Create blob from video URL for video processing
@@ -518,7 +518,7 @@ export default function FlowQuestions({
             position,
             // path: new_path.clone(),
             url: file.url,
-            layer: -2,
+            layer: 2,
             isCircle: false,
           };
 

@@ -126,7 +126,7 @@ export const ToolGrid = ({
     setIsCapturing(false);
   };
 
-  let on_add_square = (sequence_id: string) => {
+  let on_add_square = (sequence_id: string, isCircle = false) => {
     console.info("Adding Square...");
 
     let editor = editorRef.current;
@@ -157,7 +157,7 @@ export const ToolGrid = ({
 
     let polygon_config: PolygonConfig = {
       id: new_id,
-      name: "Square",
+      name: isCircle ? "Circle" : "Square",
       points: [
         { x: 0.0, y: 0.0 },
         { x: 1.0, y: 0.0 },
@@ -180,8 +180,8 @@ export const ToolGrid = ({
         fill: [1.0, 1.0, 1.0, 1.0],
         thickness: 2.0,
       },
-      layer: -layers.length,
-      isCircle: false,
+      layer: layers.length,
+      isCircle,
     };
 
     editor.add_polygon(polygon_config, "Polygon", new_id, sequence_id);
@@ -322,7 +322,7 @@ export const ToolGrid = ({
           position,
           // path: new_path.clone(),
           url: url,
-          layer: -layers.length,
+          layer: layers.length,
           isCircle: false,
           isSticker: isSticker,
         };
@@ -426,7 +426,7 @@ export const ToolGrid = ({
       fontFamily: font_family,
       dimensions: [100.0, 100.0] as [number, number],
       position,
-      layer: -layers.length,
+      layer: layers.length,
       // color: rgbToWgpu(20, 20, 200, 255) as [number, number, number, number],
       color: [20, 20, 200, 255] as [number, number, number, number],
       fontSize: 28,
@@ -591,7 +591,7 @@ export const ToolGrid = ({
             // path: new_path.clone(),
             path: url,
             mousePath: "",
-            layer: -layers.length,
+            layer: layers.length,
           };
 
           await editor.add_video_item(
@@ -795,6 +795,22 @@ export const ToolGrid = ({
               }
 
               on_add_square(currentSequenceId);
+            }}
+          />
+        )}
+
+        {options.includes("circle") && (
+          <OptionButton
+            style={{}}
+            label={t("Add Circle")}
+            icon="circle"
+            aria-label="Add a circle shape to the canvas"
+            callback={() => {
+              if (!currentSequenceId) {
+                return;
+              }
+
+              on_add_square(currentSequenceId, true); // true for isCircle
             }}
           />
         )}

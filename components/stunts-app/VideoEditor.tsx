@@ -1333,6 +1333,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                     set_sequences={set_sequences}
                     options={[
                       "square",
+                      "circle",
                       "text",
                       "image",
                       "video",
