@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   ArrowFatLinesRight,
   ArrowLeft,
@@ -56,154 +57,230 @@ import {
 export const CreateIcon = ({ icon, size }: { icon: string; size: string }) => {
   switch (icon) {
     case "book": {
-      return <Book weight="thin" size={size} />;
+      return <Book data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "plus": {
-      return <Plus weight="thin" size={size} />;
+      return <Plus data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "minus": {
-      return <Minus weight="thin" size={size} />;
+      return <Minus data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "windmill": {
-      return <Windmill weight="thin" size={size} />;
+      return (
+        <Windmill data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "gear": {
-      return <Gear weight="thin" size={size} />;
+      return <Gear data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "brush": {
-      return <PaintBrush weight="thin" size={size} />;
+      return (
+        <PaintBrush data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "shapes": {
-      return <Shapes weight="thin" size={size} />;
+      return <Shapes data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "arrow-left": {
-      return <ArrowLeft weight="thin" size={size} />;
+      return (
+        <ArrowLeft data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "polygon": {
-      return <Polygon weight="thin" size={size} />;
+      return <Polygon data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "octagon": {
-      return <Octagon weight="thin" size={size} />;
+      return <Octagon data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "square": {
-      return <Square weight="thin" size={size} />;
+      return <Square data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "squares": {
-      return <SquaresFour weight="thin" size={size} />;
+      return (
+        <SquaresFour data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "triangle": {
-      return <Triangle weight="thin" size={size} />;
+      return (
+        <Triangle data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "dot": {
-      return <DotOutline weight="thin" size={size} />;
+      return (
+        <DotOutline data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "dots-vertical": {
-      return <DotsThreeOutlineVertical weight="thin" size={size} />;
+      return (
+        <DotsThreeOutlineVertical
+          data-testid={`icon-${icon}`}
+          weight="thin"
+          size={size}
+        />
+      );
     }
     case "sphere": {
-      return <Sphere weight="thin" size={size} />;
+      return <Sphere data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "gizmo": {
-      return <VectorThree weight="thin" size={size} />;
+      return (
+        <VectorThree data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "book": {
-      return <BookOpen weight="thin" size={size} />;
+      return (
+        <BookOpen data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "cube": {
-      return <CubeFocus weight="thin" size={size} />;
+      return (
+        <CubeFocus data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "faders": {
-      return <Faders weight="thin" size={size} />;
+      return <Faders data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "map": {
-      return <MapTrifold weight="thin" size={size} />;
+      return (
+        <MapTrifold data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "panorama": {
-      return <Panorama weight="thin" size={size} />;
+      return (
+        <Panorama data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "speedometer": {
-      return <Speedometer weight="thin" size={size} />;
+      return (
+        <Speedometer data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "motion-arrow": {
-      return <ArrowFatLinesRight weight="thin" size={size} />;
+      return (
+        <ArrowFatLinesRight
+          data-testid={`icon-${icon}`}
+          weight="thin"
+          size={size}
+        />
+      );
     }
     case "atom": {
-      return <Atom weight="thin" size={size} />;
+      return <Atom data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "brain": {
-      return <Brain weight="thin" size={size} />;
+      return <Brain data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "broadcast": {
-      return <Broadcast weight="thin" size={size} />;
+      return (
+        <Broadcast data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "circles": {
-      return <CirclesThree weight="thin" size={size} />;
+      return (
+        <CirclesThree data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "fast-forward": {
-      return <FastForward weight="thin" size={size} />;
+      return (
+        <FastForward data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "folder-plus": {
-      return <FolderPlus weight="thin" size={size} />;
+      return (
+        <FolderPlus data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "bone": {
-      return <Bone weight="thin" size={size} />;
+      return <Bone data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "caret-down": {
-      return <CaretDown weight="thin" size={size} />;
+      return (
+        <CaretDown data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "caret-right": {
-      return <CaretRight weight="thin" size={size} />;
+      return (
+        <CaretRight data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "translate": {
-      return <ArrowsOutCardinal weight="thin" size={size} />;
+      return (
+        <ArrowsOutCardinal
+          data-testid={`icon-${icon}`}
+          weight="thin"
+          size={size}
+        />
+      );
     }
     case "rotate": {
-      return <ArrowsClockwise weight="thin" size={size} />;
+      return (
+        <ArrowsClockwise
+          data-testid={`icon-${icon}`}
+          weight="thin"
+          size={size}
+        />
+      );
     }
     case "scale": {
-      return <Resize weight="thin" size={size} />;
+      return <Resize data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "image": {
-      return <Image weight="thin" size={size} />;
+      return <Image data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "text": {
-      return <TextT weight="thin" size={size} />;
+      return <TextT data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "video": {
-      return <Video weight="thin" size={size} />;
+      return <Video data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "copy": {
-      return <Copy weight="thin" size={size} />;
+      return <Copy data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "trash": {
-      return <Trash weight="thin" size={size} />;
+      return <Trash data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "x": {
-      return <X weight="thin" size={size} />;
+      return <X data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "wand": {
-      return <MagicWand weight="thin" size={size} />;
+      return (
+        <MagicWand data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "lightning": {
-      return <Lightning weight="thin" size={size} />;
+      return (
+        <Lightning data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "file-plus": {
-      return <FilePlus weight="thin" size={size} />;
+      return (
+        <FilePlus data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "market": {
-      return <Storefront weight="thin" size={size} />;
+      return (
+        <Storefront data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "presentation": {
-      return <ProjectorScreenChart weight="thin" size={size} />;
+      return (
+        <ProjectorScreenChart
+          data-testid={`icon-${icon}`}
+          weight="thin"
+          size={size}
+        />
+      );
     }
     case "file-cloud": {
-      return <FileCloud weight="thin" size={size} />;
+      return (
+        <FileCloud data-testid={`icon-${icon}`} weight="thin" size={size} />
+      );
     }
     case "check": {
-      return <Check weight="thin" size={size} />;
+      return <Check data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     case "sticker": {
-      return <Sticker weight="thin" size={size} />;
+      return <Sticker data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }
     default: {
       return <></>;

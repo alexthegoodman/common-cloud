@@ -170,7 +170,11 @@ export const createProject = async (
 export async function saveSequencesData(
   sequences: Sequence[],
   saveTarget: SaveTarget
-): Promise<UpdateSequencesResponse> {
+): Promise<UpdateSequencesResponse | null> {
+  if (process.env.NODE_ENV === "test") {
+    return null;
+  }
+
   try {
     // Get stored-project and auth-token from local storage
     const storedProjectString = localStorage.getItem("stored-project");
@@ -229,7 +233,11 @@ export const updateSequences = async (
 export async function saveSettingsData(
   settings: ProjectSettings,
   saveTarget: SaveTarget
-): Promise<UpdateSequencesResponse> {
+): Promise<UpdateSequencesResponse | null> {
+  if (process.env.NODE_ENV === "test") {
+    return null;
+  }
+
   try {
     // Get stored-project and auth-token from local storage
     const storedProjectString = localStorage.getItem("stored-project");
@@ -311,7 +319,11 @@ export const updateTimeline = async (
 
 export async function saveTimelineData(
   timelineState: SavedTimelineStateConfig
-): Promise<UpdateSequencesResponse> {
+): Promise<UpdateSequencesResponse | null> {
+  if (process.env.NODE_ENV === "test") {
+    return null;
+  }
+
   try {
     // Get stored-project and auth-token from local storage
     const storedProjectString = localStorage.getItem("stored-project");
@@ -405,7 +417,13 @@ export const getUploadedImage = async (
   });
 };
 
-export async function getUploadedImageData(filename: string): Promise<Blob> {
+export async function getUploadedImageData(
+  filename: string
+): Promise<Blob | null> {
+  if (process.env.NODE_ENV === "test") {
+    return null;
+  }
+
   try {
     // Get stored-project and auth-token from local storage
     // const storedProjectString = localStorage.getItem("stored-project");
@@ -493,7 +511,13 @@ export const getUploadedVideo = async (
   // });
 };
 
-export async function getUploadedVideoData(filename: string): Promise<Blob> {
+export async function getUploadedVideoData(
+  filename: string
+): Promise<Blob | null> {
+  if (process.env.NODE_ENV === "test") {
+    return null;
+  }
+
   try {
     // Get stored-project and auth-token from local storage
     // const storedProjectString = localStorage.getItem("stored-project");

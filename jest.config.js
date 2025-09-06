@@ -7,6 +7,11 @@ module.exports = {
     "**/__tests__/**/*.test.(ts|tsx|js)",
     "**/*.(test|spec).(ts|tsx|js)",
   ],
+  globals: {
+    "ts-jest": {
+      tsconfig: "tsconfig.test.json",
+    },
+  },
   transform: {
     "^.+.(ts|tsx)$": [
       "ts-jest",
@@ -40,5 +45,5 @@ module.exports = {
     // "/node_modules/(?!(@thi.ng|gl-matrix|uuid))",
     "^.+.module.(css|sass|scss)$",
   ],
-  extensionsToTreatAsEsm: [".ts"],
+  extensionsToTreatAsEsm: [".ts", ".tsx"],
 };
