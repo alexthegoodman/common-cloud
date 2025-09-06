@@ -151,7 +151,7 @@ export default function VideoStartupSettings() {
   }
 
   return (
-    <div className="mx-auto">
+    <div className="mx-auto w-full">
       <VideoEditor projectId={projectId} />
     </div>
   );

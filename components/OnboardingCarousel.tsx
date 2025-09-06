@@ -190,34 +190,37 @@ export default function OnboardingCarousel() {
     localStorage.setItem("onboarding-completed", "true");
 
     // Check if user is authenticated
-    const authTokenString = localStorage.getItem("auth-token");
-    if (!authTokenString) {
-      // If not authenticated, redirect to projects page
-      router.push("/projects");
-      return;
-    }
+    // const authTokenString = localStorage.getItem("auth-token");
+    // if (!authTokenString) {
+    //   // If not authenticated, redirect to projects page
+    //   router.push("/projects");
+    //   return;
+    // }
 
-    try {
-      setIsCreatingDemo(true);
-      const authToken = JSON.parse(authTokenString);
+    // try {
+    //   setIsCreatingDemo(true);
+    //   const authToken = JSON.parse(authTokenString);
 
-      // Create a demo project from a template
-      const demoProject = await createDemoProject(authToken.token);
+    //   // Create a demo project from a template
+    //   const demoProject = await createDemoProject(authToken.token);
 
-      // Store the demo project and navigate to it
-      localStorage.setItem(
-        "stored-project",
-        JSON.stringify({ project_id: demoProject.newProject.id })
-      );
+    //   // Store the demo project and navigate to it
+    //   localStorage.setItem(
+    //     "stored-project",
+    //     JSON.stringify({ project_id: demoProject.newProject.id })
+    //   );
 
-      router.push(`/project/${demoProject.newProject.id}/videos`);
-    } catch (error) {
-      console.error("Error creating demo project:", error);
-      // Fall back to projects page if demo creation fails
-      router.push("/projects");
-    } finally {
-      setIsCreatingDemo(false);
-    }
+    //   router.push(`/project/${demoProject.newProject.id}/videos`);
+    // } catch (error) {
+    //   console.error("Error creating demo project:", error);
+    //   // Fall back to projects page if demo creation fails
+    //   router.push("/projects");
+    // } finally {
+    //   setIsCreatingDemo(false);
+    // }
+
+    // demo project was overkill, but maybe add one to the project list without going to it?
+    router.push("/projects");
   };
 
   const isLastSlide = currentSlide === slides.length - 1;

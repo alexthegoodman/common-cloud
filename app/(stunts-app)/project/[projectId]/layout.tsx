@@ -29,7 +29,7 @@ export default function ProjectLayout({ children = null }) {
   return (
     <>
       <Toaster position="bottom-left" reverseOrder={false} />
-      <div className="flex flex-row p-4">
+      <div className="flex flex-row p-4 w-full">
         <div className="flex flex-col gap-4 mr-4">
           {/* <NavButton
             label={t("Hub")}

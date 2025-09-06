@@ -838,7 +838,7 @@ export default function AnimationTab({
                 } h-5 w-5 text-gray-500`}
               />
             </Disclosure.Button>
-            <Disclosure.Panel className="px-4 pt-4 pb-2 text-sm text-gray-500">
+            <Disclosure.Panel className="p-2 text-sm text-gray-500">
               <div className="space-y-3">
                 {/* <div className="flex flex-row gap-2">
                           <label htmlFor="keyframe_count" className="text-xs">

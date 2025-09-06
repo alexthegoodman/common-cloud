@@ -1191,272 +1191,280 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
         )}
       </div>
 
-      <div className="flex flex-row w-full">
-        <div className="flex flex-col justify-start items-center w-[calc(100vw-90px)] md:ml-0 md:w-[calc(100vw-420px)] gap-2">
+      <div className="flex flex-col w-full">
+        <div className="flex md:flex-row md:flex-row-reverse flex-col justify-between items-top w-full gap-2 md:h-full">
           <div
-            id="scene-canvas-wrapper"
             style={
               settings?.dimensions.width === 900
-                ? { aspectRatio: 900 / 550, maxWidth: "900px" }
-                : { aspectRatio: 550 / 900, maxWidth: "550px" }
+                ? { aspectRatio: 900 / 550, minWidth: "900px" }
+                : { aspectRatio: 550 / 900, minWidth: "550px" }
             }
           >
-            <canvas
-              id="scene-canvas"
-              className={`w-[${settings?.dimensions.width}px] h-[${settings?.dimensions.height}px] border border-black`}
-              width={settings?.dimensions.width}
-              height={settings?.dimensions.height}
-            />
+            <div
+              id="scene-canvas-wrapper"
+              style={
+                settings?.dimensions.width === 900
+                  ? { aspectRatio: 900 / 550, maxWidth: "900px" }
+                  : { aspectRatio: 550 / 900, maxWidth: "550px" }
+              }
+            >
+              <canvas
+                id="scene-canvas"
+                className={`w-[${settings?.dimensions.width}px] h-[${settings?.dimensions.height}px] border border-black`}
+                width={settings?.dimensions.width}
+                height={settings?.dimensions.height}
+              />
+            </div>
+            {current_sequence_id && (
+              <PlaySequenceButton
+                editorRef={editorRef}
+                editorStateRef={editorStateRef}
+                selected_sequence_id={current_sequence_id}
+              />
+            )}
+            {editorStateSet && !current_sequence_id && (
+              <PlayVideoButton
+                editorRef={editorRef}
+                editorStateRef={editorStateRef}
+              />
+            )}
           </div>
-          {current_sequence_id && (
-            <PlaySequenceButton
-              editorRef={editorRef}
-              editorStateRef={editorStateRef}
-              selected_sequence_id={current_sequence_id}
-            />
-          )}
-          {editorStateSet && !current_sequence_id && (
-            <PlayVideoButton
-              editorRef={editorRef}
-              editorStateRef={editorStateRef}
-            />
-          )}
-
-          <div
-            className={`w-full md:w-[${
-              (settings?.dimensions.width || 0) + 100
-            }px] md:mx-auto overflow-x-scroll`}
-          >
-            <div className="flex flex-row gap-2 mb-2">
-              {/* <button
+          <div className="md:h-full">
+            <div
+              className={`w-full md:w-[${
+                (settings?.dimensions.width || 0) + 100
+              }px] md:mx-auto overflow-x-scroll`}
+            >
+              <div className="flex flex-row gap-2 mb-2">
+                {/* <button
           className="md:hidden text-xs rounded-md text-white stunts-gradient px-2 py-1 h-50 w-50 flex items-center justify-center top-4 left-18"
           onClick={toggleSidebar}
         >
           <Stack size={"20px"} /> {t("Actions")}
         </button> */}
-              <button
-                className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
+                <button
+                  className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
         shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
         hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
-                onClick={() => {
-                  if (toolbarTab === "tools") {
-                    setToolbarTab("none");
-                  } else {
-                    setToolbarTab("tools");
-                  }
-                }}
-              >
-                <Toolbox />
-                <span className="text-xs">Tools</span>
-              </button>
-              <button
-                className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
-        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
-        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
-                onClick={() => {
-                  if (toolbarTab === "animations") {
-                    setToolbarTab("none");
-                  } else {
-                    setToolbarTab("animations");
-                  }
-                }}
-              >
-                <WaveSawtooth />
-                <span className="text-xs">Animations</span>
-              </button>
-              <button
-                className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
-        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
-        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
-                onClick={() => {
-                  if (toolbarTab === "themes") {
-                    setToolbarTab("none");
-                  } else {
-                    setToolbarTab("themes");
-                  }
-                }}
-              >
-                <Palette />
-                <span className="text-xs">Themes</span>
-              </button>
-              <button
-                className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
-        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
-        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
-                onClick={() => {
-                  if (toolbarTab === "layers") {
-                    setToolbarTab("none");
-                  } else {
-                    setToolbarTab("layers");
-                  }
-                }}
-              >
-                <Stack />
-                <span className="text-xs">Layers</span>
-              </button>
-              <button
-                className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
-        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
-        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
-                onClick={() => {
-                  if (toolbarTab === "sequences") {
-                    setToolbarTab("none");
-                  } else {
-                    setToolbarTab("sequences");
-                  }
-                }}
-              >
-                <FlowArrow />
-                <span className="text-xs">Sequences</span>
-              </button>
-            </div>
-          </div>
-          {toolbarTab === "tools" && (
-            <div>
-              <ToolGrid
-                editorRef={editorRef}
-                editorStateRef={editorStateRef}
-                webCaptureRef={webCaptureRef}
-                currentSequenceId={current_sequence_id}
-                set_sequences={set_sequences}
-                options={[
-                  "square",
-                  "text",
-                  "image",
-                  "video",
-                  "capture",
-                  "imageGeneration",
-                  "stickers",
-                ]}
-                layers={layers}
-                setLayers={set_layers}
-              />
-            </div>
-          )}
-
-          {toolbarTab === "animations" && (
-            <div className="max-h-[35vh] overflow-scroll">
-              <AnimationTab
-                editorRef={editorRef}
-                editorStateRef={editorStateRef}
-                current_sequence_id={current_sequence_id!}
-                saveTarget={SaveTarget.Videos}
-                userLanguage={user?.userLanguage || "en"}
-                setRefreshTimeline={setRefreshTimeline}
-                selectedTextId={selectedTextId!}
-                setSelectedTextId={setSelectedTextId}
-              />
-            </div>
-          )}
-
-          {toolbarTab === "themes" && current_sequence_id && (
-            <div className="max-h-[35vh] overflow-scroll">
-              <ThemePicker
-                editorRef={editorRef}
-                editorStateRef={editorStateRef}
-                currentSequenceId={current_sequence_id}
-                saveTarget={SaveTarget.Videos}
-                userLanguage={user?.userLanguage || "en"}
-              />
-
-              <label className="text-sm">Background Color</label>
-              <div className="flex flex-row gap-2 mb-4">
-                <DebouncedInput
-                  id="background_red"
-                  label="Red"
-                  placeholder="Red"
-                  initialValue={background_red.toString()}
-                  onDebounce={(value) => {
-                    set_background_red(parseInt(value));
+                  onClick={() => {
+                    if (toolbarTab === "tools") {
+                      setToolbarTab("none");
+                    } else {
+                      setToolbarTab("tools");
+                    }
                   }}
-                />
-                <DebouncedInput
-                  id="background_green"
-                  label="Green"
-                  placeholder="Green"
-                  initialValue={background_green.toString()}
-                  onDebounce={(value) => {
-                    set_background_green(parseInt(value));
+                >
+                  <Toolbox />
+                  <span className="text-xs">Tools</span>
+                </button>
+                <button
+                  className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
+        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
+        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+                  onClick={() => {
+                    if (toolbarTab === "animations") {
+                      setToolbarTab("none");
+                    } else {
+                      setToolbarTab("animations");
+                    }
                   }}
-                />
-                <DebouncedInput
-                  id="background_blue"
-                  label="Blue"
-                  placeholder="Blue"
-                  initialValue={background_blue.toString()}
-                  onDebounce={(value) => {
-                    set_background_blue(parseInt(value));
+                >
+                  <WaveSawtooth />
+                  <span className="text-xs">Animations</span>
+                </button>
+                <button
+                  className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
+        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
+        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+                  onClick={() => {
+                    if (toolbarTab === "themes") {
+                      setToolbarTab("none");
+                    } else {
+                      setToolbarTab("themes");
+                    }
                   }}
-                />
+                >
+                  <Palette />
+                  <span className="text-xs">Themes</span>
+                </button>
+                <button
+                  className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
+        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
+        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+                  onClick={() => {
+                    if (toolbarTab === "layers") {
+                      setToolbarTab("none");
+                    } else {
+                      setToolbarTab("layers");
+                    }
+                  }}
+                >
+                  <Stack />
+                  <span className="text-xs">Layers</span>
+                </button>
+                <button
+                  className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
+        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
+        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+                  onClick={() => {
+                    if (toolbarTab === "sequences") {
+                      setToolbarTab("none");
+                    } else {
+                      setToolbarTab("sequences");
+                    }
+                  }}
+                >
+                  <FlowArrow />
+                  <span className="text-xs">Sequences</span>
+                </button>
               </div>
             </div>
-          )}
+            {toolbarTab === "tools" && (
+              <div>
+                <ToolGrid
+                  editorRef={editorRef}
+                  editorStateRef={editorStateRef}
+                  webCaptureRef={webCaptureRef}
+                  currentSequenceId={current_sequence_id}
+                  set_sequences={set_sequences}
+                  options={[
+                    "square",
+                    "text",
+                    "image",
+                    "video",
+                    "capture",
+                    "imageGeneration",
+                    "stickers",
+                  ]}
+                  layers={layers}
+                  setLayers={set_layers}
+                />
+              </div>
+            )}
 
-          {toolbarTab === "layers" && current_sequence_id && (
-            <div>
-              <LayerPanel
-                editorRef={editorRef}
-                editorStateRef={editorStateRef}
-                currentSequenceId={current_sequence_id}
-                layers={layers}
-                setLayers={set_layers}
-              />
-            </div>
-          )}
+            {toolbarTab === "animations" && (
+              <div className="max-h-[35vh] md:max-h-full overflow-scroll">
+                <AnimationTab
+                  editorRef={editorRef}
+                  editorStateRef={editorStateRef}
+                  current_sequence_id={current_sequence_id!}
+                  saveTarget={SaveTarget.Videos}
+                  userLanguage={user?.userLanguage || "en"}
+                  setRefreshTimeline={setRefreshTimeline}
+                  selectedTextId={selectedTextId!}
+                  setSelectedTextId={setSelectedTextId}
+                />
+              </div>
+            )}
 
-          {toolbarTab === "sequences" && (
-            <div>
-              <div className="flex flex-col w-full">
-                <div className="flex flex-row justify-between align-center w-full mt-2">
-                  <h5>{t("Sequences")}</h5>
-                  {/* <button
+            {toolbarTab === "themes" && current_sequence_id && (
+              <div className="max-h-[35vh] md:max-h-full overflow-scroll">
+                <ThemePicker
+                  editorRef={editorRef}
+                  editorStateRef={editorStateRef}
+                  currentSequenceId={current_sequence_id}
+                  saveTarget={SaveTarget.Videos}
+                  userLanguage={user?.userLanguage || "en"}
+                />
+
+                <label className="text-sm">Background Color</label>
+                <div className="flex flex-row gap-2 mb-4">
+                  <DebouncedInput
+                    id="background_red"
+                    label="Red"
+                    placeholder="Red"
+                    initialValue={background_red.toString()}
+                    onDebounce={(value) => {
+                      set_background_red(parseInt(value));
+                    }}
+                  />
+                  <DebouncedInput
+                    id="background_green"
+                    label="Green"
+                    placeholder="Green"
+                    initialValue={background_green.toString()}
+                    onDebounce={(value) => {
+                      set_background_green(parseInt(value));
+                    }}
+                  />
+                  <DebouncedInput
+                    id="background_blue"
+                    label="Blue"
+                    placeholder="Blue"
+                    initialValue={background_blue.toString()}
+                    onDebounce={(value) => {
+                      set_background_blue(parseInt(value));
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {toolbarTab === "layers" && current_sequence_id && (
+              <div>
+                <LayerPanel
+                  editorRef={editorRef}
+                  editorStateRef={editorStateRef}
+                  currentSequenceId={current_sequence_id}
+                  layers={layers}
+                  setLayers={set_layers}
+                />
+              </div>
+            )}
+
+            {toolbarTab === "sequences" && (
+              <div>
+                <div className="flex flex-col w-full">
+                  <div className="flex flex-row justify-between align-center w-full mt-2">
+                    <h5>{t("Sequences")}</h5>
+                    {/* <button
                       className="text-xs rounded-md text-white stunts-gradient px-2 py-1 cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
                       disabled={loading}
                       onClick={on_create_sequence}
                     >
                       New Sequence
                     </button> */}
-                  <a
-                    className="text-xs rounded-md text-white stunts-gradient px-2 py-1 cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
-                    href="#"
-                    // disabled={loading}
-                    onClick={on_create_sequence}
-                  >
-                    {t("New Sequence")}
-                  </a>
-                </div>
-                <div className="flex flex-col w-full mt-2">
-                  {(sequences as Sequence[]).map((sequence: Sequence) => {
-                    let showAddButton = false;
-                    if (
-                      sequence.activePolygons.length > 0 ||
-                      sequence.activeImageItems.length > 0 ||
-                      sequence.activeTextItems.length > 0 ||
-                      sequence.activeVideoItems.length > 0
-                    ) {
-                      showAddButton = true;
-                    }
+                    <a
+                      className="text-xs rounded-md text-white stunts-gradient px-2 py-1 cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      href="#"
+                      // disabled={loading}
+                      onClick={on_create_sequence}
+                    >
+                      {t("New Sequence")}
+                    </a>
+                  </div>
+                  <div className="flex flex-col w-full mt-2">
+                    {(sequences as Sequence[]).map((sequence: Sequence) => {
+                      let showAddButton = false;
+                      if (
+                        sequence.activePolygons.length > 0 ||
+                        sequence.activeImageItems.length > 0 ||
+                        sequence.activeTextItems.length > 0 ||
+                        sequence.activeVideoItems.length > 0
+                      ) {
+                        showAddButton = true;
+                      }
 
-                    return (
-                      <div className="flex flex-row" key={sequence.id}>
-                        <button
-                          className="flex flex-row justify-start gap-1 text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
-                          disabled={loading}
-                          onClick={() => on_open_sequence(sequence.id)}
-                        >
-                          <span>
-                            {t("Open")} {sequence.name}
-                          </span>
-                          <ArrowRight />
-                        </button>
-                        {/* <button
+                      return (
+                        <div className="flex flex-row" key={sequence.id}>
+                          <button
+                            className="flex flex-row justify-start gap-1 text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
+                            disabled={loading}
+                            onClick={() => on_open_sequence(sequence.id)}
+                          >
+                            <span>
+                              {t("Open")} {sequence.name}
+                            </span>
+                            <ArrowRight />
+                          </button>
+                          {/* <button
                         className="text-xs w-full text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
                         disabled={loading}
                         onClick={() => {}}
                       >
                         Duplicate
                       </button> */}
-                        {/* {showAddButton && (
+                          {/* {showAddButton && (
                             <button
                               className="text-xs w-[100px] text-left p-2 rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors"
                               disabled={loading}
@@ -1509,97 +1517,97 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                               {t("Add to Timeline")}
                             </button>
                           )} */}
-                      </div>
-                    );
-                  })}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {current_sequence_id ? (
-            <div className="flex flex-col gap-4 w-full max-h-[300px] overflow-scroll md:max-w-[315px]">
-              {selected_keyframes && selected_keyframes?.length > 0 ? (
-                <>
-                  <KeyframeProperties
-                    key={"props" + selected_keyframes[0]}
-                    editorRef={editorRef}
-                    editorStateRef={editorStateRef}
-                    currentSequenceId={current_sequence_id}
-                    selectedKeyframe={selected_keyframes[0]}
-                    setRefreshTimeline={setRefreshTimeline}
-                    handleGoBack={() => {
-                      set_selected_keyframes(null);
-                    }}
-                  />
-                </>
-              ) : (
-                <>
-                  {selected_polygon_id && (
-                    <PolygonProperties
-                      key={"props" + selected_polygon_id}
+            {current_sequence_id ? (
+              <div className="flex flex-col gap-4 w-full max-h-[300px] md:max-h-full overflow-scroll md:max-w-[315px]">
+                {selected_keyframes && selected_keyframes?.length > 0 ? (
+                  <>
+                    <KeyframeProperties
+                      key={"props" + selected_keyframes[0]}
                       editorRef={editorRef}
                       editorStateRef={editorStateRef}
                       currentSequenceId={current_sequence_id}
-                      currentPolygonId={selected_polygon_id}
+                      selectedKeyframe={selected_keyframes[0]}
+                      setRefreshTimeline={setRefreshTimeline}
                       handleGoBack={() => {
-                        set_selected_polygon_id(null);
+                        set_selected_keyframes(null);
                       }}
                     />
-                  )}
+                  </>
+                ) : (
+                  <>
+                    {selected_polygon_id && (
+                      <PolygonProperties
+                        key={"props" + selected_polygon_id}
+                        editorRef={editorRef}
+                        editorStateRef={editorStateRef}
+                        currentSequenceId={current_sequence_id}
+                        currentPolygonId={selected_polygon_id}
+                        handleGoBack={() => {
+                          set_selected_polygon_id(null);
+                        }}
+                      />
+                    )}
 
-                  {selected_image_id && (
-                    <>
-                      <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                        <ImageProperties
-                          key={"props" + selected_image_id}
-                          editorRef={editorRef}
-                          editorStateRef={editorStateRef}
-                          currentSequenceId={current_sequence_id}
-                          currentImageId={selected_image_id}
-                          handleGoBack={() => {
-                            set_selected_image_id(null);
-                          }}
-                        />
-                      </div>
-                    </>
-                  )}
+                    {selected_image_id && (
+                      <>
+                        <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                          <ImageProperties
+                            key={"props" + selected_image_id}
+                            editorRef={editorRef}
+                            editorStateRef={editorStateRef}
+                            currentSequenceId={current_sequence_id}
+                            currentImageId={selected_image_id}
+                            handleGoBack={() => {
+                              set_selected_image_id(null);
+                            }}
+                          />
+                        </div>
+                      </>
+                    )}
 
-                  {selected_text_id && (
-                    <>
-                      <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                        <TextProperties
-                          key={"props" + selected_text_id}
-                          editorRef={editorRef}
-                          editorStateRef={editorStateRef}
-                          currentSequenceId={current_sequence_id}
-                          currentTextId={selected_text_id}
-                          handleGoBack={() => {
-                            set_selected_text_id(null);
-                          }}
-                        />
-                      </div>
-                    </>
-                  )}
+                    {selected_text_id && (
+                      <>
+                        <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                          <TextProperties
+                            key={"props" + selected_text_id}
+                            editorRef={editorRef}
+                            editorStateRef={editorStateRef}
+                            currentSequenceId={current_sequence_id}
+                            currentTextId={selected_text_id}
+                            handleGoBack={() => {
+                              set_selected_text_id(null);
+                            }}
+                          />
+                        </div>
+                      </>
+                    )}
 
-                  {selected_video_id && (
-                    <>
-                      <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                        <VideoProperties
-                          key={"props" + selected_video_id}
-                          editorRef={editorRef}
-                          editorStateRef={editorStateRef}
-                          currentSequenceId={current_sequence_id}
-                          currentVideoId={selected_video_id}
-                          handleGoBack={() => {
-                            set_selected_video_id(null);
-                          }}
-                        />
-                      </div>
-                    </>
-                  )}
+                    {selected_video_id && (
+                      <>
+                        <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                          <VideoProperties
+                            key={"props" + selected_video_id}
+                            editorRef={editorRef}
+                            editorStateRef={editorStateRef}
+                            currentSequenceId={current_sequence_id}
+                            currentVideoId={selected_video_id}
+                            handleGoBack={() => {
+                              set_selected_video_id(null);
+                            }}
+                          />
+                        </div>
+                      </>
+                    )}
 
-                  {/* {!selected_polygon_id &&
+                    {/* {!selected_polygon_id &&
                       !selected_image_id &&
                       !selected_text_id &&
                       !selected_video_id && (
@@ -1640,13 +1648,15 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                           </div>
                         </>
                       )} */}
-                </>
-              )}
-            </div>
-          ) : (
-            <></>
-          )}
-
+                  </>
+                )}
+              </div>
+            ) : (
+              <></>
+            )}
+          </div>
+        </div>
+        <div>
           <div
             className={`w-full md:w-[${
               (settings?.dimensions.width || 0) + 100
