@@ -466,13 +466,14 @@ export const LayerPanel: React.FC<{
       if (!polygon.hidden) {
         let index = layers.findIndex((l) => l.instance_id === polygon.id);
         if (index > -1) {
-          polygon.updateLayer(-index);
+          const positiveLayer = layers.length - 1 - index;
+          polygon.updateLayer(positiveLayer);
           polygon.transform.updateUniformBuffer(
             gpuResources.queue!,
             camera.windowSize
           );
           sequence.activePolygons.find((p) => p.id === polygon.id)!.layer =
-            -index;
+            positiveLayer;
         }
       }
     });
@@ -481,13 +482,14 @@ export const LayerPanel: React.FC<{
       if (!text.hidden) {
         let index = layers.findIndex((l) => l.instance_id === text.id);
         if (index > -1) {
-          text.updateLayer(device, queue, windowSize, -index);
+          const positiveLayer = layers.length - 1 - index;
+          text.updateLayer(device, queue, windowSize, positiveLayer);
           text.transform.updateUniformBuffer(
             gpuResources.queue!,
             camera.windowSize
           );
           sequence.activeTextItems.find((t) => t.id === text.id)!.layer =
-            -index;
+            positiveLayer;
         }
       }
     });
@@ -496,13 +498,14 @@ export const LayerPanel: React.FC<{
       if (!image.hidden) {
         let index = layers.findIndex((l) => l.instance_id === image.id);
         if (index > -1) {
-          image.updateLayer(-index);
+          const positiveLayer = layers.length - 1 - index;
+          image.updateLayer(positiveLayer);
           image.transform.updateUniformBuffer(
             gpuResources.queue!,
             camera.windowSize
           );
           sequence.activeImageItems.find((i) => i.id === image.id)!.layer =
-            -index;
+            positiveLayer;
         }
       }
     });
@@ -511,13 +514,14 @@ export const LayerPanel: React.FC<{
       if (!video.hidden) {
         let index = layers.findIndex((l) => l.instance_id === video.id);
         if (index > -1) {
-          video.updateLayer(-index);
+          const positiveLayer = layers.length - 1 - index;
+          video.updateLayer(positiveLayer);
           video.transform.updateUniformBuffer(
             gpuResources.queue!,
             camera.windowSize
           );
           sequence.activeVideoItems.find((v) => v.id === video.id)!.layer =
-            -index;
+            positiveLayer;
         }
       }
     });
