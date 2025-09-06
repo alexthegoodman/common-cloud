@@ -33,10 +33,13 @@ export interface Vertex {
 // higher z is closer, lower z is further away
 // 0 is too close to be seen, -1.0 and less to be seen
 export function getZLayer(layer: number): number {
-  const z = (layer - INTERNAL_LAYER_SPACE) / 1000.0;
-  // const z = layer / 1000.0 + 2;
+  const z = -((layer - INTERNAL_LAYER_SPACE) / 1000.0);
 
   const zLayer = -1.0 - z;
+
+  // const zLayer = 1.0 + z;
+
+  // console.info("zLayer", zLayer);
 
   return zLayer;
 }

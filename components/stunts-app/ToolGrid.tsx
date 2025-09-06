@@ -267,21 +267,23 @@ export const ToolGrid = ({
 
     try {
       // Use Vercel blob client-side upload for images
-      const newBlob = await upload(file.name, blob, {
-        access: "public",
-        handleUploadUrl: "/api/image/upload",
-        clientPayload: JSON.stringify({
-          token: authToken.token,
-        }),
-      });
+      // const newBlob = await upload(file.name, blob, {
+      //   access: "public",
+      //   handleUploadUrl: "/api/image/upload",
+      //   clientPayload: JSON.stringify({
+      //     token: authToken.token,
+      //   }),
+      // });
 
-      let response = {
-        url: newBlob.url,
-        fileName: file.name,
-        size: file.size,
-        mimeType: file.type,
-        dimensions: { width: 100, height: 100 },
-      };
+      // let response = {
+      //   url: newBlob.url,
+      //   fileName: file.name,
+      //   size: file.size,
+      //   mimeType: file.type,
+      //   dimensions: { width: 100, height: 100 },
+      // };
+
+      let response = await saveImage(authToken?.token, file.name, blob);
 
       if (response) {
         let url = response.url;
@@ -517,7 +519,10 @@ export const ToolGrid = ({
         setUserMessage(`Resizing video: ${name}...`);
 
         // send File to resizeVideo function
-        const resizedVideoBlob = await resizeVideo(blob);
+        const resizedVideoBlob =
+          process.env.NODE_ENV === "production"
+            ? await resizeVideo(blob)
+            : blob;
 
         if (!resizedVideoBlob) {
           throw new Error("Failed to resize video");
@@ -526,22 +531,28 @@ export const ToolGrid = ({
         setUserMessage(`Uploading video: ${name}...`);
 
         // let response = await saveVideo(authToken.token, name, blob);
-        const newBlob = await upload(name, resizedVideoBlob, {
-          access: "public",
-          handleUploadUrl: "/api/video/upload",
-          clientPayload: JSON.stringify({
-            token: authToken.token,
-          }),
-          // multipart: true,
-          onUploadProgress: (progress) => {
-            setUploadProgress(progress.percentage);
-          },
-        });
+        // const response = await upload(name, resizedVideoBlob, {
+        //   access: "public",
+        //   handleUploadUrl: "/api/video/upload",
+        //   clientPayload: JSON.stringify({
+        //     token: authToken.token,
+        //   }),
+        //   // multipart: true,
+        //   onUploadProgress: (progress) => {
+        //     setUploadProgress(progress.percentage);
+        //   },
+        // });
+
+        let response = await saveVideo(
+          authToken?.token,
+          name,
+          resizedVideoBlob
+        );
 
         setUserMessage("");
 
-        if (newBlob) {
-          let url = newBlob.url;
+        if (response) {
+          let url = response.url;
 
           console.info("File url:", url);
 

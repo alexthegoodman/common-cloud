@@ -52,10 +52,18 @@ import {
   X,
   Book,
   Sticker,
+  Play,
+  Pause,
 } from "@phosphor-icons/react";
 
 export const CreateIcon = ({ icon, size }: { icon: string; size: string }) => {
   switch (icon) {
+    case "play": {
+      return <Play data-testid={`icon-${icon}`} weight="thin" size={size} />;
+    }
+    case "pause": {
+      return <Pause data-testid={`icon-${icon}`} weight="thin" size={size} />;
+    }
     case "book": {
       return <Book data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }

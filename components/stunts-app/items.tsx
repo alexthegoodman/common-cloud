@@ -77,7 +77,10 @@ export const ProjectItem = ({
 
       mutate("projects", () => getProjects(authToken));
     } catch (error) {
-      if (error instanceof Error && error.message.includes("Project limit reached")) {
+      if (
+        error instanceof Error &&
+        error.message.includes("Project limit reached")
+      ) {
         toast.error("Project limit reached. Upgrade to create more projects.");
       } else {
         toast.error("Failed to duplicate project. Please try again.");
@@ -201,7 +204,7 @@ interface OptionButtonProps {
   label: string;
   icon: string;
   callback: () => void;
-  'aria-label'?: string;
+  "aria-label"?: string;
 }
 
 export const OptionButton: React.FC<OptionButtonProps> = ({
@@ -209,7 +212,7 @@ export const OptionButton: React.FC<OptionButtonProps> = ({
   label,
   icon,
   callback,
-  'aria-label': ariaLabel,
+  "aria-label": ariaLabel,
 }) => {
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -408,7 +411,12 @@ export const PlaySequenceButton: React.FC<{
         }
       }}
     >
-      {isPlaying ? t("Pause Sequence") : t("Play Sequence")}
+      {/* {isPlaying ? t("Pause Sequence") : t("Play Sequence")} */}
+      {isPlaying ? (
+        <CreateIcon icon="pause" size="24px" />
+      ) : (
+        <CreateIcon icon="play" size="24px" />
+      )}
     </button>
   );
 };
@@ -594,7 +602,12 @@ export const PlayVideoButton: React.FC<{
         }
       }}
     >
-      {isPlaying ? t("Pause Video") : t("Play Video")}
+      {/* {isPlaying ? t("Pause Video") : t("Play Video")} */}
+      {isPlaying ? (
+        <CreateIcon icon="pause" size="24px" />
+      ) : (
+        <CreateIcon icon="play" size="24px" />
+      )}
     </button>
   );
 };
