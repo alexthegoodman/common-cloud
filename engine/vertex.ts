@@ -1,4 +1,5 @@
 import { ObjectType } from "./animations";
+import { INTERNAL_LAYER_SPACE } from "./polygon";
 
 // Type alias to define the vertex data layout for buffer creation
 export type VertexData = [
@@ -29,10 +30,15 @@ export interface Vertex {
   id?: string; // never sent to shader
 }
 
+// higher z is closer, lower z is further away
+// 0 is too close to be seen, -1.0 and less to be seen
 export function getZLayer(layer: number): number {
-  const z = -(layer / 1000.0);
+  const z = (layer - INTERNAL_LAYER_SPACE) / 1000.0;
   // const z = layer / 1000.0 + 2;
-  return z;
+
+  const zLayer = -1.0 - z;
+
+  return zLayer;
 }
 
 export function createVertex(

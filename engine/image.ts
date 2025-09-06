@@ -583,7 +583,8 @@ export class StImage {
 
   updateLayer(layerIndex: number): void {
     // let layer = layerIndex - INTERNAL_LAYER_SPACE;
-    let layer_index = -1.0 - getZLayer(layerIndex - INTERNAL_LAYER_SPACE);
+    // let layer_index = -1.0 - getZLayer(layerIndex - INTERNAL_LAYER_SPACE);
+    let layer_index = getZLayer(layerIndex);
     this.layer = layer_index;
     this.transform.layer = layer_index;
   }

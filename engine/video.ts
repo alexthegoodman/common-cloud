@@ -226,8 +226,9 @@ export class StVideo {
       // window_size,
     );
 
-    let layer_index =
-      -1.0 - getZLayer(videoConfig.layer - INTERNAL_LAYER_SPACE);
+    // let layer_index =
+    //   -1.0 - getZLayer(videoConfig.layer - INTERNAL_LAYER_SPACE);
+    let layer_index = getZLayer(videoConfig.layer);
     this.transform.layer = layer_index;
 
     this.transform.updateUniformBuffer(queue, windowSize);
@@ -1106,7 +1107,8 @@ export class StVideo {
 
   updateLayer(layerIndex: number): void {
     // let layer = layerIndex - INTERNAL_LAYER_SPACE;
-    let layer_index = -1.0 - getZLayer(layerIndex - INTERNAL_LAYER_SPACE);
+    // let layer_index = -1.0 - getZLayer(layerIndex - INTERNAL_LAYER_SPACE);
+    let layer_index = getZLayer(layerIndex);
     this.layer = layer_index;
     this.transform.layer = layer_index;
   }

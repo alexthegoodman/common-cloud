@@ -244,9 +244,9 @@ export class Polygon implements PolygonShape {
     this.transform = transform;
 
     // -10.0 to provide 10 spots for internal items on top of objects
-    let layer_index = -1.0 - getZLayer(transformLayer - INTERNAL_LAYER_SPACE);
+    let layer_index = getZLayer(transformLayer);
     this.transformLayer = transformLayer;
-    this.layer = layer_index;
+    this.layer = transformLayer;
     this.transform.layer = layer_index as number;
     // this.layer = transformLayer - INTERNAL_LAYER_SPACE;
   }
@@ -355,7 +355,7 @@ export class Polygon implements PolygonShape {
   updateLayer(layer: number) {
     // -10.0 to provide 10 spots for internal items on top of objects
     // let layer_index = layer - INTERNAL_LAYER_SPACE;
-    let layer_index = -1.0 - getZLayer(layer - INTERNAL_LAYER_SPACE);
+    let layer_index = getZLayer(layer);
     this.layer = layer - INTERNAL_LAYER_SPACE;
     this.transform.layer = layer_index as number;
 
@@ -1113,7 +1113,7 @@ export function getPolygonData(
   //   getZLayer(polygon.layer - INTERNAL_LAYER_SPACE)
   // );
 
-  transform.layer = -1.0 - getZLayer(polygon.layer - INTERNAL_LAYER_SPACE); // results in numbers like -1.099
+  transform.layer = getZLayer(polygon.layer); // results in numbers like -1.099
   // transform.layer = 1 - getZLayer(polygon.layer - INTERNAL_LAYER_SPACE);
   // transform.layer = getZLayer(polygon.layer - INTERNAL_LAYER_SPACE);
   // console.info("polygon transform layer", transform.layer);

@@ -1,8 +1,13 @@
 import { Editor } from "../editor";
 import { Polygon, PolygonConfig } from "../polygon";
 import { MotionPath } from "../motionpath";
-import { getZLayer } from "../vertex";
-import { ObjectType, Sequence, UIKeyframe } from "../animations";
+import {
+  EasingType,
+  ObjectType,
+  PathType,
+  Sequence,
+  UIKeyframe,
+} from "../animations";
 import { Viewport } from "../editor";
 import { tessellate } from "@thi.ng/geom-tessellate";
 
@@ -125,26 +130,26 @@ describe("Layering and Object Ordering", () => {
     };
     editor.add_polygon(polygonConfig, "Polygon 1", "polygon1", "seq1");
 
-    const keyframes: UIKeyframe[] = [
-      {
-        id: "kf1",
-        time: 0,
-        value: { type: "Position", value: [100, 100] },
-        easing: 0,
-        pathType: 0,
-        keyType: { type: "Frame" },
-        curveData: null,
-      },
-      {
-        id: "kf2",
-        time: 1000,
-        value: { type: "Position", value: [200, 200] },
-        easing: 0,
-        pathType: 0,
-        keyType: { type: "Frame" },
-        curveData: null,
-      },
-    ];
+    // const keyframes: UIKeyframe[] = [
+    //   {
+    //     id: "kf1",
+    //     time: 0,
+    //     value: { type: "Position", value: [100, 100] },
+    //     easing: 0 as unknown as EasingType.EaseIn,
+    //     pathType: 0 as unknown as PathType.Bezier,
+    //     keyType: { type: "Frame" },
+    //     curveData: null,
+    //   },
+    //   {
+    //     id: "kf2",
+    //     time: 1000,
+    //     value: { type: "Position", value: [200, 200] },
+    //     easing: 0 as unknown as EasingType.EaseIn,
+    //     pathType: 0 as unknown as PathType.Bezier,
+    //     keyType: { type: "Frame" },
+    //     curveData: null,
+    //   },
+    // ];
 
     // just a random motion path data gen
     let confetti_keyframes = save_confetti_explosion_keyframes(

@@ -1102,7 +1102,8 @@ export class TextRenderer {
   ) {
     // -10.0 to provide 10 spots for internal items on top of objects
     // const adjustedLayerIndex = layerIndex - INTERNAL_LAYER_SPACE;
-    let layer_index = -1.0 - getZLayer(layerIndex - INTERNAL_LAYER_SPACE);
+    // let layer_index = -1.0 - getZLayer(layerIndex - INTERNAL_LAYER_SPACE);
+    let layer_index = getZLayer(layerIndex);
     this.layer = layer_index;
     this.transform.layer = layer_index;
     this.backgroundPolygon.layer = layer_index - 0.5;
