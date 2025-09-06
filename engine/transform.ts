@@ -161,16 +161,19 @@ export function createEmptyGroupTransform(
     {
       label: "Group Uniform Buffer",
       size: rawMatrix.byteLength,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      usage:
+        process.env.NODE_ENV === "test"
+          ? 0
+          : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       mappedAtCreation: true,
     },
     "uniformMatrix4fv"
   );
 
-  new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
-  // uniformBuffer.data = rawMatrix.buffer;
-
-  uniformBuffer.unmap();
+  if (process.env.NODE_ENV !== "test") {
+    new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
+    uniformBuffer.unmap();
+  }
 
   // Now create your bind group with these defaults
   const bindGroup = device.createBindGroup({

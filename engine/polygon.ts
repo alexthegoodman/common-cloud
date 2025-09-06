@@ -967,7 +967,10 @@ export function getPolygonData(
     {
       label: "Vertex Buffer",
       size: vertices.length * vertexByteSize, // Use the helper function
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      usage:
+        process.env.NODE_ENV === "test"
+          ? 0
+          : GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST, // or 0 for testing env where type cant be used as value
     },
     ""
   );
@@ -997,7 +1000,10 @@ export function getPolygonData(
     {
       label: "Index Buffer",
       size: indices.length * Uint32Array.BYTES_PER_ELEMENT, // Correct size calculation
-      usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+      usage:
+        process.env.NODE_ENV === "test"
+          ? 0
+          : GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
     },
     ""
   );
@@ -1028,17 +1034,19 @@ export function getPolygonData(
     {
       label: "Polygon Uniform Buffer",
       size: rawMatrix.byteLength,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      usage:
+        process.env.NODE_ENV === "test"
+          ? 0
+          : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       mappedAtCreation: true,
     },
     "uniformMatrix4fv"
   );
 
-  new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
-  // uniformBuffer.data = rawMatrix.buffer;
-
-  uniformBuffer.unmap();
-  // queue.writeBuffer(uniformBuffer, 0, rawMatrix);
+  if (process.env.NODE_ENV !== "test") {
+    new Float32Array(uniformBuffer.getMappedRange()).set(rawMatrix);
+    uniformBuffer.unmap();
+  }
 
   const textureSize = { width: 1, height: 1, depthOrArrayLayers: 1 };
   const texture = device.createTexture({
@@ -1048,7 +1056,10 @@ export function getPolygonData(
     // sampleCount: 1,
     // dimension: "2d",
     format: "rgba8unorm",
-    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+    usage:
+      process.env.NODE_ENV === "test"
+        ? 0
+        : GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
   });
 
   const whitePixel = new Uint8Array([255, 255, 255, 255]);
@@ -1361,65 +1372,70 @@ export function setupGradientBuffers(
       // 2 vec4s for offsets + 8 vec4s for colors + 12 floats for config
       // (2 + 8) * 16 + 12 * 4 = 208 bytes
       size: 208,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      usage:
+        process.env.NODE_ENV === "test"
+          ? 0
+          : GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       mappedAtCreation: true,
     },
     "UBO"
   );
 
-  const mappedRange = new Float32Array(gradientBuffer.getMappedRange());
+  if (process.env.NODE_ENV !== "test") {
+    const mappedRange = new Float32Array(gradientBuffer.getMappedRange());
 
-  // const mappedRange = new Float32Array(gradientBuffer.getMappedRange());
-  // console.log("checking", mappedRange.buffer === gradientBuffer.data); // Should be true
+    // const mappedRange = new Float32Array(gradientBuffer.getMappedRange());
+    // console.log("checking", mappedRange.buffer === gradientBuffer.data); // Should be true
 
-  // mappedRange[0] = 42;
-  // const check = new Float32Array(gradientBuffer.data!);
-  // console.log("check", check[0]); // Should be 42
+    // mappedRange[0] = 42;
+    // const check = new Float32Array(gradientBuffer.data!);
+    // console.log("check", check[0]); // Should be 42
 
-  // console.info(
-  //   "gradientBuffer mappedRange",
-  //   JSON.stringify(mappedRange.buffer)
-  // );
+    // console.info(
+    //   "gradientBuffer mappedRange",
+    //   JSON.stringify(mappedRange.buffer)
+    // );
 
-  // Set stop offsets (packed into vec4s)
-  selectedGradient.stops.forEach((stop, i) => {
-    const vec4Index = Math.floor(i / 4);
-    const componentIndex = i % 4;
-    mappedRange[vec4Index * 4 + componentIndex] = stop.offset;
-  });
+    // Set stop offsets (packed into vec4s)
+    selectedGradient.stops.forEach((stop, i) => {
+      const vec4Index = Math.floor(i / 4);
+      const componentIndex = i % 4;
+      mappedRange[vec4Index * 4 + componentIndex] = stop.offset;
+    });
 
-  // Set stop colors (starting at index 8)
-  selectedGradient.stops.forEach((stop, i) => {
-    const colorIndex = 8 + i * 4;
-    mappedRange[colorIndex] = stop.color[0];
-    mappedRange[colorIndex + 1] = stop.color[1];
-    mappedRange[colorIndex + 2] = stop.color[2];
-    mappedRange[colorIndex + 3] = stop.color[3];
-  });
+    // Set stop colors (starting at index 8)
+    selectedGradient.stops.forEach((stop, i) => {
+      const colorIndex = 8 + i * 4;
+      mappedRange[colorIndex] = stop.color[0];
+      mappedRange[colorIndex + 1] = stop.color[1];
+      mappedRange[colorIndex + 2] = stop.color[2];
+      mappedRange[colorIndex + 3] = stop.color[3];
+    });
 
-  // Set configuration (starting at index 40)
-  const configOffset = 40;
-  mappedRange[configOffset] = selectedGradient.stops.length;
-  mappedRange[configOffset + 1] = selectedGradient.type === "linear" ? 0 : 1;
-  mappedRange[configOffset + 2] = selectedGradient.startPoint?.[0] ?? 0;
-  mappedRange[configOffset + 3] = selectedGradient.startPoint?.[1] ?? 0;
-  mappedRange[configOffset + 4] = selectedGradient.endPoint?.[0] ?? 1;
-  mappedRange[configOffset + 5] = selectedGradient.endPoint?.[1] ?? 0;
-  mappedRange[configOffset + 6] = selectedGradient.center?.[0] ?? 0.5;
-  mappedRange[configOffset + 7] = selectedGradient.center?.[1] ?? 0.5;
-  mappedRange[configOffset + 8] = selectedGradient.radius ?? 1.0;
-  mappedRange[configOffset + 9] = selectedGradient.timeOffset ?? 0;
-  mappedRange[configOffset + 10] = selectedGradient.animationSpeed ?? 0;
-  mappedRange[configOffset + 11] = selectedGradient.enabled;
+    // Set configuration (starting at index 40)
+    const configOffset = 40;
+    mappedRange[configOffset] = selectedGradient.stops.length;
+    mappedRange[configOffset + 1] = selectedGradient.type === "linear" ? 0 : 1;
+    mappedRange[configOffset + 2] = selectedGradient.startPoint?.[0] ?? 0;
+    mappedRange[configOffset + 3] = selectedGradient.startPoint?.[1] ?? 0;
+    mappedRange[configOffset + 4] = selectedGradient.endPoint?.[0] ?? 1;
+    mappedRange[configOffset + 5] = selectedGradient.endPoint?.[1] ?? 0;
+    mappedRange[configOffset + 6] = selectedGradient.center?.[0] ?? 0.5;
+    mappedRange[configOffset + 7] = selectedGradient.center?.[1] ?? 0.5;
+    mappedRange[configOffset + 8] = selectedGradient.radius ?? 1.0;
+    mappedRange[configOffset + 9] = selectedGradient.timeOffset ?? 0;
+    mappedRange[configOffset + 10] = selectedGradient.animationSpeed ?? 0;
+    mappedRange[configOffset + 11] = selectedGradient.enabled;
 
-  // console.info(
-  //   "gradientBuffer mappedRange after setup",
-  //   JSON.stringify(mappedRange.buffer)
-  // );
+    // console.info(
+    //   "gradientBuffer mappedRange after setup",
+    //   JSON.stringify(mappedRange.buffer)
+    // );
 
-  // gradientBuffer.data = mappedRange.buffer; // TODO: is this correct?
+    // gradientBuffer.data = mappedRange.buffer; // TODO: is this correct?
 
-  gradientBuffer.unmap(); // used elsewhere
+    gradientBuffer.unmap(); // used elsewhere
+  }
 
   return [selectedGradient, gradientBuffer];
 }
