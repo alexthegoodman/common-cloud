@@ -92,9 +92,16 @@ describe("Layering and Object Ordering", () => {
     };
     editor.add_polygon(polygonConfig2, "Polygon 2", "polygon2", "seq1");
 
-    expect(editor.polygons[0].layer).toBe(-1.0 - getZLayer(0 - 10));
-    expect(editor.polygons[1].layer).toBe(-1.0 - getZLayer(1 - 10));
-    expect(editor.polygons[1].layer).toBeLessThan(editor.polygons[0].layer);
+    // transformLayer is 0 for lowest layer and higher for closer layers
+    expect(editor.polygons[1].transformLayer).toBeGreaterThan(
+      editor.polygons[0].transformLayer
+    );
+    // transform.layer is the calculated z value for the object in 3D space
+    expect(editor.polygons[1].transform.layer).toBeLessThan(
+      editor.polygons[0].transform.layer
+    );
+    // simply layer, this should be the same as tranformLayer (at least here with the polygons)
+    expect(editor.polygons[1].layer).toBeGreaterThan(editor.polygons[0].layer);
   });
 
   test("motion paths should always be displayed on top of everything else", () => {
@@ -173,7 +180,15 @@ describe("Layering and Object Ordering", () => {
     const polygonZ = editor.polygons[0].transform.layer;
     const motionPathZ = editor.motionPaths[0].staticPolygons[0].transform.layer;
 
+    const polygonZ2 = editor.polygons[0].transformLayer;
+    const motionPathZ2 = editor.motionPaths[0].staticPolygons[0].transformLayer;
+
+    const polygonZ3 = editor.polygons[0].layer;
+    const motionPathZ3 = editor.motionPaths[0].staticPolygons[0].layer;
+
     // Smaller Z is on top
     expect(motionPathZ).toBeLessThan(polygonZ);
+    expect(motionPathZ2).toBeGreaterThan(polygonZ2);
+    expect(motionPathZ3).toBeGreaterThan(polygonZ3);
   });
 });
