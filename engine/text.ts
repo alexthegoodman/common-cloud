@@ -1133,8 +1133,9 @@ export class TextRenderer {
     let layer_index = getZLayer(layerIndex);
     this.layer = layerIndex;
     this.transform.layer = layer_index;
-    this.backgroundPolygon.layer = layer_index - 0.5;
-    this.backgroundPolygon.transform.layer = layer_index - 0.5;
+    this.backgroundPolygon.layer = layerIndex - 0.5;
+    let bg_layer_index = getZLayer(layerIndex - 0.5);
+    this.backgroundPolygon.transform.layer = bg_layer_index;
 
     this.transform.updateUniformBuffer(queue, windowSize);
     this.backgroundPolygon.transform.updateUniformBuffer(queue, windowSize);
