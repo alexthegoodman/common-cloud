@@ -575,7 +575,7 @@ export class TextRenderer {
         // Add vertices for the glyph quad
         vertices.push(
           {
-            position: [x0, y0, z],
+            position: [x0, y0, 0],
             tex_coords: [u0, v0],
             color: activeColor,
             gradient_coords: [normalizedX0, normalizedY0],
@@ -583,7 +583,7 @@ export class TextRenderer {
             id: vertexId,
           },
           {
-            position: [x1, y0, 0.0],
+            position: [x1, y0, 0],
             tex_coords: [u1, v0],
             color: activeColor,
             gradient_coords: [normalizedX1, normalizedY0],
@@ -591,7 +591,7 @@ export class TextRenderer {
             id: vertexId,
           },
           {
-            position: [x1, y1, 0.0],
+            position: [x1, y1, 0],
             tex_coords: [u1, v1],
             color: activeColor,
             gradient_coords: [normalizedX1, normalizedY1],
@@ -599,7 +599,7 @@ export class TextRenderer {
             id: vertexId,
           },
           {
-            position: [x0, y1, 0.0],
+            position: [x0, y1, 0],
             tex_coords: [u0, v1],
             color: activeColor,
             gradient_coords: [normalizedX0, normalizedY1],

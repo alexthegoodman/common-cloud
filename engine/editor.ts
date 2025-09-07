@@ -304,6 +304,7 @@ import {
   PolyfillRenderPipeline,
   WebGpuResources,
 } from "./polyfill";
+import { UnifiedRichTextEditor } from "./rte-one";
 // import * as fontkit from "fontkit";
 
 export class Editor {
@@ -330,7 +331,8 @@ export class Editor {
   draggingVideo: string | null;
   motionPaths: MotionPath[];
   repeatManager: RepeatManager;
-  multiPageEditor: MultiPageEditor | null = null;
+  // multiPageEditor: MultiPageEditor | null = null;
+  multiPageEditor: UnifiedRichTextEditor | null = null;
   textArea: TextRenderer | null = null;
   textAreaActive: boolean = false;
   target: SaveTarget = SaveTarget.Videos;
@@ -502,7 +504,11 @@ export class Editor {
       height: 1200,
     };
 
-    const multiPageEditor = new MultiPageEditor(initialDocumentSize, fontData);
+    // const multiPageEditor = new MultiPageEditor(initialDocumentSize, fontData);
+    const multiPageEditor = new UnifiedRichTextEditor(
+      initialDocumentSize,
+      fontData
+    );
 
     this.multiPageEditor = multiPageEditor;
   }

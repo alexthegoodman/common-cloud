@@ -6,7 +6,7 @@ import React from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Plus } from "@phosphor-icons/react";
-// import { RTEEditor } from "@/components/stunts-app/RTEEditor";
+import { RTEEditor } from "@/components/stunts-app/RTEEditor";
 
 export default function Books() {
   const { projectId } = useParams();
@@ -18,8 +18,8 @@ export default function Books() {
         {/* Error Boundary */}
         <ClientOnly>
           <div className="mx-auto flex flex-row">
-            {/* <RTEEditor projectId={projectId} /> */}
-            <aside className="pr-4">
+            <RTEEditor projectId={projectId} />
+            {/* <aside className="pr-4">
               <ul className="flex flex-col">
                 <li className="mb-2">
                   <Link
@@ -90,7 +90,7 @@ export default function Books() {
             </aside>
             <main className="block min-w-[50vw]">
               <p>Book Summary</p>
-            </main>
+            </main> */}
           </div>
         </ClientOnly>
       </ErrorBoundary>

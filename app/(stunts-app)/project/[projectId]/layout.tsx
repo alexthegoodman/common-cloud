@@ -66,11 +66,11 @@ export default function ProjectLayout({ children = null }) {
             icon="market"
             destination={`/project/${projectId}/market`}
           /> */}
-          {/* <NavButton
+          <NavButton
             label="Books"
             icon="book"
             destination={`/project/${projectId}/books`}
-          /> */}
+          />
           <NavButton
             label={t("Settings")}
             icon="gear"
