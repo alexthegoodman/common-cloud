@@ -93,7 +93,7 @@ User Request: ${prompt}`;
       model: openai("gpt-4o-mini"),
       schema: animationSchema,
       prompt: systemPrompt,
-      // temperature: 0.7, // Add some creativity while maintaining consistency
+      temperature: 1, // Add some creativity while maintaining consistency
     });
 
     const json = object.toJsonResponse();
