@@ -213,18 +213,18 @@ const KeyframeValueSchema = z.union(
     z.object({
       Scale: z.number().int().describe("Scale value (100 = default size)"),
     }),
-    z.object({
-      PerspectiveX: z
-        .number()
-        .int()
-        .describe("X-axis perspective transformation"),
-    }),
-    z.object({
-      PerspectiveY: z
-        .number()
-        .int()
-        .describe("Y-axis perspective transformation"),
-    }),
+    // z.object({
+    //   PerspectiveX: z
+    //     .number()
+    //     .int()
+    //     .describe("X-axis perspective transformation"),
+    // }),
+    // z.object({
+    //   PerspectiveY: z
+    //     .number()
+    //     .int()
+    //     .describe("Y-axis perspective transformation"),
+    // }),
     z.object({
       Opacity: z
         .number()
@@ -233,16 +233,16 @@ const KeyframeValueSchema = z.union(
         .max(100)
         .describe("Opacity value (0-100)"),
     }),
-    z.object({
-      Zoom: z
-        .number()
-        .int()
-        .min(100)
-        .describe("Zoom level (100 = minimum zoom)"),
-    }),
-    z.object({
-      Custom: z.array(z.number().int()).describe("Custom animation values"),
-    }),
+    // z.object({
+    //   Zoom: z
+    //     .number()
+    //     .int()
+    //     .min(100)
+    //     .describe("Zoom level (100 = minimum zoom)"),
+    // }),
+    // z.object({
+    //   Custom: z.array(z.number().int()).describe("Custom animation values"),
+    // }),
   ],
   {
     description:

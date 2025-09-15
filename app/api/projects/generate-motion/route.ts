@@ -32,6 +32,7 @@ export async function POST(req: Request) {
       position,
       scale,
       opacity,
+      rotation,
       object_dimensions,
       arrow_positions,
     } = await req.json();
@@ -61,6 +62,7 @@ Here are the details on their desired animation:
 - Position: ${position}
 - Scale: ${scale}
 - Opacity: ${opacity}
+- Rotation: ${rotation}
 
 The object being animated has a size of ${object_dimensions.width}x${
       object_dimensions.height
