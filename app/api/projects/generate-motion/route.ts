@@ -33,6 +33,8 @@ export async function POST(req: Request) {
       scale,
       opacity,
       rotation,
+      delay,
+      duration,
       object_dimensions,
       arrow_positions,
     } = await req.json();
@@ -48,8 +50,8 @@ export async function POST(req: Request) {
     }
 
     // Default values
-    const animationDuration = 3000;
-    const animationStyle = "smooth";
+    // const animationDuration = 3000;
+    // const animationStyle = "smooth";
 
     const systemPrompt = `You are an expert animation designer. Create engaging keyframe animations.
 
@@ -70,7 +72,8 @@ The object being animated has a size of ${object_dimensions.width}x${
 
 The user's canvas has a size of 1200x800.
 
-Requested Animation Duration: ${animationDuration}ms
+Requested Animation Duration: ${duration ? duration : "3000ms"}
+Requested Animation Delay: ${delay ? delay : "0"}
 
 Please reply in the requested JSON schema. Thank you very much
 `;
@@ -78,15 +81,17 @@ Please reply in the requested JSON schema. Thank you very much
     console.info("generating motion with prompt: ", systemPrompt);
 
     const object = await generateObject({
-      model: openai("gpt-5-mini"),
+      model: openai("gpt-4o-mini"),
+      // model: openai("gpt-5-mini"),
       schema: AnimationDataSchema,
       prompt: systemPrompt,
       // temperature: 0.7, // Add some creativity while maintaining consistency
-      providerOptions: {
-        openai: {
-          reasoning_effort: "minimal", // Increases autonomous exploration
-        },
-      },
+      // gpt-5
+      // providerOptions: {
+      //   openai: {
+      //     reasoning_effort: "minimal", // Increases autonomous exploration
+      //   },
+      // },
     });
 
     const json = object.toJsonResponse();
