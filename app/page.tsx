@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import ProjectShowcase from "@/components/ProjectShowcase";
+import Script from "next/script";
 
 const HomePage = () => {
   const router = useRouter();
@@ -75,7 +76,11 @@ const HomePage = () => {
         data-common-ad
         data-site-id="cmfye3w9p00003ptrnl9ouxin"
       ></div>
-      <script src="https://common-ad-network.vercel.app/embed.js"></script>
+      {/* <script src="https://common-ad-network.vercel.app/embed.js"></script> */}
+      <Script
+        src="https://common-ad-network.vercel.app/embed.js"
+        strategy="lazyOnload"
+      />
 
       <ProjectShowcase />
 
