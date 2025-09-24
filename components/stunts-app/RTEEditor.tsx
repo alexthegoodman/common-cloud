@@ -130,11 +130,7 @@ export const RTEEditor: React.FC<any> = ({ projectId }) => {
 
               editor.multiPageEditor?.insert(
                 window.__canvasRTEInsertCharacterIndex,
-                window.__canvasRTEInsertCharacterIndexNl,
-                text,
-                defaultStyle,
-                editor,
-                false
+                text
               );
 
               window.__canvasRTEInsertCharacterIndex =
@@ -166,11 +162,7 @@ export const RTEEditor: React.FC<any> = ({ projectId }) => {
 
                 editor.multiPageEditor?.insert(
                   window.__canvasRTEInsertCharacterIndex,
-                  window.__canvasRTEInsertCharacterIndexNl,
-                  character,
-                  defaultStyle,
-                  editor,
-                  false
+                  character
                 );
 
                 // window.__canvasRTEInsertCharacterIndex =
@@ -279,11 +271,7 @@ export const RTEEditor: React.FC<any> = ({ projectId }) => {
 
                 editor.multiPageEditor?.insert(
                   window.__canvasRTEInsertCharacterIndex,
-                  window.__canvasRTEInsertCharacterIndexNl,
-                  character,
-                  defaultStyle,
-                  editor,
-                  false
+                  character
                 );
 
                 window.__canvasRTEInsertCharacterIndex =
@@ -304,11 +292,7 @@ export const RTEEditor: React.FC<any> = ({ projectId }) => {
 
                 editor.multiPageEditor?.insert(
                   window.__canvasRTEInsertCharacterIndex,
-                  window.__canvasRTEInsertCharacterIndexNl,
-                  character,
-                  defaultStyle,
-                  editor,
-                  false
+                  character
                 );
 
                 window.__canvasRTEInsertCharacterIndex =

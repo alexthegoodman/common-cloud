@@ -1500,7 +1500,7 @@ export class Editor {
         device!,
         queue!,
         i.url,
-        blob, // load of image data
+        blob!, // load of image data
         image_config,
         windowSize,
         this.modelBindGroupLayout!,
@@ -1515,7 +1515,7 @@ export class Editor {
         device!,
         queue!,
         i.url,
-        blob, // load of image data
+        blob!, // load of image data
         image_config,
         windowSize,
         this.modelBindGroupLayout!,
@@ -1575,7 +1575,7 @@ export class Editor {
       const restored_video = new StVideo(
         device!,
         queue!,
-        blob,
+        blob!,
         video_config,
         windowSize,
         this.modelBindGroupLayout!,
@@ -1590,7 +1590,7 @@ export class Editor {
       await restored_video.initialize(
         device!,
         queue!,
-        blob,
+        blob!,
         video_config,
         windowSize,
         this.modelBindGroupLayout!,
