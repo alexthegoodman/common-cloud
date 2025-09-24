@@ -75,6 +75,37 @@ The user's canvas has a size of 1200x800.
 Requested Animation Duration: ${duration ? duration : "3000ms"}
 Requested Animation Delay: ${delay ? delay : "0"}
 
+Please adhere to the following guidelines:
+
+Timing/Pacing
+
+Do: Subtle, purposeful timing
+Don't: Overly bouncy, rubber-ball physics
+
+Movement Quality
+
+Do: Confident, direct motion
+Don't: Wobbling, overshooting, "jelly" effects
+
+Transitions
+
+Do: Clean cuts, linear or subtle easing
+Don't: Elastic, spring-loaded entrances/exits
+
+Scale/Rotation
+
+Do: Proportional, controlled scaling
+Don't: Dramatic size changes, spinning for effect
+
+For well-known style references, you might consider:
+
+Apple/iOS: Clean, purposeful, minimal overshoot
+Google Material: Consistent easing curves, logical motion
+Netflix UI: Smooth but snappy, no wasted motion
+Financial/Bloomberg graphics: Precise, data-focused, no flourishes
+Architectural visualization: Smooth, linear camera movements
+Documentary/editorial: Steady, informative pacing
+
 Please reply in the requested JSON schema. Thank you very much
 `;
 
