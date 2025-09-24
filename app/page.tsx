@@ -69,6 +69,14 @@ const HomePage = () => {
         </div>
       </header>
 
+      {/** Common Ad Network - Single Ad */}
+      <div
+        id="common-ad-container"
+        data-common-ad
+        data-site-id="cmfye3w9p00003ptrnl9ouxin"
+      ></div>
+      <script src="https://common-ad-network.vercel.app/embed.js"></script>
+
       <ProjectShowcase />
 
       {/* Call to Action */}

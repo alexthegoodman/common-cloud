@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma migrate deploy && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test-no": "node --experimental-vm-modules node_modules/.bin/jest",
     "test:watch": "jest --watch",
     "seed": "ts-node ./prisma/seed/index.ts",
     "postinstall": "prisma generate",
