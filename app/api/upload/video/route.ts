@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import fs from "fs/promises";
 import path from "path";
 
-export const maxDuration = 300; // 5 minutes (300 seconds)
+export const maxDuration = 60; // 5 minutes (300 seconds)
 
 // Constants
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB in bytes
