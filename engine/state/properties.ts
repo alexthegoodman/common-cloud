@@ -671,6 +671,28 @@ export function updateHiddenBackground(
   );
 }
 
+export async function updateFontFamily(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: string
+) {
+  await editor.update_text_fontFamily(value, objectId);
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeTextItems.forEach((p) => {
+      if (p.id == objectId) {
+        p.fontFamily = value;
+      }
+    });
+  });
+
+  saveSequencesData(
+    editorState.savedState.sequences,
+    editorState.saveTarget
+  );
+}
+
 export function updateTextContent(
   editorState: EditorState,
   editor: Editor,
