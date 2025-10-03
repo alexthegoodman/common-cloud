@@ -1936,6 +1936,272 @@ export function save_pulse_keyframes(
   return new_motion_path;
 }
 
+export interface ScaleFadePulseConfig {
+  startScale: number; // Starting scale percentage (e.g., 50 for 50%, 150 for 150%)
+  targetScale: number; // Target scale percentage (e.g., 100 for 100%)
+  rippleCount: number; // Number of ripples (0 for none, 1+ for ripple effect)
+  rippleIntensity: number; // Ripple overshoot percentage (e.g., 10 means 10% overshoot)
+  durationMs: number; // Total duration of the animation
+  fadeIn: boolean; // Whether to fade in from 0 to 100 opacity
+  fadeOut: boolean; // Whether to fade out from 100 to 0 opacity
+}
+
+export function save_scale_fade_pulse_keyframes(
+  editorState: EditorState,
+  savable_item_id: string,
+  object_type: ObjectType,
+  current_keyframes: AnimationData,
+  config: ScaleFadePulseConfig
+): AnimationData {
+  let properties: AnimationProperty[] = [];
+
+  let position_keyframes: UIKeyframe[] = [];
+  let position_prop = {
+    name: "Position",
+    propertyPath: "position",
+    children: [],
+    keyframes: position_keyframes,
+    depth: 0,
+  };
+
+  let rotation_keyframes: UIKeyframe[] = [];
+  let rotation_prop = {
+    name: "Rotation",
+    propertyPath: "rotation",
+    children: [],
+    keyframes: rotation_keyframes,
+    depth: 0,
+  };
+
+  // Generate scale keyframes with ripple effect
+  let scale_keyframes: UIKeyframe[] = [];
+
+  // Start keyframe
+  scale_keyframes.push({
+    id: uuidv4().toString(),
+    time: 0,
+    value: { type: "ScaleX", value: config.startScale },
+    easing: EasingType.EaseInOut,
+    pathType: PathType.Linear,
+    keyType: { type: "Frame" },
+    curveData: null,
+  });
+
+  // Calculate ripple keyframes
+  if (config.rippleCount > 0) {
+    const totalRippleTime = config.durationMs * 0.6; // Use 60% of duration for ripples
+    const rippleSegment = totalRippleTime / (config.rippleCount + 1);
+
+    for (let i = 0; i < config.rippleCount; i++) {
+      const rippleTime = rippleSegment * (i + 1);
+      const overshoot = config.targetScale > config.startScale
+        ? config.targetScale + config.rippleIntensity
+        : config.targetScale - config.rippleIntensity;
+
+      // Overshoot keyframe
+      scale_keyframes.push({
+        id: uuidv4().toString(),
+        time: rippleTime,
+        value: { type: "ScaleX", value: overshoot },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+
+      // Settle back keyframe
+      scale_keyframes.push({
+        id: uuidv4().toString(),
+        time: rippleTime + rippleSegment * 0.5,
+        value: { type: "ScaleX", value: config.targetScale },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    }
+  }
+
+  // End keyframe
+  scale_keyframes.push({
+    id: uuidv4().toString(),
+    time: config.durationMs,
+    value: { type: "ScaleX", value: config.targetScale },
+    easing: EasingType.EaseInOut,
+    pathType: PathType.Linear,
+    keyType: { type: "Frame" },
+    curveData: null,
+  });
+
+  let scale_prop = {
+    name: "Scale X",
+    propertyPath: "scalex",
+    children: [],
+    keyframes: scale_keyframes,
+    depth: 0,
+  };
+
+  // Generate scale Y keyframes (same as X for uniform scaling)
+  let scale_y_keyframes: UIKeyframe[] = scale_keyframes.map((kf) => ({
+    ...kf,
+    id: uuidv4().toString(),
+    value: { type: "ScaleY", value: (kf.value as any).value },
+  }));
+
+  let scale_y_prop = {
+    name: "Scale Y",
+    propertyPath: "scaley",
+    children: [],
+    keyframes: scale_y_keyframes,
+    depth: 0,
+  };
+
+  // Generate opacity keyframes
+  let opacity_keyframes: UIKeyframe[] = [];
+
+  if (config.fadeIn) {
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "Opacity", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: config.durationMs * 0.3,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+  } else {
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+  }
+
+  if (config.fadeOut) {
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: config.durationMs * 0.7,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: config.durationMs,
+      value: { type: "Opacity", value: 0 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+  } else {
+    opacity_keyframes.push({
+      id: uuidv4().toString(),
+      time: config.durationMs,
+      value: { type: "Opacity", value: 100 },
+      easing: EasingType.EaseInOut,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+  }
+
+  let opacity_prop = {
+    name: "Opacity",
+    propertyPath: "opacity",
+    children: [],
+    keyframes: opacity_keyframes,
+    depth: 0,
+  };
+
+  properties.push(position_prop);
+  properties.push(rotation_prop);
+  properties.push(scale_prop);
+  properties.push(scale_y_prop);
+  properties.push(opacity_prop);
+
+  if (object_type == ObjectType.VideoItem) {
+    let props = current_keyframes.properties.find(
+      (p) => p.propertyPath === "zoom"
+    );
+
+    let zoom_keyframes: UIKeyframe[] = [];
+
+    if (props) {
+      zoom_keyframes = props.keyframes;
+    } else {
+      zoom_keyframes.push({
+        id: uuidv4().toString(),
+        time: 0,
+        value: {
+          type: "Zoom",
+          value: {
+            position: [20, 20],
+            zoomLevel: 100,
+          },
+        },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      zoom_keyframes.push({
+        id: uuidv4().toString(),
+        time: config.durationMs,
+        value: {
+          type: "Zoom",
+          value: {
+            position: [20, 20],
+            zoomLevel: 100,
+          },
+        },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    }
+    let zoom_prop = {
+      name: "Zoom / Popout",
+      propertyPath: "zoom",
+      children: [],
+      keyframes: zoom_keyframes,
+      depth: 0,
+    };
+
+    properties.push(zoom_prop);
+  }
+
+  let new_motion_path: AnimationData = {
+    id: uuidv4().toString(),
+    objectType: object_type,
+    polygonId: savable_item_id,
+    duration: config.durationMs,
+    startTimeMs: 0,
+    position: [0, 0],
+    properties: properties,
+  };
+
+  return new_motion_path;
+}
+
 export function save_circular_motion_keyframes(
   editorState: EditorState,
   savable_item_id: string,

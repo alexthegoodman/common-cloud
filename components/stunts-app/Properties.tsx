@@ -39,6 +39,8 @@ import {
   save_perspective_y_keyframes,
   save_configurable_perspective_keyframes,
   save_pulse_keyframes,
+  save_scale_fade_pulse_keyframes,
+  ScaleFadePulseConfig,
   save_ripple_effect_keyframes,
   save_spiral_motion_keyframes,
 } from "@/engine/state/keyframes";
@@ -1541,6 +1543,15 @@ export const AnimationOptions = ({
   const [circularRadius, setCircularRadius] = useState<number>(100);
   const [circularRotation, setCircularRotation] = useState<number>(0);
 
+  // Scale Fade Pulse animation state
+  const [pulseStartScale, setPulseStartScale] = useState<number>(150);
+  const [pulseTargetScale, setPulseTargetScale] = useState<number>(100);
+  const [pulseRippleCount, setPulseRippleCount] = useState<number>(0);
+  const [pulseRippleIntensity, setPulseRippleIntensity] = useState<number>(10);
+  const [pulseDuration, setPulseDuration] = useState<number>(5000);
+  const [pulseFadeIn, setPulseFadeIn] = useState<boolean>(true);
+  const [pulseFadeOut, setPulseFadeOut] = useState<boolean>(false);
+
   // Pendulum swing animation state
   const [pendulumWidth, setPendulumWidth] = useState<number>(200);
   const [pendulumPeriods, setPendulumPeriods] = useState<number>(2);
@@ -1838,57 +1849,151 @@ export const AnimationOptions = ({
           </button>
         </div>
       </div>
-      <button
-        className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-        onClick={async () => {
-          let editor = editorRef.current;
-          let editorState = editorStateRef.current;
+      <div className="flex flex-col gap-2 border-t pt-2 mt-2">
+        <h3 className="text-xs font-semibold text-gray-700">Scale & Fade Pulse</h3>
+        <div className="flex flex-row items-center gap-2">
+          <label className="text-xs text-gray-600 w-24">Start Scale:</label>
+          <input
+            type="number"
+            value={pulseStartScale}
+            onChange={(e) => setPulseStartScale(Number(e.target.value))}
+            className="text-xs border rounded px-2 py-1 w-16"
+            min="10"
+            max="500"
+          />
+          <span className="text-xs text-gray-500">%</span>
+        </div>
+        <div className="flex flex-row items-center gap-2">
+          <label className="text-xs text-gray-600 w-24">Target Scale:</label>
+          <input
+            type="number"
+            value={pulseTargetScale}
+            onChange={(e) => setPulseTargetScale(Number(e.target.value))}
+            className="text-xs border rounded px-2 py-1 w-16"
+            min="10"
+            max="500"
+          />
+          <span className="text-xs text-gray-500">%</span>
+        </div>
+        <div className="flex flex-row items-center gap-2">
+          <label className="text-xs text-gray-600 w-24">Ripples:</label>
+          <input
+            type="number"
+            value={pulseRippleCount}
+            onChange={(e) => setPulseRippleCount(Number(e.target.value))}
+            className="text-xs border rounded px-2 py-1 w-16"
+            min="0"
+            max="5"
+          />
+        </div>
+        <div className="flex flex-row items-center gap-2">
+          <label className="text-xs text-gray-600 w-24">Ripple Intensity:</label>
+          <input
+            type="number"
+            value={pulseRippleIntensity}
+            onChange={(e) => setPulseRippleIntensity(Number(e.target.value))}
+            className="text-xs border rounded px-2 py-1 w-16"
+            min="0"
+            max="50"
+          />
+          <span className="text-xs text-gray-500">%</span>
+        </div>
+        <div className="flex flex-row items-center gap-2">
+          <label className="text-xs text-gray-600 w-24">Duration:</label>
+          <input
+            type="number"
+            value={pulseDuration}
+            onChange={(e) => setPulseDuration(Number(e.target.value))}
+            className="text-xs border rounded px-2 py-1 w-20"
+            min="500"
+            max="20000"
+            step="500"
+          />
+          <span className="text-xs text-gray-500">ms</span>
+        </div>
+        <div className="flex flex-row items-center gap-4">
+          <label className="flex items-center gap-1 text-xs">
+            <input
+              type="checkbox"
+              checked={pulseFadeIn}
+              onChange={(e) => setPulseFadeIn(e.target.checked)}
+              className="rounded"
+            />
+            Fade In
+          </label>
+          <label className="flex items-center gap-1 text-xs">
+            <input
+              type="checkbox"
+              checked={pulseFadeOut}
+              onChange={(e) => setPulseFadeOut(e.target.checked)}
+              className="rounded"
+            />
+            Fade Out
+          </label>
+        </div>
+        <button
+          className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+          onClick={async () => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
 
-          if (!editorState || !editor) {
-            return;
-          }
-
-          let currentSequence = editorState.savedState.sequences.find(
-            (s) => s.id === currentSequenceId
-          );
-
-          if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-            return;
-          }
-
-          let current_animation_data = currentSequence?.polygonMotionPaths.find(
-            (p) => p.polygonId === currentObjectId
-          );
-
-          if (!current_animation_data) {
-            return;
-          }
-
-          let newAnimationData = save_pulse_keyframes(
-            editorState,
-            currentObjectId,
-            objectType,
-            current_animation_data
-          );
-
-          editorState.savedState.sequences.forEach((s) => {
-            if (s.id == currentSequenceId) {
-              if (s.polygonMotionPaths) {
-                let currentIndex = s.polygonMotionPaths.findIndex(
-                  (p) => p.id === current_animation_data.id
-                );
-                s.polygonMotionPaths[currentIndex] = newAnimationData;
-              }
+            if (!editorState || !editor) {
+              return;
             }
-          });
 
-          let sequences = editorState.savedState.sequences;
+            let currentSequence = editorState.savedState.sequences.find(
+              (s) => s.id === currentSequenceId
+            );
 
-          await saveSequencesData(sequences, editorState.saveTarget);
-        }}
-      >
-        Apply Pulse
-      </button>
+            if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+              return;
+            }
+
+            let current_animation_data = currentSequence?.polygonMotionPaths.find(
+              (p) => p.polygonId === currentObjectId
+            );
+
+            if (!current_animation_data) {
+              return;
+            }
+
+            const config: ScaleFadePulseConfig = {
+              startScale: pulseStartScale,
+              targetScale: pulseTargetScale,
+              rippleCount: pulseRippleCount,
+              rippleIntensity: pulseRippleIntensity,
+              durationMs: pulseDuration,
+              fadeIn: pulseFadeIn,
+              fadeOut: pulseFadeOut,
+            };
+
+            let newAnimationData = save_scale_fade_pulse_keyframes(
+              editorState,
+              currentObjectId,
+              objectType,
+              current_animation_data,
+              config
+            );
+
+            editorState.savedState.sequences.forEach((s) => {
+              if (s.id == currentSequenceId) {
+                if (s.polygonMotionPaths) {
+                  let currentIndex = s.polygonMotionPaths.findIndex(
+                    (p) => p.id === current_animation_data.id
+                  );
+                  s.polygonMotionPaths[currentIndex] = newAnimationData;
+                }
+              }
+            });
+
+            let sequences = editorState.savedState.sequences;
+
+            await saveSequencesData(sequences, editorState.saveTarget);
+          }}
+        >
+          Apply Scale & Fade Pulse
+        </button>
+      </div>
       <div className="flex flex-col gap-2">
         <div className="flex flex-row items-center gap-2">
           <label className="text-xs text-gray-600">Radius:</label>
