@@ -1033,6 +1033,11 @@ export class CanvasPipeline {
         // this.bindWebGLBindGroup(gl, textItem.bindGroup, 1);
         // this.bindWebGLBindGroup(gl, textItem.groupBindGroup, 3);
 
+        if (textItem.hiddenBackground) {
+          textItem.bindGroup.bindWebGLBindGroup(gl);
+          textItem.groupBindGroup?.bindWebGLBindGroup(gl);
+        }
+
         drawIndexedGeometry(
           textItem.vertexBuffer as PolyfillBuffer,
           textItem.indexBuffer as PolyfillBuffer,
