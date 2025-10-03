@@ -1167,6 +1167,432 @@ export function save_perspective_y_keyframes(
   return new_motion_path;
 }
 
+export function save_configurable_perspective_keyframes(
+  editorState: EditorState,
+  savable_item_id: string,
+  object_type: ObjectType,
+  current_keyframes: AnimationData,
+  options: {
+    applyX: boolean;
+    applyY: boolean;
+    degrees: number;
+    fadeIn: boolean;
+    fadeOut: boolean;
+    animateTo: boolean; // true = animate TO perspective, false = animate FROM perspective
+  }
+) {
+  let durationMs = current_keyframes.duration;
+
+  let properties: AnimationProperty[] = [];
+
+  let position_prop = current_keyframes.properties.find(
+    (p) => p.propertyPath === "position"
+  );
+
+  if (position_prop) {
+    properties.push(position_prop);
+  }
+
+  let rotation_prop = current_keyframes.properties.find(
+    (p) => p.propertyPath === "rotation"
+  );
+
+  if (rotation_prop) {
+    properties.push(rotation_prop);
+  }
+
+  let scale_prop = current_keyframes.properties.find(
+    (p) => p.propertyPath === "scalex"
+  );
+
+  if (scale_prop) {
+    properties.push(scale_prop);
+  }
+
+  let scale_y_prop = current_keyframes.properties.find(
+    (p) => p.propertyPath === "scaley"
+  );
+
+  if (scale_y_prop) {
+    properties.push(scale_y_prop);
+  }
+
+  // Fade animation
+  if (options.fadeIn || options.fadeOut) {
+    let opacity_keyframes: UIKeyframe[] = [];
+
+    if (options.fadeIn && options.fadeOut) {
+      // Both fade in and fade out
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: 0,
+        value: { type: "Opacity", value: 0 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: 2500,
+        value: { type: "Opacity", value: 100 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: 5000,
+        value: { type: "Opacity", value: 100 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: durationMs - 5000,
+        value: { type: "Opacity", value: 100 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: durationMs - 2500,
+        value: { type: "Opacity", value: 100 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: durationMs,
+        value: { type: "Opacity", value: 0 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    } else if (options.fadeIn) {
+      // Only fade in
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: 0,
+        value: { type: "Opacity", value: 0 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: 2500,
+        value: { type: "Opacity", value: 100 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: durationMs,
+        value: { type: "Opacity", value: 100 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    } else if (options.fadeOut) {
+      // Only fade out
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: 0,
+        value: { type: "Opacity", value: 100 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: durationMs - 2500,
+        value: { type: "Opacity", value: 100 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      opacity_keyframes.push({
+        id: uuidv4().toString(),
+        time: durationMs,
+        value: { type: "Opacity", value: 0 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    }
+
+    let opacity_prop = {
+      name: "Opacity",
+      propertyPath: "opacity",
+      children: [],
+      keyframes: opacity_keyframes,
+      depth: 0,
+    };
+
+    properties.push(opacity_prop);
+  }
+
+  // Perspective X animation
+  if (options.applyX) {
+    let perspective_x_keyframes: UIKeyframe[] = [];
+
+    if (options.animateTo) {
+      // Animate TO perspective (start normal, end at perspective)
+      perspective_x_keyframes.push({
+        id: uuidv4().toString(),
+        time: 0,
+        value: { type: "PerspectiveX", value: 0 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_x_keyframes.push({
+        id: uuidv4().toString(),
+        time: 2500,
+        value: { type: "PerspectiveX", value: options.degrees / 2 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_x_keyframes.push({
+        id: uuidv4().toString(),
+        time: 5000,
+        value: { type: "PerspectiveX", value: options.degrees },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_x_keyframes.push({
+        id: uuidv4().toString(),
+        time: durationMs,
+        value: { type: "PerspectiveX", value: options.degrees },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    } else {
+      // Animate FROM perspective (start at perspective, end normal)
+      perspective_x_keyframes.push({
+        id: uuidv4().toString(),
+        time: 0,
+        value: { type: "PerspectiveX", value: options.degrees },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_x_keyframes.push({
+        id: uuidv4().toString(),
+        time: 2500,
+        value: { type: "PerspectiveX", value: options.degrees / 2 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_x_keyframes.push({
+        id: uuidv4().toString(),
+        time: 5000,
+        value: { type: "PerspectiveX", value: 0 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_x_keyframes.push({
+        id: uuidv4().toString(),
+        time: durationMs - 5000,
+        value: { type: "PerspectiveX", value: 0 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_x_keyframes.push({
+        id: uuidv4().toString(),
+        time: durationMs - 2500,
+        value: { type: "PerspectiveX", value: options.degrees / 2 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_x_keyframes.push({
+        id: uuidv4().toString(),
+        time: durationMs,
+        value: { type: "PerspectiveX", value: options.degrees },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    }
+
+    let perspective_x_prop = {
+      name: "Perspective X",
+      propertyPath: "perspectiveX",
+      children: [],
+      keyframes: perspective_x_keyframes,
+      depth: 0,
+    };
+
+    properties.push(perspective_x_prop);
+  }
+
+  // Perspective Y animation
+  if (options.applyY) {
+    let perspective_y_keyframes: UIKeyframe[] = [];
+
+    if (options.animateTo) {
+      // Animate TO perspective (start normal, end at perspective)
+      perspective_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: 0,
+        value: { type: "PerspectiveY", value: 0 },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: 2500,
+        value: { type: "PerspectiveY", value: options.degrees / 2 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: 5000,
+        value: { type: "PerspectiveY", value: options.degrees },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: durationMs,
+        value: { type: "PerspectiveY", value: options.degrees },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    } else {
+      // Animate FROM perspective (start at perspective, end normal)
+      perspective_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: 0,
+        value: { type: "PerspectiveY", value: options.degrees },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: 2500,
+        value: { type: "PerspectiveY", value: options.degrees / 2 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: 5000,
+        value: { type: "PerspectiveY", value: 0 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: durationMs - 5000,
+        value: { type: "PerspectiveY", value: 0 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: durationMs - 2500,
+        value: { type: "PerspectiveY", value: options.degrees / 2 },
+        easing: EasingType.EaseInOut,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+      perspective_y_keyframes.push({
+        id: uuidv4().toString(),
+        time: durationMs,
+        value: { type: "PerspectiveY", value: options.degrees },
+        easing: EasingType.Linear,
+        pathType: PathType.Linear,
+        keyType: { type: "Frame" },
+        curveData: null,
+      });
+    }
+
+    let perspective_y_prop = {
+      name: "Perspective Y",
+      propertyPath: "perspectiveY",
+      children: [],
+      keyframes: perspective_y_keyframes,
+      depth: 0,
+    };
+
+    properties.push(perspective_y_prop);
+  }
+
+  if (object_type === ObjectType.VideoItem) {
+    let zoom_prop = current_keyframes.properties.find(
+      (p) => p.propertyPath === "zoom"
+    );
+
+    if (zoom_prop) {
+      properties.push(zoom_prop);
+    }
+  }
+
+  let new_motion_path: AnimationData = {
+    id: uuidv4().toString(),
+    objectType: object_type,
+    polygonId: savable_item_id,
+    duration: durationMs,
+    startTimeMs: current_keyframes.startTimeMs,
+    position: current_keyframes.position,
+    properties: properties,
+  };
+
+  return new_motion_path;
+}
+
 // TODO: make work with variable duration
 export function save_pulse_keyframes(
   editorState: EditorState,

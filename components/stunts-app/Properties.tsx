@@ -37,6 +37,7 @@ import {
   save_pendulum_swing_keyframes,
   save_perspective_x_keyframes,
   save_perspective_y_keyframes,
+  save_configurable_perspective_keyframes,
   save_pulse_keyframes,
   save_ripple_effect_keyframes,
   save_spiral_motion_keyframes,
@@ -1568,6 +1569,15 @@ export const AnimationOptions = ({
   const [bubbleDriftWidth, setBubbleDriftWidth] = useState<number>(50);
   const [bubbleFloatiness, setBubbleFloatiness] = useState<number>(2);
 
+  // Perspective animation state
+  const [perspectiveX, setPerspectiveX] = useState<boolean>(true);
+  const [perspectiveY, setPerspectiveY] = useState<boolean>(false);
+  const [perspectiveDegrees, setPerspectiveDegrees] = useState<number>(20);
+  const [perspectiveFadeIn, setPerspectiveFadeIn] = useState<boolean>(true);
+  const [perspectiveFadeOut, setPerspectiveFadeOut] = useState<boolean>(true);
+  const [perspectiveAnimateTo, setPerspectiveAnimateTo] =
+    useState<boolean>(false);
+
   return (
     <div className="flex flex-col gap-2">
       <p>Apply Animations</p>
@@ -1633,108 +1643,142 @@ export const AnimationOptions = ({
       >
         Remove Position Keyframes
       </button>
-      <button
-        className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-        onClick={async () => {
-          let editor = editorRef.current;
-          let editorState = editorStateRef.current;
+      <div className="flex flex-col gap-2 p-2 border rounded">
+        <p className="text-xs font-semibold">Perspective Animation</p>
 
-          if (!editorState || !editor) {
-            return;
-          }
+        <div className="flex flex-row gap-3">
+          <label className="flex items-center gap-1 text-xs">
+            <input
+              type="checkbox"
+              checked={perspectiveX}
+              onChange={(e) => setPerspectiveX(e.target.checked)}
+            />
+            X Axis (top/bottom)
+          </label>
+          <label className="flex items-center gap-1 text-xs">
+            <input
+              type="checkbox"
+              checked={perspectiveY}
+              onChange={(e) => setPerspectiveY(e.target.checked)}
+            />
+            Y Axis (left/right)
+          </label>
+        </div>
 
-          let currentSequence = editorState.savedState.sequences.find(
-            (s) => s.id === currentSequenceId
-          );
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-600">Degrees:</label>
+          <input
+            type="number"
+            value={perspectiveDegrees}
+            onChange={(e) => setPerspectiveDegrees(Number(e.target.value))}
+            className="text-xs border rounded px-2 py-1"
+            min="0"
+            max="90"
+          />
+        </div>
 
-          if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-            return;
-          }
+        <div className="flex flex-row gap-3">
+          <label className="flex items-center gap-1 text-xs">
+            <input
+              type="checkbox"
+              checked={perspectiveFadeIn}
+              onChange={(e) => setPerspectiveFadeIn(e.target.checked)}
+            />
+            Fade In
+          </label>
+          <label className="flex items-center gap-1 text-xs">
+            <input
+              type="checkbox"
+              checked={perspectiveFadeOut}
+              onChange={(e) => setPerspectiveFadeOut(e.target.checked)}
+            />
+            Fade Out
+          </label>
+        </div>
 
-          let current_animation_data = currentSequence?.polygonMotionPaths.find(
-            (p) => p.polygonId === currentObjectId
-          );
+        <div className="flex flex-col gap-1">
+          <p className="text-xs text-gray-600">Animation Direction:</p>
+          <label className="flex items-center gap-1 text-xs">
+            <input
+              type="radio"
+              name="perspectiveDirection"
+              checked={!perspectiveAnimateTo}
+              onChange={() => setPerspectiveAnimateTo(false)}
+            />
+            Animate FROM perspective
+          </label>
+          <label className="flex items-center gap-1 text-xs">
+            <input
+              type="radio"
+              name="perspectiveDirection"
+              checked={perspectiveAnimateTo}
+              onChange={() => setPerspectiveAnimateTo(true)}
+            />
+            Animate TO perspective
+          </label>
+        </div>
 
-          if (!current_animation_data) {
-            return;
-          }
+        <button
+          className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+          onClick={async () => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
 
-          let newAnimationData = save_perspective_x_keyframes(
-            editorState,
-            currentObjectId,
-            objectType,
-            current_animation_data
-          );
-
-          editorState.savedState.sequences.forEach((s) => {
-            if (s.id == currentSequenceId) {
-              if (s.polygonMotionPaths) {
-                let currentIndex = s.polygonMotionPaths.findIndex(
-                  (p) => p.id === current_animation_data.id
-                );
-                s.polygonMotionPaths[currentIndex] = newAnimationData;
-              }
+            if (!editorState || !editor) {
+              return;
             }
-          });
 
-          let sequences = editorState.savedState.sequences;
+            let currentSequence = editorState.savedState.sequences.find(
+              (s) => s.id === currentSequenceId
+            );
 
-          await saveSequencesData(sequences, editorState.saveTarget);
-        }}
-      >
-        Apply Perspective X + Fade
-      </button>
-      <button
-        className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-        onClick={async () => {
-          let editor = editorRef.current;
-          let editorState = editorStateRef.current;
-
-          if (!editorState || !editor) {
-            return;
-          }
-
-          let currentSequence = editorState.savedState.sequences.find(
-            (s) => s.id === currentSequenceId
-          );
-
-          if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-            return;
-          }
-
-          let current_animation_data = currentSequence?.polygonMotionPaths.find(
-            (p) => p.polygonId === currentObjectId
-          );
-
-          if (!current_animation_data) {
-            return;
-          }
-
-          let newAnimationData = save_perspective_y_keyframes(
-            editorState,
-            currentObjectId,
-            objectType,
-            current_animation_data
-          );
-
-          editorState.savedState.sequences.forEach((s) => {
-            if (s.id == currentSequenceId) {
-              if (s.polygonMotionPaths) {
-                let currentIndex = s.polygonMotionPaths.findIndex(
-                  (p) => p.id === current_animation_data.id
-                );
-                s.polygonMotionPaths[currentIndex] = newAnimationData;
-              }
+            if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+              return;
             }
-          });
 
-          let sequences = editorState.savedState.sequences;
+            let current_animation_data =
+              currentSequence?.polygonMotionPaths.find(
+                (p) => p.polygonId === currentObjectId
+              );
 
-          await saveSequencesData(sequences, editorState.saveTarget);
-        }}
-      >
-        Apply Perspective Y + Fade
-      </button>
+            if (!current_animation_data) {
+              return;
+            }
+
+            let newAnimationData = save_configurable_perspective_keyframes(
+              editorState,
+              currentObjectId,
+              objectType,
+              current_animation_data,
+              {
+                applyX: perspectiveX,
+                applyY: perspectiveY,
+                degrees: perspectiveDegrees,
+                fadeIn: perspectiveFadeIn,
+                fadeOut: perspectiveFadeOut,
+                animateTo: perspectiveAnimateTo,
+              }
+            );
+
+            editorState.savedState.sequences.forEach((s) => {
+              if (s.id == currentSequenceId) {
+                if (s.polygonMotionPaths) {
+                  let currentIndex = s.polygonMotionPaths.findIndex(
+                    (p) => p.id === current_animation_data.id
+                  );
+                  s.polygonMotionPaths[currentIndex] = newAnimationData;
+                }
+              }
+            });
+
+            let sequences = editorState.savedState.sequences;
+
+            await saveSequencesData(sequences, editorState.saveTarget);
+          }}
+        >
+          Apply Perspective Animation
+        </button>
+      </div>
       <button
         className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
         onClick={async () => {
