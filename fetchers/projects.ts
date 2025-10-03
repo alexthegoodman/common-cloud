@@ -593,17 +593,27 @@ export const resizeVideo = async (
   maxWidth = 1200,
   maxHeight = 900
 ) => {
-  const response = await fetch(
-    "https://stunts-inf-api.madebycommon.com/resize-video",
-    {
-      method: "POST",
-      headers: {
-        "X-Max-Width": maxWidth.toString(),
-        "X-Max-Height": maxHeight.toString(),
-      },
-      body: videoFile,
-    }
-  );
+  // const response = await fetch(
+  //   "https://stunts-inf-api.madebycommon.com/resize-video",
+  //   {
+  //     method: "POST",
+  //     headers: {
+  //       "X-Max-Width": maxWidth.toString(),
+  //       "X-Max-Height": maxHeight.toString(),
+  //     },
+  //     body: videoFile,
+  //   }
+  // );
+
+  const formData = new FormData();
+  formData.append("video", videoFile);
+  formData.append("maxWidth", maxWidth.toString());
+  formData.append("maxHeight", maxHeight.toString());
+
+  const response = await fetch("http://localhost:3002/resize-video", {
+    method: "POST",
+    body: formData,
+  });
 
   if (response.ok) {
     return await response.blob();

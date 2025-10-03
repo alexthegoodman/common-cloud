@@ -805,6 +805,14 @@ export class StVideo {
 
             // console.info("this.frameCallback", this.frameCallback);
 
+            // console.info(
+            //   "frameInfo",
+            //   frameInfo.width,
+            //   frameInfo.height,
+            //   frameInfo.frame.displayWidth,
+            //   frameInfo.frame.displayHeight
+            // );
+
             this.frameCallback?.(frameInfo);
             // frame.close();
           } catch (error) {
@@ -917,7 +925,7 @@ export class StVideo {
 
       this.videoDecoder!.decode(chunk);
 
-      // console.info("chunk decoded");
+      // console.info("chunk decoded", sample.data.length);
 
       this.currentSampleIndex++;
     });

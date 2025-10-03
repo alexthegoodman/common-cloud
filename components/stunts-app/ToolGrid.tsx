@@ -519,10 +519,12 @@ export const ToolGrid = ({
         setUserMessage(`Resizing video: ${name}...`);
 
         // send File to resizeVideo function
-        const resizedVideoBlob =
-          process.env.NODE_ENV === "production"
-            ? await resizeVideo(blob)
-            : blob;
+        // const resizedVideoBlob =
+        //   process.env.NODE_ENV === "production"
+        //     ? await resizeVideo(blob)
+        //     : blob;
+
+        const resizedVideoBlob = await resizeVideo(blob);
 
         if (!resizedVideoBlob) {
           throw new Error("Failed to resize video");
