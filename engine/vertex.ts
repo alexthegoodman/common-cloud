@@ -35,7 +35,7 @@ export interface Vertex {
 export function getZLayer(layer: number): number {
   const z = -((layer - INTERNAL_LAYER_SPACE) / 1000.0);
 
-  const zLayer = -1.0 - z;
+  const zLayer = -1.0 - z - 5.0;
 
   // const zLayer = 1.0 + z;
 

@@ -2640,7 +2640,7 @@ export class Editor {
             const start = startFrame.value.value; // Type assertion for clarity
             const end = endFrame.value.value;
 
-            const x = this.lerp(start, end, progress) * 0.001;
+            const x = this.lerp(start, end, progress) * 0.01;
 
             switch (animation.objectType) {
               case ObjectType.Polygon:
@@ -2672,7 +2672,7 @@ export class Editor {
             const start = startFrame.value.value; // Type assertion for clarity
             const end = endFrame.value.value;
 
-            const y = this.lerp(start, end, progress) * 0.001;
+            const y = this.lerp(start, end, progress) * 0.01;
 
             switch (animation.objectType) {
               case ObjectType.Polygon:
@@ -2820,7 +2820,7 @@ export class Editor {
                   originalScaleImage[1] * new_scale,
                 ] as [number, number];
                 this.imageItems[objectIdx].transform.updateScaleY(
-                  originalScaleImage[0] * new_scale
+                  originalScaleImage[1] * new_scale
                 );
                 break;
               case ObjectType.VideoItem:
@@ -3667,6 +3667,13 @@ export class Editor {
 
     console.info("bg poly", canvas_polygon);
 
+    canvas_polygon.transform.updateScale([20, 20]);
+    canvas_polygon.transform.layer = -89;
+    canvas_polygon.transform.updateUniformBuffer(
+      gpuResources.queue!,
+      camera.windowSize
+    );
+
     canvas_polygon.updateGradientAnimation(gpuResources.device!, 0.01);
 
     this.staticPolygons.push(canvas_polygon);
@@ -3718,6 +3725,14 @@ export class Editor {
           this.modelBindGroupLayout,
           newFill,
           camera
+        );
+
+        // update scale
+        selected_polygon.transform.updateScale([20, 20]);
+        selected_polygon.transform.layer = -89;
+        selected_polygon.transform.updateUniformBuffer(
+          gpuResources.queue!,
+          camera.windowSize
         );
 
         // switch (new_value_type) {
