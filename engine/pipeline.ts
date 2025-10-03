@@ -994,7 +994,7 @@ export class CanvasPipeline {
     for (const textItem of editor.textItems || []) {
       if (!textItem.hidden && textItem.indices) {
         // Draw background polygon if not hidden
-        if (!textItem.backgroundPolygon.hidden) {
+        if (!textItem.backgroundPolygon.hidden && !textItem.hiddenBackground) {
           if (
             editor.draggingText === textItem.backgroundPolygon.id ||
             editor.isPlaying
@@ -1147,7 +1147,8 @@ export class CanvasPipeline {
                 // Draw background polygon if not hidden
                 if (
                   sourceObject?.backgroundPolygon &&
-                  !sourceObject.backgroundPolygon.hidden
+                  !sourceObject.backgroundPolygon.hidden &&
+                  !sourceObject.hiddenBackground
                 ) {
                   if (editor.isPlaying) {
                     sourceObject.backgroundPolygon.transform.updateUniformBuffer(

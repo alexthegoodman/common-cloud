@@ -8,6 +8,7 @@ import {
   CANVAS_VERT_OFFSET,
   Point,
   rgbToWgpu,
+  TEXT_BACKGROUNDS_DEFAULT_HIDDEN,
   wgpuToHuman,
 } from "./editor";
 import { INTERNAL_LAYER_SPACE, Polygon, setupGradientBuffers } from "./polygon";
@@ -37,6 +38,7 @@ export interface TextRendererConfig {
   // backgroundFill: [number, number, number, number];
   backgroundFill: BackgroundFill;
   isCircle: boolean;
+  hiddenBackground?: boolean;
 }
 
 export interface SavedTextRendererConfig {
@@ -52,6 +54,7 @@ export interface SavedTextRendererConfig {
   // backgroundFill?: [number, number, number, number];
   backgroundFill: BackgroundFill;
   isCircle: boolean;
+  hiddenBackground?: boolean;
   // Text Animation Properties
   textAnimation?: TextAnimationConfig | null;
 }
@@ -110,6 +113,7 @@ export class TextRenderer {
   objectType: ObjectType;
   // textureView: GPUTextureView;
   isCircle: boolean;
+  hiddenBackground: boolean;
   // gradientBindGroup: PolyfillBindGroup;
 
   // Text Animation Properties
@@ -143,6 +147,10 @@ export class TextRenderer {
     this.currentSequenceId = currentSequenceId;
     this.objectType = ObjectType.TextItem;
     this.isCircle = textConfig.isCircle;
+    this.hiddenBackground =
+      typeof textConfig.hiddenBackground !== "undefined"
+        ? textConfig.hiddenBackground
+        : TEXT_BACKGROUNDS_DEFAULT_HIDDEN;
 
     this.glyphCache = new Map();
     this.atlasSize = [4096, 4096];
@@ -1446,6 +1454,7 @@ export class TextRenderer {
       fontSize: this.fontSize,
       backgroundFill: this.backgroundPolygon.backgroundFill,
       isCircle: this.backgroundPolygon.isCircle,
+      hiddenBackground: this.hiddenBackground,
     };
   }
 
@@ -1465,6 +1474,7 @@ export class TextRenderer {
       fontSize: this.fontSize,
       backgroundFill: this.backgroundPolygon.backgroundFill,
       isCircle: this.backgroundPolygon.isCircle,
+      hiddenBackground: this.hiddenBackground,
       textAnimation: this.animationConfig,
     };
   }

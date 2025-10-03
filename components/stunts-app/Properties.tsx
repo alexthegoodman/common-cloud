@@ -2,7 +2,13 @@
 
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { DebouncedInput, DebouncedTextarea } from "./items";
-import { colorToWgpu, Editor, rgbToWgpu, wgpuToHuman } from "@/engine/editor";
+import {
+  colorToWgpu,
+  Editor,
+  rgbToWgpu,
+  TEXT_BACKGROUNDS_DEFAULT_HIDDEN,
+  wgpuToHuman,
+} from "@/engine/editor";
 import EditorState, { SaveTarget } from "@/engine/editor_state";
 import {
   BackgroundFill,
@@ -22,6 +28,7 @@ import {
   updateBorderRadius,
   updateFontSize,
   updateHeight,
+  updateHiddenBackground,
   updateIsCircle,
   updatePositionX,
   updatePositionY,
@@ -1004,6 +1011,9 @@ export const TextProperties = ({
   const [defaultHeight, setDefaultHeight] = useState(0);
   const [defaultContent, setDefaultContent] = useState("");
   const [is_circle, set_is_circle] = useState(false);
+  const [hidden_background, set_hidden_background] = useState(
+    TEXT_BACKGROUNDS_DEFAULT_HIDDEN
+  );
   const [defaultFill, setDefaultFill] = useState<BackgroundFill | null>(null);
   const [fontSize, setFontSize] = useState(28);
 
@@ -1026,6 +1036,7 @@ export const TextProperties = ({
     let height = currentObject?.dimensions[1];
     let content = currentObject?.text;
     let isCircle = currentObject?.isCircle;
+    let hiddenBackground = currentObject?.hiddenBackground;
     let backgroundFill = currentObject?.backgroundFill;
     let fontSize = currentObject?.fontSize;
 
@@ -1040,6 +1051,9 @@ export const TextProperties = ({
     }
     if (typeof isCircle !== "undefined" && isCircle !== null) {
       set_is_circle(isCircle);
+    }
+    if (typeof hiddenBackground !== "undefined" && hiddenBackground !== null) {
+      set_hidden_background(hiddenBackground);
     }
     if (backgroundFill) {
       setDefaultFill(backgroundFill);
@@ -1217,6 +1231,32 @@ export const TextProperties = ({
         />
         <label htmlFor="is_circle" className="text-xs">
           Is Circle
+        </label>
+        <input
+          type="checkbox"
+          id="hidden_background"
+          name="hidden_background"
+          checked={hidden_background}
+          onChange={(ev) => {
+            let editor = editorRef.current;
+            let editorState = editorStateRef.current;
+
+            if (!editorState || !editor) {
+              return;
+            }
+
+            updateHiddenBackground(
+              editorState,
+              editor,
+              currentTextId,
+              ev.target.checked
+            );
+
+            set_hidden_background(ev.target.checked);
+          }}
+        />
+        <label htmlFor="hidden_background" className="text-xs">
+          Hide Background
         </label>
         <ColorProperties
           editorRef={editorRef}
@@ -1850,7 +1890,9 @@ export const AnimationOptions = ({
         </div>
       </div>
       <div className="flex flex-col gap-2 border-t pt-2 mt-2">
-        <h3 className="text-xs font-semibold text-gray-700">Scale & Fade Pulse</h3>
+        <h3 className="text-xs font-semibold text-gray-700">
+          Scale & Fade Pulse
+        </h3>
         <div className="flex flex-row items-center gap-2">
           <label className="text-xs text-gray-600 w-24">Start Scale:</label>
           <input
@@ -1887,7 +1929,9 @@ export const AnimationOptions = ({
           />
         </div>
         <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600 w-24">Ripple Intensity:</label>
+          <label className="text-xs text-gray-600 w-24">
+            Ripple Intensity:
+          </label>
           <input
             type="number"
             value={pulseRippleIntensity}
@@ -1949,9 +1993,10 @@ export const AnimationOptions = ({
               return;
             }
 
-            let current_animation_data = currentSequence?.polygonMotionPaths.find(
-              (p) => p.polygonId === currentObjectId
-            );
+            let current_animation_data =
+              currentSequence?.polygonMotionPaths.find(
+                (p) => p.polygonId === currentObjectId
+              );
 
             if (!current_animation_data) {
               return;

@@ -643,6 +643,34 @@ export function updateIsCircle(
   }
 }
 
+export function updateHiddenBackground(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: boolean
+) {
+  let text = editor.textItems.find((i) => i.id === objectId);
+
+  if (!text) {
+    return;
+  }
+
+  text.hiddenBackground = value;
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeTextItems.forEach((p) => {
+      if (p.id == objectId) {
+        p.hiddenBackground = value;
+      }
+    });
+  });
+
+  saveSequencesData(
+    editorState.savedState.sequences,
+    editorState.saveTarget
+  );
+}
+
 export function updateTextContent(
   editorState: EditorState,
   editor: Editor,

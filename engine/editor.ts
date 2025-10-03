@@ -1,5 +1,7 @@
 import { Buffer } from "buffer";
 
+export const TEXT_BACKGROUNDS_DEFAULT_HIDDEN = true;
+
 interface BBox {
   id: string;
   width: number;
