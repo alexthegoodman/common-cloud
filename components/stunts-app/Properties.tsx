@@ -1718,66 +1718,125 @@ export const AnimationOptions = ({
           </label>
         </div>
 
-        <button
-          className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-          onClick={async () => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
+        <div className="flex flex-row gap-2">
+          <button
+            className="text-xs rounded-md text-white stunts-gradient px-2 py-1 flex-1"
+            onClick={async () => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
 
-            if (!editorState || !editor) {
-              return;
-            }
+              if (!editorState || !editor) {
+                return;
+              }
 
-            let currentSequence = editorState.savedState.sequences.find(
-              (s) => s.id === currentSequenceId
-            );
-
-            if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-              return;
-            }
-
-            let current_animation_data =
-              currentSequence?.polygonMotionPaths.find(
-                (p) => p.polygonId === currentObjectId
+              let currentSequence = editorState.savedState.sequences.find(
+                (s) => s.id === currentSequenceId
               );
 
-            if (!current_animation_data) {
-              return;
-            }
-
-            let newAnimationData = save_configurable_perspective_keyframes(
-              editorState,
-              currentObjectId,
-              objectType,
-              current_animation_data,
-              {
-                applyX: perspectiveX,
-                applyY: perspectiveY,
-                degrees: perspectiveDegrees,
-                fadeIn: perspectiveFadeIn,
-                fadeOut: perspectiveFadeOut,
-                animateTo: perspectiveAnimateTo,
+              if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+                return;
               }
-            );
 
-            editorState.savedState.sequences.forEach((s) => {
-              if (s.id == currentSequenceId) {
-                if (s.polygonMotionPaths) {
-                  let currentIndex = s.polygonMotionPaths.findIndex(
-                    (p) => p.id === current_animation_data.id
-                  );
-                  s.polygonMotionPaths[currentIndex] = newAnimationData;
+              let current_animation_data =
+                currentSequence?.polygonMotionPaths.find(
+                  (p) => p.polygonId === currentObjectId
+                );
+
+              if (!current_animation_data) {
+                return;
+              }
+
+              let newAnimationData = save_configurable_perspective_keyframes(
+                editorState,
+                currentObjectId,
+                objectType,
+                current_animation_data,
+                {
+                  applyX: perspectiveX,
+                  applyY: perspectiveY,
+                  degrees: perspectiveDegrees,
+                  fadeIn: perspectiveFadeIn,
+                  fadeOut: perspectiveFadeOut,
+                  animateTo: perspectiveAnimateTo,
                 }
+              );
+
+              editorState.savedState.sequences.forEach((s) => {
+                if (s.id == currentSequenceId) {
+                  if (s.polygonMotionPaths) {
+                    let currentIndex = s.polygonMotionPaths.findIndex(
+                      (p) => p.id === current_animation_data.id
+                    );
+                    s.polygonMotionPaths[currentIndex] = newAnimationData;
+                  }
+                }
+              });
+
+              let sequences = editorState.savedState.sequences;
+
+              await saveSequencesData(sequences, editorState.saveTarget);
+            }}
+          >
+            Apply Perspective Animation
+          </button>
+          <button
+            className="text-xs rounded-md bg-gray-500 hover:bg-gray-600 text-white px-2 py-1"
+            onClick={async () => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+
+              if (!editorState || !editor) {
+                return;
               }
-            });
 
-            let sequences = editorState.savedState.sequences;
+              let currentSequence = editorState.savedState.sequences.find(
+                (s) => s.id === currentSequenceId
+              );
 
-            await saveSequencesData(sequences, editorState.saveTarget);
-          }}
-        >
-          Apply Perspective Animation
-        </button>
+              if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+                return;
+              }
+
+              let current_animation_data =
+                currentSequence?.polygonMotionPaths.find(
+                  (p) => p.polygonId === currentObjectId
+                );
+
+              if (!current_animation_data) {
+                return;
+              }
+
+              // Remove perspectiveX and perspectiveY properties
+              let properties = current_animation_data.properties.filter(
+                (p) =>
+                  p.propertyPath !== "perspectiveX" &&
+                  p.propertyPath !== "perspectiveY"
+              );
+
+              let newAnimationData = {
+                ...current_animation_data,
+                properties: properties,
+              };
+
+              editorState.savedState.sequences.forEach((s) => {
+                if (s.id == currentSequenceId) {
+                  if (s.polygonMotionPaths) {
+                    let currentIndex = s.polygonMotionPaths.findIndex(
+                      (p) => p.id === current_animation_data.id
+                    );
+                    s.polygonMotionPaths[currentIndex] = newAnimationData;
+                  }
+                }
+              });
+
+              let sequences = editorState.savedState.sequences;
+
+              await saveSequencesData(sequences, editorState.saveTarget);
+            }}
+          >
+            Clear Perspective
+          </button>
+        </div>
       </div>
       <button
         className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
