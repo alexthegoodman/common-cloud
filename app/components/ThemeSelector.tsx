@@ -83,9 +83,9 @@ export function ThemeSelector() {
             }}
           >
             <div
-              className="px-6 py-4 font-semibold text-lg"
+              className="px-4 py-2 font-semibold text-md"
               style={{
-                background: `linear-gradient(135deg, rgb(var(--theme-primary)), rgb(var(--theme-secondary)))`,
+                background: `rgb(var(--theme-primary))`,
                 color: "white",
               }}
             >
@@ -117,7 +117,7 @@ export function ThemeSelector() {
                     {t.colors.map((color, i) => (
                       <div
                         key={i}
-                        className="w-6 h-6 rounded-full border-2 border-white shadow-sm"
+                        className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
                         style={{ backgroundColor: color }}
                       />
                     ))}
