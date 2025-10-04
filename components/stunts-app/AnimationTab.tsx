@@ -831,7 +831,7 @@ export default function AnimationTab({
         {({ open }) => (
           <>
             <Disclosure.Button className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
-              <span>🪄 Generate Animation</span>
+              <span>Generate Animation</span>
               <ArrowDown
                 className={`${
                   open ? "rotate-180 transform" : ""
@@ -903,7 +903,7 @@ export default function AnimationTab({
                         </button> */}
 
                 {/* AI-Powered Animation Generation */}
-                <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                <div className="mt-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
                   <div className="flex items-center gap-2 mb-3">
                     <MagicWand size={16} className="text-purple-600" />
                     <h4 className="text-sm font-medium text-purple-900">
@@ -988,146 +988,12 @@ export default function AnimationTab({
         )}
       </Disclosure>
 
-      {/* Text Animations Accordion */}
-      <Disclosure as="div" className="mt-4">
-        {({ open }) => (
-          <>
-            <Disclosure.Button className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
-              <span className="flex items-center gap-2">
-                🔥 Text Animations
-              </span>
-              <ArrowDown
-                className={`${
-                  open ? "rotate-180 transform" : ""
-                } h-5 w-5 text-gray-500`}
-              />
-            </Disclosure.Button>
-            <Disclosure.Panel className="px-4 pt-4 pb-2">
-              {/* Text Selection */}
-              <div className="mb-4 space-y-2">
-                <label className="text-xs text-gray-600">
-                  Select Text Element:
-                </label>
-                <select
-                  className="text-xs border rounded px-2 py-1 w-full"
-                  value={selectedTextId || ""}
-                  onChange={(e) => setSelectedTextId(e.target.value || null)}
-                >
-                  <option value="">Choose text element...</option>
-                  {editorRef.current?.textItems
-                    .filter((t) => !t.hidden)
-                    .map((text) => (
-                      <option key={text.id} value={text.id}>
-                        {text.name} - "{text.text.slice(0, 20)}..."
-                      </option>
-                    ))}
-                </select>
-              </div>
-
-              {selectedTextId && (
-                <div className="space-y-3">
-                  {/* Quick Viral Presets */}
-                  <div>
-                    <label className="text-xs text-gray-600 mb-2 block">
-                      🔥 Viral Presets:
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() =>
-                          handleTextAnimationSelect(VIRAL_PRESETS.TIKTOK_HOOK)
-                        }
-                        className="text-xs py-2 px-3 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                      >
-                        🎯 TikTok Hook
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleTextAnimationSelect(VIRAL_PRESETS.INSTAGRAM_POP)
-                        }
-                        className="text-xs py-2 px-3 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
-                      >
-                        💥 Instagram Pop
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleTextAnimationSelect(VIRAL_PRESETS.YOUTUBE_WAVE)
-                        }
-                        className="text-xs py-2 px-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                      >
-                        🌊 YouTube Wave
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleTextAnimationSelect(
-                            VIRAL_PRESETS.ATTENTION_GRABBER
-                          )
-                        }
-                        className="text-xs py-2 px-3 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors"
-                      >
-                        ⚡ Bounce
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Stylish Effects */}
-                  <div>
-                    <label className="text-xs text-gray-600 mb-2 block">
-                      ✨ Stylish Effects:
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() =>
-                          handleTextAnimationSelect(VIRAL_PRESETS.NEON_STYLE)
-                        }
-                        className="text-xs py-2 px-3 bg-cyan-500 text-white rounded hover:bg-cyan-600 transition-colors"
-                      >
-                        ✨ Neon Glow
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleTextAnimationSelect(VIRAL_PRESETS.MATRIX_EFFECT)
-                        }
-                        className="text-xs py-2 px-3 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-                      >
-                        🎯 Matrix Glitch
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleTextAnimationSelect(VIRAL_PRESETS.RAINBOW_FLOW)
-                        }
-                        className="text-xs py-2 px-3 bg-pink-500 text-white rounded hover:bg-pink-600 transition-colors"
-                      >
-                        🌈 Rainbow Flow
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleTextAnimationSelect(
-                            VIRAL_PRESETS.ELASTIC_BOUNCE
-                          )
-                        }
-                        className="text-xs py-2 px-3 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
-                      >
-                        🎪 Elastic
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="text-xs text-gray-500 text-center">
-                    Perfect for TikTok, Instagram Reels & YouTube Shorts!
-                  </div>
-                </div>
-              )}
-            </Disclosure.Panel>
-          </>
-        )}
-      </Disclosure>
-
       {/* Choreographed Animation Templates Accordion */}
       <Disclosure as="div" className="mt-4">
         {({ open }) => (
           <>
             <Disclosure.Button className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
-              <span>🎭 Choreographed Templates</span>
+              <span>Choreographed Templates</span>
               <ArrowDown
                 className={`${
                   open ? "rotate-180 transform" : ""
@@ -1490,7 +1356,7 @@ export default function AnimationTab({
         {({ open }) => (
           <>
             <Disclosure.Button className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
-              <span>📸 Collage Templates</span>
+              <span>Collage Templates</span>
               <ArrowDown
                 className={`${
                   open ? "rotate-180 transform" : ""
@@ -1851,8 +1717,8 @@ export default function AnimationTab({
       <Disclosure as="div" className="mt-4 mb-4">
         {({ open }) => (
           <>
-            <Disclosure.Button className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-green-100 rounded-lg hover:bg-green-200 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
-              <span>🖼️ Screen-Filling Templates</span>
+            <Disclosure.Button className="flex justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
+              <span>Screen-Filling Templates</span>
               <ArrowDown
                 className={`${
                   open ? "rotate-180 transform" : ""
