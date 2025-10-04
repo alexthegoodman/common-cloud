@@ -2065,6 +2065,9 @@ export const AnimationOptions = ({
   const [perspectiveAnimateTo, setPerspectiveAnimateTo] =
     useState<boolean>(false);
 
+  const [showProceduralAnimations, setShowProceduralAnimations] =
+    useState<boolean>(false);
+
   return (
     <div className="flex flex-col gap-2">
       <p>Apply Animations</p>
@@ -2130,6 +2133,8 @@ export const AnimationOptions = ({
       >
         Remove Position Keyframes
       </button>
+
+      {/** Perspective Animation Panel */}
       <div className="flex flex-col gap-2 p-2 border rounded">
         <p className="text-xs font-semibold">Perspective Animation</p>
 
@@ -2325,1020 +2330,1060 @@ export const AnimationOptions = ({
           </button>
         </div>
       </div>
-      <div className="flex flex-col gap-2 border-t pt-2 mt-2">
-        <h3 className="text-xs font-semibold text-gray-700">
-          Scale & Fade Pulse
-        </h3>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600 w-24">Start Scale:</label>
-          <input
-            type="number"
-            value={pulseStartScale}
-            onChange={(e) => setPulseStartScale(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="10"
-            max="500"
-          />
-          <span className="text-xs text-gray-500">%</span>
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600 w-24">Target Scale:</label>
-          <input
-            type="number"
-            value={pulseTargetScale}
-            onChange={(e) => setPulseTargetScale(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="10"
-            max="500"
-          />
-          <span className="text-xs text-gray-500">%</span>
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600 w-24">Ripples:</label>
-          <input
-            type="number"
-            value={pulseRippleCount}
-            onChange={(e) => setPulseRippleCount(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="0"
-            max="5"
-          />
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600 w-24">
-            Ripple Intensity:
-          </label>
-          <input
-            type="number"
-            value={pulseRippleIntensity}
-            onChange={(e) => setPulseRippleIntensity(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="0"
-            max="50"
-          />
-          <span className="text-xs text-gray-500">%</span>
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600 w-24">Duration:</label>
-          <input
-            type="number"
-            value={pulseDuration}
-            onChange={(e) => setPulseDuration(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-20"
-            min="500"
-            max="20000"
-            step="500"
-          />
-          <span className="text-xs text-gray-500">ms</span>
-        </div>
-        <div className="flex flex-row items-center gap-4">
-          <label className="flex items-center gap-1 text-xs">
-            <input
-              type="checkbox"
-              checked={pulseFadeIn}
-              onChange={(e) => setPulseFadeIn(e.target.checked)}
-              className="rounded"
-            />
-            Fade In
-          </label>
-          <label className="flex items-center gap-1 text-xs">
-            <input
-              type="checkbox"
-              checked={pulseFadeOut}
-              onChange={(e) => setPulseFadeOut(e.target.checked)}
-              className="rounded"
-            />
-            Fade Out
-          </label>
-        </div>
-        <button
-          className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-          onClick={async () => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
 
-            if (!editorState || !editor) {
-              return;
-            }
-
-            let currentSequence = editorState.savedState.sequences.find(
-              (s) => s.id === currentSequenceId
-            );
-
-            if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-              return;
-            }
-
-            let current_animation_data =
-              currentSequence?.polygonMotionPaths.find(
-                (p) => p.polygonId === currentObjectId
-              );
-
-            if (!current_animation_data) {
-              return;
-            }
-
-            const config: ScaleFadePulseConfig = {
-              startScale: pulseStartScale,
-              targetScale: pulseTargetScale,
-              rippleCount: pulseRippleCount,
-              rippleIntensity: pulseRippleIntensity,
-              durationMs: pulseDuration,
-              fadeIn: pulseFadeIn,
-              fadeOut: pulseFadeOut,
-            };
-
-            let newAnimationData = save_scale_fade_pulse_keyframes(
-              editorState,
-              currentObjectId,
-              objectType,
-              current_animation_data,
-              config
-            );
-
-            editorState.savedState.sequences.forEach((s) => {
-              if (s.id == currentSequenceId) {
-                if (s.polygonMotionPaths) {
-                  let currentIndex = s.polygonMotionPaths.findIndex(
-                    (p) => p.id === current_animation_data.id
-                  );
-                  s.polygonMotionPaths[currentIndex] = newAnimationData;
+      <button
+        className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+        onClick={() => setShowProceduralAnimations(!showProceduralAnimations)}
+      >
+        View Procedural Animations
+      </button>
+      {showProceduralAnimations ? (
+        <section className="flex flex-col gap-2 p-2 border rounded">
+          <div className="flex flex-col gap-2 border-t pt-2 mt-2">
+            <h3 className="text-xs font-semibold text-gray-700">
+              Scale & Fade Pulse
+            </h3>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600 w-24">Start Scale:</label>
+              <input
+                type="number"
+                value={pulseStartScale}
+                onChange={(e) => setPulseStartScale(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="10"
+                max="500"
+              />
+              <span className="text-xs text-gray-500">%</span>
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600 w-24">
+                Target Scale:
+              </label>
+              <input
+                type="number"
+                value={pulseTargetScale}
+                onChange={(e) => setPulseTargetScale(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="10"
+                max="500"
+              />
+              <span className="text-xs text-gray-500">%</span>
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600 w-24">Ripples:</label>
+              <input
+                type="number"
+                value={pulseRippleCount}
+                onChange={(e) => setPulseRippleCount(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="0"
+                max="5"
+              />
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600 w-24">
+                Ripple Intensity:
+              </label>
+              <input
+                type="number"
+                value={pulseRippleIntensity}
+                onChange={(e) =>
+                  setPulseRippleIntensity(Number(e.target.value))
                 }
-              }
-            });
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="0"
+                max="50"
+              />
+              <span className="text-xs text-gray-500">%</span>
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600 w-24">Duration:</label>
+              <input
+                type="number"
+                value={pulseDuration}
+                onChange={(e) => setPulseDuration(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-20"
+                min="500"
+                max="20000"
+                step="500"
+              />
+              <span className="text-xs text-gray-500">ms</span>
+            </div>
+            <div className="flex flex-row items-center gap-4">
+              <label className="flex items-center gap-1 text-xs">
+                <input
+                  type="checkbox"
+                  checked={pulseFadeIn}
+                  onChange={(e) => setPulseFadeIn(e.target.checked)}
+                  className="rounded"
+                />
+                Fade In
+              </label>
+              <label className="flex items-center gap-1 text-xs">
+                <input
+                  type="checkbox"
+                  checked={pulseFadeOut}
+                  onChange={(e) => setPulseFadeOut(e.target.checked)}
+                  className="rounded"
+                />
+                Fade Out
+              </label>
+            </div>
+            <button
+              className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+              onClick={async () => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
 
-            let sequences = editorState.savedState.sequences;
-
-            await saveSequencesData(sequences, editorState.saveTarget);
-          }}
-        >
-          Apply Scale & Fade Pulse
-        </button>
-      </div>
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Radius:</label>
-          <input
-            type="number"
-            value={circularRadius}
-            onChange={(e) => setCircularRadius(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="1"
-            max="1000"
-          />
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Rotation:</label>
-          <input
-            type="number"
-            value={circularRotation}
-            onChange={(e) => setCircularRotation(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="0"
-            max="360"
-          />
-          <span className="text-xs text-gray-500">°</span>
-        </div>
-        <button
-          className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-          onClick={async () => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
-
-            if (!editorState || !editor) {
-              return;
-            }
-
-            let currentSequence = editorState.savedState.sequences.find(
-              (s) => s.id === currentSequenceId
-            );
-
-            if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-              return;
-            }
-
-            let currentObject = null;
-            switch (objectType) {
-              case ObjectType.Polygon:
-                currentObject = currentSequence.activePolygons.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-              case ObjectType.TextItem:
-                currentObject = currentSequence.activeTextItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-              case ObjectType.ImageItem:
-                currentObject = currentSequence.activeImageItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-              case ObjectType.VideoItem:
-                currentObject = currentSequence.activeVideoItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-            }
-
-            let current_animation_data =
-              currentSequence?.polygonMotionPaths.find(
-                (p) => p.polygonId === currentObjectId
-              );
-
-            if (!current_animation_data) {
-              return;
-            }
-
-            let newAnimationData = save_circular_motion_keyframes(
-              editorState,
-              currentObjectId,
-              objectType,
-              current_animation_data,
-              [currentObject?.position.x || 0, currentObject?.position.y || 0],
-              circularRadius,
-              circularRotation
-            );
-
-            let sequence_cloned = null;
-
-            editorState.savedState.sequences.forEach((s) => {
-              if (s.id == currentSequenceId) {
-                sequence_cloned = s;
-
-                if (s.polygonMotionPaths) {
-                  let currentIndex = s.polygonMotionPaths.findIndex(
-                    (p) => p.id === current_animation_data.id
-                  );
-                  s.polygonMotionPaths[currentIndex] = newAnimationData;
+                if (!editorState || !editor) {
+                  return;
                 }
-              }
-            });
 
-            if (!sequence_cloned) {
-              return;
-            }
-
-            let sequences = editorState.savedState.sequences;
-
-            await saveSequencesData(sequences, editorState.saveTarget);
-
-            // update motion path preview
-            editor.updateMotionPaths(sequence_cloned);
-          }}
-        >
-          Transform Motion Path to Circle
-        </button>
-      </div>
-
-      {/* Pendulum Swing Animation */}
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Swing Width:</label>
-          <input
-            type="number"
-            value={pendulumWidth}
-            onChange={(e) => setPendulumWidth(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="10"
-            max="500"
-          />
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Periods:</label>
-          <input
-            type="number"
-            value={pendulumPeriods}
-            onChange={(e) => setPendulumPeriods(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="1"
-            max="10"
-            step="0.5"
-          />
-        </div>
-        <button
-          className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-          onClick={async () => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
-
-            if (!editorState || !editor) {
-              return;
-            }
-
-            let currentSequence = editorState.savedState.sequences.find(
-              (s) => s.id === currentSequenceId
-            );
-
-            if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-              return;
-            }
-
-            let currentObject = null;
-            switch (objectType) {
-              case ObjectType.Polygon:
-                currentObject = currentSequence.activePolygons.find(
-                  (p) => p.id === currentObjectId
+                let currentSequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
                 );
-                break;
-              case ObjectType.TextItem:
-                currentObject = currentSequence.activeTextItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-              case ObjectType.ImageItem:
-                currentObject = currentSequence.activeImageItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-              case ObjectType.VideoItem:
-                currentObject = currentSequence.activeVideoItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-            }
 
-            let current_animation_data =
-              currentSequence?.polygonMotionPaths.find(
-                (p) => p.polygonId === currentObjectId
-              );
-
-            if (!current_animation_data) {
-              return;
-            }
-
-            let newAnimationData = save_pendulum_swing_keyframes(
-              editorState,
-              currentObjectId,
-              objectType,
-              current_animation_data,
-              [currentObject?.position.x || 0, currentObject?.position.y || 0],
-              pendulumWidth,
-              pendulumPeriods
-            );
-
-            let sequence_cloned = null;
-
-            editorState.savedState.sequences.forEach((s) => {
-              if (s.id == currentSequenceId) {
-                sequence_cloned = s;
-
-                if (s.polygonMotionPaths) {
-                  let currentIndex = s.polygonMotionPaths.findIndex(
-                    (p) => p.id === current_animation_data.id
-                  );
-                  s.polygonMotionPaths[currentIndex] = newAnimationData;
+                if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+                  return;
                 }
-              }
-            });
 
-            if (!sequence_cloned) {
-              return;
-            }
-
-            let sequences = editorState.savedState.sequences;
-
-            await saveSequencesData(sequences, editorState.saveTarget);
-
-            // update motion path preview
-            editor.updateMotionPaths(sequence_cloned);
-          }}
-        >
-          Transform Motion Path to Pendulum Swing
-        </button>
-      </div>
-
-      {/* Figure-8 Infinity Animation */}
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Width:</label>
-          <input
-            type="number"
-            value={figureEightWidth}
-            onChange={(e) => setFigureEightWidth(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="50"
-            max="500"
-          />
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Height:</label>
-          <input
-            type="number"
-            value={figureEightHeight}
-            onChange={(e) => setFigureEightHeight(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="25"
-            max="300"
-          />
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Loops:</label>
-          <input
-            type="number"
-            value={figureEightLoops}
-            onChange={(e) => setFigureEightLoops(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="1"
-            max="5"
-          />
-        </div>
-        <button
-          className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-          onClick={async () => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
-
-            if (!editorState || !editor) {
-              return;
-            }
-
-            let currentSequence = editorState.savedState.sequences.find(
-              (s) => s.id === currentSequenceId
-            );
-
-            if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-              return;
-            }
-
-            let currentObject = null;
-            switch (objectType) {
-              case ObjectType.Polygon:
-                currentObject = currentSequence.activePolygons.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-              case ObjectType.TextItem:
-                currentObject = currentSequence.activeTextItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-              case ObjectType.ImageItem:
-                currentObject = currentSequence.activeImageItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-              case ObjectType.VideoItem:
-                currentObject = currentSequence.activeVideoItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-            }
-
-            let current_animation_data =
-              currentSequence?.polygonMotionPaths.find(
-                (p) => p.polygonId === currentObjectId
-              );
-
-            if (!current_animation_data) {
-              return;
-            }
-
-            let newAnimationData = save_figure_eight_keyframes(
-              editorState,
-              currentObjectId,
-              objectType,
-              current_animation_data,
-              [currentObject?.position.x || 0, currentObject?.position.y || 0],
-              figureEightWidth,
-              figureEightHeight,
-              figureEightLoops
-            );
-
-            let sequence_cloned = null;
-
-            editorState.savedState.sequences.forEach((s) => {
-              if (s.id == currentSequenceId) {
-                sequence_cloned = s;
-
-                if (s.polygonMotionPaths) {
-                  let currentIndex = s.polygonMotionPaths.findIndex(
-                    (p) => p.id === current_animation_data.id
+                let current_animation_data =
+                  currentSequence?.polygonMotionPaths.find(
+                    (p) => p.polygonId === currentObjectId
                   );
-                  s.polygonMotionPaths[currentIndex] = newAnimationData;
+
+                if (!current_animation_data) {
+                  return;
                 }
-              }
-            });
 
-            if (!sequence_cloned) {
-              return;
-            }
+                const config: ScaleFadePulseConfig = {
+                  startScale: pulseStartScale,
+                  targetScale: pulseTargetScale,
+                  rippleCount: pulseRippleCount,
+                  rippleIntensity: pulseRippleIntensity,
+                  durationMs: pulseDuration,
+                  fadeIn: pulseFadeIn,
+                  fadeOut: pulseFadeOut,
+                };
 
-            let sequences = editorState.savedState.sequences;
-
-            await saveSequencesData(sequences, editorState.saveTarget);
-
-            // update motion path preview
-            editor.updateMotionPaths(sequence_cloned);
-          }}
-        >
-          Transform Motion Path to Figure-8 Infinity
-        </button>
-      </div>
-
-      {/* Ripple Effect Animation */}
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Max Scale:</label>
-          <input
-            type="number"
-            value={rippleMaxScale}
-            onChange={(e) => setRippleMaxScale(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="1.5"
-            max="10"
-            step="0.5"
-          />
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Ripples:</label>
-          <input
-            type="number"
-            value={rippleCount}
-            onChange={(e) => setRippleCount(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="1"
-            max="5"
-          />
-        </div>
-        <button
-          className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-          onClick={async () => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
-
-            if (!editorState || !editor) {
-              return;
-            }
-
-            let currentSequence = editorState.savedState.sequences.find(
-              (s) => s.id === currentSequenceId
-            );
-
-            if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-              return;
-            }
-
-            let currentObject = null;
-            switch (objectType) {
-              case ObjectType.Polygon:
-                currentObject = currentSequence.activePolygons.find(
-                  (p) => p.id === currentObjectId
+                let newAnimationData = save_scale_fade_pulse_keyframes(
+                  editorState,
+                  currentObjectId,
+                  objectType,
+                  current_animation_data,
+                  config
                 );
-                break;
-              case ObjectType.TextItem:
-                currentObject = currentSequence.activeTextItems.find(
-                  (p) => p.id === currentObjectId
+
+                editorState.savedState.sequences.forEach((s) => {
+                  if (s.id == currentSequenceId) {
+                    if (s.polygonMotionPaths) {
+                      let currentIndex = s.polygonMotionPaths.findIndex(
+                        (p) => p.id === current_animation_data.id
+                      );
+                      s.polygonMotionPaths[currentIndex] = newAnimationData;
+                    }
+                  }
+                });
+
+                let sequences = editorState.savedState.sequences;
+
+                await saveSequencesData(sequences, editorState.saveTarget);
+              }}
+            >
+              Apply Scale & Fade Pulse
+            </button>
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Radius:</label>
+              <input
+                type="number"
+                value={circularRadius}
+                onChange={(e) => setCircularRadius(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="1"
+                max="1000"
+              />
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Rotation:</label>
+              <input
+                type="number"
+                value={circularRotation}
+                onChange={(e) => setCircularRotation(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="0"
+                max="360"
+              />
+              <span className="text-xs text-gray-500">°</span>
+            </div>
+            <button
+              className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+              onClick={async () => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let currentSequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
                 );
-                break;
-              case ObjectType.ImageItem:
-                currentObject = currentSequence.activeImageItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-              case ObjectType.VideoItem:
-                currentObject = currentSequence.activeVideoItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-            }
 
-            let current_animation_data =
-              currentSequence?.polygonMotionPaths.find(
-                (p) => p.polygonId === currentObjectId
-              );
+                if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+                  return;
+                }
 
-            if (!current_animation_data) {
-              return;
-            }
+                let currentObject = null;
+                switch (objectType) {
+                  case ObjectType.Polygon:
+                    currentObject = currentSequence.activePolygons.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.TextItem:
+                    currentObject = currentSequence.activeTextItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.ImageItem:
+                    currentObject = currentSequence.activeImageItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.VideoItem:
+                    currentObject = currentSequence.activeVideoItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                }
 
-            let newAnimationData = save_ripple_effect_keyframes(
-              editorState,
-              currentObjectId,
-              objectType,
-              current_animation_data,
-              [currentObject?.position.x || 0, currentObject?.position.y || 0],
-              rippleMaxScale,
-              rippleCount
-            );
-
-            let sequence_cloned = null;
-
-            editorState.savedState.sequences.forEach((s) => {
-              if (s.id == currentSequenceId) {
-                sequence_cloned = s;
-
-                if (s.polygonMotionPaths) {
-                  let currentIndex = s.polygonMotionPaths.findIndex(
-                    (p) => p.id === current_animation_data.id
+                let current_animation_data =
+                  currentSequence?.polygonMotionPaths.find(
+                    (p) => p.polygonId === currentObjectId
                   );
-                  s.polygonMotionPaths[currentIndex] = newAnimationData;
+
+                if (!current_animation_data) {
+                  return;
                 }
-              }
-            });
 
-            if (!sequence_cloned) {
-              return;
-            }
-
-            let sequences = editorState.savedState.sequences;
-
-            await saveSequencesData(sequences, editorState.saveTarget);
-
-            // update motion path preview
-            editor.updateMotionPaths(sequence_cloned);
-          }}
-        >
-          Transform Motion Path to Ripple Effect
-        </button>
-      </div>
-
-      {/* Spiral Motion Animation */}
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Max Radius:</label>
-          <input
-            type="number"
-            value={spiralMaxRadius}
-            onChange={(e) => setSpiralMaxRadius(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="50"
-            max="400"
-          />
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Turns:</label>
-          <input
-            type="number"
-            value={spiralTurns}
-            onChange={(e) => setSpiralTurns(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="1"
-            max="10"
-            step="0.5"
-          />
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Type:</label>
-          <select
-            value={spiralExpanding ? "expanding" : "contracting"}
-            onChange={(e) => setSpiralExpanding(e.target.value === "expanding")}
-            className="text-xs border rounded px-2 py-1 w-24"
-          >
-            <option value="expanding">Expanding</option>
-            <option value="contracting">Contracting</option>
-          </select>
-        </div>
-        <button
-          className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-          onClick={async () => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
-
-            if (!editorState || !editor) {
-              return;
-            }
-
-            let currentSequence = editorState.savedState.sequences.find(
-              (s) => s.id === currentSequenceId
-            );
-
-            if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-              return;
-            }
-
-            let currentObject = null;
-            switch (objectType) {
-              case ObjectType.Polygon:
-                currentObject = currentSequence.activePolygons.find(
-                  (p) => p.id === currentObjectId
+                let newAnimationData = save_circular_motion_keyframes(
+                  editorState,
+                  currentObjectId,
+                  objectType,
+                  current_animation_data,
+                  [
+                    currentObject?.position.x || 0,
+                    currentObject?.position.y || 0,
+                  ],
+                  circularRadius,
+                  circularRotation
                 );
-                break;
-              case ObjectType.TextItem:
-                currentObject = currentSequence.activeTextItems.find(
-                  (p) => p.id === currentObjectId
+
+                let sequence_cloned = null;
+
+                editorState.savedState.sequences.forEach((s) => {
+                  if (s.id == currentSequenceId) {
+                    sequence_cloned = s;
+
+                    if (s.polygonMotionPaths) {
+                      let currentIndex = s.polygonMotionPaths.findIndex(
+                        (p) => p.id === current_animation_data.id
+                      );
+                      s.polygonMotionPaths[currentIndex] = newAnimationData;
+                    }
+                  }
+                });
+
+                if (!sequence_cloned) {
+                  return;
+                }
+
+                let sequences = editorState.savedState.sequences;
+
+                await saveSequencesData(sequences, editorState.saveTarget);
+
+                // update motion path preview
+                editor.updateMotionPaths(sequence_cloned);
+              }}
+            >
+              Transform Motion Path to Circle
+            </button>
+          </div>
+
+          {/* Pendulum Swing Animation */}
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Swing Width:</label>
+              <input
+                type="number"
+                value={pendulumWidth}
+                onChange={(e) => setPendulumWidth(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="10"
+                max="500"
+              />
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Periods:</label>
+              <input
+                type="number"
+                value={pendulumPeriods}
+                onChange={(e) => setPendulumPeriods(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="1"
+                max="10"
+                step="0.5"
+              />
+            </div>
+            <button
+              className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+              onClick={async () => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let currentSequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
                 );
-                break;
-              case ObjectType.ImageItem:
-                currentObject = currentSequence.activeImageItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-              case ObjectType.VideoItem:
-                currentObject = currentSequence.activeVideoItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-            }
 
-            let current_animation_data =
-              currentSequence?.polygonMotionPaths.find(
-                (p) => p.polygonId === currentObjectId
-              );
+                if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+                  return;
+                }
 
-            if (!current_animation_data) {
-              return;
-            }
+                let currentObject = null;
+                switch (objectType) {
+                  case ObjectType.Polygon:
+                    currentObject = currentSequence.activePolygons.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.TextItem:
+                    currentObject = currentSequence.activeTextItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.ImageItem:
+                    currentObject = currentSequence.activeImageItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.VideoItem:
+                    currentObject = currentSequence.activeVideoItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                }
 
-            let newAnimationData = save_spiral_motion_keyframes(
-              editorState,
-              currentObjectId,
-              objectType,
-              current_animation_data,
-              [currentObject?.position.x || 0, currentObject?.position.y || 0],
-              spiralMaxRadius,
-              spiralTurns,
-              spiralExpanding ? "outward" : "inward"
-            );
-
-            let sequence_cloned = null;
-
-            editorState.savedState.sequences.forEach((s) => {
-              if (s.id == currentSequenceId) {
-                sequence_cloned = s;
-
-                if (s.polygonMotionPaths) {
-                  let currentIndex = s.polygonMotionPaths.findIndex(
-                    (p) => p.id === current_animation_data.id
+                let current_animation_data =
+                  currentSequence?.polygonMotionPaths.find(
+                    (p) => p.polygonId === currentObjectId
                   );
-                  s.polygonMotionPaths[currentIndex] = newAnimationData;
+
+                if (!current_animation_data) {
+                  return;
                 }
-              }
-            });
 
-            if (!sequence_cloned) {
-              return;
-            }
-
-            let sequences = editorState.savedState.sequences;
-
-            await saveSequencesData(sequences, editorState.saveTarget);
-
-            // update motion path preview
-            editor.updateMotionPaths(sequence_cloned);
-          }}
-        >
-          Transform Motion Path to Spiral Motion
-        </button>
-      </div>
-
-      {/* Bouncing Ball Animation */}
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Bounce Height:</label>
-          <input
-            type="number"
-            value={bounceHeight}
-            onChange={(e) => setBounceHeight(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="50"
-            max="500"
-          />
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Bounces:</label>
-          <input
-            type="number"
-            value={bounceCount}
-            onChange={(e) => setBounceCount(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="1"
-            max="10"
-          />
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Damping:</label>
-          <input
-            type="number"
-            value={bounceDamping}
-            onChange={(e) => setBounceDamping(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="0.1"
-            max="1.0"
-            step="0.1"
-          />
-        </div>
-        <button
-          className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-          onClick={async () => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
-
-            if (!editorState || !editor) {
-              return;
-            }
-
-            let currentSequence = editorState.savedState.sequences.find(
-              (s) => s.id === currentSequenceId
-            );
-
-            if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-              return;
-            }
-
-            let currentObject = null;
-            switch (objectType) {
-              case ObjectType.Polygon:
-                currentObject = currentSequence.activePolygons.find(
-                  (p) => p.id === currentObjectId
+                let newAnimationData = save_pendulum_swing_keyframes(
+                  editorState,
+                  currentObjectId,
+                  objectType,
+                  current_animation_data,
+                  [
+                    currentObject?.position.x || 0,
+                    currentObject?.position.y || 0,
+                  ],
+                  pendulumWidth,
+                  pendulumPeriods
                 );
-                break;
-              case ObjectType.TextItem:
-                currentObject = currentSequence.activeTextItems.find(
-                  (p) => p.id === currentObjectId
+
+                let sequence_cloned = null;
+
+                editorState.savedState.sequences.forEach((s) => {
+                  if (s.id == currentSequenceId) {
+                    sequence_cloned = s;
+
+                    if (s.polygonMotionPaths) {
+                      let currentIndex = s.polygonMotionPaths.findIndex(
+                        (p) => p.id === current_animation_data.id
+                      );
+                      s.polygonMotionPaths[currentIndex] = newAnimationData;
+                    }
+                  }
+                });
+
+                if (!sequence_cloned) {
+                  return;
+                }
+
+                let sequences = editorState.savedState.sequences;
+
+                await saveSequencesData(sequences, editorState.saveTarget);
+
+                // update motion path preview
+                editor.updateMotionPaths(sequence_cloned);
+              }}
+            >
+              Transform Motion Path to Pendulum Swing
+            </button>
+          </div>
+
+          {/* Figure-8 Infinity Animation */}
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Width:</label>
+              <input
+                type="number"
+                value={figureEightWidth}
+                onChange={(e) => setFigureEightWidth(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="50"
+                max="500"
+              />
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Height:</label>
+              <input
+                type="number"
+                value={figureEightHeight}
+                onChange={(e) => setFigureEightHeight(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="25"
+                max="300"
+              />
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Loops:</label>
+              <input
+                type="number"
+                value={figureEightLoops}
+                onChange={(e) => setFigureEightLoops(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="1"
+                max="5"
+              />
+            </div>
+            <button
+              className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+              onClick={async () => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let currentSequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
                 );
-                break;
-              case ObjectType.ImageItem:
-                currentObject = currentSequence.activeImageItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-              case ObjectType.VideoItem:
-                currentObject = currentSequence.activeVideoItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-            }
 
-            let current_animation_data =
-              currentSequence?.polygonMotionPaths.find(
-                (p) => p.polygonId === currentObjectId
-              );
+                if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+                  return;
+                }
 
-            if (!current_animation_data) {
-              return;
-            }
+                let currentObject = null;
+                switch (objectType) {
+                  case ObjectType.Polygon:
+                    currentObject = currentSequence.activePolygons.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.TextItem:
+                    currentObject = currentSequence.activeTextItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.ImageItem:
+                    currentObject = currentSequence.activeImageItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.VideoItem:
+                    currentObject = currentSequence.activeVideoItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                }
 
-            let newAnimationData = save_bouncing_ball_keyframes(
-              editorState,
-              currentObjectId,
-              objectType,
-              current_animation_data,
-              [currentObject?.position.x || 0, currentObject?.position.y || 0],
-              bounceHeight,
-              bounceCount,
-              bounceDamping
-            );
-
-            let sequence_cloned = null;
-
-            editorState.savedState.sequences.forEach((s) => {
-              if (s.id == currentSequenceId) {
-                sequence_cloned = s;
-
-                if (s.polygonMotionPaths) {
-                  let currentIndex = s.polygonMotionPaths.findIndex(
-                    (p) => p.id === current_animation_data.id
+                let current_animation_data =
+                  currentSequence?.polygonMotionPaths.find(
+                    (p) => p.polygonId === currentObjectId
                   );
-                  s.polygonMotionPaths[currentIndex] = newAnimationData;
+
+                if (!current_animation_data) {
+                  return;
                 }
-              }
-            });
 
-            if (!sequence_cloned) {
-              return;
-            }
-
-            let sequences = editorState.savedState.sequences;
-
-            await saveSequencesData(sequences, editorState.saveTarget);
-
-            // update motion path preview
-            editor.updateMotionPaths(sequence_cloned);
-          }}
-        >
-          Transform Motion Path to Bouncing Ball
-        </button>
-      </div>
-
-      {/* Floating Bubbles Animation */}
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Rise Height:</label>
-          <input
-            type="number"
-            value={bubbleRiseHeight}
-            onChange={(e) => setBubbleRiseHeight(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="100"
-            max="600"
-          />
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Drift Width:</label>
-          <input
-            type="number"
-            value={bubbleDriftWidth}
-            onChange={(e) => setBubbleDriftWidth(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="10"
-            max="200"
-          />
-        </div>
-        <div className="flex flex-row items-center gap-2">
-          <label className="text-xs text-gray-600">Floatiness:</label>
-          <input
-            type="number"
-            value={bubbleFloatiness}
-            onChange={(e) => setBubbleFloatiness(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1 w-16"
-            min="1"
-            max="5"
-            step="0.5"
-          />
-        </div>
-        <button
-          className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-          onClick={async () => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
-
-            if (!editorState || !editor) {
-              return;
-            }
-
-            let currentSequence = editorState.savedState.sequences.find(
-              (s) => s.id === currentSequenceId
-            );
-
-            if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-              return;
-            }
-
-            let currentObject = null;
-            switch (objectType) {
-              case ObjectType.Polygon:
-                currentObject = currentSequence.activePolygons.find(
-                  (p) => p.id === currentObjectId
+                let newAnimationData = save_figure_eight_keyframes(
+                  editorState,
+                  currentObjectId,
+                  objectType,
+                  current_animation_data,
+                  [
+                    currentObject?.position.x || 0,
+                    currentObject?.position.y || 0,
+                  ],
+                  figureEightWidth,
+                  figureEightHeight,
+                  figureEightLoops
                 );
-                break;
-              case ObjectType.TextItem:
-                currentObject = currentSequence.activeTextItems.find(
-                  (p) => p.id === currentObjectId
+
+                let sequence_cloned = null;
+
+                editorState.savedState.sequences.forEach((s) => {
+                  if (s.id == currentSequenceId) {
+                    sequence_cloned = s;
+
+                    if (s.polygonMotionPaths) {
+                      let currentIndex = s.polygonMotionPaths.findIndex(
+                        (p) => p.id === current_animation_data.id
+                      );
+                      s.polygonMotionPaths[currentIndex] = newAnimationData;
+                    }
+                  }
+                });
+
+                if (!sequence_cloned) {
+                  return;
+                }
+
+                let sequences = editorState.savedState.sequences;
+
+                await saveSequencesData(sequences, editorState.saveTarget);
+
+                // update motion path preview
+                editor.updateMotionPaths(sequence_cloned);
+              }}
+            >
+              Transform Motion Path to Figure-8 Infinity
+            </button>
+          </div>
+
+          {/* Ripple Effect Animation */}
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Max Scale:</label>
+              <input
+                type="number"
+                value={rippleMaxScale}
+                onChange={(e) => setRippleMaxScale(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="1.5"
+                max="10"
+                step="0.5"
+              />
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Ripples:</label>
+              <input
+                type="number"
+                value={rippleCount}
+                onChange={(e) => setRippleCount(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="1"
+                max="5"
+              />
+            </div>
+            <button
+              className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+              onClick={async () => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let currentSequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
                 );
-                break;
-              case ObjectType.ImageItem:
-                currentObject = currentSequence.activeImageItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-              case ObjectType.VideoItem:
-                currentObject = currentSequence.activeVideoItems.find(
-                  (p) => p.id === currentObjectId
-                );
-                break;
-            }
 
-            let current_animation_data =
-              currentSequence?.polygonMotionPaths.find(
-                (p) => p.polygonId === currentObjectId
-              );
+                if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+                  return;
+                }
 
-            if (!current_animation_data) {
-              return;
-            }
+                let currentObject = null;
+                switch (objectType) {
+                  case ObjectType.Polygon:
+                    currentObject = currentSequence.activePolygons.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.TextItem:
+                    currentObject = currentSequence.activeTextItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.ImageItem:
+                    currentObject = currentSequence.activeImageItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.VideoItem:
+                    currentObject = currentSequence.activeVideoItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                }
 
-            let newAnimationData = save_floating_bubbles_keyframes(
-              editorState,
-              currentObjectId,
-              objectType,
-              current_animation_data,
-              [currentObject?.position.x || 0, currentObject?.position.y || 0],
-              bubbleRiseHeight,
-              bubbleDriftWidth
-              // bubbleFloatiness
-            );
-
-            let sequence_cloned = null;
-
-            editorState.savedState.sequences.forEach((s) => {
-              if (s.id == currentSequenceId) {
-                sequence_cloned = s;
-
-                if (s.polygonMotionPaths) {
-                  let currentIndex = s.polygonMotionPaths.findIndex(
-                    (p) => p.id === current_animation_data.id
+                let current_animation_data =
+                  currentSequence?.polygonMotionPaths.find(
+                    (p) => p.polygonId === currentObjectId
                   );
-                  s.polygonMotionPaths[currentIndex] = newAnimationData;
+
+                if (!current_animation_data) {
+                  return;
                 }
-              }
-            });
 
-            if (!sequence_cloned) {
-              return;
-            }
+                let newAnimationData = save_ripple_effect_keyframes(
+                  editorState,
+                  currentObjectId,
+                  objectType,
+                  current_animation_data,
+                  [
+                    currentObject?.position.x || 0,
+                    currentObject?.position.y || 0,
+                  ],
+                  rippleMaxScale,
+                  rippleCount
+                );
 
-            let sequences = editorState.savedState.sequences;
+                let sequence_cloned = null;
 
-            await saveSequencesData(sequences, editorState.saveTarget);
+                editorState.savedState.sequences.forEach((s) => {
+                  if (s.id == currentSequenceId) {
+                    sequence_cloned = s;
 
-            // update motion path preview
-            editor.updateMotionPaths(sequence_cloned);
-          }}
-        >
-          Transform Motion Path to Floating Bubbles
-        </button>
-      </div>
+                    if (s.polygonMotionPaths) {
+                      let currentIndex = s.polygonMotionPaths.findIndex(
+                        (p) => p.id === current_animation_data.id
+                      );
+                      s.polygonMotionPaths[currentIndex] = newAnimationData;
+                    }
+                  }
+                });
+
+                if (!sequence_cloned) {
+                  return;
+                }
+
+                let sequences = editorState.savedState.sequences;
+
+                await saveSequencesData(sequences, editorState.saveTarget);
+
+                // update motion path preview
+                editor.updateMotionPaths(sequence_cloned);
+              }}
+            >
+              Transform Motion Path to Ripple Effect
+            </button>
+          </div>
+
+          {/* Spiral Motion Animation */}
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Max Radius:</label>
+              <input
+                type="number"
+                value={spiralMaxRadius}
+                onChange={(e) => setSpiralMaxRadius(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="50"
+                max="400"
+              />
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Turns:</label>
+              <input
+                type="number"
+                value={spiralTurns}
+                onChange={(e) => setSpiralTurns(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="1"
+                max="10"
+                step="0.5"
+              />
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Type:</label>
+              <select
+                value={spiralExpanding ? "expanding" : "contracting"}
+                onChange={(e) =>
+                  setSpiralExpanding(e.target.value === "expanding")
+                }
+                className="text-xs border rounded px-2 py-1 w-24"
+              >
+                <option value="expanding">Expanding</option>
+                <option value="contracting">Contracting</option>
+              </select>
+            </div>
+            <button
+              className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+              onClick={async () => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let currentSequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
+                );
+
+                if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+                  return;
+                }
+
+                let currentObject = null;
+                switch (objectType) {
+                  case ObjectType.Polygon:
+                    currentObject = currentSequence.activePolygons.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.TextItem:
+                    currentObject = currentSequence.activeTextItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.ImageItem:
+                    currentObject = currentSequence.activeImageItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.VideoItem:
+                    currentObject = currentSequence.activeVideoItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                }
+
+                let current_animation_data =
+                  currentSequence?.polygonMotionPaths.find(
+                    (p) => p.polygonId === currentObjectId
+                  );
+
+                if (!current_animation_data) {
+                  return;
+                }
+
+                let newAnimationData = save_spiral_motion_keyframes(
+                  editorState,
+                  currentObjectId,
+                  objectType,
+                  current_animation_data,
+                  [
+                    currentObject?.position.x || 0,
+                    currentObject?.position.y || 0,
+                  ],
+                  spiralMaxRadius,
+                  spiralTurns,
+                  spiralExpanding ? "outward" : "inward"
+                );
+
+                let sequence_cloned = null;
+
+                editorState.savedState.sequences.forEach((s) => {
+                  if (s.id == currentSequenceId) {
+                    sequence_cloned = s;
+
+                    if (s.polygonMotionPaths) {
+                      let currentIndex = s.polygonMotionPaths.findIndex(
+                        (p) => p.id === current_animation_data.id
+                      );
+                      s.polygonMotionPaths[currentIndex] = newAnimationData;
+                    }
+                  }
+                });
+
+                if (!sequence_cloned) {
+                  return;
+                }
+
+                let sequences = editorState.savedState.sequences;
+
+                await saveSequencesData(sequences, editorState.saveTarget);
+
+                // update motion path preview
+                editor.updateMotionPaths(sequence_cloned);
+              }}
+            >
+              Transform Motion Path to Spiral Motion
+            </button>
+          </div>
+
+          {/* Bouncing Ball Animation */}
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Bounce Height:</label>
+              <input
+                type="number"
+                value={bounceHeight}
+                onChange={(e) => setBounceHeight(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="50"
+                max="500"
+              />
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Bounces:</label>
+              <input
+                type="number"
+                value={bounceCount}
+                onChange={(e) => setBounceCount(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="1"
+                max="10"
+              />
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Damping:</label>
+              <input
+                type="number"
+                value={bounceDamping}
+                onChange={(e) => setBounceDamping(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="0.1"
+                max="1.0"
+                step="0.1"
+              />
+            </div>
+            <button
+              className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+              onClick={async () => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let currentSequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
+                );
+
+                if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+                  return;
+                }
+
+                let currentObject = null;
+                switch (objectType) {
+                  case ObjectType.Polygon:
+                    currentObject = currentSequence.activePolygons.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.TextItem:
+                    currentObject = currentSequence.activeTextItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.ImageItem:
+                    currentObject = currentSequence.activeImageItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.VideoItem:
+                    currentObject = currentSequence.activeVideoItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                }
+
+                let current_animation_data =
+                  currentSequence?.polygonMotionPaths.find(
+                    (p) => p.polygonId === currentObjectId
+                  );
+
+                if (!current_animation_data) {
+                  return;
+                }
+
+                let newAnimationData = save_bouncing_ball_keyframes(
+                  editorState,
+                  currentObjectId,
+                  objectType,
+                  current_animation_data,
+                  [
+                    currentObject?.position.x || 0,
+                    currentObject?.position.y || 0,
+                  ],
+                  bounceHeight,
+                  bounceCount,
+                  bounceDamping
+                );
+
+                let sequence_cloned = null;
+
+                editorState.savedState.sequences.forEach((s) => {
+                  if (s.id == currentSequenceId) {
+                    sequence_cloned = s;
+
+                    if (s.polygonMotionPaths) {
+                      let currentIndex = s.polygonMotionPaths.findIndex(
+                        (p) => p.id === current_animation_data.id
+                      );
+                      s.polygonMotionPaths[currentIndex] = newAnimationData;
+                    }
+                  }
+                });
+
+                if (!sequence_cloned) {
+                  return;
+                }
+
+                let sequences = editorState.savedState.sequences;
+
+                await saveSequencesData(sequences, editorState.saveTarget);
+
+                // update motion path preview
+                editor.updateMotionPaths(sequence_cloned);
+              }}
+            >
+              Transform Motion Path to Bouncing Ball
+            </button>
+          </div>
+
+          {/* Floating Bubbles Animation */}
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Rise Height:</label>
+              <input
+                type="number"
+                value={bubbleRiseHeight}
+                onChange={(e) => setBubbleRiseHeight(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="100"
+                max="600"
+              />
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Drift Width:</label>
+              <input
+                type="number"
+                value={bubbleDriftWidth}
+                onChange={(e) => setBubbleDriftWidth(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="10"
+                max="200"
+              />
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="text-xs text-gray-600">Floatiness:</label>
+              <input
+                type="number"
+                value={bubbleFloatiness}
+                onChange={(e) => setBubbleFloatiness(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1 w-16"
+                min="1"
+                max="5"
+                step="0.5"
+              />
+            </div>
+            <button
+              className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+              onClick={async () => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                let currentSequence = editorState.savedState.sequences.find(
+                  (s) => s.id === currentSequenceId
+                );
+
+                if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+                  return;
+                }
+
+                let currentObject = null;
+                switch (objectType) {
+                  case ObjectType.Polygon:
+                    currentObject = currentSequence.activePolygons.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.TextItem:
+                    currentObject = currentSequence.activeTextItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.ImageItem:
+                    currentObject = currentSequence.activeImageItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                  case ObjectType.VideoItem:
+                    currentObject = currentSequence.activeVideoItems.find(
+                      (p) => p.id === currentObjectId
+                    );
+                    break;
+                }
+
+                let current_animation_data =
+                  currentSequence?.polygonMotionPaths.find(
+                    (p) => p.polygonId === currentObjectId
+                  );
+
+                if (!current_animation_data) {
+                  return;
+                }
+
+                let newAnimationData = save_floating_bubbles_keyframes(
+                  editorState,
+                  currentObjectId,
+                  objectType,
+                  current_animation_data,
+                  [
+                    currentObject?.position.x || 0,
+                    currentObject?.position.y || 0,
+                  ],
+                  bubbleRiseHeight,
+                  bubbleDriftWidth
+                  // bubbleFloatiness
+                );
+
+                let sequence_cloned = null;
+
+                editorState.savedState.sequences.forEach((s) => {
+                  if (s.id == currentSequenceId) {
+                    sequence_cloned = s;
+
+                    if (s.polygonMotionPaths) {
+                      let currentIndex = s.polygonMotionPaths.findIndex(
+                        (p) => p.id === current_animation_data.id
+                      );
+                      s.polygonMotionPaths[currentIndex] = newAnimationData;
+                    }
+                  }
+                });
+
+                if (!sequence_cloned) {
+                  return;
+                }
+
+                let sequences = editorState.savedState.sequences;
+
+                await saveSequencesData(sequences, editorState.saveTarget);
+
+                // update motion path preview
+                editor.updateMotionPaths(sequence_cloned);
+              }}
+            >
+              Transform Motion Path to Floating Bubbles
+            </button>
+          </div>
+        </section>
+      ) : (
+        <></>
+      )}
     </div>
   );
 };
