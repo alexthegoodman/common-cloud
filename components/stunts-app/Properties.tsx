@@ -35,6 +35,8 @@ import {
   updatePositionY,
   updateTextContent,
   updateWidth,
+  updateTextAnimation,
+  removeTextAnimation,
 } from "@/engine/state/properties";
 import {
   remove_position_keyframes,
@@ -52,6 +54,12 @@ import {
   save_ripple_effect_keyframes,
   save_spiral_motion_keyframes,
 } from "@/engine/state/keyframes";
+import { TextAnimationManager } from "@/engine/textAnimationManager";
+import {
+  TextAnimationType,
+  TextAnimationTiming,
+  createTextAnimationPreset,
+} from "@/engine/textAnimator";
 
 const RepeatProperties = ({
   editorRef,
@@ -994,6 +1002,153 @@ export const PolygonProperties = ({
   );
 };
 
+const TextAnimationProperties = ({
+  editorRef,
+  editorStateRef,
+  currentSequenceId,
+  currentTextId,
+}: {
+  editorRef: React.RefObject<Editor | null>;
+  editorStateRef: React.RefObject<EditorState | null>;
+  currentSequenceId: string;
+  currentTextId: string;
+}) => {
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [showPanel, setShowPanel] = useState(true);
+
+  const animationManager = new TextAnimationManager();
+  const categories = [
+    "Viral",
+    "Professional",
+    "Stylish",
+    "Dynamic",
+    "Colorful",
+  ];
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    const editorState = editorStateRef.current;
+
+    if (!editor || !editorState) {
+      return;
+    }
+
+    const currentSequence = editorState.savedState.sequences.find(
+      (s) => s.id === currentSequenceId
+    );
+    const currentObject = currentSequence?.activeTextItems.find(
+      (p) => p.id === currentTextId
+    );
+
+    const textAnimation = currentObject?.textAnimation;
+
+    if (textAnimation?.id) {
+      // Extract template ID from the animation config ID
+      // Animation IDs are like "viral-typewriter-1234567890"
+      const templateId = textAnimation.id.split("-").slice(0, -1).join("-");
+      setSelectedTemplate(templateId);
+    } else {
+      setSelectedTemplate(null);
+    }
+  }, [currentTextId, currentSequenceId]);
+
+  const getTemplatesByCategory = (category: string) => {
+    switch (category) {
+      case "Viral":
+        return animationManager.getViralTemplates();
+      case "Professional":
+        return animationManager.getProfessionalTemplates();
+      case "Stylish":
+        return animationManager.getStylishTemplates();
+      case "Dynamic":
+        return animationManager.getDynamicTemplates();
+      case "Colorful":
+        return animationManager.getColorfulTemplates();
+      default:
+        return animationManager.getTemplates();
+    }
+  };
+
+  const handleTemplateSelect = (templateId: string) => {
+    const editor = editorRef.current;
+    const editorState = editorStateRef.current;
+
+    if (!editor || !editorState) return;
+
+    setSelectedTemplate(templateId);
+    updateTextAnimation(editorState, editor, currentTextId, templateId);
+  };
+
+  const handleRemove = () => {
+    const editor = editorRef.current;
+    const editorState = editorStateRef.current;
+
+    if (!editor || !editorState) return;
+
+    setSelectedTemplate(null);
+    removeTextAnimation(editorState, editor, currentTextId);
+  };
+
+  return (
+    <div className="mt-4 border-t pt-4">
+      <div className="flex items-center justify-between mb-2">
+        <h6 className="text-sm font-medium">Text Animations</h6>
+        <div className="flex gap-2">
+          {selectedTemplate && (
+            <button
+              onClick={handleRemove}
+              className="text-xs px-2 py-1 bg-gray-500 hover:bg-gray-600 text-white rounded transition-colors"
+            >
+              Remove
+            </button>
+          )}
+          <button
+            onClick={() => setShowPanel(!showPanel)}
+            className="text-xs px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
+          >
+            {showPanel ? "Hide" : "Show"}
+          </button>
+        </div>
+      </div>
+
+      {showPanel && (
+        <div className="space-y-2">
+          <div className="space-y-2">
+            {categories.map((category) => (
+              <details
+                key={category}
+                className="border border-gray-300 rounded"
+              >
+                <summary className="cursor-pointer px-2 py-1 text-xs font-medium bg-gray-100 hover:bg-gray-200">
+                  {category}
+                </summary>
+                <div className="p-2 space-y-1">
+                  {getTemplatesByCategory(category).map((template) => (
+                    <button
+                      key={template.id}
+                      onClick={() => handleTemplateSelect(template.id)}
+                      className={`w-full text-left text-xs px-2 py-1.5 rounded transition-colors ${
+                        selectedTemplate === template.id
+                          ? "bg-red-500 text-white"
+                          : "bg-gray-50 hover:bg-gray-100"
+                      }`}
+                    >
+                      <div className="font-medium">{template.name}</div>
+                      <div className="text-xs opacity-75">
+                        {template.description}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const TextProperties = ({
   editorRef,
   editorStateRef,
@@ -1146,66 +1301,186 @@ export const TextProperties = ({
             className="px-2 py-1 border border-gray-300 rounded text-xs"
             style={{ fontFamily: fontFamily }}
           >
-            <option value="Actor" style={{ fontFamily: "Actor" }}>Actor</option>
-            <option value="Aladin" style={{ fontFamily: "Aladin" }}>Aladin</option>
-            <option value="Aleo" style={{ fontFamily: "Aleo" }}>Aleo</option>
-            <option value="Amiko" style={{ fontFamily: "Amiko" }}>Amiko</option>
-            <option value="Ballet" style={{ fontFamily: "Ballet" }}>Ballet</option>
-            <option value="Basic" style={{ fontFamily: "Basic" }}>Basic</option>
-            <option value="Bungee" style={{ fontFamily: "Bungee" }}>Bungee</option>
-            <option value="Caramel" style={{ fontFamily: "Caramel" }}>Caramel</option>
-            <option value="Cherish" style={{ fontFamily: "Cherish" }}>Cherish</option>
-            <option value="Coda" style={{ fontFamily: "Coda" }}>Coda</option>
-            <option value="David Libre" style={{ fontFamily: "David Libre" }}>David Libre</option>
-            <option value="Dorsa" style={{ fontFamily: "Dorsa" }}>Dorsa</option>
-            <option value="Duru Sans" style={{ fontFamily: "Duru Sans" }}>Duru Sans</option>
-            <option value="Dynalight" style={{ fontFamily: "Dynalight" }}>Dynalight</option>
-            <option value="Eater" style={{ fontFamily: "Eater" }}>Eater</option>
-            <option value="Epilogue" style={{ fontFamily: "Epilogue" }}>Epilogue</option>
-            <option value="Exo" style={{ fontFamily: "Exo" }}>Exo</option>
-            <option value="Explora" style={{ fontFamily: "Explora" }}>Explora</option>
-            <option value="Federo" style={{ fontFamily: "Federo" }}>Federo</option>
-            <option value="Figtree" style={{ fontFamily: "Figtree" }}>Figtree</option>
-            <option value="Flavors" style={{ fontFamily: "Flavors" }}>Flavors</option>
-            <option value="Galada" style={{ fontFamily: "Galada" }}>Galada</option>
-            <option value="Gantari" style={{ fontFamily: "Gantari" }}>Gantari</option>
-            <option value="Geo" style={{ fontFamily: "Geo" }}>Geo</option>
-            <option value="Glory" style={{ fontFamily: "Glory" }}>Glory</option>
-            <option value="HappyMonkey" style={{ fontFamily: "HappyMonkey" }}>HappyMonkey</option>
-            <option value="HennyPenny" style={{ fontFamily: "HennyPenny" }}>HennyPenny</option>
-            <option value="Iceberg" style={{ fontFamily: "Iceberg" }}>Iceberg</option>
-            <option value="Inika" style={{ fontFamily: "Inika" }}>Inika</option>
-            <option value="InriaSans" style={{ fontFamily: "InriaSans" }}>InriaSans</option>
-            <option value="Jaro" style={{ fontFamily: "Jaro" }}>Jaro</option>
-            <option value="Kavoon" style={{ fontFamily: "Kavoon" }}>Kavoon</option>
-            <option value="Khula" style={{ fontFamily: "Khula" }}>Khula</option>
-            <option value="Kokoro" style={{ fontFamily: "Kokoro" }}>Kokoro</option>
-            <option value="Lemon" style={{ fontFamily: "Lemon" }}>Lemon</option>
-            <option value="Lexend" style={{ fontFamily: "Lexend" }}>Lexend</option>
-            <option value="Macondo" style={{ fontFamily: "Macondo" }}>Macondo</option>
-            <option value="Maitree" style={{ fontFamily: "Maitree" }}>Maitree</option>
-            <option value="Martel" style={{ fontFamily: "Martel" }}>Martel</option>
-            <option value="Maven Pro" style={{ fontFamily: "Maven Pro" }}>Maven Pro</option>
-            <option value="Neuton" style={{ fontFamily: "Neuton" }}>Neuton</option>
-            <option value="News Cycle" style={{ fontFamily: "News Cycle" }}>News Cycle</option>
-            <option value="Nixie One" style={{ fontFamily: "Nixie One" }}>Nixie One</option>
-            <option value="Overlock" style={{ fontFamily: "Overlock" }}>Overlock</option>
-            <option value="Oxygen" style={{ fontFamily: "Oxygen" }}>Oxygen</option>
-            <option value="Play" style={{ fontFamily: "Play" }}>Play</option>
-            <option value="Quicksand" style={{ fontFamily: "Quicksand" }}>Quicksand</option>
-            <option value="Radley" style={{ fontFamily: "Radley" }}>Radley</option>
-            <option value="Rethink Sans" style={{ fontFamily: "Rethink Sans" }}>Rethink Sans</option>
-            <option value="Rosario" style={{ fontFamily: "Rosario" }}>Rosario</option>
-            <option value="Sacramento" style={{ fontFamily: "Sacramento" }}>Sacramento</option>
-            <option value="Salsa" style={{ fontFamily: "Salsa" }}>Salsa</option>
-            <option value="Scope One" style={{ fontFamily: "Scope One" }}>Scope One</option>
-            <option value="Teachers" style={{ fontFamily: "Teachers" }}>Teachers</option>
-            <option value="Underdog" style={{ fontFamily: "Underdog" }}>Underdog</option>
-            <option value="Vibes" style={{ fontFamily: "Vibes" }}>Vibes</option>
-            <option value="Vina Sans" style={{ fontFamily: "Vina Sans" }}>Vina Sans</option>
-            <option value="Water Brush" style={{ fontFamily: "Water Brush" }}>Water Brush</option>
-            <option value="Wind Song" style={{ fontFamily: "Wind Song" }}>Wind Song</option>
-            <option value="Zain" style={{ fontFamily: "Zain" }}>Zain</option>
+            <option value="Actor" style={{ fontFamily: "Actor" }}>
+              Actor
+            </option>
+            <option value="Aladin" style={{ fontFamily: "Aladin" }}>
+              Aladin
+            </option>
+            <option value="Aleo" style={{ fontFamily: "Aleo" }}>
+              Aleo
+            </option>
+            <option value="Amiko" style={{ fontFamily: "Amiko" }}>
+              Amiko
+            </option>
+            <option value="Ballet" style={{ fontFamily: "Ballet" }}>
+              Ballet
+            </option>
+            <option value="Basic" style={{ fontFamily: "Basic" }}>
+              Basic
+            </option>
+            <option value="Bungee" style={{ fontFamily: "Bungee" }}>
+              Bungee
+            </option>
+            <option value="Caramel" style={{ fontFamily: "Caramel" }}>
+              Caramel
+            </option>
+            <option value="Cherish" style={{ fontFamily: "Cherish" }}>
+              Cherish
+            </option>
+            <option value="Coda" style={{ fontFamily: "Coda" }}>
+              Coda
+            </option>
+            <option value="David Libre" style={{ fontFamily: "David Libre" }}>
+              David Libre
+            </option>
+            <option value="Dorsa" style={{ fontFamily: "Dorsa" }}>
+              Dorsa
+            </option>
+            <option value="Duru Sans" style={{ fontFamily: "Duru Sans" }}>
+              Duru Sans
+            </option>
+            <option value="Dynalight" style={{ fontFamily: "Dynalight" }}>
+              Dynalight
+            </option>
+            <option value="Eater" style={{ fontFamily: "Eater" }}>
+              Eater
+            </option>
+            <option value="Epilogue" style={{ fontFamily: "Epilogue" }}>
+              Epilogue
+            </option>
+            <option value="Exo" style={{ fontFamily: "Exo" }}>
+              Exo
+            </option>
+            <option value="Explora" style={{ fontFamily: "Explora" }}>
+              Explora
+            </option>
+            <option value="Federo" style={{ fontFamily: "Federo" }}>
+              Federo
+            </option>
+            <option value="Figtree" style={{ fontFamily: "Figtree" }}>
+              Figtree
+            </option>
+            <option value="Flavors" style={{ fontFamily: "Flavors" }}>
+              Flavors
+            </option>
+            <option value="Galada" style={{ fontFamily: "Galada" }}>
+              Galada
+            </option>
+            <option value="Gantari" style={{ fontFamily: "Gantari" }}>
+              Gantari
+            </option>
+            <option value="Geo" style={{ fontFamily: "Geo" }}>
+              Geo
+            </option>
+            <option value="Glory" style={{ fontFamily: "Glory" }}>
+              Glory
+            </option>
+            <option value="HappyMonkey" style={{ fontFamily: "HappyMonkey" }}>
+              HappyMonkey
+            </option>
+            <option value="HennyPenny" style={{ fontFamily: "HennyPenny" }}>
+              HennyPenny
+            </option>
+            <option value="Iceberg" style={{ fontFamily: "Iceberg" }}>
+              Iceberg
+            </option>
+            <option value="Inika" style={{ fontFamily: "Inika" }}>
+              Inika
+            </option>
+            <option value="InriaSans" style={{ fontFamily: "InriaSans" }}>
+              InriaSans
+            </option>
+            <option value="Jaro" style={{ fontFamily: "Jaro" }}>
+              Jaro
+            </option>
+            <option value="Kavoon" style={{ fontFamily: "Kavoon" }}>
+              Kavoon
+            </option>
+            <option value="Khula" style={{ fontFamily: "Khula" }}>
+              Khula
+            </option>
+            <option value="Kokoro" style={{ fontFamily: "Kokoro" }}>
+              Kokoro
+            </option>
+            <option value="Lemon" style={{ fontFamily: "Lemon" }}>
+              Lemon
+            </option>
+            <option value="Lexend" style={{ fontFamily: "Lexend" }}>
+              Lexend
+            </option>
+            <option value="Macondo" style={{ fontFamily: "Macondo" }}>
+              Macondo
+            </option>
+            <option value="Maitree" style={{ fontFamily: "Maitree" }}>
+              Maitree
+            </option>
+            <option value="Martel" style={{ fontFamily: "Martel" }}>
+              Martel
+            </option>
+            <option value="Maven Pro" style={{ fontFamily: "Maven Pro" }}>
+              Maven Pro
+            </option>
+            <option value="Neuton" style={{ fontFamily: "Neuton" }}>
+              Neuton
+            </option>
+            <option value="News Cycle" style={{ fontFamily: "News Cycle" }}>
+              News Cycle
+            </option>
+            <option value="Nixie One" style={{ fontFamily: "Nixie One" }}>
+              Nixie One
+            </option>
+            <option value="Overlock" style={{ fontFamily: "Overlock" }}>
+              Overlock
+            </option>
+            <option value="Oxygen" style={{ fontFamily: "Oxygen" }}>
+              Oxygen
+            </option>
+            <option value="Play" style={{ fontFamily: "Play" }}>
+              Play
+            </option>
+            <option value="Quicksand" style={{ fontFamily: "Quicksand" }}>
+              Quicksand
+            </option>
+            <option value="Radley" style={{ fontFamily: "Radley" }}>
+              Radley
+            </option>
+            <option value="Rethink Sans" style={{ fontFamily: "Rethink Sans" }}>
+              Rethink Sans
+            </option>
+            <option value="Rosario" style={{ fontFamily: "Rosario" }}>
+              Rosario
+            </option>
+            <option value="Sacramento" style={{ fontFamily: "Sacramento" }}>
+              Sacramento
+            </option>
+            <option value="Salsa" style={{ fontFamily: "Salsa" }}>
+              Salsa
+            </option>
+            <option value="Scope One" style={{ fontFamily: "Scope One" }}>
+              Scope One
+            </option>
+            <option value="Teachers" style={{ fontFamily: "Teachers" }}>
+              Teachers
+            </option>
+            <option value="Underdog" style={{ fontFamily: "Underdog" }}>
+              Underdog
+            </option>
+            <option value="Vibes" style={{ fontFamily: "Vibes" }}>
+              Vibes
+            </option>
+            <option value="Vina Sans" style={{ fontFamily: "Vina Sans" }}>
+              Vina Sans
+            </option>
+            <option value="Water Brush" style={{ fontFamily: "Water Brush" }}>
+              Water Brush
+            </option>
+            <option value="Wind Song" style={{ fontFamily: "Wind Song" }}>
+              Wind Song
+            </option>
+            <option value="Zain" style={{ fontFamily: "Zain" }}>
+              Zain
+            </option>
           </select>
         </div>
         <DebouncedTextarea
@@ -1280,6 +1555,12 @@ export const TextProperties = ({
           currentSequenceId={currentSequenceId}
           currentObjectId={currentTextId}
           objectType={ObjectType.TextItem}
+        />
+        <TextAnimationProperties
+          editorRef={editorRef}
+          editorStateRef={editorStateRef}
+          currentSequenceId={currentSequenceId}
+          currentTextId={currentTextId}
         />
         {/* <DebouncedInput
           id="text_border_radius"

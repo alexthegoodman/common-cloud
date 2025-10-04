@@ -40,7 +40,6 @@ import {
   save_swarm_convergence_keyframes,
 } from "@/engine/state/keyframes";
 import { useLocalStorage } from "@uidotdev/usehooks";
-import { VIRAL_PRESETS } from "@/engine/textAnimations";
 
 export default function AnimationTab({
   editorRef,

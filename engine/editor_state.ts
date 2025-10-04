@@ -23,7 +23,7 @@ import {
   getRandomNumber,
   InputValue,
 } from "./editor";
-import { TextAnimationConfig } from "./textAnimations";
+import { TextAnimationConfig } from "./textAnimator";
 import { save_default_keyframes } from "./state/keyframes";
 
 export enum SaveTarget {

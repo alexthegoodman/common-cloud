@@ -2,6 +2,7 @@ import { saveSequencesData } from "@/fetchers/projects";
 import { BackgroundFill, ObjectType } from "../animations";
 import { Editor, InputValue } from "../editor";
 import EditorState from "../editor_state";
+import { TextAnimationConfig } from "../textAnimator";
 
 export function updateBackground(
   editorState: EditorState,
@@ -709,6 +710,50 @@ export function updateTextContent(
       }
     });
     // }
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function updateTextAnimation(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  templateId: string
+) {
+  const textItem = editor.textItems.find((t) => t.id === objectId);
+  if (!textItem) return;
+
+  textItem.setTextAnimationFromTemplate(templateId);
+  const animationConfig = textItem.getTextAnimationConfig();
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeTextItems.forEach((p) => {
+      if (p.id == objectId) {
+        p.textAnimation = animationConfig;
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function removeTextAnimation(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string
+) {
+  const textItem = editor.textItems.find((t) => t.id === objectId);
+  if (!textItem) return;
+
+  textItem.removeTextAnimation();
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeTextItems.forEach((p) => {
+      if (p.id == objectId) {
+        p.textAnimation = null;
+      }
+    });
   });
 
   saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);

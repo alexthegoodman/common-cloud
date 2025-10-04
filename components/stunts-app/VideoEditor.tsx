@@ -92,7 +92,6 @@ import { useTranslation } from "react-i18next";
 import { FlowArrow } from "@phosphor-icons/react/dist/ssr";
 import useSWR from "swr";
 import { getCurrentUser } from "@/hooks/useCurrentUser";
-import { TextAnimationManager, VIRAL_PRESETS } from "@/engine/textAnimations";
 import TextAnimationPanel from "./TextAnimationPanel";
 import { Disclosure } from "@headlessui/react";
 
