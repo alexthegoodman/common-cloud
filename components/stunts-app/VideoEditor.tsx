@@ -1663,7 +1663,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
               >
                 <canvas
                   id="scene-canvas"
-                  className={`w-[${settings?.dimensions.width}px] h-[${settings?.dimensions.height}px] border border-black`}
+                  className={`w-[${settings?.dimensions.width}px] h-[${settings?.dimensions.height}px] border border-black rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]`}
                   width={settings?.dimensions.width}
                   height={settings?.dimensions.height}
                 />
