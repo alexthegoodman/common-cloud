@@ -1200,45 +1200,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       </div>
 
       <div className="flex flex-col w-full">
-        <div className="flex md:flex-row md:flex-row-reverse flex-col justify-between items-top w-full gap-2 md:h-full">
-          <div
-            style={
-              settings?.dimensions.width === 960
-                ? { aspectRatio: 960 / 540, minWidth: "960px" }
-                : { aspectRatio: 540 / 960, minWidth: "540px" }
-            }
-          >
-            <div
-              id="scene-canvas-wrapper"
-              style={
-                settings?.dimensions.width === 960
-                  ? { aspectRatio: 960 / 540, maxWidth: "960px" }
-                  : { aspectRatio: 540 / 960, maxWidth: "540px" }
-              }
-            >
-              <canvas
-                id="scene-canvas"
-                className={`w-[${settings?.dimensions.width}px] h-[${settings?.dimensions.height}px] border border-black`}
-                width={settings?.dimensions.width}
-                height={settings?.dimensions.height}
-              />
-            </div>
-            <div className="flex flex-row justify-center w-full">
-              {current_sequence_id && (
-                <PlaySequenceButton
-                  editorRef={editorRef}
-                  editorStateRef={editorStateRef}
-                  selected_sequence_id={current_sequence_id}
-                />
-              )}
-              {editorStateSet && !current_sequence_id && (
-                <PlayVideoButton
-                  editorRef={editorRef}
-                  editorStateRef={editorStateRef}
-                />
-              )}
-            </div>
-          </div>
+        <div className="flex md:flex-row flex-col justify-between items-top w-full gap-2 md:h-full">
           <div className="md:h-full">
             <div
               className={`w-full md:w-[${
@@ -1673,72 +1635,129 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
               )}
             </div>
           </div>
-        </div>
-        <div className="flex w-full justify-end">
-          <div
-            className={`flex justify-end w-full mx-auto md:self-end md:m-0 md:overflow-x-scroll`}
-            style={{
-              maxWidth: `${(settings?.dimensions.width || 0) + 100}px`,
-            }}
-          >
-            {current_sequence_id &&
-              !selected_polygon_id &&
-              !selected_text_id &&
-              !selected_image_id &&
-              !selected_video_id && (
-                <>
-                  {sequences
-                    .filter((s) => s.id === current_sequence_id)
-                    .map((sequence) => {
-                      if (sequence.polygonMotionPaths) {
-                        return (
-                          <div key={`trackSequence${sequence.id}`}>
-                            {sequence.polygonMotionPaths.map((animation) => {
-                              let objectName = null;
-                              if (animation.objectType === ObjectType.Polygon) {
-                                objectName = sequence.activePolygons.find(
-                                  (pol) => pol.id === animation.polygonId
-                                )?.name;
-                              } else if (
-                                animation.objectType === ObjectType.ImageItem
-                              ) {
-                                objectName = sequence.activeImageItems.find(
-                                  (pol) => pol.id === animation.polygonId
-                                )?.name;
-                              } else if (
-                                animation.objectType === ObjectType.TextItem
-                              ) {
-                                objectName = sequence.activeTextItems.find(
-                                  (pol) => pol.id === animation.polygonId
-                                )?.name;
-                              } else if (
-                                animation.objectType === ObjectType.VideoItem
-                              ) {
-                                objectName = sequence.activeVideoItems.find(
-                                  (pol) => pol.id === animation.polygonId
-                                )?.name;
-                              }
 
-                              return (
-                                <ObjectTrack
-                                  key={`objectTrack${animation.id}`}
-                                  type={TrackType.Video}
-                                  trackWidth={settings?.dimensions.width || 960}
-                                  objectName={objectName}
-                                  objectData={animation}
-                                  pixelsPerSecond={15}
-                                  onSequenceDragEnd={handleObjectDragEnd}
-                                />
-                              );
-                            })}
-                          </div>
-                        );
-                      }
-                    })}
-                </>
-              )}
-          </div>
-          {/* {!current_sequence_id &&
+          <section className="flex flex-col">
+            <div
+              style={
+                settings?.dimensions.width === 960
+                  ? { aspectRatio: 960 / 540, minWidth: "960px" }
+                  : { aspectRatio: 540 / 960, minWidth: "540px" }
+              }
+            >
+              <div
+                id="scene-canvas-wrapper"
+                style={
+                  settings?.dimensions.width === 960
+                    ? { aspectRatio: 960 / 540, maxWidth: "960px" }
+                    : { aspectRatio: 540 / 960, maxWidth: "540px" }
+                }
+              >
+                <canvas
+                  id="scene-canvas"
+                  className={`w-[${settings?.dimensions.width}px] h-[${settings?.dimensions.height}px] border border-black`}
+                  width={settings?.dimensions.width}
+                  height={settings?.dimensions.height}
+                />
+              </div>
+              <div className="flex flex-row justify-center w-full">
+                {current_sequence_id && (
+                  <PlaySequenceButton
+                    editorRef={editorRef}
+                    editorStateRef={editorStateRef}
+                    selected_sequence_id={current_sequence_id}
+                  />
+                )}
+                {editorStateSet && !current_sequence_id && (
+                  <PlayVideoButton
+                    editorRef={editorRef}
+                    editorStateRef={editorStateRef}
+                  />
+                )}
+              </div>
+            </div>
+            <div className="flex w-full align-start justify-start">
+              {current_sequence_id &&
+                !selected_polygon_id &&
+                !selected_text_id &&
+                !selected_image_id &&
+                !selected_video_id && (
+                  <>
+                    <div
+                      className={`flex justify-end w-full mx-auto md:self-end md:m-0 md:overflow-x-scroll`}
+                      style={{
+                        maxWidth: `${
+                          (settings?.dimensions.width || 0) + 100
+                        }px`,
+                      }}
+                    >
+                      {sequences
+                        .filter((s) => s.id === current_sequence_id)
+                        .map((sequence) => {
+                          if (sequence.polygonMotionPaths) {
+                            return (
+                              <div key={`trackSequence${sequence.id}`}>
+                                {sequence.polygonMotionPaths.map(
+                                  (animation) => {
+                                    let objectName = null;
+                                    if (
+                                      animation.objectType ===
+                                      ObjectType.Polygon
+                                    ) {
+                                      objectName = sequence.activePolygons.find(
+                                        (pol) => pol.id === animation.polygonId
+                                      )?.name;
+                                    } else if (
+                                      animation.objectType ===
+                                      ObjectType.ImageItem
+                                    ) {
+                                      objectName =
+                                        sequence.activeImageItems.find(
+                                          (pol) =>
+                                            pol.id === animation.polygonId
+                                        )?.name;
+                                    } else if (
+                                      animation.objectType ===
+                                      ObjectType.TextItem
+                                    ) {
+                                      objectName =
+                                        sequence.activeTextItems.find(
+                                          (pol) =>
+                                            pol.id === animation.polygonId
+                                        )?.name;
+                                    } else if (
+                                      animation.objectType ===
+                                      ObjectType.VideoItem
+                                    ) {
+                                      objectName =
+                                        sequence.activeVideoItems.find(
+                                          (pol) =>
+                                            pol.id === animation.polygonId
+                                        )?.name;
+                                    }
+
+                                    return (
+                                      <ObjectTrack
+                                        key={`objectTrack${animation.id}`}
+                                        type={TrackType.Video}
+                                        trackWidth={
+                                          settings?.dimensions.width || 960
+                                        }
+                                        objectName={objectName}
+                                        objectData={animation}
+                                        pixelsPerSecond={15}
+                                        onSequenceDragEnd={handleObjectDragEnd}
+                                      />
+                                    );
+                                  }
+                                )}
+                              </div>
+                            );
+                          }
+                        })}
+                    </div>
+                  </>
+                )}
+              {/* {!current_sequence_id &&
             !selected_polygon_id &&
             !selected_text_id &&
             !selected_image_id &&
@@ -1753,154 +1772,156 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 onSequenceDragEnd={handleSequenceDragEnd}
               />
             )} */}
-          {selected_polygon_id && current_sequence_id && (
-            <KeyframeTimeline
-              editorRef={editorRef}
-              editorStateRef={editorStateRef}
-              objectId={selected_polygon_id}
-              objectType={ObjectType.Polygon}
-              sequenceId={current_sequence_id}
-              width={settings?.dimensions.width || 900}
-              height={400}
-              headerHeight={40}
-              propertyWidth={50}
-              rowHeight={50}
-              selectedKeyframes={selected_keyframes}
-              setSelectedKeyframes={set_selected_keyframes}
-              onKeyframeChanged={() => {}}
-              refreshTimeline={refreshTimeline}
-              onKeyframeAdded={(
-                propertyPath,
-                time,
-                prevKeyframe,
-                nextKeyframe
-              ) => {
-                if (!editorStateRef.current) {
-                  return;
-                }
+              {selected_polygon_id && current_sequence_id && (
+                <KeyframeTimeline
+                  editorRef={editorRef}
+                  editorStateRef={editorStateRef}
+                  objectId={selected_polygon_id}
+                  objectType={ObjectType.Polygon}
+                  sequenceId={current_sequence_id}
+                  width={settings?.dimensions.width || 960}
+                  height={400}
+                  headerHeight={40}
+                  propertyWidth={50}
+                  rowHeight={50}
+                  selectedKeyframes={selected_keyframes}
+                  setSelectedKeyframes={set_selected_keyframes}
+                  onKeyframeChanged={() => {}}
+                  refreshTimeline={refreshTimeline}
+                  onKeyframeAdded={(
+                    propertyPath,
+                    time,
+                    prevKeyframe,
+                    nextKeyframe
+                  ) => {
+                    if (!editorStateRef.current) {
+                      return;
+                    }
 
-                editorStateRef.current.addKeyframe(
-                  selected_polygon_id,
-                  current_sequence_id,
-                  propertyPath,
-                  time,
-                  prevKeyframe,
-                  nextKeyframe
-                );
-              }}
-            />
-          )}
-          {selected_text_id && current_sequence_id && (
-            <KeyframeTimeline
-              editorRef={editorRef}
-              editorStateRef={editorStateRef}
-              objectId={selected_text_id}
-              objectType={ObjectType.TextItem}
-              sequenceId={current_sequence_id}
-              width={settings?.dimensions.width || 900}
-              height={400}
-              headerHeight={40}
-              propertyWidth={50}
-              rowHeight={50}
-              selectedKeyframes={selected_keyframes}
-              setSelectedKeyframes={set_selected_keyframes}
-              onKeyframeChanged={() => {}}
-              refreshTimeline={refreshTimeline}
-              onKeyframeAdded={(
-                propertyPath,
-                time,
-                prevKeyframe,
-                nextKeyframe
-              ) => {
-                if (!editorStateRef.current) {
-                  return;
-                }
+                    editorStateRef.current.addKeyframe(
+                      selected_polygon_id,
+                      current_sequence_id,
+                      propertyPath,
+                      time,
+                      prevKeyframe,
+                      nextKeyframe
+                    );
+                  }}
+                />
+              )}
+              {selected_text_id && current_sequence_id && (
+                <KeyframeTimeline
+                  editorRef={editorRef}
+                  editorStateRef={editorStateRef}
+                  objectId={selected_text_id}
+                  objectType={ObjectType.TextItem}
+                  sequenceId={current_sequence_id}
+                  width={settings?.dimensions.width || 960}
+                  height={400}
+                  headerHeight={40}
+                  propertyWidth={50}
+                  rowHeight={50}
+                  selectedKeyframes={selected_keyframes}
+                  setSelectedKeyframes={set_selected_keyframes}
+                  onKeyframeChanged={() => {}}
+                  refreshTimeline={refreshTimeline}
+                  onKeyframeAdded={(
+                    propertyPath,
+                    time,
+                    prevKeyframe,
+                    nextKeyframe
+                  ) => {
+                    if (!editorStateRef.current) {
+                      return;
+                    }
 
-                editorStateRef.current.addKeyframe(
-                  selected_text_id,
-                  current_sequence_id,
-                  propertyPath,
-                  time,
-                  prevKeyframe,
-                  nextKeyframe
-                );
-              }}
-            />
-          )}
-          {selected_image_id && current_sequence_id && (
-            <KeyframeTimeline
-              editorRef={editorRef}
-              editorStateRef={editorStateRef}
-              objectId={selected_image_id}
-              objectType={ObjectType.ImageItem}
-              sequenceId={current_sequence_id}
-              width={settings?.dimensions.width || 900}
-              height={400}
-              headerHeight={40}
-              propertyWidth={50}
-              rowHeight={50}
-              selectedKeyframes={selected_keyframes}
-              setSelectedKeyframes={set_selected_keyframes}
-              onKeyframeChanged={() => {}}
-              refreshTimeline={refreshTimeline}
-              onKeyframeAdded={(
-                propertyPath,
-                time,
-                prevKeyframe,
-                nextKeyframe
-              ) => {
-                if (!editorStateRef.current) {
-                  return;
-                }
+                    editorStateRef.current.addKeyframe(
+                      selected_text_id,
+                      current_sequence_id,
+                      propertyPath,
+                      time,
+                      prevKeyframe,
+                      nextKeyframe
+                    );
+                  }}
+                />
+              )}
+              {selected_image_id && current_sequence_id && (
+                <KeyframeTimeline
+                  editorRef={editorRef}
+                  editorStateRef={editorStateRef}
+                  objectId={selected_image_id}
+                  objectType={ObjectType.ImageItem}
+                  sequenceId={current_sequence_id}
+                  width={settings?.dimensions.width || 960}
+                  height={400}
+                  headerHeight={40}
+                  propertyWidth={50}
+                  rowHeight={50}
+                  selectedKeyframes={selected_keyframes}
+                  setSelectedKeyframes={set_selected_keyframes}
+                  onKeyframeChanged={() => {}}
+                  refreshTimeline={refreshTimeline}
+                  onKeyframeAdded={(
+                    propertyPath,
+                    time,
+                    prevKeyframe,
+                    nextKeyframe
+                  ) => {
+                    if (!editorStateRef.current) {
+                      return;
+                    }
 
-                editorStateRef.current.addKeyframe(
-                  selected_image_id,
-                  current_sequence_id,
-                  propertyPath,
-                  time,
-                  prevKeyframe,
-                  nextKeyframe
-                );
-              }}
-            />
-          )}
-          {selected_video_id && current_sequence_id && (
-            <KeyframeTimeline
-              editorRef={editorRef}
-              editorStateRef={editorStateRef}
-              objectId={selected_video_id}
-              objectType={ObjectType.VideoItem}
-              sequenceId={current_sequence_id}
-              width={settings?.dimensions.width || 900}
-              height={400}
-              headerHeight={40}
-              propertyWidth={50}
-              rowHeight={50}
-              selectedKeyframes={selected_keyframes}
-              setSelectedKeyframes={set_selected_keyframes}
-              onKeyframeChanged={() => {}}
-              refreshTimeline={refreshTimeline}
-              onKeyframeAdded={(
-                propertyPath,
-                time,
-                prevKeyframe,
-                nextKeyframe
-              ) => {
-                if (!editorStateRef.current) {
-                  return;
-                }
+                    editorStateRef.current.addKeyframe(
+                      selected_image_id,
+                      current_sequence_id,
+                      propertyPath,
+                      time,
+                      prevKeyframe,
+                      nextKeyframe
+                    );
+                  }}
+                />
+              )}
+              {selected_video_id && current_sequence_id && (
+                <KeyframeTimeline
+                  editorRef={editorRef}
+                  editorStateRef={editorStateRef}
+                  objectId={selected_video_id}
+                  objectType={ObjectType.VideoItem}
+                  sequenceId={current_sequence_id}
+                  width={settings?.dimensions.width || 960}
+                  height={400}
+                  headerHeight={40}
+                  propertyWidth={50}
+                  rowHeight={50}
+                  selectedKeyframes={selected_keyframes}
+                  setSelectedKeyframes={set_selected_keyframes}
+                  onKeyframeChanged={() => {}}
+                  refreshTimeline={refreshTimeline}
+                  onKeyframeAdded={(
+                    propertyPath,
+                    time,
+                    prevKeyframe,
+                    nextKeyframe
+                  ) => {
+                    if (!editorStateRef.current) {
+                      return;
+                    }
 
-                editorStateRef.current.addKeyframe(
-                  selected_video_id,
-                  current_sequence_id,
-                  propertyPath,
-                  time,
-                  prevKeyframe,
-                  nextKeyframe
-                );
-              }}
-            />
-          )}
+                    editorStateRef.current.addKeyframe(
+                      selected_video_id,
+                      current_sequence_id,
+                      propertyPath,
+                      time,
+                      prevKeyframe,
+                      nextKeyframe
+                    );
+                  }}
+                />
+              )}
+            </div>
+          </section>
         </div>
       </div>
     </>
