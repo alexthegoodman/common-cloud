@@ -1396,52 +1396,61 @@ export function save_configurable_perspective_keyframes(
         id: uuidv4().toString(),
         time: 0,
         value: { type: "PerspectiveX", value: options.degrees },
-        easing: EasingType.Linear,
-        pathType: PathType.Linear,
-        keyType: { type: "Frame" },
-        curveData: null,
-      });
-      perspective_x_keyframes.push({
-        id: uuidv4().toString(),
-        time: 2500,
-        value: { type: "PerspectiveX", value: options.degrees / 2 },
         easing: EasingType.EaseInOut,
         pathType: PathType.Linear,
         keyType: { type: "Frame" },
         curveData: null,
       });
-      perspective_x_keyframes.push({
-        id: uuidv4().toString(),
-        time: 5000,
-        value: { type: "PerspectiveX", value: 0 },
-        easing: EasingType.EaseInOut,
-        pathType: PathType.Linear,
-        keyType: { type: "Frame" },
-        curveData: null,
-      });
-      perspective_x_keyframes.push({
-        id: uuidv4().toString(),
-        time: durationMs - 5000,
-        value: { type: "PerspectiveX", value: 0 },
-        easing: EasingType.EaseInOut,
-        pathType: PathType.Linear,
-        keyType: { type: "Frame" },
-        curveData: null,
-      });
-      perspective_x_keyframes.push({
-        id: uuidv4().toString(),
-        time: durationMs - 2500,
-        value: { type: "PerspectiveX", value: options.degrees / 2 },
-        easing: EasingType.EaseInOut,
-        pathType: PathType.Linear,
-        keyType: { type: "Frame" },
-        curveData: null,
-      });
+      // perspective_x_keyframes.push({
+      //   id: uuidv4().toString(),
+      //   time: 2500,
+      //   value: { type: "PerspectiveX", value: options.degrees / 2 },
+      //   easing: EasingType.EaseInOut,
+      //   pathType: PathType.Linear,
+      //   keyType: { type: "Frame" },
+      //   curveData: null,
+      // });
+      // perspective_x_keyframes.push({
+      //   id: uuidv4().toString(),
+      //   time: 5000,
+      //   value: { type: "PerspectiveX", value: 0 },
+      //   easing: EasingType.EaseInOut,
+      //   pathType: PathType.Linear,
+      //   keyType: { type: "Frame" },
+      //   curveData: null,
+      // });
+      // perspective_x_keyframes.push({
+      //   id: uuidv4().toString(),
+      //   time: durationMs - 5000,
+      //   value: { type: "PerspectiveX", value: 0 },
+      //   easing: EasingType.EaseInOut,
+      //   pathType: PathType.Linear,
+      //   keyType: { type: "Frame" },
+      //   curveData: null,
+      // });
+      // perspective_x_keyframes.push({
+      //   id: uuidv4().toString(),
+      //   time: durationMs - 2500,
+      //   value: { type: "PerspectiveX", value: options.degrees / 2 },
+      //   easing: EasingType.EaseInOut,
+      //   pathType: PathType.Linear,
+      //   keyType: { type: "Frame" },
+      //   curveData: null,
+      // });
+      // perspective_x_keyframes.push({
+      //   id: uuidv4().toString(),
+      //   time: durationMs,
+      //   value: { type: "PerspectiveX", value: options.degrees },
+      //   easing: EasingType.Linear,
+      //   pathType: PathType.Linear,
+      //   keyType: { type: "Frame" },
+      //   curveData: null,
+      // });
       perspective_x_keyframes.push({
         id: uuidv4().toString(),
         time: durationMs,
-        value: { type: "PerspectiveX", value: options.degrees },
-        easing: EasingType.Linear,
+        value: { type: "PerspectiveX", value: 0 },
+        easing: EasingType.EaseInOut,
         pathType: PathType.Linear,
         keyType: { type: "Frame" },
         curveData: null,
@@ -1507,52 +1516,61 @@ export function save_configurable_perspective_keyframes(
         id: uuidv4().toString(),
         time: 0,
         value: { type: "PerspectiveY", value: options.degrees },
-        easing: EasingType.Linear,
-        pathType: PathType.Linear,
-        keyType: { type: "Frame" },
-        curveData: null,
-      });
-      perspective_y_keyframes.push({
-        id: uuidv4().toString(),
-        time: 2500,
-        value: { type: "PerspectiveY", value: options.degrees / 2 },
         easing: EasingType.EaseInOut,
         pathType: PathType.Linear,
         keyType: { type: "Frame" },
         curveData: null,
       });
-      perspective_y_keyframes.push({
-        id: uuidv4().toString(),
-        time: 5000,
-        value: { type: "PerspectiveY", value: 0 },
-        easing: EasingType.EaseInOut,
-        pathType: PathType.Linear,
-        keyType: { type: "Frame" },
-        curveData: null,
-      });
-      perspective_y_keyframes.push({
-        id: uuidv4().toString(),
-        time: durationMs - 5000,
-        value: { type: "PerspectiveY", value: 0 },
-        easing: EasingType.EaseInOut,
-        pathType: PathType.Linear,
-        keyType: { type: "Frame" },
-        curveData: null,
-      });
-      perspective_y_keyframes.push({
-        id: uuidv4().toString(),
-        time: durationMs - 2500,
-        value: { type: "PerspectiveY", value: options.degrees / 2 },
-        easing: EasingType.EaseInOut,
-        pathType: PathType.Linear,
-        keyType: { type: "Frame" },
-        curveData: null,
-      });
+      // perspective_y_keyframes.push({
+      //   id: uuidv4().toString(),
+      //   time: 2500,
+      //   value: { type: "PerspectiveY", value: options.degrees / 2 },
+      //   easing: EasingType.EaseInOut,
+      //   pathType: PathType.Linear,
+      //   keyType: { type: "Frame" },
+      //   curveData: null,
+      // });
+      // perspective_y_keyframes.push({
+      //   id: uuidv4().toString(),
+      //   time: 5000,
+      //   value: { type: "PerspectiveY", value: 0 },
+      //   easing: EasingType.EaseInOut,
+      //   pathType: PathType.Linear,
+      //   keyType: { type: "Frame" },
+      //   curveData: null,
+      // });
+      // perspective_y_keyframes.push({
+      //   id: uuidv4().toString(),
+      //   time: durationMs - 5000,
+      //   value: { type: "PerspectiveY", value: 0 },
+      //   easing: EasingType.EaseInOut,
+      //   pathType: PathType.Linear,
+      //   keyType: { type: "Frame" },
+      //   curveData: null,
+      // });
+      // perspective_y_keyframes.push({
+      //   id: uuidv4().toString(),
+      //   time: durationMs - 2500,
+      //   value: { type: "PerspectiveY", value: options.degrees / 2 },
+      //   easing: EasingType.EaseInOut,
+      //   pathType: PathType.Linear,
+      //   keyType: { type: "Frame" },
+      //   curveData: null,
+      // });
+      // perspective_y_keyframes.push({
+      //   id: uuidv4().toString(),
+      //   time: durationMs,
+      //   value: { type: "PerspectiveY", value: options.degrees },
+      //   easing: EasingType.Linear,
+      //   pathType: PathType.Linear,
+      //   keyType: { type: "Frame" },
+      //   curveData: null,
+      // });
       perspective_y_keyframes.push({
         id: uuidv4().toString(),
         time: durationMs,
-        value: { type: "PerspectiveY", value: options.degrees },
-        easing: EasingType.Linear,
+        value: { type: "PerspectiveY", value: 0 },
+        easing: EasingType.EaseInOut,
         pathType: PathType.Linear,
         keyType: { type: "Frame" },
         curveData: null,
@@ -1994,9 +2012,10 @@ export function save_scale_fade_pulse_keyframes(
 
     for (let i = 0; i < config.rippleCount; i++) {
       const rippleTime = rippleSegment * (i + 1);
-      const overshoot = config.targetScale > config.startScale
-        ? config.targetScale + config.rippleIntensity
-        : config.targetScale - config.rippleIntensity;
+      const overshoot =
+        config.targetScale > config.startScale
+          ? config.targetScale + config.rippleIntensity
+          : config.targetScale - config.rippleIntensity;
 
       // Overshoot keyframe
       scale_keyframes.push({
