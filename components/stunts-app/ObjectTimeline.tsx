@@ -178,9 +178,9 @@ export const ObjectTrack: React.FC<TrackProps> = ({
     objectData.duration * pixelsPerMs
   );
 
-  const trackColor = type === TrackType.Audio ? "bg-blue-300" : "bg-orange-200";
+  const trackColor = type === TrackType.Audio ? "bg-slate-600" : "bg-slate-600";
   const sequenceColor =
-    type === TrackType.Audio ? "bg-red-400" : "bg-green-400";
+    type === TrackType.Audio ? "bg-blue-400" : "bg-green-400";
 
   // Set up sensors for drag detection
   const sensors = useSensors(
@@ -220,13 +220,13 @@ export const ObjectTrack: React.FC<TrackProps> = ({
     >
       <div
         className={`relative h-[50px] ${
-          trackWidth === 550 ? "w-[550px]" : "w-[900px]"
+          trackWidth === 540 ? "w-[540px]" : "w-[960px]"
         } mb-1`}
       >
         {/* Track background */}
         <div
           className={`relative ${
-            trackWidth === 550 ? "w-[550px]" : "w-[900px]"
+            trackWidth === 540 ? "w-[540px]" : "w-[960px]"
           } h-[50px] ${trackColor}`}
         />
 

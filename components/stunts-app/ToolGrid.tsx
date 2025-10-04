@@ -1041,7 +1041,7 @@ export const ToolGrid = ({
           <OptionButton
             style={{}}
             label={t("Procedural Brush")}
-            icon="paintbrush"
+            icon="brush"
             aria-label="Enable procedural brush drawing mode"
             callback={() => {
               if (!editorRef.current || !currentSequenceId) {

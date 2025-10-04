@@ -77,7 +77,7 @@ export default function BrushProperties({ editorRef }: BrushPropertiesProps) {
   ]);
 
   return (
-    <div className="w-full p-4 bg-white border-t">
+    <div className="w-full p-4 theme-bg-primary border-t">
       <h3 className="text-lg font-bold mb-4">Brush Properties</h3>
 
       {/* Brush Type */}
@@ -100,9 +100,7 @@ export default function BrushProperties({ editorRef }: BrushPropertiesProps) {
 
       {/* Basic Properties */}
       <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">
-          Size: {size}px
-        </label>
+        <label className="block text-sm font-medium mb-2">Size: {size}px</label>
         <input
           type="range"
           min="5"

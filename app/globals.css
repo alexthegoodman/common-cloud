@@ -25,6 +25,14 @@
   .theme-border-primary {
     border-color: rgb(var(--theme-primary));
   }
+  .theme-button {
+    background-color: rgb(var(--theme-bg-primary));
+    color: rgb(var(--theme-text-secondary));
+  }
+  .theme-button:hover {
+    background-color: rgb(var(--theme-text-secondary));
+    color: rgb(var(--theme-bg-primary));
+  }
 }
 
 button:hover {

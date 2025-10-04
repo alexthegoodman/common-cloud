@@ -222,13 +222,13 @@ export const OptionButton: React.FC<OptionButtonProps> = ({
   return (
     <button
       className="w-[60px] h-[60px] flex flex-col justify-center items-center border border-gray-400 rounded-[15px]
-        transition-colors duration-200 ease-in-out hover:bg-gray-200 hover:cursor-pointer 
+        transition-colors duration-200 ease-in-out hover:cursor-pointer 
         focus-visible:border-2 focus-visible:border-blue-500"
       style={style} // Apply the style string
       onClick={handleClick}
       aria-label={ariaLabel || label}
     >
-      <div className="text-black mb-1">
+      <div className=" mb-1">
         <CreateIcon icon={icon} size="24px" />
       </div>
       <span className="text-[11px]">{label}</span>
@@ -357,7 +357,7 @@ export const PlaySequenceButton: React.FC<{
 
   return (
     <button
-      className="text-xs rounded-md text-black px-2 py-1"
+      className="text-xs rounded-md theme-button px-2 py-1"
       onClick={() => {
         let editor = editorRef.current;
         let editorState = editorStateRef.current;
@@ -458,7 +458,7 @@ export const PlayVideoButton: React.FC<{
 
   return (
     <button
-      className="text-xs rounded-md text-black px-2 py-1"
+      className="text-xs rounded-md px-2 py-1 theme-button"
       onClick={() => {
         let editor = editorRef.current;
         let editorState = editorStateRef.current;
