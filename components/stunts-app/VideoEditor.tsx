@@ -75,6 +75,7 @@ import { PageSequence } from "@/engine/data";
 import { WindowSize } from "@/engine/camera";
 import { ThemePicker } from "./ThemePicker";
 import { ObjectTrack } from "./ObjectTimeline";
+import { TimelineTicks } from "./TimelineTicks";
 import toast from "react-hot-toast";
 import {
   ArrowRight,
@@ -1691,7 +1692,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 !selected_video_id && (
                   <>
                     <div
-                      className={`flex justify-end w-full mx-auto md:self-end md:m-0 md:overflow-x-scroll`}
+                      className={`flex flex-col justify-end w-full mx-auto md:self-end md:m-0 md:overflow-x-scroll`}
                       style={{
                         maxWidth: `${
                           (settings?.dimensions.width || 0) + 100
@@ -1704,6 +1705,13 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                           if (sequence.polygonMotionPaths) {
                             return (
                               <div key={`trackSequence${sequence.id}`}>
+                                {/* Timeline tick marks */}
+                                <TimelineTicks
+                                  trackWidth={settings?.dimensions.width || 960}
+                                  pixelsPerSecond={15}
+                                  durationMs={sequence.durationMs || 5000}
+                                />
+
                                 {sequence.polygonMotionPaths.map(
                                   (animation) => {
                                     let objectName = null;
