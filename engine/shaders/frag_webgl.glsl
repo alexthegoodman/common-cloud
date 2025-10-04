@@ -207,7 +207,7 @@ vec4 calculateBrushColor(vec2 worldPos) {
         proceduralValue = voronoi(uv, param1, randomSeed);
     }
 
-    return vec4(vec3(proceduralValue), 1.0);
+    return vec4(vec3(1.0), proceduralValue);
 }
 
 void main() {
