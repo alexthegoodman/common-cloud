@@ -288,6 +288,8 @@ export class MotionPath {
 
     const groupTransform = new Transform(
       vec2.fromValues(initialPosition[0], initialPosition[1]), // everything can move relative to this
+      // test 0
+      // vec2.fromValues(0.0, 0.0), // everything can move relative to this
       0.0,
       vec2.fromValues(1.0, 1.0),
       uniformBuffer

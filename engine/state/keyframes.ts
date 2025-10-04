@@ -2246,7 +2246,7 @@ export function save_circular_motion_keyframes(
   let position_keyframes: UIKeyframe[] = [];
   let center_x = current_position[0];
   let center_y = current_position[1];
-  let num_points = 32;
+  let num_points = 16;
   let time_step = durationMs / num_points;
 
   for (let i = 0; i <= num_points; i++) {
@@ -2281,7 +2281,8 @@ export function save_circular_motion_keyframes(
     polygonId: savable_item_id,
     duration: durationMs,
     startTimeMs: current_keyframes.startTimeMs,
-    position: current_keyframes.position,
+    // position: current_keyframes.position,
+    position: [0, 0],
     properties: properties,
   };
 

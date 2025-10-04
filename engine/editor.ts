@@ -5693,7 +5693,8 @@ export class Editor {
           windowSize,
           device!,
           this.modelBindGroupLayout!,
-          new_path_position,
+          // new_path_position,
+          new_position,
           camera
         );
       }
