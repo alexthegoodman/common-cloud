@@ -1074,8 +1074,18 @@ export const ToolGrid = ({
                   opacity: 0.7,
                   flow: 0.5,
                   spacing: 0.25,
-                  primaryColor: [0, 0, 0, 255],
-                  secondaryColor: [255, 255, 255, 255],
+                  primaryColor: [0, 0, 0, 255] as [
+                    number,
+                    number,
+                    number,
+                    number
+                  ],
+                  secondaryColor: [255, 255, 255, 255] as [
+                    number,
+                    number,
+                    number,
+                    number
+                  ],
                   noiseScale: 0.01,
                   octaves: 4,
                   persistence: 0.5,

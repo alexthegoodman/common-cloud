@@ -847,6 +847,7 @@ export const DocEditor: React.FC<any> = ({ projectId }) => {
                     on_create_sequence={on_create_sequence}
                     layers={layers}
                     setLayers={set_layers}
+                    update={() => {}}
                   />
 
                   <ThemePicker

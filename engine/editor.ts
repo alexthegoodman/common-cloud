@@ -4868,8 +4868,8 @@ export class Editor {
         windowSize,
         gpuResources.device!,
         gpuResources.queue!,
-        this.modelBindGroupLayout,
-        this.groupBindGroupLayout,
+        this.modelBindGroupLayout!,
+        this.groupBindGroupLayout!,
         camera,
         config,
         this.currentBrush.currentSequenceId
@@ -5302,7 +5302,11 @@ export class Editor {
     // }
 
     // handle brush drawing
-    if (this.brushDrawingMode && this.currentBrush && this.currentBrush.currentStroke) {
+    if (
+      this.brushDrawingMode &&
+      this.currentBrush &&
+      this.currentBrush.currentStroke
+    ) {
       const brushPoint = {
         x: top_left.x,
         y: top_left.y,
@@ -5436,7 +5440,11 @@ export class Editor {
     }
 
     // Handle brush stroke end
-    if (this.brushDrawingMode && this.currentBrush && this.currentBrush.currentStroke) {
+    if (
+      this.brushDrawingMode &&
+      this.currentBrush &&
+      this.currentBrush.currentStroke
+    ) {
       this.currentBrush.endStroke();
 
       // Regenerate final geometry with all strokes

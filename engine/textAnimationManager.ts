@@ -248,13 +248,13 @@ export class TextAnimationManager {
     }
   }
 
-  public updateAnimations(currentTime: number, queue: PolyfillQueue): void {
-    this.currentTime = currentTime;
+  // public updateAnimations(currentTime: number, queue: PolyfillQueue): void {
+  //   this.currentTime = currentTime;
 
-    for (const animator of this.activeAnimators.values()) {
-      animator.updateAnimation(currentTime, queue);
-    }
-  }
+  //   for (const animator of this.activeAnimators.values()) {
+  //     animator.updateAnimation(currentTime, queue);
+  //   }
+  // }
 
   public getTemplates(): TextAnimationTemplate[] {
     return Array.from(this.templates.values());
