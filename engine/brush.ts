@@ -251,11 +251,17 @@ export class ProceduralBrush implements BrushStrokeShape {
       camera,
       queue
     );
-    this.groupBindGroup = this.createGroupBindGroup(
+    // this.groupBindGroup = this.createGroupBindGroup(
+    //   device,
+    //   groupBindGroupLayout,
+    //   camera
+    // );
+    let [tmp_group_bind_group, tmp_group_transform] = createEmptyGroupTransform(
       device,
       groupBindGroupLayout,
-      camera
+      camera.windowSize
     );
+    this.groupBindGroup = tmp_group_bind_group;
   }
 
   // Start a new stroke
@@ -643,29 +649,29 @@ export class ProceduralBrush implements BrushStrokeShape {
     }
   }
 
-  createGroupBindGroup(
-    device: PolyfillDevice,
-    groupBindGroupLayout: PolyfillBindGroupLayout,
-    camera: Camera
-  ): PolyfillBindGroup {
-    const groupPositionData = new Float32Array([
-      this.activeGroupPosition[0],
-      this.activeGroupPosition[1],
-    ]);
+  // createGroupBindGroup(
+  //   device: PolyfillDevice,
+  //   groupBindGroupLayout: PolyfillBindGroupLayout,
+  //   camera: Camera
+  // ): PolyfillBindGroup {
+  //   const groupPositionData = new Float32Array([
+  //     this.activeGroupPosition[0],
+  //     this.activeGroupPosition[1],
+  //   ]);
 
-    const groupBuffer = device.createBuffer({
-      size: groupPositionData.byteLength,
-      usage: 1 | 2,
-      mappedAtCreation: true,
-    });
-    new Float32Array(groupBuffer.getMappedRange()).set(groupPositionData);
-    groupBuffer.unmap();
+  //   const groupBuffer = device.createBuffer({
+  //     size: groupPositionData.byteLength,
+  //     usage: 1 | 2,
+  //     mappedAtCreation: true,
+  //   });
+  //   new Float32Array(groupBuffer.getMappedRange()).set(groupPositionData);
+  //   groupBuffer.unmap();
 
-    return device.createBindGroup({
-      layout: groupBindGroupLayout,
-      entries: [{ binding: 0, resource: { buffer: groupBuffer } }],
-    });
-  }
+  //   return device.createBindGroup({
+  //     layout: groupBindGroupLayout,
+  //     entries: [{ binding: 0, resource: { buffer: groupBuffer } }],
+  //   });
+  // }
 
   // Update buffers when strokes change
   updateBuffers(
