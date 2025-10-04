@@ -100,14 +100,14 @@ export default function VideoStartupSettings() {
                 if (!newSettings) {
                   newSettings = {
                     dimensions: {
-                      width: 900,
-                      height: 550,
+                      width: 960,
+                      height: 540,
                     },
                   };
                 } else {
                   newSettings.dimensions = {
-                    width: 900,
-                    height: 550,
+                    width: 960,
+                    height: 540,
                   };
                 }
 
@@ -126,14 +126,14 @@ export default function VideoStartupSettings() {
                 if (!newSettings) {
                   newSettings = {
                     dimensions: {
-                      width: 550,
-                      height: 900,
+                      width: 540,
+                      height: 960,
                     },
                   };
                 } else {
                   newSettings.dimensions = {
-                    width: 550,
-                    height: 900,
+                    width: 540,
+                    height: 960,
                   };
                 }
 
@@ -141,6 +141,7 @@ export default function VideoStartupSettings() {
 
                 setStartupScreen(false);
               }}
+              disabled={true}
             >
               {t("Vertical")} (9:16)
             </button>

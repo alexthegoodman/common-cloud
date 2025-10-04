@@ -2387,19 +2387,6 @@ export class Editor {
       const currentTimeMs = currentTime * 1000;
       const startTimeMs = startTime * 1000;
 
-      // Check if the current time is within the animation's active period
-      if (
-        currentTimeMs < startTimeMs ||
-        currentTimeMs > startTimeMs + animation.duration
-      ) {
-        // if (isExport) {
-        //   console.warn(
-        //     `Skipping animation for ${animation.objectType} with ID ${animation.polygonId} at time ${currentTimeMs} (start: ${startTimeMs}, duration: ${animation.duration})`
-        //   );
-        // }
-        continue;
-      }
-
       // console.info("animating", animation.objectType, animation.polygonId);
 
       // Find the object to update
@@ -2498,6 +2485,19 @@ export class Editor {
         }
       } else {
         animateProperties = true;
+      }
+
+      // Check if the current time is within the animation's active period
+      if (
+        currentTimeMs < startTimeMs ||
+        currentTimeMs > startTimeMs + animation.duration
+      ) {
+        // if (isExport) {
+        //   console.warn(
+        //     `Skipping animation for ${animation.objectType} with ID ${animation.polygonId} at time ${currentTimeMs} (start: ${startTimeMs}, duration: ${animation.duration})`
+        //   );
+        // }
+        continue;
       }
 
       // if (isExport) {

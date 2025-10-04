@@ -378,12 +378,16 @@ export class FullExporter {
     ) => void
   ) {
     let windowSize: WindowSize = {
-      // 1x
-      // width: 800,
-      // height: 450,
-      // 2x
-      width: 1600,
-      height: 900,
+      // legacy
+      // // 1x
+      // // width: 800,
+      // // height: 450,
+      // // 2x
+      // width: 1600,
+      // height: 900,
+      // full hd proper (2x still though)
+      width: 1920,
+      height: 1080,
     };
 
     if (this.isVertical) {
@@ -426,11 +430,11 @@ export class FullExporter {
       return;
     }
 
-    // // this.editor.camera.position = vec2.fromValues(100.0, 100.0);
+    // // // this.editor.camera.position = vec2.fromValues(100.0, 100.0);
     // this.editor.camera.setPosition(0.1, 0.1, 0);
-    // // this.editor.camera.zoom = 2.0;
+    // // // this.editor.camera.zoom = 2.0;
     // this.editor.cameraBinding?.update(
-    //   this.editor.gpuResources?.queue,
+    //   this.editor.gpuResources?.queue!,
     //   this.editor.camera
     // );
 

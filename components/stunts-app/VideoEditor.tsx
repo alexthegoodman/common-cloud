@@ -1195,17 +1195,17 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
         <div className="flex md:flex-row md:flex-row-reverse flex-col justify-between items-top w-full gap-2 md:h-full">
           <div
             style={
-              settings?.dimensions.width === 900
-                ? { aspectRatio: 900 / 550, minWidth: "900px" }
-                : { aspectRatio: 550 / 900, minWidth: "550px" }
+              settings?.dimensions.width === 960
+                ? { aspectRatio: 960 / 540, minWidth: "960px" }
+                : { aspectRatio: 540 / 960, minWidth: "540px" }
             }
           >
             <div
               id="scene-canvas-wrapper"
               style={
-                settings?.dimensions.width === 900
-                  ? { aspectRatio: 900 / 550, maxWidth: "900px" }
-                  : { aspectRatio: 550 / 900, maxWidth: "550px" }
+                settings?.dimensions.width === 960
+                  ? { aspectRatio: 960 / 540, maxWidth: "960px" }
+                  : { aspectRatio: 540 / 960, maxWidth: "540px" }
               }
             >
               <canvas
@@ -1711,7 +1711,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                                 <ObjectTrack
                                   key={`objectTrack${animation.id}`}
                                   type={TrackType.Video}
-                                  trackWidth={settings?.dimensions.width || 900}
+                                  trackWidth={settings?.dimensions.width || 960}
                                   objectName={objectName}
                                   objectData={animation}
                                   pixelsPerSecond={15}
