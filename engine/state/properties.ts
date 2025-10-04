@@ -477,54 +477,54 @@ export function updateBorderRadius(
       );
       break;
     }
-    // case ObjectType.TextItem: {
-    //   editor.update_text(objectId, "height", InputValue.Number, value);
+    case ObjectType.ImageItem: {
+      let gpuResources = editor.gpuResources;
+      let image = editor.imageItems.find((i) => i.id === objectId);
 
-    //   editorState.savedState.sequences.forEach((s) => {
-    //     // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
-    //     s.activeTextItems.forEach((p) => {
-    //       if (p.id == objectId) {
-    //         p.dimensions = [p.dimensions[0], value];
-    //       }
-    //     });
-    //     // }
-    //   });
+      if (!image || !gpuResources) {
+        return;
+      }
 
-    //   saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
-    //   break;
-    // }
-    // case ObjectType.ImageItem: {
-    //   editor.update_image(objectId, "height", InputValue.Number, value);
+      image.updateBorderRadius(gpuResources.queue!, value);
 
-    //   editorState.savedState.sequences.forEach((s) => {
-    //     // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
-    //     s.activeImageItems.forEach((p) => {
-    //       if (p.id == objectId) {
-    //         p.dimensions = [p.dimensions[0], value];
-    //       }
-    //     });
-    //     // }
-    //   });
+      editorState.savedState.sequences.forEach((s) => {
+        s.activeImageItems.forEach((p) => {
+          if (p.id == objectId) {
+            p.borderRadius = value;
+          }
+        });
+      });
 
-    //   saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
-    //   break;
-    // }
-    // case ObjectType.VideoItem: {
-    //   editor.update_video(objectId, "height", InputValue.Number, value);
+      saveSequencesData(
+        editorState.savedState.sequences,
+        editorState.saveTarget
+      );
+      break;
+    }
+    case ObjectType.VideoItem: {
+      let gpuResources = editor.gpuResources;
+      let video = editor.videoItems.find((v) => v.id === objectId);
 
-    //   editorState.savedState.sequences.forEach((s) => {
-    //     // if s.id == selected_sequence_id.get() { // would be more efficient for many sequences
-    //     s.activeVideoItems.forEach((p) => {
-    //       if (p.id == objectId) {
-    //         p.dimensions = [p.dimensions[0], value];
-    //       }
-    //     });
-    //     // }
-    //   });
+      if (!video || !gpuResources) {
+        return;
+      }
 
-    //   saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
-    //   break;
-    // }
+      video.updateBorderRadius(gpuResources.queue!, value);
+
+      editorState.savedState.sequences.forEach((s) => {
+        s.activeVideoItems.forEach((p) => {
+          if (p.id == objectId) {
+            p.borderRadius = value;
+          }
+        });
+      });
+
+      saveSequencesData(
+        editorState.savedState.sequences,
+        editorState.saveTarget
+      );
+      break;
+    }
   }
 }
 

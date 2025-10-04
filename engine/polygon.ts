@@ -1341,7 +1341,8 @@ export function setupGradientBuffers(
   device: PolyfillDevice,
   queue: PolyfillQueue,
   // gradientBindGroupLayout: PolyfillBindGroupLayout,
-  gradient?: GradientDefinition | null
+  gradient?: GradientDefinition | null,
+  borderRadius?: number
 ): [GradientDefinition, PolyfillBuffer] {
   let defaultStops: GradientStop[] = [
     { offset: 0, color: [1, 0, 0, 1] }, // Red
@@ -1369,9 +1370,9 @@ export function setupGradientBuffers(
   const gradientBuffer = device.createBuffer(
     {
       label: "Gradient Buffer",
-      // 2 vec4s for offsets + 8 vec4s for colors + 12 floats for config
-      // (2 + 8) * 16 + 12 * 4 = 208 bytes
-      size: 208,
+      // 2 vec4s for offsets + 8 vec4s for colors + 13 floats for config (added border_radius)
+      // (2 + 8) * 16 + 13 * 4 = 212 bytes
+      size: 212,
       usage:
         process.env.NODE_ENV === "test"
           ? 0
@@ -1426,6 +1427,7 @@ export function setupGradientBuffers(
     mappedRange[configOffset + 9] = selectedGradient.timeOffset ?? 0;
     mappedRange[configOffset + 10] = selectedGradient.animationSpeed ?? 0;
     mappedRange[configOffset + 11] = selectedGradient.enabled;
+    mappedRange[configOffset + 12] = borderRadius ?? 0.0;
 
     // console.info(
     //   "gradientBuffer mappedRange after setup",

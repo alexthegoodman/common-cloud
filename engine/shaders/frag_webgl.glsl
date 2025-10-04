@@ -25,7 +25,7 @@ layout(std140) uniform bindGroup2_0 {
     float u_time;
     float u_animation_speed;
     float u_enabled;
-    // float _padding0;
+    float u_border_radius;
 };
 
 float getOffset(int index) {
@@ -92,6 +92,26 @@ void main() {
         }
     } else {
         final_color = tex_color * v_color;
+    }
+
+    // Apply border radius for images (2) and videos (3)
+    if (v_object_type == 2u || v_object_type == 3u) {
+        if (u_border_radius > 0.0) {
+            // Convert tex_coords from [0,1] to [-0.5, 0.5] range
+            vec2 pos = v_tex_coords - vec2(0.5);
+
+            // Calculate distance from the edge of the rectangle
+            vec2 d = abs(pos) - vec2(0.5 - u_border_radius);
+
+            // Calculate rounded rectangle SDF
+            float dist = length(max(d, 0.0)) + min(max(d.x, d.y), 0.0) - u_border_radius;
+
+            // Create smooth alpha based on distance
+            float alpha = 1.0 - smoothstep(-0.001, 0.001, dist);
+
+            // Apply alpha to final color
+            final_color.a *= alpha;
+        }
     }
 
     // testing

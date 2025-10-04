@@ -29,6 +29,7 @@ export interface SavedStImageConfig {
   layer: number;
   isCircle: boolean;
   isSticker?: boolean;
+  borderRadius?: number;
 }
 
 export interface StImageConfig {
@@ -41,6 +42,7 @@ export interface StImageConfig {
   layer: number;
   isCircle: boolean;
   isSticker?: boolean;
+  borderRadius?: number;
 }
 
 export class StImage {
@@ -64,6 +66,8 @@ export class StImage {
   objectType: ObjectType;
   isCircle: boolean;
   isSticker: boolean;
+  borderRadius: number;
+  gradientBuffer!: PolyfillBuffer;
 
   constructor(
     device: PolyfillDevice,
@@ -90,6 +94,7 @@ export class StImage {
     this.objectType = ObjectType.ImageItem;
     this.isCircle = imageConfig.isCircle;
     this.isSticker = imageConfig.isSticker || false;
+    this.borderRadius = imageConfig.borderRadius ?? 0.0;
 
     this.hidden = true; // true till bitmap loaded?
 
@@ -110,7 +115,8 @@ export class StImage {
     loadedHidden: boolean
     // isCircle: boolean = false
   ) {
-    let [gradient, gradientBuffer] = setupGradientBuffers(device, queue);
+    let [gradient, gradientBuffer] = setupGradientBuffers(device, queue, null, this.borderRadius);
+    this.gradientBuffer = gradientBuffer;
 
     const identityMatrix = mat4.create();
     let uniformBuffer = device.createBuffer(
@@ -552,6 +558,23 @@ export class StImage {
     );
   }
 
+  updateBorderRadius(queue: PolyfillQueue, borderRadius: number): void {
+    this.borderRadius = borderRadius;
+
+    // Update the gradient buffer with the new border radius
+    if (process.env.NODE_ENV !== "test") {
+      const gradientData = new Float32Array(this.gradientBuffer.size / 4);
+      // The border_radius is at offset 40 + 12 floats = index 52
+      gradientData[52] = borderRadius;
+
+      queue.writeBuffer(
+        this.gradientBuffer,
+        52 * 4, // byte offset
+        gradientData.slice(52, 53)
+      );
+    }
+  }
+
   updateDataFromDimensions(
     windowSize: WindowSize,
     device: PolyfillDevice,
@@ -664,6 +687,7 @@ export class StImage {
       layer: this.layer,
       isCircle: this.isCircle,
       isSticker: this.isSticker,
+      borderRadius: this.borderRadius,
     };
   }
 

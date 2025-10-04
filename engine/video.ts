@@ -65,6 +65,7 @@ export interface SavedStVideoConfig {
   path: string;
   position: SavedPoint;
   layer: number;
+  borderRadius?: number;
   // mousePath: string;
 }
 
@@ -75,6 +76,7 @@ export interface StVideoConfig {
   position: Point;
   path: string;
   layer: number;
+  borderRadius?: number;
   // mousePath: string;
 }
 
@@ -150,6 +152,8 @@ export class StVideo {
   private codecString?: string;
 
   bytesPerFrame: number | null = null;
+  borderRadius: number;
+  gradientBuffer!: PolyfillBuffer;
   // gradientBindGroup: PolyfillBindGroup;
 
   constructor(
@@ -178,6 +182,7 @@ export class StVideo {
     this.dynamicAlpha = 0.01;
     this.numFramesDrawn = 0;
     this.objectType = ObjectType.VideoItem;
+    this.borderRadius = videoConfig.borderRadius ?? 0.0;
 
     // defaults
     this.sourceDuration = 0;
@@ -241,9 +246,12 @@ export class StVideo {
 
     let [gradient, gradientBuffer] = setupGradientBuffers(
       device,
-      queue
+      queue,
+      null,
+      this.borderRadius
       // gradientBindGroupLayout
     );
+    this.gradientBuffer = gradientBuffer;
 
     // this.gradientBindGroup = gradientBindGroup;
 
@@ -1050,6 +1058,23 @@ export class StVideo {
     );
   }
 
+  updateBorderRadius(queue: PolyfillQueue, borderRadius: number): void {
+    this.borderRadius = borderRadius;
+
+    // Update the gradient buffer with the new border radius
+    if (process.env.NODE_ENV !== "test") {
+      const gradientData = new Float32Array(this.gradientBuffer.size / 4);
+      // The border_radius is at offset 40 + 12 floats = index 52
+      gradientData[52] = borderRadius;
+
+      queue.writeBuffer(
+        this.gradientBuffer,
+        52 * 4, // byte offset
+        gradientData.slice(52, 53)
+      );
+    }
+  }
+
   update(
     queue: PolyfillQueue,
     windowSize: { width: number; height: number }
@@ -1303,6 +1328,7 @@ export class StVideo {
         y: this.groupTransform.position[1],
       },
       layer: this.layer,
+      borderRadius: this.borderRadius,
     };
   }
 }

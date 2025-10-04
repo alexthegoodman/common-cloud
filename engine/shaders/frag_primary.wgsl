@@ -36,6 +36,7 @@ struct GradientUniforms {
     time: f32,
     animation_speed: f32,
     enabled: f32,
+    border_radius: f32,
 }
 
 @group(1) @binding(1) var texture: texture_2d<f32>;
@@ -100,9 +101,9 @@ fn getTextureColor(tex_coords: vec2<f32>) -> vec4<f32> {
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let tex_color = getTextureColor(in.tex_coords);
-    
+
     var final_color: vec4<f32>;
-    
+
     if (in.object_type == 0u) {  // Polygon
         if (gradient.enabled > 0.5 && gradient.num_stops > 0.5) {
             final_color = calculateGradientColor(in.gradient_coords);
@@ -112,6 +113,26 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     } else {
         final_color = tex_color * in.color;
     }
-    
+
+    // Apply border radius for images (2) and videos (3)
+    if (in.object_type == 2u || in.object_type == 3u) {
+        if (gradient.border_radius > 0.0) {
+            // Convert tex_coords from [0,1] to [-0.5, 0.5] range
+            let pos = in.tex_coords - vec2<f32>(0.5);
+
+            // Calculate distance from the edge of the rectangle
+            let d = abs(pos) - vec2<f32>(0.5 - gradient.border_radius);
+
+            // Calculate rounded rectangle SDF
+            let dist = length(max(d, vec2<f32>(0.0))) + min(max(d.x, d.y), 0.0) - gradient.border_radius;
+
+            // Create smooth alpha based on distance
+            let alpha = 1.0 - smoothstep(-0.001, 0.001, dist);
+
+            // Apply alpha to final color
+            final_color = vec4<f32>(final_color.rgb, final_color.a * alpha);
+        }
+    }
+
     return final_color;
 }

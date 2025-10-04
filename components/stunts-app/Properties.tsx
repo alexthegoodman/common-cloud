@@ -1392,6 +1392,7 @@ export const ImageProperties = ({
   const [defaultWidth, setDefaultWidth] = useState(0);
   const [defaultHeight, setDefaultHeight] = useState(0);
   const [is_circle, set_is_circle] = useState(false);
+  const [defaultBorderRadius, setDefaultBorderRadius] = useState(0);
 
   useEffect(() => {
     let editor = editorRef.current;
@@ -1411,6 +1412,7 @@ export const ImageProperties = ({
     let width = currentObject?.dimensions[0];
     let height = currentObject?.dimensions[1];
     let isCircle = currentObject?.isCircle;
+    let borderRadius = currentObject?.borderRadius;
 
     if (width) {
       setDefaultWidth(width);
@@ -1420,6 +1422,9 @@ export const ImageProperties = ({
     }
     if (typeof isCircle !== "undefined" && isCircle !== null) {
       set_is_circle(isCircle);
+    }
+    if (typeof borderRadius !== "undefined" && borderRadius !== null) {
+      setDefaultBorderRadius(borderRadius);
     }
 
     setDefaultsSet(true);
@@ -1493,6 +1498,30 @@ export const ImageProperties = ({
             }}
           />
         </div>
+        <div className="flex flex-row gap-2">
+          <DebouncedInput
+            id="image_border_radius"
+            label="Border Radius"
+            placeholder="Border Radius"
+            initialValue={defaultBorderRadius.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+
+              if (!editorState || !editor) {
+                return;
+              }
+
+              updateBorderRadius(
+                editorState,
+                editor,
+                currentImageId,
+                ObjectType.ImageItem,
+                parseFloat(value)
+              );
+            }}
+          />
+        </div>
         <AnimationOptions
           editorRef={editorRef}
           editorStateRef={editorStateRef}
@@ -1555,6 +1584,7 @@ export const VideoProperties = ({
   const [defaultsSet, setDefaultsSet] = useState(false);
   const [defaultWidth, setDefaultWidth] = useState(0);
   const [defaultHeight, setDefaultHeight] = useState(0);
+  const [defaultBorderRadius, setDefaultBorderRadius] = useState(0);
 
   useEffect(() => {
     let editor = editorRef.current;
@@ -1573,12 +1603,16 @@ export const VideoProperties = ({
 
     let width = currentObject?.dimensions[0];
     let height = currentObject?.dimensions[1];
+    let borderRadius = currentObject?.borderRadius;
 
     if (width) {
       setDefaultWidth(width);
     }
     if (height) {
       setDefaultHeight(height);
+    }
+    if (typeof borderRadius !== "undefined" && borderRadius !== null) {
+      setDefaultBorderRadius(borderRadius);
     }
 
     setDefaultsSet(true);
@@ -1648,6 +1682,30 @@ export const VideoProperties = ({
                 currentVideoId,
                 ObjectType.VideoItem,
                 parseInt(value)
+              );
+            }}
+          />
+        </div>
+        <div className="flex flex-row gap-2">
+          <DebouncedInput
+            id="video_border_radius"
+            label="Border Radius"
+            placeholder="Border Radius"
+            initialValue={defaultBorderRadius.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+
+              if (!editorState || !editor) {
+                return;
+              }
+
+              updateBorderRadius(
+                editorState,
+                editor,
+                currentVideoId,
+                ObjectType.VideoItem,
+                parseFloat(value)
               );
             }}
           />
