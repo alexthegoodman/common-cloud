@@ -668,7 +668,7 @@ export class TextRenderer {
 
     // Re-initialize text animations if they exist
     if (this.textAnimator) {
-      this.textAnimator.updateConfig({ ...this.textAnimator.getConfig() });
+      this.textAnimator.updateConfig({ ...this.textAnimator.getConfig() }, this);
     }
   }
 
@@ -1114,7 +1114,7 @@ export class TextRenderer {
 
     // Re-initialize text animations if they exist
     if (this.textAnimator) {
-      this.textAnimator.updateConfig({ ...this.textAnimator.getConfig() });
+      this.textAnimator.updateConfig({ ...this.textAnimator.getConfig() }, this);
     }
   }
 
@@ -1557,7 +1557,7 @@ export class TextRenderer {
   public updateTextAnimation(currentTime: number, queue: PolyfillQueue): void {
     // console.info("TextRenderer.updateTextAnimation called for:", this.id, "textAnimator exists:", !!this.textAnimator);
     if (this.textAnimator) {
-      this.textAnimator.updateAnimation(currentTime, queue);
+      this.textAnimator.updateAnimation(currentTime, queue, this);
     }
   }
 

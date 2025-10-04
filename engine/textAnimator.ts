@@ -71,7 +71,6 @@ export interface AnimatedCharacter {
 }
 
 export class TextAnimator {
-  private textRenderer: TextRenderer;
   private animationConfig: TextAnimationConfig;
   private animatedCharacters: AnimatedCharacter[] = [];
   private currentTime: number = 0;
@@ -79,18 +78,19 @@ export class TextAnimator {
   private animationStartTime: number = 0;
 
   constructor(textRenderer: TextRenderer, config: TextAnimationConfig) {
-    this.textRenderer = textRenderer;
     this.animationConfig = config;
-    this.initializeCharacters();
+    this.initializeCharacters(textRenderer);
   }
 
-  private initializeCharacters(): void {
-    if (!this.textRenderer.vertices) return;
+  private initializeCharacters(textRenderer: TextRenderer): void {
+    if (!textRenderer.vertices) return;
 
     this.animatedCharacters = [];
-    const text = this.textRenderer.text;
+    const text = textRenderer.text;
     let charIndex = 0;
     let vertexIndex = 0;
+
+    console.info("init text", text);
 
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
@@ -99,7 +99,7 @@ export class TextAnimator {
         continue; // Don't increment vertexIndex for spaces/newlines
       }
 
-      const charVertices = this.textRenderer.vertices.slice(
+      const charVertices = textRenderer.vertices.slice(
         vertexIndex,
         vertexIndex + 4
       );
@@ -185,7 +185,7 @@ export class TextAnimator {
     this.isPlaying = true;
   }
 
-  public updateAnimation(currentTime: number, queue: PolyfillQueue): void {
+  public updateAnimation(currentTime: number, queue: PolyfillQueue, textRenderer: TextRenderer): void {
     if (!this.isPlaying) return;
 
     this.currentTime = currentTime;
@@ -208,7 +208,7 @@ export class TextAnimator {
       }
     }
 
-    this.updateTextRenderer(queue);
+    this.updateTextRenderer(queue, textRenderer);
 
     // Check if animation is complete
     if (elapsedTime >= this.getTotalAnimationDuration()) {
@@ -329,6 +329,12 @@ export class TextAnimator {
     char.color = [...char.originalColor];
     char.isVisible = true;
     char.animationProgress = 0.0;
+
+    // For typewriter effect, characters should start hidden
+    if (this.animationConfig.type === TextAnimationType.Typewriter) {
+      char.isVisible = false;
+      char.opacity = 0.0;
+    }
   }
 
   private resetCharacters(): void {
@@ -354,10 +360,17 @@ export class TextAnimator {
     }
   }
 
-  private updateTextRenderer(queue: PolyfillQueue): void {
-    if (!this.textRenderer.vertices) return;
+  private updateTextRenderer(queue: PolyfillQueue, textRenderer: TextRenderer): void {
+    if (!textRenderer.vertices) return;
 
-    const updatedVertices = [...this.textRenderer.vertices];
+    const updatedVertices = [...textRenderer.vertices];
+
+    // For typewriter effect, hide all vertices initially
+    if (this.animationConfig.type === TextAnimationType.Typewriter) {
+      for (const vertex of updatedVertices) {
+        vertex.color = [0, 0, 0, 0];
+      }
+    }
 
     for (const char of this.animatedCharacters) {
       const startIndex = char.index * 4;
@@ -395,7 +408,7 @@ export class TextAnimator {
 
     // Update vertex buffer
     queue.writeBuffer(
-      this.textRenderer.vertexBuffer,
+      textRenderer.vertexBuffer,
       0,
       new Float32Array(
         updatedVertices.flatMap((v) => [
@@ -445,9 +458,9 @@ export class TextAnimator {
     return { ...this.animationConfig };
   }
 
-  public updateConfig(config: Partial<TextAnimationConfig>): void {
+  public updateConfig(config: Partial<TextAnimationConfig>, textRenderer: TextRenderer): void {
     this.animationConfig = { ...this.animationConfig, ...config };
-    this.initializeCharacters();
+    this.initializeCharacters(textRenderer);
   }
 
   public getAnimatedCharacters(): AnimatedCharacter[] {
