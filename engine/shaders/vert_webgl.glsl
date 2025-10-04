@@ -6,12 +6,12 @@ layout(location = 0) in vec3 a_position;
 layout(location = 1) in vec2 a_tex_coords;
 layout(location = 2) in vec4 a_color;
 layout(location = 3) in vec2 a_gradient_coords;
-layout(location = 4) in uint a_object_type;
+layout(location = 4) in float a_object_type;
 
 out vec2 v_tex_coords;
 out vec4 v_color;
 out vec2 v_gradient_coords;
-flat out uint v_object_type;
+flat out float v_object_type;
 
 uniform mat4 bindGroup0_0; // u_camera_view_proj
 uniform vec2 bindGroup0_1; // u_window_size (changed from mat4 to vec2)

@@ -65,6 +65,9 @@ export function createVertex(
     case ObjectType.VideoItem:
       object_type = 3;
       break;
+    case ObjectType.Brush:
+      object_type = 4;
+      break;
     default:
       break;
   }
@@ -109,7 +112,7 @@ export function createVertexBufferLayout(): GPUVertexBufferLayout {
         // object_type
         shaderLocation: 4,
         offset: Float32Array.BYTES_PER_ELEMENT * 11,
-        format: "uint32",
+        format: "float32",
       },
     ],
   };

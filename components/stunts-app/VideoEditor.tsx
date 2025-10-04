@@ -65,6 +65,7 @@ import {
   TextProperties,
   VideoProperties,
 } from "./Properties";
+import BrushProperties from "./BrushProperties";
 import { callMotionInference } from "@/fetchers/inference";
 import KeyframeTimeline from "./KeyframeTimeline";
 import { TimelineTrack } from "./SequenceTimeline";
@@ -248,6 +249,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   const webCaptureRef = useRef<WebCapture | null>(null);
   const [editorIsSet, setEditorIsSet] = useState(false);
   const [editorStateSet, setEditorStateSet] = useState(false);
+  const [refreshUINow, setRefreshUINow] = useState(Date.now());
 
   let setupCanvasMouseTracking = (canvas: HTMLCanvasElement) => {
     let editor = editorRef.current;
@@ -985,6 +987,13 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           new_layers.push(new_layer);
         }
       });
+      editor.brushes.forEach((brush) => {
+        if (!brush.hidden) {
+          let brush_config = brush.toConfig();
+          let new_layer: Layer = LayerFromConfig.fromBrushConfig(brush_config);
+          new_layers.push(new_layer);
+        }
+      });
       editor.textItems.forEach((text) => {
         if (!text.hidden) {
           let text_config: TextRendererConfig = text.toConfig();
@@ -1340,9 +1349,13 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                       "capture",
                       "imageGeneration",
                       "stickers",
+                      "brush",
                     ]}
                     layers={layers}
                     setLayers={set_layers}
+                    update={() => {
+                      setRefreshUINow(Date.now());
+                    }}
                   />
                 </div>
               )}
@@ -1591,6 +1604,14 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                                 set_selected_text_id(null);
                               }}
                             />
+                          </div>
+                        </>
+                      )}
+
+                      {editorRef.current?.brushDrawingMode && refreshUINow && (
+                        <>
+                          <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
+                            <BrushProperties editorRef={editorRef} />
                           </div>
                         </>
                       )}

@@ -48,6 +48,7 @@ export const ToolGrid = ({
   on_create_sequence,
   layers,
   setLayers,
+  update,
 }: {
   editorRef: React.RefObject<Editor | null>;
   editorStateRef: React.RefObject<EditorState | null>;
@@ -58,6 +59,7 @@ export const ToolGrid = ({
   on_create_sequence?: () => void;
   layers: Layer[];
   setLayers: React.Dispatch<React.SetStateAction<Layer[]>>;
+  update: () => void;
 }) => {
   const { t } = useTranslation("common");
 
@@ -1033,6 +1035,74 @@ export const ToolGrid = ({
               </div>
             </Dialog>
           </>
+        )}
+
+        {options.includes("brush") && (
+          <OptionButton
+            style={{}}
+            label={t("Procedural Brush")}
+            icon="paintbrush"
+            aria-label="Enable procedural brush drawing mode"
+            callback={() => {
+              if (!editorRef.current || !currentSequenceId) {
+                return;
+              }
+
+              // Toggle brush drawing mode
+              editorRef.current.brushDrawingMode =
+                !editorRef.current.brushDrawingMode;
+
+              if (editorRef.current.brushDrawingMode) {
+                // Create new brush with default config
+                const { BrushType } = require("@/engine/brush");
+                const new_id = uuidv4();
+
+                const random_number_800 = getRandomNumber(
+                  100,
+                  editorRef.current.settings?.dimensions.width || 900
+                );
+                const random_number_450 = getRandomNumber(
+                  100,
+                  editorRef.current.settings?.dimensions.height || 550
+                );
+
+                const defaultBrushConfig = {
+                  id: new_id,
+                  name: "New Brush",
+                  brushType: BrushType.Noise,
+                  size: 20,
+                  opacity: 0.7,
+                  flow: 0.5,
+                  spacing: 0.25,
+                  primaryColor: [0, 0, 0, 255],
+                  secondaryColor: [255, 255, 255, 255],
+                  noiseScale: 0.01,
+                  octaves: 4,
+                  persistence: 0.5,
+                  randomSeed: Math.random() * 1000,
+                  position: {
+                    x: random_number_800,
+                    y: random_number_450,
+                  },
+                  dimensions: [500, 500] as [number, number],
+                  layer: layers.length,
+                  rotation: 0,
+                };
+
+                editorRef.current.add_brush(
+                  defaultBrushConfig,
+                  new_id,
+                  currentSequenceId
+                );
+
+                update();
+
+                console.info("Brush drawing mode enabled!");
+              } else {
+                console.info("Brush drawing mode disabled!");
+              }
+            }}
+          />
         )}
       </div>
     </>

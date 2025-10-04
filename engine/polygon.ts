@@ -1429,7 +1429,14 @@ export function setupGradientBuffers(
     mappedRange[configOffset + 11] = selectedGradient.enabled;
     mappedRange[configOffset + 12] = borderRadius ?? 0.0;
 
-    console.info("setupGradientBuffers borderRadius:", borderRadius, "at index", configOffset + 12, "value:", mappedRange[configOffset + 12]);
+    console.info(
+      "setupGradientBuffers borderRadius:",
+      borderRadius,
+      "at index",
+      configOffset + 12,
+      "value:",
+      mappedRange[configOffset + 12]
+    );
 
     // console.info(
     //   "gradientBuffer mappedRange after setup",

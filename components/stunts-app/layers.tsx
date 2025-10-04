@@ -4,6 +4,7 @@ import { PolygonConfig } from "@/engine/polygon";
 import { StImageConfig } from "@/engine/image";
 import { TextRendererConfig } from "@/engine/text";
 import { StVideoConfig } from "@/engine/video";
+import { BrushConfig } from "@/engine/brush";
 import { ObjectType } from "@/engine/animations";
 import { CreateIcon } from "./icon";
 import { Editor } from "@/engine/editor";
@@ -23,6 +24,12 @@ export const LayerFromConfig = {
     instance_id: config.id,
     instance_name: config.name,
     instance_kind: ObjectType.Polygon,
+    initial_layer_index: config.layer,
+  }),
+  fromBrushConfig: (config: BrushConfig): Layer => ({
+    instance_id: config.id,
+    instance_name: config.name,
+    instance_kind: ObjectType.Brush,
     initial_layer_index: config.layer,
   }),
   fromImageConfig: (config: StImageConfig): Layer => ({

@@ -3,6 +3,7 @@ import { SavedTextRendererConfig } from "./text";
 import { SavedPolygonConfig } from "./polygon";
 import { SavedStImageConfig } from "./image";
 import { SavedStVideoConfig } from "./video";
+import { SavedBrushConfig } from "./brush";
 
 export interface SavedState {
   sequences: Sequence[];
@@ -49,6 +50,7 @@ export enum ObjectType {
   TextItem = "TextItem",
   ImageItem = "ImageItem",
   VideoItem = "VideoItem",
+  Brush = "Brush",
 }
 
 export enum EasingType {
@@ -84,6 +86,7 @@ export interface Sequence {
   activeTextItems: SavedTextRendererConfig[];
   activeImageItems: SavedStImageConfig[];
   activeVideoItems: SavedStVideoConfig[];
+  activeBrushes?: SavedBrushConfig[];
 }
 
 export interface AnimationData {

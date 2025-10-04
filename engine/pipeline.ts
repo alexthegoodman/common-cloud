@@ -866,9 +866,9 @@ export class CanvasPipeline {
       gl.enableVertexAttribArray(3);
       gl.vertexAttribPointer(3, 2, gl.FLOAT, false, stride, 36);
 
-      // object_type: uint32 -> must use `vertexAttribIPointer`
+      // object_type: float32
       gl.enableVertexAttribArray(4);
-      gl.vertexAttribIPointer(4, 1, gl.UNSIGNED_INT, stride, 44);
+      gl.vertexAttribPointer(4, 1, gl.FLOAT, false, stride, 44);
 
       // Bind index buffer
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer.buffer);
@@ -1128,6 +1128,25 @@ export class CanvasPipeline {
 
         // Re-enable depth writes for subsequent objects
         // gl.depthMask(true);
+      }
+    }
+
+    // Draw brushes
+    for (const brush of editor.brushes || []) {
+      if (!brush.hidden && brush.vertices.length > 0) {
+        // Brushes don't typically need dragging updates, but could be added if needed
+        if (editor.isPlaying) {
+          brush.transform.updateUniformBuffer(queue, editor.camera.windowSize);
+        }
+
+        brush.bindGroup.bindWebGLBindGroup(gl);
+        brush.groupBindGroup?.bindWebGLBindGroup(gl);
+
+        drawIndexedGeometry(
+          brush.vertexBuffer as PolyfillBuffer,
+          brush.indexBuffer as PolyfillBuffer,
+          brush.indices.length
+        );
       }
     }
 

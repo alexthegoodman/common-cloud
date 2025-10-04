@@ -15,6 +15,7 @@ import { v4 as uuidv4 } from "uuid";
 import { SavedTextRendererConfig } from "./text";
 import { SavedStImageConfig } from "./image";
 import { SavedStVideoConfig } from "./video";
+import { SavedBrushConfig } from "./brush";
 import {
   CANVAS_HORIZ_OFFSET,
   CANVAS_VERT_OFFSET,
@@ -182,6 +183,28 @@ export default class EditorState {
         if (this.supportsMotionPaths && s.polygonMotionPaths) {
           s.polygonMotionPaths.push(new_motion_path);
         }
+      }
+    });
+
+    let sequences = saved_state.sequences;
+
+    await saveSequencesData(sequences, this.saveTarget);
+
+    this.savedState = saved_state;
+  }
+
+  async add_saved_brush(
+    selected_sequence_id: string,
+    savable_brush: SavedBrushConfig
+  ) {
+    let saved_state = this.savedState;
+
+    saved_state.sequences.forEach((s) => {
+      if (s.id == selected_sequence_id) {
+        if (!s.activeBrushes) {
+          s.activeBrushes = [];
+        }
+        s.activeBrushes.push(savable_brush);
       }
     });
 

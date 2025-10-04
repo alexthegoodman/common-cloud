@@ -307,6 +307,7 @@ import {
   WebGpuResources,
 } from "./polyfill";
 import { UnifiedRichTextEditor } from "./rte-one";
+import { ProceduralBrush, BrushConfig } from "./brush";
 // import * as fontkit from "fontkit";
 
 export class Editor {
@@ -331,6 +332,9 @@ export class Editor {
   //   cursorDot: RingDot | null;
   videoItems: StVideo[];
   draggingVideo: string | null;
+  brushes: ProceduralBrush[];
+  brushDrawingMode: boolean;
+  currentBrush: ProceduralBrush | null;
   motionPaths: MotionPath[];
   repeatManager: RepeatManager;
   // multiPageEditor: MultiPageEditor | null = null;
@@ -471,6 +475,9 @@ export class Editor {
     this.isPanning = false;
     this.videoItems = [];
     this.draggingVideo = null;
+    this.brushes = [];
+    this.brushDrawingMode = false;
+    this.currentBrush = null;
     this.motionPaths = [];
     this.generationCount = 4;
     this.generationCurved = false;
@@ -3398,6 +3405,40 @@ export class Editor {
     this.polygons.push(polygon);
   }
 
+  add_brush(
+    brush_config: BrushConfig,
+    new_id: string,
+    selected_sequence_id: string
+  ) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+    let windowSize = camera?.windowSize;
+
+    if (
+      !camera ||
+      !windowSize ||
+      !gpuResources ||
+      !this.modelBindGroupLayout ||
+      !this.groupBindGroupLayout
+    ) {
+      return;
+    }
+
+    let brush = new ProceduralBrush(
+      windowSize,
+      gpuResources.device!,
+      gpuResources.queue!,
+      this.modelBindGroupLayout,
+      this.groupBindGroupLayout,
+      camera,
+      brush_config,
+      selected_sequence_id
+    );
+
+    this.brushes.push(brush);
+    this.currentBrush = brush;
+  }
+
   async add_text_item(
     text_config: TextRendererConfig,
     text_content: string,
@@ -4803,7 +4844,44 @@ export class Editor {
     //   return;
     // }
 
-    // First, check if panning
+    // First, check if brush drawing mode
+    if (this.brushDrawingMode && this.currentBrush) {
+      const brushPoint = {
+        x: top_left.x,
+        y: top_left.y,
+        pressure: 1.0, // Could be read from pointer event if supported
+        timestamp: Date.now(),
+      };
+
+      // Create a new ProceduralBrush instance for this stroke
+      const gpuResources = this.gpuResources;
+      const camera = this.camera;
+      if (!gpuResources || !camera) {
+        return;
+      }
+
+      const windowSize = camera.windowSize;
+      const config = this.currentBrush.toConfig();
+      config.id = `brush_stroke_${Date.now()}_${Math.random()}`;
+
+      const newBrush = new ProceduralBrush(
+        windowSize,
+        gpuResources.device!,
+        gpuResources.queue!,
+        this.modelBindGroupLayout,
+        this.groupBindGroupLayout,
+        camera,
+        config,
+        this.currentBrush.currentSequenceId
+      );
+
+      this.brushes.push(newBrush);
+      this.currentBrush = newBrush;
+      this.currentBrush.startStroke(brushPoint, config);
+      return;
+    }
+
+    // Next, check if panning
     if (this.controlMode == ControlMode.Pan) {
       this.isPanning = true;
       this.dragStart = this.lastTopLeft;
@@ -5223,6 +5301,24 @@ export class Editor {
     //         .updatePosition([this.lastTopLeft.x, this.lastTopLeft.y], windowSize);
     // }
 
+    // handle brush drawing
+    if (this.brushDrawingMode && this.currentBrush && this.currentBrush.currentStroke) {
+      const brushPoint = {
+        x: top_left.x,
+        y: top_left.y,
+        pressure: 1.0, // Could be read from pointer event if supported
+        timestamp: Date.now(),
+      };
+
+      this.currentBrush.addStrokePoint(brushPoint);
+
+      // Update brush geometry in real-time
+      this.currentBrush.createGeometry(camera, windowSize);
+      this.currentBrush.updateBuffers(device, queue, camera, windowSize);
+
+      return;
+    }
+
     // handle panning
     if (this.controlMode == ControlMode.Pan && this.isPanning) {
       let dx = this.previousTopLeft.x - this.lastTopLeft.x;
@@ -5336,6 +5432,24 @@ export class Editor {
     let camera = this.camera;
 
     if (!camera) {
+      return;
+    }
+
+    // Handle brush stroke end
+    if (this.brushDrawingMode && this.currentBrush && this.currentBrush.currentStroke) {
+      this.currentBrush.endStroke();
+
+      // Regenerate final geometry with all strokes
+      const windowSize = camera.windowSize;
+      const gpuResources = this.gpuResources;
+      const device = gpuResources?.device;
+      const queue = gpuResources?.queue;
+
+      if (windowSize && device && queue) {
+        this.currentBrush.createGeometry(camera, windowSize);
+        this.currentBrush.updateBuffers(device, queue, camera, windowSize);
+      }
+
       return;
     }
 
