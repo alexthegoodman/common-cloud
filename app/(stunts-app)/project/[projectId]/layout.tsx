@@ -31,6 +31,11 @@ export default function ProjectLayout({ children = null }) {
       <Toaster position="bottom-left" reverseOrder={false} />
       <div className="flex flex-row p-4 w-full">
         <div className="flex flex-col gap-4 mr-4">
+          {/** TODO: change global app theme by clicking on the logo */}
+          <img
+            className="block w-[70px]"
+            src="/stunts_logo_letter_transparent.png"
+          />
           {/* <NavButton
             label={t("Hub")}
             icon="lightning"
