@@ -1567,7 +1567,15 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
                       {editorRef.current?.brushDrawingMode && refreshUINow && (
                         <>
-                          <BrushProperties editorRef={editorRef} />
+                          <BrushProperties
+                            editorRef={editorRef}
+                            onClose={() => {
+                              if (editorRef.current) {
+                                editorRef.current.brushDrawingMode = false;
+                                setRefreshUINow(Date.now());
+                              }
+                            }}
+                          />
                         </>
                       )}
 

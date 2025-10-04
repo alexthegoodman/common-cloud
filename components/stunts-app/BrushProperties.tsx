@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { Editor } from "@/engine/editor";
 import { BrushType } from "@/engine/brush";
+import { X } from "@phosphor-icons/react";
 
 interface BrushPropertiesProps {
   editorRef: React.RefObject<Editor | null>;
+  onClose?: () => void;
 }
 
-export default function BrushProperties({ editorRef }: BrushPropertiesProps) {
+export default function BrushProperties({ editorRef, onClose }: BrushPropertiesProps) {
   const [brushType, setBrushType] = useState<BrushType>(BrushType.Noise);
   const [size, setSize] = useState(20);
   const [opacity, setOpacity] = useState(0.7);
@@ -78,7 +80,18 @@ export default function BrushProperties({ editorRef }: BrushPropertiesProps) {
 
   return (
     <div className="w-full p-4 theme-bg-primary border-t">
-      <h3 className="text-lg font-bold mb-4">Brush Properties</h3>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-bold">Brush Properties</h3>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-200 rounded transition-colors"
+            aria-label="Close brush properties"
+          >
+            <X size={24} />
+          </button>
+        )}
+      </div>
 
       {/* Brush Type */}
       <div className="mb-4">
