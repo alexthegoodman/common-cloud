@@ -95,7 +95,8 @@ void main() {
     }
 
     // Apply border radius for images (2) and videos (3)
-    if (v_object_type == 2u || v_object_type == 3u) {
+    // if (v_object_type == 2u || v_object_type == 3u) {
+    if (v_object_type != 0u) {
         if (u_border_radius > 0.0) {
             // Convert tex_coords from [0,1] to [-0.5, 0.5] range
             vec2 pos = v_tex_coords - vec2(0.5);

@@ -1494,6 +1494,7 @@ export class Editor {
         position,
         layer: i.layer,
         isCircle: i.isCircle,
+        borderRadius: i.borderRadius,
       };
 
       let blob = await getUploadedImageData(i.url);
@@ -1569,6 +1570,7 @@ export class Editor {
         path: i.path,
         position,
         layer: i.layer,
+        borderRadius: i.borderRadius,
         // mousePath: i.mousePath,
       };
 
