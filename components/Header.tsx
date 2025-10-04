@@ -52,9 +52,9 @@ export default function Header({ language = "en", showLogo = false }) {
             <li>
               <Link href="/blog/">{copy?.blog}</Link>
             </li>
-            <li>
+            {/* <li>
               <Link href="/login/">{copy?.login}</Link>
-            </li>
+            </li> */}
             {/* <li>
               <Link href="/register/">{copy?.register}</Link>
             </li> */}
