@@ -1543,7 +1543,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
               )}
 
               {current_sequence_id ? (
-                <div className="flex flex-col gap-4 w-full max-h-[300px] md:max-h-full overflow-scroll md:max-w-[315px]">
+                <div className="flex flex-col gap-4 w-full max-h-[300px] md:max-h-[80vh] overflow-scroll md:w-[315px] md:max-w-[315px]">
                   {selected_keyframes && selected_keyframes?.length > 0 ? (
                     <>
                       <KeyframeProperties
@@ -1575,60 +1575,52 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
                       {selected_image_id && (
                         <>
-                          <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                            <ImageProperties
-                              key={"props" + selected_image_id}
-                              editorRef={editorRef}
-                              editorStateRef={editorStateRef}
-                              currentSequenceId={current_sequence_id}
-                              currentImageId={selected_image_id}
-                              handleGoBack={() => {
-                                set_selected_image_id(null);
-                              }}
-                            />
-                          </div>
+                          <ImageProperties
+                            key={"props" + selected_image_id}
+                            editorRef={editorRef}
+                            editorStateRef={editorStateRef}
+                            currentSequenceId={current_sequence_id}
+                            currentImageId={selected_image_id}
+                            handleGoBack={() => {
+                              set_selected_image_id(null);
+                            }}
+                          />
                         </>
                       )}
 
                       {selected_text_id && (
                         <>
-                          <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                            <TextProperties
-                              key={"props" + selected_text_id}
-                              editorRef={editorRef}
-                              editorStateRef={editorStateRef}
-                              currentSequenceId={current_sequence_id}
-                              currentTextId={selected_text_id}
-                              handleGoBack={() => {
-                                set_selected_text_id(null);
-                              }}
-                            />
-                          </div>
+                          <TextProperties
+                            key={"props" + selected_text_id}
+                            editorRef={editorRef}
+                            editorStateRef={editorStateRef}
+                            currentSequenceId={current_sequence_id}
+                            currentTextId={selected_text_id}
+                            handleGoBack={() => {
+                              set_selected_text_id(null);
+                            }}
+                          />
                         </>
                       )}
 
                       {editorRef.current?.brushDrawingMode && refreshUINow && (
                         <>
-                          <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                            <BrushProperties editorRef={editorRef} />
-                          </div>
+                          <BrushProperties editorRef={editorRef} />
                         </>
                       )}
 
                       {selected_video_id && (
                         <>
-                          <div className="flex max-w-[315px] w-full max-h-[100vh] overflow-y-scroll overflow-x-hidden p-4 border-0 rounded-[15px] shadow-[0_0_15px_4px_rgba(0,0,0,0.16)]">
-                            <VideoProperties
-                              key={"props" + selected_video_id}
-                              editorRef={editorRef}
-                              editorStateRef={editorStateRef}
-                              currentSequenceId={current_sequence_id}
-                              currentVideoId={selected_video_id}
-                              handleGoBack={() => {
-                                set_selected_video_id(null);
-                              }}
-                            />
-                          </div>
+                          <VideoProperties
+                            key={"props" + selected_video_id}
+                            editorRef={editorRef}
+                            editorStateRef={editorStateRef}
+                            currentSequenceId={current_sequence_id}
+                            currentVideoId={selected_video_id}
+                            handleGoBack={() => {
+                              set_selected_video_id(null);
+                            }}
+                          />
                         </>
                       )}
 

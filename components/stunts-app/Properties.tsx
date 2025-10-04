@@ -1090,7 +1090,7 @@ const TextAnimationProperties = ({
   };
 
   return (
-    <div className="mt-4 border-t pt-4">
+    <div className="mt-4 pt-4">
       <div className="flex items-center justify-between mb-2">
         <h6 className="text-sm font-medium">Text Animations</h6>
         <div className="flex gap-2">
@@ -1102,12 +1102,12 @@ const TextAnimationProperties = ({
               Remove
             </button>
           )}
-          <button
+          {/* <button
             onClick={() => setShowPanel(!showPanel)}
             className="text-xs px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
           >
             {showPanel ? "Hide" : "Show"}
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -1173,6 +1173,7 @@ export const TextProperties = ({
   const [defaultFill, setDefaultFill] = useState<BackgroundFill | null>(null);
   const [fontSize, setFontSize] = useState(28);
   const [fontFamily, setFontFamily] = useState("Aleo");
+  const [showTextProps, setShowTextProps] = useState(false);
 
   useEffect(() => {
     let editor = editorRef.current;
@@ -1237,7 +1238,7 @@ export const TextProperties = ({
 
   return (
     <>
-      <div>
+      <div className="w-full">
         <div className="flex flex-row items-center">
           <button
             className="flex flex-col justify-center items-center text-xs w-[35px] h-[35px] text-center rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors mr-2"
@@ -1248,307 +1249,400 @@ export const TextProperties = ({
           </button>
           <h5>Update Text</h5>
         </div>
-        <DebouncedInput
-          id="text_font_size"
-          label="Font Size"
-          placeholder="Font Size"
-          initialValue={fontSize.toString()}
-          onDebounce={(value) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
 
-            if (!editorState || !editor) {
-              return;
-            }
+        <button
+          className="text-xs rounded-md text-white stunts-gradient px-2 py-1 w-full mb-3"
+          onClick={() => setShowTextProps(!showTextProps)}
+        >
+          Show Text Properties
+        </button>
+        {showTextProps ? (
+          <section>
+            <DebouncedInput
+              id="text_font_size"
+              label="Font Size"
+              placeholder="Font Size"
+              initialValue={fontSize.toString()}
+              onDebounce={(value) => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
 
-            console.info("double call?");
+                if (!editorState || !editor) {
+                  return;
+                }
 
-            updateFontSize(
-              editorState,
-              editor,
-              currentTextId,
-              ObjectType.TextItem,
-              parseInt(value)
-            );
-          }}
-        />
-        <div className="flex flex-col gap-1 mb-2">
-          <label htmlFor="font_family" className="text-xs">
-            Font Family
-          </label>
-          <select
-            id="font_family"
-            name="font_family"
-            value={fontFamily}
-            onChange={async (ev) => {
-              let editor = editorRef.current;
-              let editorState = editorStateRef.current;
+                console.info("double call?");
 
-              if (!editorState || !editor) {
-                return;
-              }
+                updateFontSize(
+                  editorState,
+                  editor,
+                  currentTextId,
+                  ObjectType.TextItem,
+                  parseInt(value)
+                );
+              }}
+            />
+            <div className="flex flex-col gap-1 mb-2">
+              <label htmlFor="font_family" className="text-xs">
+                Font Family
+              </label>
+              <select
+                id="font_family"
+                name="font_family"
+                value={fontFamily}
+                onChange={async (ev) => {
+                  let editor = editorRef.current;
+                  let editorState = editorStateRef.current;
 
-              const newFontFamily = ev.target.value;
-              setFontFamily(newFontFamily);
+                  if (!editorState || !editor) {
+                    return;
+                  }
 
-              await updateFontFamily(
-                editorState,
-                editor,
-                currentTextId,
-                newFontFamily
-              );
-            }}
-            className="px-2 py-1 border border-gray-300 rounded text-xs"
-            style={{ fontFamily: fontFamily }}
-          >
-            <option value="Actor" style={{ fontFamily: "Actor" }}>
-              Actor
-            </option>
-            <option value="Aladin" style={{ fontFamily: "Aladin" }}>
-              Aladin
-            </option>
-            <option value="Aleo" style={{ fontFamily: "Aleo" }}>
-              Aleo
-            </option>
-            <option value="Amiko" style={{ fontFamily: "Amiko" }}>
-              Amiko
-            </option>
-            <option value="Ballet" style={{ fontFamily: "Ballet" }}>
-              Ballet
-            </option>
-            <option value="Basic" style={{ fontFamily: "Basic" }}>
-              Basic
-            </option>
-            <option value="Bungee" style={{ fontFamily: "Bungee" }}>
-              Bungee
-            </option>
-            <option value="Caramel" style={{ fontFamily: "Caramel" }}>
-              Caramel
-            </option>
-            <option value="Cherish" style={{ fontFamily: "Cherish" }}>
-              Cherish
-            </option>
-            <option value="Coda" style={{ fontFamily: "Coda" }}>
-              Coda
-            </option>
-            <option value="David Libre" style={{ fontFamily: "David Libre" }}>
-              David Libre
-            </option>
-            <option value="Dorsa" style={{ fontFamily: "Dorsa" }}>
-              Dorsa
-            </option>
-            <option value="Duru Sans" style={{ fontFamily: "Duru Sans" }}>
-              Duru Sans
-            </option>
-            <option value="Dynalight" style={{ fontFamily: "Dynalight" }}>
-              Dynalight
-            </option>
-            <option value="Eater" style={{ fontFamily: "Eater" }}>
-              Eater
-            </option>
-            <option value="Epilogue" style={{ fontFamily: "Epilogue" }}>
-              Epilogue
-            </option>
-            <option value="Exo" style={{ fontFamily: "Exo" }}>
-              Exo
-            </option>
-            <option value="Explora" style={{ fontFamily: "Explora" }}>
-              Explora
-            </option>
-            <option value="Federo" style={{ fontFamily: "Federo" }}>
-              Federo
-            </option>
-            <option value="Figtree" style={{ fontFamily: "Figtree" }}>
-              Figtree
-            </option>
-            <option value="Flavors" style={{ fontFamily: "Flavors" }}>
-              Flavors
-            </option>
-            <option value="Galada" style={{ fontFamily: "Galada" }}>
-              Galada
-            </option>
-            <option value="Gantari" style={{ fontFamily: "Gantari" }}>
-              Gantari
-            </option>
-            <option value="Geo" style={{ fontFamily: "Geo" }}>
-              Geo
-            </option>
-            <option value="Glory" style={{ fontFamily: "Glory" }}>
-              Glory
-            </option>
-            <option value="HappyMonkey" style={{ fontFamily: "HappyMonkey" }}>
-              HappyMonkey
-            </option>
-            <option value="HennyPenny" style={{ fontFamily: "HennyPenny" }}>
-              HennyPenny
-            </option>
-            <option value="Iceberg" style={{ fontFamily: "Iceberg" }}>
-              Iceberg
-            </option>
-            <option value="Inika" style={{ fontFamily: "Inika" }}>
-              Inika
-            </option>
-            <option value="InriaSans" style={{ fontFamily: "InriaSans" }}>
-              InriaSans
-            </option>
-            <option value="Jaro" style={{ fontFamily: "Jaro" }}>
-              Jaro
-            </option>
-            <option value="Kavoon" style={{ fontFamily: "Kavoon" }}>
-              Kavoon
-            </option>
-            <option value="Khula" style={{ fontFamily: "Khula" }}>
-              Khula
-            </option>
-            <option value="Kokoro" style={{ fontFamily: "Kokoro" }}>
-              Kokoro
-            </option>
-            <option value="Lemon" style={{ fontFamily: "Lemon" }}>
-              Lemon
-            </option>
-            <option value="Lexend" style={{ fontFamily: "Lexend" }}>
-              Lexend
-            </option>
-            <option value="Macondo" style={{ fontFamily: "Macondo" }}>
-              Macondo
-            </option>
-            <option value="Maitree" style={{ fontFamily: "Maitree" }}>
-              Maitree
-            </option>
-            <option value="Martel" style={{ fontFamily: "Martel" }}>
-              Martel
-            </option>
-            <option value="Maven Pro" style={{ fontFamily: "Maven Pro" }}>
-              Maven Pro
-            </option>
-            <option value="Neuton" style={{ fontFamily: "Neuton" }}>
-              Neuton
-            </option>
-            <option value="News Cycle" style={{ fontFamily: "News Cycle" }}>
-              News Cycle
-            </option>
-            <option value="Nixie One" style={{ fontFamily: "Nixie One" }}>
-              Nixie One
-            </option>
-            <option value="Overlock" style={{ fontFamily: "Overlock" }}>
-              Overlock
-            </option>
-            <option value="Oxygen" style={{ fontFamily: "Oxygen" }}>
-              Oxygen
-            </option>
-            <option value="Play" style={{ fontFamily: "Play" }}>
-              Play
-            </option>
-            <option value="Quicksand" style={{ fontFamily: "Quicksand" }}>
-              Quicksand
-            </option>
-            <option value="Radley" style={{ fontFamily: "Radley" }}>
-              Radley
-            </option>
-            <option value="Rethink Sans" style={{ fontFamily: "Rethink Sans" }}>
-              Rethink Sans
-            </option>
-            <option value="Rosario" style={{ fontFamily: "Rosario" }}>
-              Rosario
-            </option>
-            <option value="Sacramento" style={{ fontFamily: "Sacramento" }}>
-              Sacramento
-            </option>
-            <option value="Salsa" style={{ fontFamily: "Salsa" }}>
-              Salsa
-            </option>
-            <option value="Scope One" style={{ fontFamily: "Scope One" }}>
-              Scope One
-            </option>
-            <option value="Teachers" style={{ fontFamily: "Teachers" }}>
-              Teachers
-            </option>
-            <option value="Underdog" style={{ fontFamily: "Underdog" }}>
-              Underdog
-            </option>
-            <option value="Vibes" style={{ fontFamily: "Vibes" }}>
-              Vibes
-            </option>
-            <option value="Vina Sans" style={{ fontFamily: "Vina Sans" }}>
-              Vina Sans
-            </option>
-            <option value="Water Brush" style={{ fontFamily: "Water Brush" }}>
-              Water Brush
-            </option>
-            <option value="Wind Song" style={{ fontFamily: "Wind Song" }}>
-              Wind Song
-            </option>
-            <option value="Zain" style={{ fontFamily: "Zain" }}>
-              Zain
-            </option>
-          </select>
-        </div>
-        <DebouncedTextarea
-          id="text_content"
-          label="Content"
-          placeholder="Content"
-          initialValue={defaultContent.toString()}
-          onDebounce={(value) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
+                  const newFontFamily = ev.target.value;
+                  setFontFamily(newFontFamily);
 
-            if (!editorState || !editor) {
-              return;
-            }
+                  await updateFontFamily(
+                    editorState,
+                    editor,
+                    currentTextId,
+                    newFontFamily
+                  );
+                }}
+                className="px-2 py-1 border border-gray-300 rounded text-xs"
+                style={{ fontFamily: fontFamily }}
+              >
+                <option value="Actor" style={{ fontFamily: "Actor" }}>
+                  Actor
+                </option>
+                <option value="Aladin" style={{ fontFamily: "Aladin" }}>
+                  Aladin
+                </option>
+                <option value="Aleo" style={{ fontFamily: "Aleo" }}>
+                  Aleo
+                </option>
+                <option value="Amiko" style={{ fontFamily: "Amiko" }}>
+                  Amiko
+                </option>
+                <option value="Ballet" style={{ fontFamily: "Ballet" }}>
+                  Ballet
+                </option>
+                <option value="Basic" style={{ fontFamily: "Basic" }}>
+                  Basic
+                </option>
+                <option value="Bungee" style={{ fontFamily: "Bungee" }}>
+                  Bungee
+                </option>
+                <option value="Caramel" style={{ fontFamily: "Caramel" }}>
+                  Caramel
+                </option>
+                <option value="Cherish" style={{ fontFamily: "Cherish" }}>
+                  Cherish
+                </option>
+                <option value="Coda" style={{ fontFamily: "Coda" }}>
+                  Coda
+                </option>
+                <option
+                  value="David Libre"
+                  style={{ fontFamily: "David Libre" }}
+                >
+                  David Libre
+                </option>
+                <option value="Dorsa" style={{ fontFamily: "Dorsa" }}>
+                  Dorsa
+                </option>
+                <option value="Duru Sans" style={{ fontFamily: "Duru Sans" }}>
+                  Duru Sans
+                </option>
+                <option value="Dynalight" style={{ fontFamily: "Dynalight" }}>
+                  Dynalight
+                </option>
+                <option value="Eater" style={{ fontFamily: "Eater" }}>
+                  Eater
+                </option>
+                <option value="Epilogue" style={{ fontFamily: "Epilogue" }}>
+                  Epilogue
+                </option>
+                <option value="Exo" style={{ fontFamily: "Exo" }}>
+                  Exo
+                </option>
+                <option value="Explora" style={{ fontFamily: "Explora" }}>
+                  Explora
+                </option>
+                <option value="Federo" style={{ fontFamily: "Federo" }}>
+                  Federo
+                </option>
+                <option value="Figtree" style={{ fontFamily: "Figtree" }}>
+                  Figtree
+                </option>
+                <option value="Flavors" style={{ fontFamily: "Flavors" }}>
+                  Flavors
+                </option>
+                <option value="Galada" style={{ fontFamily: "Galada" }}>
+                  Galada
+                </option>
+                <option value="Gantari" style={{ fontFamily: "Gantari" }}>
+                  Gantari
+                </option>
+                <option value="Geo" style={{ fontFamily: "Geo" }}>
+                  Geo
+                </option>
+                <option value="Glory" style={{ fontFamily: "Glory" }}>
+                  Glory
+                </option>
+                <option
+                  value="HappyMonkey"
+                  style={{ fontFamily: "HappyMonkey" }}
+                >
+                  HappyMonkey
+                </option>
+                <option value="HennyPenny" style={{ fontFamily: "HennyPenny" }}>
+                  HennyPenny
+                </option>
+                <option value="Iceberg" style={{ fontFamily: "Iceberg" }}>
+                  Iceberg
+                </option>
+                <option value="Inika" style={{ fontFamily: "Inika" }}>
+                  Inika
+                </option>
+                <option value="InriaSans" style={{ fontFamily: "InriaSans" }}>
+                  InriaSans
+                </option>
+                <option value="Jaro" style={{ fontFamily: "Jaro" }}>
+                  Jaro
+                </option>
+                <option value="Kavoon" style={{ fontFamily: "Kavoon" }}>
+                  Kavoon
+                </option>
+                <option value="Khula" style={{ fontFamily: "Khula" }}>
+                  Khula
+                </option>
+                <option value="Kokoro" style={{ fontFamily: "Kokoro" }}>
+                  Kokoro
+                </option>
+                <option value="Lemon" style={{ fontFamily: "Lemon" }}>
+                  Lemon
+                </option>
+                <option value="Lexend" style={{ fontFamily: "Lexend" }}>
+                  Lexend
+                </option>
+                <option value="Macondo" style={{ fontFamily: "Macondo" }}>
+                  Macondo
+                </option>
+                <option value="Maitree" style={{ fontFamily: "Maitree" }}>
+                  Maitree
+                </option>
+                <option value="Martel" style={{ fontFamily: "Martel" }}>
+                  Martel
+                </option>
+                <option value="Maven Pro" style={{ fontFamily: "Maven Pro" }}>
+                  Maven Pro
+                </option>
+                <option value="Neuton" style={{ fontFamily: "Neuton" }}>
+                  Neuton
+                </option>
+                <option value="News Cycle" style={{ fontFamily: "News Cycle" }}>
+                  News Cycle
+                </option>
+                <option value="Nixie One" style={{ fontFamily: "Nixie One" }}>
+                  Nixie One
+                </option>
+                <option value="Overlock" style={{ fontFamily: "Overlock" }}>
+                  Overlock
+                </option>
+                <option value="Oxygen" style={{ fontFamily: "Oxygen" }}>
+                  Oxygen
+                </option>
+                <option value="Play" style={{ fontFamily: "Play" }}>
+                  Play
+                </option>
+                <option value="Quicksand" style={{ fontFamily: "Quicksand" }}>
+                  Quicksand
+                </option>
+                <option value="Radley" style={{ fontFamily: "Radley" }}>
+                  Radley
+                </option>
+                <option
+                  value="Rethink Sans"
+                  style={{ fontFamily: "Rethink Sans" }}
+                >
+                  Rethink Sans
+                </option>
+                <option value="Rosario" style={{ fontFamily: "Rosario" }}>
+                  Rosario
+                </option>
+                <option value="Sacramento" style={{ fontFamily: "Sacramento" }}>
+                  Sacramento
+                </option>
+                <option value="Salsa" style={{ fontFamily: "Salsa" }}>
+                  Salsa
+                </option>
+                <option value="Scope One" style={{ fontFamily: "Scope One" }}>
+                  Scope One
+                </option>
+                <option value="Teachers" style={{ fontFamily: "Teachers" }}>
+                  Teachers
+                </option>
+                <option value="Underdog" style={{ fontFamily: "Underdog" }}>
+                  Underdog
+                </option>
+                <option value="Vibes" style={{ fontFamily: "Vibes" }}>
+                  Vibes
+                </option>
+                <option value="Vina Sans" style={{ fontFamily: "Vina Sans" }}>
+                  Vina Sans
+                </option>
+                <option
+                  value="Water Brush"
+                  style={{ fontFamily: "Water Brush" }}
+                >
+                  Water Brush
+                </option>
+                <option value="Wind Song" style={{ fontFamily: "Wind Song" }}>
+                  Wind Song
+                </option>
+                <option value="Zain" style={{ fontFamily: "Zain" }}>
+                  Zain
+                </option>
+              </select>
+            </div>
+            <DebouncedTextarea
+              id="text_content"
+              label="Content"
+              placeholder="Content"
+              initialValue={defaultContent.toString()}
+              onDebounce={(value) => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
 
-            updateTextContent(editorState, editor, currentTextId, value);
-          }}
-        />
-        <div className="flex flex-row gap-2">
-          <DebouncedInput
-            id="text_width"
-            label="Width"
-            placeholder="Width"
-            initialValue={defaultWidth.toString()}
-            onDebounce={(value) => {
-              let editor = editorRef.current;
-              let editorState = editorStateRef.current;
+                if (!editorState || !editor) {
+                  return;
+                }
 
-              if (!editorState || !editor) {
-                return;
-              }
+                updateTextContent(editorState, editor, currentTextId, value);
+              }}
+            />
+            <div className="flex flex-row gap-2">
+              <DebouncedInput
+                id="text_width"
+                label="Width"
+                placeholder="Width"
+                initialValue={defaultWidth.toString()}
+                onDebounce={(value) => {
+                  let editor = editorRef.current;
+                  let editorState = editorStateRef.current;
 
-              console.info("double call?");
+                  if (!editorState || !editor) {
+                    return;
+                  }
 
-              updateWidth(
-                editorState,
-                editor,
-                currentTextId,
-                ObjectType.TextItem,
-                parseInt(value)
-              );
-            }}
-          />
-          <DebouncedInput
-            id="text_height"
-            label="Height"
-            placeholder="height"
-            initialValue={defaultHeight.toString()}
-            onDebounce={(value) => {
-              let editor = editorRef.current;
-              let editorState = editorStateRef.current;
+                  console.info("double call?");
 
-              if (!editorState || !editor) {
-                return;
-              }
+                  updateWidth(
+                    editorState,
+                    editor,
+                    currentTextId,
+                    ObjectType.TextItem,
+                    parseInt(value)
+                  );
+                }}
+              />
+              <DebouncedInput
+                id="text_height"
+                label="Height"
+                placeholder="height"
+                initialValue={defaultHeight.toString()}
+                onDebounce={(value) => {
+                  let editor = editorRef.current;
+                  let editorState = editorStateRef.current;
 
-              console.info("height debounce");
+                  if (!editorState || !editor) {
+                    return;
+                  }
 
-              updateHeight(
-                editorState,
-                editor,
-                currentTextId,
-                ObjectType.TextItem,
-                parseInt(value)
-              );
-            }}
-          />
-        </div>
+                  console.info("height debounce");
+
+                  updateHeight(
+                    editorState,
+                    editor,
+                    currentTextId,
+                    ObjectType.TextItem,
+                    parseInt(value)
+                  );
+                }}
+              />
+            </div>
+            <input
+              type="checkbox"
+              id="is_circle"
+              name="is_circle"
+              checked={is_circle}
+              onChange={(ev) => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                updateIsCircle(
+                  editorState,
+                  editor,
+                  currentTextId,
+                  ObjectType.TextItem,
+                  ev.target.checked
+                );
+
+                set_is_circle(ev.target.checked);
+              }}
+            />
+            <label htmlFor="is_circle" className="text-xs">
+              Is Circle
+            </label>
+            <input
+              type="checkbox"
+              id="hidden_background"
+              name="hidden_background"
+              checked={hidden_background}
+              onChange={(ev) => {
+                let editor = editorRef.current;
+                let editorState = editorStateRef.current;
+
+                if (!editorState || !editor) {
+                  return;
+                }
+
+                updateHiddenBackground(
+                  editorState,
+                  editor,
+                  currentTextId,
+                  ev.target.checked
+                );
+
+                set_hidden_background(ev.target.checked);
+              }}
+            />
+            <label htmlFor="hidden_background" className="text-xs">
+              Hide Background
+            </label>
+            <ColorProperties
+              editorRef={editorRef}
+              editorStateRef={editorStateRef}
+              currentSequenceId={currentSequenceId}
+              currentObjectId={currentTextId}
+              objectType={ObjectType.Polygon}
+              defaultColor={defaultFill as BackgroundFill}
+            />
+            <RepeatProperties
+              editorRef={editorRef}
+              editorStateRef={editorStateRef}
+              currentSequenceId={currentSequenceId}
+              currentObjectId={currentTextId}
+              objectType={ObjectType.TextItem}
+            />
+          </section>
+        ) : (
+          <></>
+        )}
         <AnimationOptions
           editorRef={editorRef}
           editorStateRef={editorStateRef}
@@ -1561,95 +1655,6 @@ export const TextProperties = ({
           editorStateRef={editorStateRef}
           currentSequenceId={currentSequenceId}
           currentTextId={currentTextId}
-        />
-        {/* <DebouncedInput
-          id="text_border_radius"
-          label="Border Radius"
-          placeholder="Border Radius"
-          initialValue={defaultHeight.toString()}
-          onDebounce={(value) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
-
-            if (!editorState || !editor) {
-              return;
-            }
-
-            // editorState.updateHeight(
-            //   editor,
-            //   currentTextId,
-            //   ObjectType.TextItem,
-            //   parseInt(value)
-            // );
-          }}
-        /> */}
-        <input
-          type="checkbox"
-          id="is_circle"
-          name="is_circle"
-          checked={is_circle}
-          onChange={(ev) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
-
-            if (!editorState || !editor) {
-              return;
-            }
-
-            updateIsCircle(
-              editorState,
-              editor,
-              currentTextId,
-              ObjectType.TextItem,
-              ev.target.checked
-            );
-
-            set_is_circle(ev.target.checked);
-          }}
-        />
-        <label htmlFor="is_circle" className="text-xs">
-          Is Circle
-        </label>
-        <input
-          type="checkbox"
-          id="hidden_background"
-          name="hidden_background"
-          checked={hidden_background}
-          onChange={(ev) => {
-            let editor = editorRef.current;
-            let editorState = editorStateRef.current;
-
-            if (!editorState || !editor) {
-              return;
-            }
-
-            updateHiddenBackground(
-              editorState,
-              editor,
-              currentTextId,
-              ev.target.checked
-            );
-
-            set_hidden_background(ev.target.checked);
-          }}
-        />
-        <label htmlFor="hidden_background" className="text-xs">
-          Hide Background
-        </label>
-        <ColorProperties
-          editorRef={editorRef}
-          editorStateRef={editorStateRef}
-          currentSequenceId={currentSequenceId}
-          currentObjectId={currentTextId}
-          objectType={ObjectType.Polygon}
-          defaultColor={defaultFill as BackgroundFill}
-        />
-        <RepeatProperties
-          editorRef={editorRef}
-          editorStateRef={editorStateRef}
-          currentSequenceId={currentSequenceId}
-          currentObjectId={currentTextId}
-          objectType={ObjectType.TextItem}
         />
       </div>
     </>
@@ -2071,265 +2076,6 @@ export const AnimationOptions = ({
   return (
     <div className="flex flex-col gap-2">
       <p>Apply Animations</p>
-      <button
-        className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
-        onClick={async () => {
-          let editor = editorRef.current;
-          let editorState = editorStateRef.current;
-
-          if (!editorState || !editor) {
-            return;
-          }
-
-          let currentSequence = editorState.savedState.sequences.find(
-            (s) => s.id === currentSequenceId
-          );
-
-          if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-            return;
-          }
-
-          let current_animation_data = currentSequence?.polygonMotionPaths.find(
-            (p) => p.polygonId === currentObjectId
-          );
-
-          if (!current_animation_data) {
-            return;
-          }
-
-          let newAnimationData = remove_position_keyframes(
-            editorState,
-            currentObjectId,
-            objectType,
-            current_animation_data
-          );
-
-          let sequence_cloned = null;
-
-          editorState.savedState.sequences.forEach((s) => {
-            if (s.id == currentSequenceId) {
-              sequence_cloned = s;
-
-              if (s.polygonMotionPaths) {
-                let currentIndex = s.polygonMotionPaths.findIndex(
-                  (p) => p.id === current_animation_data.id
-                );
-                s.polygonMotionPaths[currentIndex] = newAnimationData;
-              }
-            }
-          });
-
-          if (!sequence_cloned) {
-            return;
-          }
-
-          let sequences = editorState.savedState.sequences;
-
-          await saveSequencesData(sequences, editorState.saveTarget);
-
-          // update motion path preview
-          editor.updateMotionPaths(sequence_cloned);
-        }}
-      >
-        Remove Position Keyframes
-      </button>
-
-      {/** Perspective Animation Panel */}
-      <div className="flex flex-col gap-2 p-2 border rounded">
-        <p className="text-xs font-semibold">Perspective Animation</p>
-
-        <div className="flex flex-row gap-3">
-          <label className="flex items-center gap-1 text-xs">
-            <input
-              type="checkbox"
-              checked={perspectiveX}
-              onChange={(e) => setPerspectiveX(e.target.checked)}
-            />
-            X Axis (top/bottom)
-          </label>
-          <label className="flex items-center gap-1 text-xs">
-            <input
-              type="checkbox"
-              checked={perspectiveY}
-              onChange={(e) => setPerspectiveY(e.target.checked)}
-            />
-            Y Axis (left/right)
-          </label>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-600">Degrees:</label>
-          <input
-            type="number"
-            value={perspectiveDegrees}
-            onChange={(e) => setPerspectiveDegrees(Number(e.target.value))}
-            className="text-xs border rounded px-2 py-1"
-            min="0"
-            max="90"
-          />
-        </div>
-
-        <div className="flex flex-row gap-3">
-          <label className="flex items-center gap-1 text-xs">
-            <input
-              type="checkbox"
-              checked={perspectiveFadeIn}
-              onChange={(e) => setPerspectiveFadeIn(e.target.checked)}
-            />
-            Fade In
-          </label>
-          <label className="flex items-center gap-1 text-xs">
-            <input
-              type="checkbox"
-              checked={perspectiveFadeOut}
-              onChange={(e) => setPerspectiveFadeOut(e.target.checked)}
-            />
-            Fade Out
-          </label>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <p className="text-xs text-gray-600">Animation Direction:</p>
-          <label className="flex items-center gap-1 text-xs">
-            <input
-              type="radio"
-              name="perspectiveDirection"
-              checked={!perspectiveAnimateTo}
-              onChange={() => setPerspectiveAnimateTo(false)}
-            />
-            Animate FROM perspective
-          </label>
-          <label className="flex items-center gap-1 text-xs">
-            <input
-              type="radio"
-              name="perspectiveDirection"
-              checked={perspectiveAnimateTo}
-              onChange={() => setPerspectiveAnimateTo(true)}
-            />
-            Animate TO perspective
-          </label>
-        </div>
-
-        <div className="flex flex-row gap-2">
-          <button
-            className="text-xs rounded-md text-white stunts-gradient px-2 py-1 flex-1"
-            onClick={async () => {
-              let editor = editorRef.current;
-              let editorState = editorStateRef.current;
-
-              if (!editorState || !editor) {
-                return;
-              }
-
-              let currentSequence = editorState.savedState.sequences.find(
-                (s) => s.id === currentSequenceId
-              );
-
-              if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-                return;
-              }
-
-              let current_animation_data =
-                currentSequence?.polygonMotionPaths.find(
-                  (p) => p.polygonId === currentObjectId
-                );
-
-              if (!current_animation_data) {
-                return;
-              }
-
-              let newAnimationData = save_configurable_perspective_keyframes(
-                editorState,
-                currentObjectId,
-                objectType,
-                current_animation_data,
-                {
-                  applyX: perspectiveX,
-                  applyY: perspectiveY,
-                  degrees: perspectiveDegrees,
-                  fadeIn: perspectiveFadeIn,
-                  fadeOut: perspectiveFadeOut,
-                  animateTo: perspectiveAnimateTo,
-                }
-              );
-
-              editorState.savedState.sequences.forEach((s) => {
-                if (s.id == currentSequenceId) {
-                  if (s.polygonMotionPaths) {
-                    let currentIndex = s.polygonMotionPaths.findIndex(
-                      (p) => p.id === current_animation_data.id
-                    );
-                    s.polygonMotionPaths[currentIndex] = newAnimationData;
-                  }
-                }
-              });
-
-              let sequences = editorState.savedState.sequences;
-
-              await saveSequencesData(sequences, editorState.saveTarget);
-            }}
-          >
-            Apply Perspective Animation
-          </button>
-          <button
-            className="text-xs rounded-md bg-gray-500 hover:bg-gray-600 text-white px-2 py-1"
-            onClick={async () => {
-              let editor = editorRef.current;
-              let editorState = editorStateRef.current;
-
-              if (!editorState || !editor) {
-                return;
-              }
-
-              let currentSequence = editorState.savedState.sequences.find(
-                (s) => s.id === currentSequenceId
-              );
-
-              if (!currentSequence || !currentSequence?.polygonMotionPaths) {
-                return;
-              }
-
-              let current_animation_data =
-                currentSequence?.polygonMotionPaths.find(
-                  (p) => p.polygonId === currentObjectId
-                );
-
-              if (!current_animation_data) {
-                return;
-              }
-
-              // Remove perspectiveX and perspectiveY properties
-              let properties = current_animation_data.properties.filter(
-                (p) =>
-                  p.propertyPath !== "perspectiveX" &&
-                  p.propertyPath !== "perspectiveY"
-              );
-
-              let newAnimationData = {
-                ...current_animation_data,
-                properties: properties,
-              };
-
-              editorState.savedState.sequences.forEach((s) => {
-                if (s.id == currentSequenceId) {
-                  if (s.polygonMotionPaths) {
-                    let currentIndex = s.polygonMotionPaths.findIndex(
-                      (p) => p.id === current_animation_data.id
-                    );
-                    s.polygonMotionPaths[currentIndex] = newAnimationData;
-                  }
-                }
-              });
-
-              let sequences = editorState.savedState.sequences;
-
-              await saveSequencesData(sequences, editorState.saveTarget);
-            }}
-          >
-            Clear Perspective
-          </button>
-        </div>
-      </div>
 
       <button
         className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
@@ -2339,6 +2085,273 @@ export const AnimationOptions = ({
       </button>
       {showProceduralAnimations ? (
         <section className="flex flex-col gap-2 p-2 border rounded">
+          <button
+            className="text-xs rounded-md text-white stunts-gradient px-2 py-1"
+            onClick={async () => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+
+              if (!editorState || !editor) {
+                return;
+              }
+
+              let currentSequence = editorState.savedState.sequences.find(
+                (s) => s.id === currentSequenceId
+              );
+
+              if (!currentSequence || !currentSequence?.polygonMotionPaths) {
+                return;
+              }
+
+              let current_animation_data =
+                currentSequence?.polygonMotionPaths.find(
+                  (p) => p.polygonId === currentObjectId
+                );
+
+              if (!current_animation_data) {
+                return;
+              }
+
+              let newAnimationData = remove_position_keyframes(
+                editorState,
+                currentObjectId,
+                objectType,
+                current_animation_data
+              );
+
+              let sequence_cloned = null;
+
+              editorState.savedState.sequences.forEach((s) => {
+                if (s.id == currentSequenceId) {
+                  sequence_cloned = s;
+
+                  if (s.polygonMotionPaths) {
+                    let currentIndex = s.polygonMotionPaths.findIndex(
+                      (p) => p.id === current_animation_data.id
+                    );
+                    s.polygonMotionPaths[currentIndex] = newAnimationData;
+                  }
+                }
+              });
+
+              if (!sequence_cloned) {
+                return;
+              }
+
+              let sequences = editorState.savedState.sequences;
+
+              await saveSequencesData(sequences, editorState.saveTarget);
+
+              // update motion path preview
+              editor.updateMotionPaths(sequence_cloned);
+            }}
+          >
+            Remove Position Keyframes
+          </button>
+
+          {/** Perspective Animation Panel */}
+          <div className="flex flex-col gap-2 p-2 border rounded">
+            <p className="text-xs font-semibold">Perspective Animation</p>
+
+            <div className="flex flex-row gap-3">
+              <label className="flex items-center gap-1 text-xs">
+                <input
+                  type="checkbox"
+                  checked={perspectiveX}
+                  onChange={(e) => setPerspectiveX(e.target.checked)}
+                />
+                X Axis (top/bottom)
+              </label>
+              <label className="flex items-center gap-1 text-xs">
+                <input
+                  type="checkbox"
+                  checked={perspectiveY}
+                  onChange={(e) => setPerspectiveY(e.target.checked)}
+                />
+                Y Axis (left/right)
+              </label>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-gray-600">Degrees:</label>
+              <input
+                type="number"
+                value={perspectiveDegrees}
+                onChange={(e) => setPerspectiveDegrees(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1"
+                min="0"
+                max="90"
+              />
+            </div>
+
+            <div className="flex flex-row gap-3">
+              <label className="flex items-center gap-1 text-xs">
+                <input
+                  type="checkbox"
+                  checked={perspectiveFadeIn}
+                  onChange={(e) => setPerspectiveFadeIn(e.target.checked)}
+                />
+                Fade In
+              </label>
+              <label className="flex items-center gap-1 text-xs">
+                <input
+                  type="checkbox"
+                  checked={perspectiveFadeOut}
+                  onChange={(e) => setPerspectiveFadeOut(e.target.checked)}
+                />
+                Fade Out
+              </label>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <p className="text-xs text-gray-600">Animation Direction:</p>
+              <label className="flex items-center gap-1 text-xs">
+                <input
+                  type="radio"
+                  name="perspectiveDirection"
+                  checked={!perspectiveAnimateTo}
+                  onChange={() => setPerspectiveAnimateTo(false)}
+                />
+                Animate FROM perspective
+              </label>
+              <label className="flex items-center gap-1 text-xs">
+                <input
+                  type="radio"
+                  name="perspectiveDirection"
+                  checked={perspectiveAnimateTo}
+                  onChange={() => setPerspectiveAnimateTo(true)}
+                />
+                Animate TO perspective
+              </label>
+            </div>
+
+            <div className="flex flex-row gap-2">
+              <button
+                className="text-xs rounded-md text-white stunts-gradient px-2 py-1 flex-1"
+                onClick={async () => {
+                  let editor = editorRef.current;
+                  let editorState = editorStateRef.current;
+
+                  if (!editorState || !editor) {
+                    return;
+                  }
+
+                  let currentSequence = editorState.savedState.sequences.find(
+                    (s) => s.id === currentSequenceId
+                  );
+
+                  if (
+                    !currentSequence ||
+                    !currentSequence?.polygonMotionPaths
+                  ) {
+                    return;
+                  }
+
+                  let current_animation_data =
+                    currentSequence?.polygonMotionPaths.find(
+                      (p) => p.polygonId === currentObjectId
+                    );
+
+                  if (!current_animation_data) {
+                    return;
+                  }
+
+                  let newAnimationData =
+                    save_configurable_perspective_keyframes(
+                      editorState,
+                      currentObjectId,
+                      objectType,
+                      current_animation_data,
+                      {
+                        applyX: perspectiveX,
+                        applyY: perspectiveY,
+                        degrees: perspectiveDegrees,
+                        fadeIn: perspectiveFadeIn,
+                        fadeOut: perspectiveFadeOut,
+                        animateTo: perspectiveAnimateTo,
+                      }
+                    );
+
+                  editorState.savedState.sequences.forEach((s) => {
+                    if (s.id == currentSequenceId) {
+                      if (s.polygonMotionPaths) {
+                        let currentIndex = s.polygonMotionPaths.findIndex(
+                          (p) => p.id === current_animation_data.id
+                        );
+                        s.polygonMotionPaths[currentIndex] = newAnimationData;
+                      }
+                    }
+                  });
+
+                  let sequences = editorState.savedState.sequences;
+
+                  await saveSequencesData(sequences, editorState.saveTarget);
+                }}
+              >
+                Apply Perspective Animation
+              </button>
+              <button
+                className="text-xs rounded-md bg-gray-500 hover:bg-gray-600 text-white px-2 py-1"
+                onClick={async () => {
+                  let editor = editorRef.current;
+                  let editorState = editorStateRef.current;
+
+                  if (!editorState || !editor) {
+                    return;
+                  }
+
+                  let currentSequence = editorState.savedState.sequences.find(
+                    (s) => s.id === currentSequenceId
+                  );
+
+                  if (
+                    !currentSequence ||
+                    !currentSequence?.polygonMotionPaths
+                  ) {
+                    return;
+                  }
+
+                  let current_animation_data =
+                    currentSequence?.polygonMotionPaths.find(
+                      (p) => p.polygonId === currentObjectId
+                    );
+
+                  if (!current_animation_data) {
+                    return;
+                  }
+
+                  // Remove perspectiveX and perspectiveY properties
+                  let properties = current_animation_data.properties.filter(
+                    (p) =>
+                      p.propertyPath !== "perspectiveX" &&
+                      p.propertyPath !== "perspectiveY"
+                  );
+
+                  let newAnimationData = {
+                    ...current_animation_data,
+                    properties: properties,
+                  };
+
+                  editorState.savedState.sequences.forEach((s) => {
+                    if (s.id == currentSequenceId) {
+                      if (s.polygonMotionPaths) {
+                        let currentIndex = s.polygonMotionPaths.findIndex(
+                          (p) => p.id === current_animation_data.id
+                        );
+                        s.polygonMotionPaths[currentIndex] = newAnimationData;
+                      }
+                    }
+                  });
+
+                  let sequences = editorState.savedState.sequences;
+
+                  await saveSequencesData(sequences, editorState.saveTarget);
+                }}
+              >
+                Clear Perspective
+              </button>
+            </div>
+          </div>
           <div className="flex flex-col gap-2 border-t pt-2 mt-2">
             <h3 className="text-xs font-semibold text-gray-700">
               Scale & Fade Pulse
