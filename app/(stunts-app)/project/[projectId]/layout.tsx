@@ -5,6 +5,7 @@ import { useParams, usePathname } from "next/navigation";
 
 import { Toaster } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { ThemeSelector } from "@/app/components/ThemeSelector";
 
 export default function ProjectLayout({ children = null }) {
   const { t } = useTranslation("common");
@@ -29,13 +30,12 @@ export default function ProjectLayout({ children = null }) {
   return (
     <>
       <Toaster position="bottom-left" reverseOrder={false} />
-      <div className="flex flex-row p-4 w-full">
+      <div
+        className="flex flex-row p-4 w-full min-h-screen transition-colors duration-300"
+        style={{ backgroundColor: `rgb(var(--theme-bg-primary))` }}
+      >
         <div className="flex flex-col gap-4 mr-4">
-          {/** TODO: change global app theme by clicking on the logo */}
-          <img
-            className="block w-[70px]"
-            src="/stunts_logo_letter_transparent.png"
-          />
+          <ThemeSelector />
           {/* <NavButton
             label={t("Hub")}
             icon="lightning"

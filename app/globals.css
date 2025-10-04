@@ -2,6 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .theme-bg-primary {
+    background-color: rgb(var(--theme-bg-primary));
+  }
+  .theme-bg-secondary {
+    background-color: rgb(var(--theme-bg-secondary));
+  }
+  .theme-text-primary {
+    color: rgb(var(--theme-text-primary));
+  }
+  .theme-text-secondary {
+    color: rgb(var(--theme-text-secondary));
+  }
+  .theme-gradient {
+    background: linear-gradient(
+      135deg,
+      rgb(var(--theme-primary)),
+      rgb(var(--theme-secondary))
+    );
+  }
+  .theme-border-primary {
+    border-color: rgb(var(--theme-primary));
+  }
+}
+
+button:hover {
+  background-color: rgb(var(--theme-text-secondary));
+  color: rgb(var(--theme-bg-primary));
+}
+
+:root {
+  /* Default theme - Sunset */
+  --theme-primary: 255, 107, 107;
+  --theme-secondary: 254, 202, 87;
+  --theme-accent: 255, 159, 67;
+  --theme-bg-primary: 255, 245, 235;
+  --theme-bg-secondary: 255, 255, 255;
+  --theme-text-primary: 40, 40, 40;
+  --theme-text-secondary: 80, 80, 80;
+}
+
+[data-theme="ocean"] {
+  --theme-primary: 52, 152, 219;
+  --theme-secondary: 46, 204, 113;
+  --theme-accent: 155, 89, 182;
+  --theme-bg-primary: 236, 240, 241;
+  --theme-bg-secondary: 255, 255, 255;
+  --theme-text-primary: 30, 30, 30;
+  --theme-text-secondary: 70, 70, 70;
+}
+
+[data-theme="forest"] {
+  --theme-primary: 39, 174, 96;
+  --theme-secondary: 142, 68, 173;
+  --theme-accent: 241, 196, 15;
+  --theme-bg-primary: 232, 246, 236;
+  --theme-bg-secondary: 255, 255, 255;
+  --theme-text-primary: 25, 25, 25;
+  --theme-text-secondary: 65, 65, 65;
+}
+
+[data-theme="lavender"] {
+  --theme-primary: 155, 89, 182;
+  --theme-secondary: 230, 126, 210;
+  --theme-accent: 142, 68, 173;
+  --theme-bg-primary: 245, 238, 248;
+  --theme-bg-secondary: 255, 255, 255;
+  --theme-text-primary: 35, 35, 35;
+  --theme-text-secondary: 75, 75, 75;
+}
+
+[data-theme="fire"] {
+  --theme-primary: 231, 76, 60;
+  --theme-secondary: 241, 196, 15;
+  --theme-accent: 230, 126, 34;
+  --theme-bg-primary: 254, 237, 234;
+  --theme-bg-secondary: 255, 255, 255;
+  --theme-text-primary: 40, 40, 40;
+  --theme-text-secondary: 80, 80, 80;
+}
+
+[data-theme="candy"] {
+  --theme-primary: 255, 107, 193;
+  --theme-secondary: 130, 204, 221;
+  --theme-accent: 255, 193, 107;
+  --theme-bg-primary: 255, 240, 250;
+  --theme-bg-secondary: 255, 255, 255;
+  --theme-text-primary: 30, 30, 30;
+  --theme-text-secondary: 70, 70, 70;
+}
+
+[data-theme="midnight"] {
+  --theme-primary: 52, 152, 219;
+  --theme-secondary: 155, 89, 182;
+  --theme-accent: 26, 188, 156;
+  --theme-bg-primary: 44, 62, 80;
+  --theme-bg-secondary: 52, 73, 94;
+  --theme-text-primary: 236, 240, 241;
+  --theme-text-secondary: 189, 195, 199;
+}
+
 /* Screen reader utilities */
 .sr-only {
   position: absolute;
@@ -28,11 +129,11 @@
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .border { 
-    border-width: 2px; 
+  .border {
+    border-width: 2px;
   }
-  .focus\:ring-2:focus { 
-    --tw-ring-width: 4px; 
+  .focus\:ring-2:focus {
+    --tw-ring-width: 4px;
   }
   .border-gray-200 {
     border-color: #000000;
@@ -44,11 +145,11 @@
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .transition-all { 
-    transition: none; 
+  .transition-all {
+    transition: none;
   }
-  .animate-spin { 
-    animation: none; 
+  .animate-spin {
+    animation: none;
   }
   .hover\:scale-\[1\.02\]:hover {
     transform: none;

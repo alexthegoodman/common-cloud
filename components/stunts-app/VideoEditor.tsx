@@ -1205,7 +1205,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             <div
               className={`w-full md:w-[${
                 (settings?.dimensions.width || 0) + 100
-              }px] md:mx-auto overflow-x-scroll`}
+              }px] md:mx-auto overflow-hidden`}
             >
               <div className="flex flex-row gap-2 p-3">
                 {/* <button
@@ -1217,7 +1217,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 <button
                   className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
         shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
-        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+        hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
                   onClick={() => {
                     if (toolbarTab === "tools") {
                       setToolbarTab("none");
@@ -1232,7 +1232,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 <button
                   className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
         shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
-        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+        hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
                   onClick={() => {
                     if (toolbarTab === "animations") {
                       setToolbarTab("none");
@@ -1247,7 +1247,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 <button
                   className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
         shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
-        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+        hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
                   onClick={() => {
                     if (toolbarTab === "themes") {
                       setToolbarTab("none");
@@ -1262,7 +1262,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 <button
                   className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
         shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
-        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+         hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
                   onClick={() => {
                     if (toolbarTab === "layers") {
                       setToolbarTab("none");
@@ -1277,7 +1277,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 <button
                   className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
         shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
-        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+         hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
                   onClick={() => {
                     if (toolbarTab === "sequences") {
                       setToolbarTab("none");
@@ -1505,7 +1505,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
               )}
 
               {current_sequence_id ? (
-                <div className="flex flex-col gap-4 w-full max-h-[300px] md:max-h-[80vh] overflow-scroll md:w-[315px] md:max-w-[315px]">
+                <div className="flex flex-col gap-4 w-full max-h-[300px] md:max-h-[80vh] overflow-y-scroll overflow-x-hidden md:w-[315px] md:max-w-[315px]">
                   {selected_keyframes && selected_keyframes?.length > 0 ? (
                     <>
                       <KeyframeProperties

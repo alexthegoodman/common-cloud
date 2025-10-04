@@ -184,14 +184,14 @@ export const NavButton: React.FC<NavButtonProps> = ({
     <button
       className="w-[45px] h-[45px] md:w-[70px] md:h-[70px] flex flex-col justify-center items-center border-0 rounded-[15px]
         shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
-        hover:bg-gray-200 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+        hover:bg-primary-600 hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
       disabled={loading}
       onClick={handleClick}
     >
-      <div className="text-black mb-1 hidden md:block">
+      <div className=" mb-1 hidden md:block">
         <CreateIcon icon={icon} size="32px" />
       </div>
-      <div className="text-black block md:hidden">
+      <div className=" block md:hidden">
         <CreateIcon icon={icon} size="22px" />
       </div>
       <span className="text-[10px] md:text-xs">{label}</span>
