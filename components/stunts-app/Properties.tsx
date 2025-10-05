@@ -63,6 +63,7 @@ import {
   ScaleFadePulseConfig,
   save_ripple_effect_keyframes,
   save_spiral_motion_keyframes,
+  save_spin_keyframes,
 } from "@/engine/state/keyframes";
 import { TextAnimationManager } from "@/engine/textAnimationManager";
 import {
@@ -2080,6 +2081,13 @@ export const AnimationOptions = ({
   const [perspectiveAnimateTo, setPerspectiveAnimateTo] =
     useState<boolean>(false);
 
+  // Spin animation state
+  const [spinAxisX, setSpinAxisX] = useState<boolean>(false);
+  const [spinAxisY, setSpinAxisY] = useState<boolean>(false);
+  const [spinAxisZ, setSpinAxisZ] = useState<boolean>(true);
+  const [spinRotations, setSpinRotations] = useState<number>(1);
+  const [spinDuration, setSpinDuration] = useState<number>(5000);
+
   const [showProceduralAnimations, setShowProceduralAnimations] =
     useState<boolean>(false);
 
@@ -2362,6 +2370,194 @@ export const AnimationOptions = ({
               </button>
             </div>
           </div>
+
+          {/** Spin Animation Panel */}
+          <div className="flex flex-col gap-2 p-2 border rounded">
+            <p className="text-xs font-semibold">Spin Animation</p>
+
+            <div className="flex flex-col gap-2">
+              <p className="text-xs text-gray-600">Spin Axes:</p>
+              <div className="flex flex-row gap-3">
+                <label className="flex items-center gap-1 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={spinAxisX}
+                    onChange={(e) => setSpinAxisX(e.target.checked)}
+                  />
+                  X Axis (vertical)
+                </label>
+                <label className="flex items-center gap-1 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={spinAxisY}
+                    onChange={(e) => setSpinAxisY(e.target.checked)}
+                  />
+                  Y Axis (horizontal)
+                </label>
+                <label className="flex items-center gap-1 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={spinAxisZ}
+                    onChange={(e) => setSpinAxisZ(e.target.checked)}
+                  />
+                  Z Axis (roll)
+                </label>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-gray-600">Rotations:</label>
+              <input
+                type="number"
+                value={spinRotations}
+                onChange={(e) => setSpinRotations(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1"
+                min="0.25"
+                max="10"
+                step="0.25"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-gray-600">Duration (ms):</label>
+              <input
+                type="number"
+                value={spinDuration}
+                onChange={(e) => setSpinDuration(Number(e.target.value))}
+                className="text-xs border rounded px-2 py-1"
+                min="500"
+                max="20000"
+                step="100"
+              />
+            </div>
+
+            <div className="flex flex-row gap-2">
+              <button
+                className="text-xs rounded-md text-white stunts-gradient px-2 py-1 flex-1"
+                onClick={async () => {
+                  let editor = editorRef.current;
+                  let editorState = editorStateRef.current;
+
+                  if (!editorState || !editor) {
+                    return;
+                  }
+
+                  let currentSequence = editorState.savedState.sequences.find(
+                    (s) => s.id === currentSequenceId
+                  );
+
+                  if (
+                    !currentSequence ||
+                    !currentSequence?.polygonMotionPaths
+                  ) {
+                    return;
+                  }
+
+                  let current_animation_data =
+                    currentSequence?.polygonMotionPaths.find(
+                      (p) => p.polygonId === currentObjectId
+                    );
+
+                  if (!current_animation_data) {
+                    return;
+                  }
+
+                  let newAnimationData = save_spin_keyframes(
+                    editorState,
+                    currentObjectId,
+                    objectType,
+                    current_animation_data,
+                    {
+                      spinX: spinAxisX,
+                      spinY: spinAxisY,
+                      spinZ: spinAxisZ,
+                      rotations: spinRotations,
+                      duration: spinDuration,
+                    }
+                  );
+
+                  editorState.savedState.sequences.forEach((s) => {
+                    if (s.id == currentSequenceId) {
+                      if (s.polygonMotionPaths) {
+                        let currentIndex = s.polygonMotionPaths.findIndex(
+                          (p) => p.id === current_animation_data.id
+                        );
+                        s.polygonMotionPaths[currentIndex] = newAnimationData;
+                      }
+                    }
+                  });
+
+                  let sequences = editorState.savedState.sequences;
+
+                  await saveSequencesData(sequences, editorState.saveTarget);
+                }}
+              >
+                Create Spin
+              </button>
+              <button
+                className="text-xs rounded-md bg-gray-500 hover:bg-gray-600 text-white px-2 py-1"
+                onClick={async () => {
+                  let editor = editorRef.current;
+                  let editorState = editorStateRef.current;
+
+                  if (!editorState || !editor) {
+                    return;
+                  }
+
+                  let currentSequence = editorState.savedState.sequences.find(
+                    (s) => s.id === currentSequenceId
+                  );
+
+                  if (
+                    !currentSequence ||
+                    !currentSequence?.polygonMotionPaths
+                  ) {
+                    return;
+                  }
+
+                  let current_animation_data =
+                    currentSequence?.polygonMotionPaths.find(
+                      (p) => p.polygonId === currentObjectId
+                    );
+
+                  if (!current_animation_data) {
+                    return;
+                  }
+
+                  // Remove spin-related properties
+                  let properties = current_animation_data.properties.filter(
+                    (p) =>
+                      p.propertyPath !== "perspectiveX" &&
+                      p.propertyPath !== "perspectiveY" &&
+                      p.propertyPath !== "rotation"
+                  );
+
+                  let newAnimationData = {
+                    ...current_animation_data,
+                    properties: properties,
+                  };
+
+                  editorState.savedState.sequences.forEach((s) => {
+                    if (s.id == currentSequenceId) {
+                      if (s.polygonMotionPaths) {
+                        let currentIndex = s.polygonMotionPaths.findIndex(
+                          (p) => p.id === current_animation_data.id
+                        );
+                        s.polygonMotionPaths[currentIndex] = newAnimationData;
+                      }
+                    }
+                  });
+
+                  let sequences = editorState.savedState.sequences;
+
+                  await saveSequencesData(sequences, editorState.saveTarget);
+                }}
+              >
+                Clear Spin
+              </button>
+            </div>
+          </div>
+
           <div className="flex flex-col gap-2 border-t pt-2 mt-2">
             <h3 className="text-xs font-semibold text-gray-700">
               Scale & Fade Pulse

@@ -1611,6 +1611,171 @@ export function save_configurable_perspective_keyframes(
   return new_motion_path;
 }
 
+export function save_spin_keyframes(
+  editorState: EditorState,
+  savable_item_id: string,
+  object_type: ObjectType,
+  current_keyframes: AnimationData,
+  options: {
+    spinX: boolean;
+    spinY: boolean;
+    spinZ: boolean;
+    rotations: number;
+    duration: number;
+  }
+) {
+  let durationMs = options.duration;
+  let totalDegrees = options.rotations * 360;
+
+  let properties: AnimationProperty[] = [];
+
+  // Preserve existing position, scale properties
+  let position_prop = current_keyframes.properties.find(
+    (p) => p.propertyPath === "position"
+  );
+  if (position_prop) {
+    properties.push(position_prop);
+  }
+
+  let scale_x_prop = current_keyframes.properties.find(
+    (p) => p.propertyPath === "scalex"
+  );
+  if (scale_x_prop) {
+    properties.push(scale_x_prop);
+  }
+
+  let scale_y_prop = current_keyframes.properties.find(
+    (p) => p.propertyPath === "scaley"
+  );
+  if (scale_y_prop) {
+    properties.push(scale_y_prop);
+  }
+
+  let opacity_prop = current_keyframes.properties.find(
+    (p) => p.propertyPath === "opacity"
+  );
+  if (opacity_prop) {
+    properties.push(opacity_prop);
+  }
+
+  // X Axis rotation (PerspectiveX)
+  if (options.spinX) {
+    let perspective_x_keyframes: UIKeyframe[] = [];
+
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "PerspectiveX", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    perspective_x_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs,
+      value: { type: "PerspectiveX", value: totalDegrees },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let perspective_x_prop = {
+      name: "PerspectiveX",
+      propertyPath: "perspectiveX",
+      children: [],
+      keyframes: perspective_x_keyframes,
+      depth: 0,
+    };
+
+    properties.push(perspective_x_prop);
+  }
+
+  // Y Axis rotation (PerspectiveY)
+  if (options.spinY) {
+    let perspective_y_keyframes: UIKeyframe[] = [];
+
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "PerspectiveY", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    perspective_y_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs,
+      value: { type: "PerspectiveY", value: totalDegrees },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let perspective_y_prop = {
+      name: "PerspectiveY",
+      propertyPath: "perspectiveY",
+      children: [],
+      keyframes: perspective_y_keyframes,
+      depth: 0,
+    };
+
+    properties.push(perspective_y_prop);
+  }
+
+  // Z Axis rotation (Rotation)
+  if (options.spinZ) {
+    let rotation_keyframes: UIKeyframe[] = [];
+
+    rotation_keyframes.push({
+      id: uuidv4().toString(),
+      time: 0,
+      value: { type: "Rotation", value: 0 },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    rotation_keyframes.push({
+      id: uuidv4().toString(),
+      time: durationMs,
+      value: { type: "Rotation", value: totalDegrees },
+      easing: EasingType.Linear,
+      pathType: PathType.Linear,
+      keyType: { type: "Frame" },
+      curveData: null,
+    });
+
+    let rotation_prop = {
+      name: "Rotation",
+      propertyPath: "rotation",
+      children: [],
+      keyframes: rotation_keyframes,
+      depth: 0,
+    };
+
+    properties.push(rotation_prop);
+  }
+
+  let new_motion_path: AnimationData = {
+    id: uuidv4().toString(),
+    objectType: object_type,
+    polygonId: savable_item_id,
+    duration: durationMs,
+    startTimeMs: current_keyframes.startTimeMs,
+    position: current_keyframes.position,
+    properties: properties,
+  };
+
+  return new_motion_path;
+}
+
 // TODO: make work with variable duration
 export function save_pulse_keyframes(
   editorState: EditorState,
