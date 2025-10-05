@@ -843,10 +843,7 @@ export const ToolGrid = ({
 
           let mockupDimensions = [2.0, 2.0, 0.3] as [number, number, number];
 
-          const dimensionsWorld = [
-            ((mockupDimensions[0] + 1) / 2) * editor.camera?.windowSize.width!,
-            ((1 - mockupDimensions[1]) / 2) * editor.camera?.windowSize.height!,
-          ];
+          const dimensionsWorld = [600.0, 400.0];
 
           // Create video config for the child video
           const videoConfig: StVideoConfig = {
@@ -877,17 +874,13 @@ export const ToolGrid = ({
           };
 
           // First add the video item (the mockup will reference it)
-          await editor.add_video_item(
+          let new_video_item = await editor.create_video_item(
             videoConfig,
             resizedVideoBlob,
             new_video_id,
             sequence_id,
             [],
             null
-          );
-
-          const new_video_item = editor.videoItems.find(
-            (v) => v.id === new_video_id
           );
 
           if (!new_video_item || !new_video_item.sourceDurationMs) {
@@ -903,6 +896,8 @@ export const ToolGrid = ({
             mockup.videoChild = new_video_item;
             // Update video child transform to match mockup's screen
             if (editor.gpuResources?.queue && editor.camera?.windowSize) {
+              mockup.videoChild.groupTransform.layer =
+                mockup.videoChild.groupTransform.layer + 0.3;
               mockup.updateVideoChildTransform(
                 editor.gpuResources.queue,
                 editor.camera.windowSize

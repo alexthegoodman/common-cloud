@@ -8,6 +8,7 @@ import {
 } from "./editor";
 import {
   createEmptyGroupTransform,
+  degreesToRadians,
   matrix4ToRawArray,
   Transform,
 } from "./transform";
@@ -49,8 +50,8 @@ export class Mockup3D {
   id: string;
   name: string;
   dimensions: [number, number, number];
-  position: Point;
-  rotation: [number, number, number];
+  // position: Point;
+  // rotation: [number, number, number];
   backgroundFill: BackgroundFill;
   layer: number;
   hidden: boolean;
@@ -82,11 +83,11 @@ export class Mockup3D {
     this.id = config.id;
     this.name = config.name;
     this.dimensions = config.dimensions;
-    this.position = {
+    let position = {
       x: CANVAS_HORIZ_OFFSET + config.position.x,
       y: CANVAS_VERT_OFFSET + config.position.y,
     };
-    this.rotation = config.rotation;
+    let rotation = config.rotation;
     this.backgroundFill = config.backgroundFill;
     this.layer = config.layer;
     this.hidden = false;
@@ -224,15 +225,15 @@ export class Mockup3D {
 
     // Create transform
     this.transform = new Transform(
-      vec2.fromValues(this.position.x, this.position.y),
+      vec2.fromValues(position.x, position.y),
       0, // 2D rotation (we'll handle 3D rotation separately)
       vec2.fromValues(1, 1),
       uniformBuffer
     );
 
-    this.transform.updateRotationXDegrees(this.rotation[0]);
-    this.transform.updateRotationYDegrees(this.rotation[1]);
-    this.transform.updateRotationDegrees(this.rotation[2]);
+    this.transform.updateRotationXDegrees(rotation[0]);
+    this.transform.updateRotationYDegrees(rotation[1]);
+    this.transform.updateRotationDegrees(rotation[2]);
     this.transform.layer = (getZLayer(config.layer) as number) - 0.5;
     this.transform.updateUniformBuffer(queue, camera.windowSize);
 
@@ -382,7 +383,7 @@ export class Mockup3D {
     const screenHeight = h * 0.6;
     const screenWidth = w * 0.85; // Inset from bezel
     const hingeY = (h * 0.5) / 2;
-    const tiltAngle = 0;
+    const tiltAngle = -15;
 
     // Calculate screen center position
     const screenCenterY =
@@ -390,14 +391,14 @@ export class Mockup3D {
 
     return {
       position: {
-        x: this.position.x,
-        y: this.position.y + screenCenterY,
+        x: this.transform.position[0],
+        y: this.transform.position[1] + screenCenterY,
       },
       dimensions: [screenWidth, screenHeight * 0.9],
       rotation: [
-        tiltAngle + this.rotation[0],
-        this.rotation[1],
-        this.rotation[2] - 180,
+        degreesToRadians(tiltAngle) + this.transform.rotationX, // TODO: can't add tiltAngle directly to radians from transform
+        this.transform.rotationY,
+        this.transform.rotation,
       ],
     };
   }
@@ -458,7 +459,11 @@ export class Mockup3D {
         x: this.transform.position[0] - CANVAS_HORIZ_OFFSET,
         y: this.transform.position[1] - CANVAS_VERT_OFFSET,
       },
-      rotation: this.rotation,
+      rotation: [
+        this.transform.rotationX,
+        this.transform.rotationY,
+        this.transform.rotation,
+      ],
       backgroundFill: this.backgroundFill,
       layer: this.layer,
       videoChild: this.videoChildConfig,
@@ -506,20 +511,17 @@ export class Mockup3D {
       [screenBoundsWorld.position.x, screenBoundsWorld.position.y],
       windowSize
     );
-    this.videoChild.groupTransform.layer =
-      this.videoChild.groupTransform.layer + 0.3;
+
+    console.info("screenBounds", screenBounds);
 
     // Apply screen rotation
-    this.videoChild.groupTransform.updateRotationXDegrees(
+    this.videoChild.groupTransform.updateRotationX(
       screenBounds.rotation[0] * 0.01
     );
-    this.videoChild.groupTransform.updateRotationYDegrees(
+    this.videoChild.groupTransform.updateRotationY(
       screenBounds.rotation[1] * 0.01
     );
-    this.videoChild.groupTransform.updateRotationDegrees(
-      screenBounds.rotation[2]
-    );
-
+    this.videoChild.groupTransform.updateRotation(screenBounds.rotation[2]);
     this.videoChild.groupTransform.updateUniformBuffer(queue, windowSize);
   }
 }

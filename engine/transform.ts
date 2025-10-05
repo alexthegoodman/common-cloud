@@ -85,6 +85,14 @@ export class Transform {
     this.rotation = angle;
   }
 
+  updateRotationX(angle: number) {
+    this.rotationX = angle;
+  }
+
+  updateRotationY(angle: number) {
+    this.rotationY = angle;
+  }
+
   updateRotationDegrees(degrees: number) {
     this.rotation = degrees * (Math.PI / 180.0);
   }
@@ -122,6 +130,10 @@ export class Transform {
   rotateDegrees(degrees: number) {
     this.rotation += degrees * (Math.PI / 180.0);
   }
+}
+
+export function degreesToRadians(degrees: number) {
+  return degrees * (Math.PI / 180.0);
 }
 
 export function matrix4ToRawArray(matrix: mat4): Float32Array<ArrayBuffer> {

@@ -1819,6 +1819,9 @@ export class Editor {
 
         restored_mockup.videoChild = restored_video;
 
+        restored_mockup.videoChild.groupTransform.layer =
+          restored_mockup.videoChild.groupTransform.layer + 0.3;
+
         restored_mockup.updateVideoChildTransform(
           this.gpuResources?.queue!,
           this.camera?.windowSize!
@@ -3951,6 +3954,33 @@ export class Editor {
     mouse_positions: MousePosition[],
     stored_source_data: SourceData | null
   ) {
+    let video_item = await this.create_video_item(
+      video_config,
+      blob,
+      new_id,
+      selected_sequence_id,
+      mouse_positions,
+      stored_source_data
+    );
+
+    if (!video_item) {
+      return;
+    }
+
+    this.videoItems.push(video_item);
+  }
+
+  async create_video_item(
+    // windowSize: WindowSize,
+    // device: Polyfilldevice!,
+    // queue: PolyfillQueue,
+    video_config: StVideoConfig,
+    blob: Blob,
+    new_id: string,
+    selected_sequence_id: string,
+    mouse_positions: MousePosition[],
+    stored_source_data: SourceData | null
+  ): Promise<StVideo | null> {
     let gpuResources = this.gpuResources;
     let camera = this.camera;
 
@@ -3968,7 +3998,7 @@ export class Editor {
       !queue ||
       !windowSize
     ) {
-      return;
+      return null;
     }
 
     let video_item = new StVideo(
@@ -3999,16 +4029,7 @@ export class Editor {
       false
     );
 
-    // set mouse capture source data if it exists
-    // video_item.sourceData = stored_source_data;
-
-    // set mouse positions for later use
-    // video_item.mousePositions = mouse_positions;
-
-    // render 1 frame to provide preview image
-    // video_item.drawVideoFrame(device!, queue);
-
-    this.videoItems.push(video_item);
+    return video_item;
   }
 
   replace_background(
@@ -5732,7 +5753,11 @@ export class Editor {
               x: mockup.transform.position[0] - CANVAS_HORIZ_OFFSET,
               y: mockup.transform.position[1] - CANVAS_VERT_OFFSET,
             },
-            rotation: mockup.rotation,
+            rotation: [
+              mockup.transform.rotationX,
+              mockup.transform.rotationY,
+              mockup.transform.rotation,
+            ],
             backgroundFill: mockup.backgroundFill,
             layer: mockup.layer,
             videoChild: mockup.videoChildConfig,
