@@ -2508,6 +2508,16 @@ export class Editor {
             (i) => i.id === animation.polygonId
           );
           break;
+        case "Cube3D":
+          objectIdx = this.cubes3D.findIndex(
+            (c) => c.id === animation.polygonId
+          );
+          break;
+        case "Sphere3D":
+          objectIdx = this.spheres3D.findIndex(
+            (s) => s.id === animation.polygonId
+          );
+          break;
       }
 
       if (objectIdx === undefined || objectIdx === -1) {
@@ -2731,6 +2741,18 @@ export class Editor {
                   camera.windowSize
                 );
                 break;
+              case ObjectType.Cube3D:
+                this.cubes3D[objectIdx].transform.updatePosition(
+                  positionVec,
+                  camera.windowSize
+                );
+                break;
+              case ObjectType.Sphere3D:
+                this.spheres3D[objectIdx].transform.updatePosition(
+                  positionVec,
+                  camera.windowSize
+                );
+                break;
             }
             break;
           }
@@ -2762,6 +2784,12 @@ export class Editor {
                 this.videoItems[
                   objectIdx
                 ].groupTransform.updateRotationXDegrees(x);
+                break;
+              case ObjectType.Cube3D:
+                this.cubes3D[objectIdx].transform.updateRotationXDegrees(x);
+                break;
+              case ObjectType.Sphere3D:
+                this.spheres3D[objectIdx].transform.updateRotationXDegrees(x);
                 break;
             }
             break;
@@ -2795,6 +2823,12 @@ export class Editor {
                   objectIdx
                 ].groupTransform.updateRotationYDegrees(y);
                 break;
+              case ObjectType.Cube3D:
+                this.cubes3D[objectIdx].transform.updateRotationYDegrees(y);
+                break;
+              case ObjectType.Sphere3D:
+                this.spheres3D[objectIdx].transform.updateRotationYDegrees(y);
+                break;
             }
             break;
           }
@@ -2824,6 +2858,16 @@ export class Editor {
                 break;
               case ObjectType.VideoItem:
                 this.videoItems[objectIdx].groupTransform.updateRotation(
+                  new_rotation_rad
+                );
+                break;
+              case ObjectType.Cube3D:
+                this.cubes3D[objectIdx].transform.updateRotation(
+                  new_rotation_rad
+                );
+                break;
+              case ObjectType.Sphere3D:
+                this.spheres3D[objectIdx].transform.updateRotation(
                   new_rotation_rad
                 );
                 break;
@@ -2883,6 +2927,12 @@ export class Editor {
                   new_scale // only scaleVec needed for group
                 );
                 break;
+              case ObjectType.Cube3D:
+                this.cubes3D[objectIdx].transform.updateScaleX(new_scale);
+                break;
+              case ObjectType.Sphere3D:
+                this.spheres3D[objectIdx].transform.updateScaleX(new_scale);
+                break;
             }
             break;
           }
@@ -2939,6 +2989,12 @@ export class Editor {
                   new_scale // only scaleVec needed for group
                 );
                 break;
+              case ObjectType.Cube3D:
+                this.cubes3D[objectIdx].transform.updateScaleY(new_scale);
+                break;
+              case ObjectType.Sphere3D:
+                this.spheres3D[objectIdx].transform.updateScaleY(new_scale);
+                break;
             }
             break;
           }
@@ -2968,6 +3024,12 @@ export class Editor {
                   break;
                 case ObjectType.VideoItem:
                   this.videoItems[objectIdx].updateOpacity(queue!, opacity);
+                  break;
+                case ObjectType.Cube3D:
+                  this.cubes3D[objectIdx].updateOpacity(queue!, opacity);
+                  break;
+                case ObjectType.Sphere3D:
+                  this.spheres3D[objectIdx].updateOpacity(queue!, opacity);
                   break;
               }
             } else {

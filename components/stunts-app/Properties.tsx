@@ -4221,6 +4221,13 @@ export const Cube3DProperties = ({
             }}
           />
         </div>
+        <AnimationOptions
+          editorRef={editorRef}
+          editorStateRef={editorStateRef}
+          currentSequenceId={currentSequenceId}
+          currentObjectId={currentCubeId}
+          objectType={ObjectType.Cube3D}
+        />
       </div>
     </>
   );
@@ -4414,6 +4421,13 @@ export const Sphere3DProperties = ({
             }}
           />
         </div>
+        <AnimationOptions
+          editorRef={editorRef}
+          editorStateRef={editorStateRef}
+          currentSequenceId={currentSequenceId}
+          currentObjectId={currentSphereId}
+          objectType={ObjectType.Sphere3D}
+        />
       </div>
     </>
   );

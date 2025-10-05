@@ -226,6 +226,9 @@ export class Sphere3D {
       uniformBuffer
     );
 
+    this.transform.updateRotationXDegrees(this.rotation[0]);
+    this.transform.updateRotationYDegrees(this.rotation[1]);
+    this.transform.updateRotationDegrees(this.rotation[2]);
     this.transform.layer = (getZLayer(config.layer) as number) - 0.5;
     this.transform.updateUniformBuffer(queue, camera.windowSize);
 
