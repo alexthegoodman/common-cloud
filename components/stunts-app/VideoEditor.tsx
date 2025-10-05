@@ -260,6 +260,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   const [editorIsSet, setEditorIsSet] = useState(false);
   const [editorStateSet, setEditorStateSet] = useState(false);
   const [refreshUINow, setRefreshUINow] = useState(Date.now());
+  const [project_name, set_project_name] = useState("Loading...");
 
   let setupCanvasMouseTracking = (canvas: HTMLCanvasElement) => {
     let editor = editorRef.current;
@@ -658,6 +659,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
         JSON.stringify({ project_id: projectId })
       );
 
+      let fileName = response.project?.name || "";
       let fileData = response.project?.fileData;
 
       console.info("savedState", fileData);
@@ -690,6 +692,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
 
       set_settings(cloned_settings);
       set_sequences(cloned_sequences);
+      set_project_name(fileName);
       // set_timeline_state(response.project?.fileData.timeline_state);
 
       // drop(editor_state);
@@ -1279,7 +1282,8 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
         <></>
       )}
 
-      <div className="mb-2">
+      <div className="flex flex-row mb-2 gap-4 justify-between w-full">
+        <h1>{project_name}</h1>
         {editorStateSet && (
           <ExportVideoButton
             editorRef={editorRef}
