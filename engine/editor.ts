@@ -3025,12 +3025,12 @@ export class Editor {
                 case ObjectType.VideoItem:
                   this.videoItems[objectIdx].updateOpacity(queue!, opacity);
                   break;
-                case ObjectType.Cube3D:
-                  this.cubes3D[objectIdx].updateOpacity(queue!, opacity);
-                  break;
-                case ObjectType.Sphere3D:
-                  this.spheres3D[objectIdx].updateOpacity(queue!, opacity);
-                  break;
+                // case ObjectType.Cube3D:
+                //   this.cubes3D[objectIdx].updateOpacity(queue!, opacity);
+                //   break;
+                // case ObjectType.Sphere3D:
+                //   this.spheres3D[objectIdx].updateOpacity(queue!, opacity);
+                //   break;
               }
             } else {
               console.error("GPU resources not available.");
