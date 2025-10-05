@@ -16,6 +16,8 @@ import { SavedTextRendererConfig } from "./text";
 import { SavedStImageConfig } from "./image";
 import { SavedStVideoConfig } from "./video";
 import { SavedBrushConfig } from "./brush";
+import { SavedCube3DConfig } from "./cube3d";
+import { SavedSphere3DConfig } from "./sphere3d";
 import {
   CANVAS_HORIZ_OFFSET,
   CANVAS_VERT_OFFSET,
@@ -205,6 +207,74 @@ export default class EditorState {
           s.activeBrushes = [];
         }
         s.activeBrushes.push(savable_brush);
+      }
+    });
+
+    let sequences = saved_state.sequences;
+
+    await saveSequencesData(sequences, this.saveTarget);
+
+    this.savedState = saved_state;
+  }
+
+  async add_saved_cube3d(
+    selected_sequence_id: string,
+    savable_cube: SavedCube3DConfig
+  ) {
+    let new_motion_path = save_default_keyframes(
+      this,
+      savable_cube.id,
+      ObjectType.Cube3D,
+      savable_cube.position,
+      20000
+    );
+
+    let saved_state = this.savedState;
+
+    saved_state.sequences.forEach((s) => {
+      if (s.id == selected_sequence_id) {
+        if (!s.activeCubes3D) {
+          s.activeCubes3D = [];
+        }
+        s.activeCubes3D.push(savable_cube);
+
+        if (this.supportsMotionPaths && s.polygonMotionPaths) {
+          s.polygonMotionPaths.push(new_motion_path);
+        }
+      }
+    });
+
+    let sequences = saved_state.sequences;
+
+    await saveSequencesData(sequences, this.saveTarget);
+
+    this.savedState = saved_state;
+  }
+
+  async add_saved_sphere3d(
+    selected_sequence_id: string,
+    savable_sphere: SavedSphere3DConfig
+  ) {
+    let new_motion_path = save_default_keyframes(
+      this,
+      savable_sphere.id,
+      ObjectType.Sphere3D,
+      savable_sphere.position,
+      20000
+    );
+
+    let saved_state = this.savedState;
+
+    saved_state.sequences.forEach((s) => {
+      if (s.id == selected_sequence_id) {
+        if (!s.activeSpheres3D) {
+          s.activeSpheres3D = [];
+        }
+        s.activeSpheres3D.push(savable_sphere);
+
+        if (this.supportsMotionPaths && s.polygonMotionPaths) {
+          s.polygonMotionPaths.push(new_motion_path);
+        }
       }
     });
 

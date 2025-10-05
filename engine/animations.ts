@@ -4,6 +4,8 @@ import { SavedPolygonConfig } from "./polygon";
 import { SavedStImageConfig } from "./image";
 import { SavedStVideoConfig } from "./video";
 import { SavedBrushConfig } from "./brush";
+import { SavedCube3DConfig } from "./cube3d";
+import { SavedSphere3DConfig } from "./sphere3d";
 
 export interface SavedState {
   sequences: Sequence[];
@@ -51,6 +53,8 @@ export enum ObjectType {
   ImageItem = "ImageItem",
   VideoItem = "VideoItem",
   Brush = "Brush",
+  Cube3D = "Cube3D",
+  Sphere3D = "Sphere3D",
 }
 
 export enum EasingType {
@@ -87,6 +91,8 @@ export interface Sequence {
   activeImageItems: SavedStImageConfig[];
   activeVideoItems: SavedStVideoConfig[];
   activeBrushes?: SavedBrushConfig[];
+  activeCubes3D?: SavedCube3DConfig[];
+  activeSpheres3D?: SavedSphere3DConfig[];
 }
 
 export interface AnimationData {

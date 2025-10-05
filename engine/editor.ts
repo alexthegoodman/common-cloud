@@ -251,6 +251,8 @@ export type PolygonClickHandler = (
 export type TextItemClickHandler = (text_id: string) => void | null;
 export type ImageItemClickHandler = (image_id: string) => void | null;
 export type VideoItemClickHandler = (video_id: string) => void | null;
+export type Cube3DClickHandler = (cube_id: string, cube_config: Cube3DConfig) => void | null;
+export type Sphere3DClickHandler = (sphere_id: string, sphere_config: Sphere3DConfig) => void | null;
 export type OnMouseUp = (
   id: string,
   point: Point
@@ -308,6 +310,8 @@ import {
 } from "./polyfill";
 import { UnifiedRichTextEditor } from "./rte-one";
 import { ProceduralBrush, BrushConfig } from "./brush";
+import { Cube3D, Cube3DConfig } from "./cube3d";
+import { Sphere3D, Sphere3DConfig } from "./sphere3d";
 // import * as fontkit from "fontkit";
 
 export class Editor {
@@ -335,6 +339,10 @@ export class Editor {
   brushes: ProceduralBrush[];
   brushDrawingMode: boolean;
   currentBrush: ProceduralBrush | null;
+  cubes3D: Cube3D[];
+  spheres3D: Sphere3D[];
+  draggingCube3D: string | null;
+  draggingSphere3D: string | null;
   motionPaths: MotionPath[];
   repeatManager: RepeatManager;
   // multiPageEditor: MultiPageEditor | null = null;
@@ -349,6 +357,8 @@ export class Editor {
   handleTextClick: TextItemClickHandler | null;
   handleImageClick: ImageItemClickHandler | null;
   handleVideoClick: VideoItemClickHandler | null;
+  handleCube3DClick: Cube3DClickHandler | null;
+  handleSphere3DClick: Sphere3DClickHandler | null;
   scaleMultiplier: number = 1.0;
 
   window: Window | null;
@@ -429,6 +439,8 @@ export class Editor {
     this.handleTextClick = null;
     this.handleImageClick = null;
     this.handleVideoClick = null;
+    this.handleCube3DClick = null;
+    this.handleSphere3DClick = null;
     this.gpuResources = null;
     this.renderPipeline = null;
     this.window = null;
@@ -478,6 +490,10 @@ export class Editor {
     this.brushes = [];
     this.brushDrawingMode = false;
     this.currentBrush = null;
+    this.cubes3D = [];
+    this.spheres3D = [];
+    this.draggingCube3D = null;
+    this.draggingSphere3D = null;
     this.motionPaths = [];
     this.generationCount = 4;
     this.generationCurved = false;
@@ -3439,6 +3455,72 @@ export class Editor {
     this.currentBrush = brush;
   }
 
+  add_cube3d(
+    cube_config: Cube3DConfig,
+    new_id: string,
+    selected_sequence_id: string
+  ) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+    let windowSize = camera?.windowSize;
+
+    if (
+      !camera ||
+      !windowSize ||
+      !gpuResources ||
+      !this.modelBindGroupLayout ||
+      !this.groupBindGroupLayout
+    ) {
+      return;
+    }
+
+    let cube = new Cube3D(
+      windowSize,
+      gpuResources.device!,
+      gpuResources.queue!,
+      this.modelBindGroupLayout,
+      this.groupBindGroupLayout,
+      camera,
+      cube_config,
+      selected_sequence_id
+    );
+
+    this.cubes3D.push(cube);
+  }
+
+  add_sphere3d(
+    sphere_config: Sphere3DConfig,
+    new_id: string,
+    selected_sequence_id: string
+  ) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+    let windowSize = camera?.windowSize;
+
+    if (
+      !camera ||
+      !windowSize ||
+      !gpuResources ||
+      !this.modelBindGroupLayout ||
+      !this.groupBindGroupLayout
+    ) {
+      return;
+    }
+
+    let sphere = new Sphere3D(
+      windowSize,
+      gpuResources.device!,
+      gpuResources.queue!,
+      this.modelBindGroupLayout,
+      this.groupBindGroupLayout,
+      camera,
+      sphere_config,
+      selected_sequence_id
+    );
+
+    this.spheres3D.push(sphere);
+  }
+
   async add_text_item(
     text_config: TextRendererConfig,
     text_content: string,
@@ -5028,6 +5110,42 @@ export class Editor {
       }
     }
 
+    // Collect intersecting cubes
+    // Convert mouse position to NDC for 3D objects
+    const ndcPoint = {
+      x: (this.lastTopLeft.x / camera.windowSize.width) * 2.0 - 1.0,
+      y: -((this.lastTopLeft.y / camera.windowSize.height) * 2.0 - 1.0),
+    };
+
+    for (let [i, cube] of this.cubes3D.entries()) {
+      if (cube.hidden) {
+        continue;
+      }
+
+      if (cube.containsPoint(ndcPoint)) {
+        intersecting_objects.push([
+          cube.layer,
+          InteractionTarget.Cube3D,
+          i,
+        ]);
+      }
+    }
+
+    // Collect intersecting spheres
+    for (let [i, sphere] of this.spheres3D.entries()) {
+      if (sphere.hidden) {
+        continue;
+      }
+
+      if (sphere.containsPoint(ndcPoint)) {
+        intersecting_objects.push([
+          sphere.layer,
+          InteractionTarget.Sphere3D,
+          i,
+        ]);
+      }
+    }
+
     // Sort intersecting objects by layer of descending order (highest layer first)
     // intersecting_objects.sort_by(|a, b| b.0.cmp(a.0));
 
@@ -5240,6 +5358,63 @@ export class Editor {
 
         break; // nothing to add to undo stack
       }
+      case InteractionTarget.Cube3D: {
+        let cube = this.cubes3D[index];
+
+        this.draggingCube3D = cube.id;
+        this.dragStart = this.lastTopLeft;
+
+        cube.transform.startPosition = vec2.fromValues(
+          this.dragStart.x,
+          this.dragStart.y
+        );
+
+        if (this.handleCube3DClick) {
+          this.handleCube3DClick(cube.id, {
+            id: cube.id,
+            name: cube.name,
+            dimensions: cube.dimensions,
+            position: {
+              x: cube.transform.position[0] - CANVAS_HORIZ_OFFSET,
+              y: cube.transform.position[1] - CANVAS_VERT_OFFSET,
+            },
+            rotation: cube.rotation,
+            backgroundFill: cube.backgroundFill,
+            layer: cube.layer,
+          });
+        }
+
+        break;
+      }
+      case InteractionTarget.Sphere3D: {
+        let sphere = this.spheres3D[index];
+
+        this.draggingSphere3D = sphere.id;
+        this.dragStart = this.lastTopLeft;
+
+        sphere.transform.startPosition = vec2.fromValues(
+          this.dragStart.x,
+          this.dragStart.y
+        );
+
+        if (this.handleSphere3DClick) {
+          this.handleSphere3DClick(sphere.id, {
+            id: sphere.id,
+            name: sphere.name,
+            radius: sphere.radius,
+            position: {
+              x: sphere.transform.position[0] - CANVAS_HORIZ_OFFSET,
+              y: sphere.transform.position[1] - CANVAS_VERT_OFFSET,
+            },
+            rotation: sphere.rotation,
+            backgroundFill: sphere.backgroundFill,
+            layer: sphere.layer,
+            segments: sphere.segments,
+          });
+        }
+
+        break;
+      }
       default:
         const _exhaustiveCheck: never = target;
         console.error("Unhandled InteractionTarget:", target);
@@ -5427,6 +5602,30 @@ export class Editor {
       }
     }
 
+    if (this.draggingCube3D) {
+      if (this.dragStart) {
+        this.move_cube3d(
+          this.lastTopLeft,
+          this.dragStart,
+          this.draggingCube3D,
+          windowSize,
+          device
+        );
+      }
+    }
+
+    if (this.draggingSphere3D) {
+      if (this.dragStart) {
+        this.move_sphere3d(
+          this.lastTopLeft,
+          this.dragStart,
+          this.draggingSphere3D,
+          windowSize,
+          device
+        );
+      }
+    }
+
     this.previousTopLeft = this.lastTopLeft;
   }
 
@@ -5518,6 +5717,30 @@ export class Editor {
         active_point = {
           x: active_video.groupTransform.position[0],
           y: active_video.groupTransform.position[1],
+        };
+      }
+    } else if (this.draggingCube3D) {
+      object_id = this.draggingCube3D;
+      let active_cube = this.cubes3D.find(
+        (c) => c.id == this.draggingCube3D
+      );
+
+      if (active_cube) {
+        active_point = {
+          x: active_cube.transform.position[0],
+          y: active_cube.transform.position[1],
+        };
+      }
+    } else if (this.draggingSphere3D) {
+      object_id = this.draggingSphere3D;
+      let active_sphere = this.spheres3D.find(
+        (s) => s.id == this.draggingSphere3D
+      );
+
+      if (active_sphere) {
+        active_point = {
+          x: active_sphere.transform.position[0],
+          y: active_sphere.transform.position[1],
         };
       }
     }
@@ -5695,6 +5918,8 @@ export class Editor {
     this.draggingText = null;
     this.draggingImage = null;
     this.draggingVideo = null;
+    this.draggingCube3D = null;
+    this.draggingSphere3D = null;
     this.dragStart = null;
     this.draggingPath = null;
     this.draggingPathAssocPath = null;
@@ -6304,6 +6529,95 @@ export class Editor {
     // this.update_guide_lines(poly_index, windowSize);
   }
 
+  move_cube3d(
+    mouse_pos: Point,
+    start: Point,
+    cube_id: string,
+    windowSize: WindowSize,
+    device: PolyfillDevice
+  ) {
+    let camera = this.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    let dx = mouse_pos.x - start.x;
+    let dy = mouse_pos.y - start.y;
+    let cube = this.cubes3D.find((c) => c.id == cube_id);
+
+    if (!cube) {
+      return;
+    }
+
+    const originalX = cube.transform.startPosition
+      ? cube.transform.startPosition[0]
+      : cube.transform.position[0];
+    const originalY = cube.transform.startPosition
+      ? cube.transform.startPosition[1]
+      : cube.transform.position[1];
+
+    if (!cube.transform.startPosition) {
+      cube.transform.startPosition = vec2.fromValues(
+        cube.transform.position[0],
+        cube.transform.position[1]
+      );
+    }
+
+    let new_position = {
+      x: roundToGrid(originalX + dx, this.gridSnap),
+      y: roundToGrid(originalY + dy, this.gridSnap),
+    };
+
+    cube.transform.updatePosition([new_position.x, new_position.y], windowSize);
+  }
+
+  move_sphere3d(
+    mouse_pos: Point,
+    start: Point,
+    sphere_id: string,
+    windowSize: WindowSize,
+    device: PolyfillDevice
+  ) {
+    let camera = this.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    let dx = mouse_pos.x - start.x;
+    let dy = mouse_pos.y - start.y;
+    let sphere = this.spheres3D.find((s) => s.id == sphere_id);
+
+    if (!sphere) {
+      return;
+    }
+
+    const originalX = sphere.transform.startPosition
+      ? sphere.transform.startPosition[0]
+      : sphere.transform.position[0];
+    const originalY = sphere.transform.startPosition
+      ? sphere.transform.startPosition[1]
+      : sphere.transform.position[1];
+
+    if (!sphere.transform.startPosition) {
+      sphere.transform.startPosition = vec2.fromValues(
+        sphere.transform.position[0],
+        sphere.transform.position[1]
+      );
+    }
+
+    let new_position = {
+      x: roundToGrid(originalX + dx, this.gridSnap),
+      y: roundToGrid(originalY + dy, this.gridSnap),
+    };
+
+    sphere.transform.updatePosition(
+      [new_position.x, new_position.y],
+      windowSize
+    );
+  }
+
   // is_close(a: number, b: number, threshold: number): boolean {
   //   return (a - b).abs() < threshold;
   // }
@@ -6502,6 +6816,8 @@ export enum InteractionTarget {
   Text,
   Image,
   Video,
+  Cube3D,
+  Sphere3D,
 }
 
 export function getColor(color_index: number): number {

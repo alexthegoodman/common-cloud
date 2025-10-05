@@ -40,6 +40,11 @@ button:hover {
   color: rgb(var(--theme-bg-primary));
 }
 
+input {
+  background-color: rgb(var(--theme-text-secondary));
+  color: rgb(var(--theme-bg-primary));
+}
+
 :root {
   /* Default theme - Sunset */
   --theme-primary: 255, 107, 107;

@@ -40,7 +40,7 @@ export class Camera3D extends Camera {
     // Default field of view
     // this.fov = Math.PI / 2; // not even close to enough
     // this.fov = Math.PI / 4; // not enough still
-    this.fov = Math.PI / 8;
+    this.fov = Math.PI / 8; // best
     // this.fov = Math.PI; // very wide
 
     // Set reasonable near and far clipping planes

@@ -5,6 +5,8 @@ import { StImageConfig } from "@/engine/image";
 import { TextRendererConfig } from "@/engine/text";
 import { StVideoConfig } from "@/engine/video";
 import { BrushConfig } from "@/engine/brush";
+import { Cube3DConfig } from "@/engine/cube3d";
+import { Sphere3DConfig } from "@/engine/sphere3d";
 import { ObjectType } from "@/engine/animations";
 import { CreateIcon } from "./icon";
 import { Editor } from "@/engine/editor";
@@ -48,6 +50,18 @@ export const LayerFromConfig = {
     instance_id: config.id, // Generate a new UUID here
     instance_name: config.name,
     instance_kind: ObjectType.VideoItem,
+    initial_layer_index: config.layer,
+  }),
+  fromCube3DConfig: (config: Cube3DConfig): Layer => ({
+    instance_id: config.id,
+    instance_name: config.name,
+    instance_kind: ObjectType.Cube3D,
+    initial_layer_index: config.layer,
+  }),
+  fromSphere3DConfig: (config: Sphere3DConfig): Layer => ({
+    instance_id: config.id,
+    instance_name: config.name,
+    instance_kind: ObjectType.Sphere3D,
     initial_layer_index: config.layer,
   }),
 };

@@ -348,6 +348,66 @@ export function updatePositionX(
       );
       break;
     }
+    case ObjectType.Cube3D: {
+      let cube = editor.cubes3D.find((c) => c.id === objectId);
+      if (cube && editor.camera) {
+        cube.transform.updatePosition(
+          [value, cube.transform.position[1]],
+          editor.camera.windowSize
+        );
+        cube.transform.updateUniformBuffer(
+          editor.gpuResources?.queue!,
+          editor.camera.windowSize
+        );
+      }
+
+      editorState.savedState.sequences.forEach((s) => {
+        s.activeCubes3D?.forEach((c) => {
+          if (c.id == objectId) {
+            c.position = {
+              x: value,
+              y: c.position.y,
+            };
+          }
+        });
+      });
+
+      saveSequencesData(
+        editorState.savedState.sequences,
+        editorState.saveTarget
+      );
+      break;
+    }
+    case ObjectType.Sphere3D: {
+      let sphere = editor.spheres3D.find((s) => s.id === objectId);
+      if (sphere && editor.camera) {
+        sphere.transform.updatePosition(
+          [value, sphere.transform.position[1]],
+          editor.camera.windowSize
+        );
+        sphere.transform.updateUniformBuffer(
+          editor.gpuResources?.queue!,
+          editor.camera.windowSize
+        );
+      }
+
+      editorState.savedState.sequences.forEach((s) => {
+        s.activeSpheres3D?.forEach((sp) => {
+          if (sp.id == objectId) {
+            sp.position = {
+              x: value,
+              y: sp.position.y,
+            };
+          }
+        });
+      });
+
+      saveSequencesData(
+        editorState.savedState.sequences,
+        editorState.saveTarget
+      );
+      break;
+    }
   }
 }
 
@@ -440,6 +500,66 @@ export function updatePositionY(
           }
         });
         // }
+      });
+
+      saveSequencesData(
+        editorState.savedState.sequences,
+        editorState.saveTarget
+      );
+      break;
+    }
+    case ObjectType.Cube3D: {
+      let cube = editor.cubes3D.find((c) => c.id === objectId);
+      if (cube && editor.camera) {
+        cube.transform.updatePosition(
+          [cube.transform.position[0], value],
+          editor.camera.windowSize
+        );
+        cube.transform.updateUniformBuffer(
+          editor.gpuResources?.queue!,
+          editor.camera.windowSize
+        );
+      }
+
+      editorState.savedState.sequences.forEach((s) => {
+        s.activeCubes3D?.forEach((c) => {
+          if (c.id == objectId) {
+            c.position = {
+              x: c.position.x,
+              y: value,
+            };
+          }
+        });
+      });
+
+      saveSequencesData(
+        editorState.savedState.sequences,
+        editorState.saveTarget
+      );
+      break;
+    }
+    case ObjectType.Sphere3D: {
+      let sphere = editor.spheres3D.find((s) => s.id === objectId);
+      if (sphere && editor.camera) {
+        sphere.transform.updatePosition(
+          [sphere.transform.position[0], value],
+          editor.camera.windowSize
+        );
+        sphere.transform.updateUniformBuffer(
+          editor.gpuResources?.queue!,
+          editor.camera.windowSize
+        );
+      }
+
+      editorState.savedState.sequences.forEach((s) => {
+        s.activeSpheres3D?.forEach((sp) => {
+          if (sp.id == objectId) {
+            sp.position = {
+              x: sp.position.x,
+              y: value,
+            };
+          }
+        });
       });
 
       saveSequencesData(
@@ -752,6 +872,270 @@ export function removeTextAnimation(
     s.activeTextItems.forEach((p) => {
       if (p.id == objectId) {
         p.textAnimation = null;
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+// Cube3D specific properties
+export function updateCube3DWidth(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let cube = editor.cubes3D.find((c) => c.id === objectId);
+  if (cube && editor.camera) {
+    cube.dimensions = [value, cube.dimensions[1], cube.dimensions[2]];
+    cube.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeCubes3D?.forEach((c) => {
+      if (c.id == objectId) {
+        c.dimensions = [value, c.dimensions[1], c.dimensions[2]];
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function updateCube3DHeight(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let cube = editor.cubes3D.find((c) => c.id === objectId);
+  if (cube && editor.camera) {
+    cube.dimensions = [cube.dimensions[0], value, cube.dimensions[2]];
+    cube.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeCubes3D?.forEach((c) => {
+      if (c.id == objectId) {
+        c.dimensions = [c.dimensions[0], value, c.dimensions[2]];
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function updateCube3DDepth(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let cube = editor.cubes3D.find((c) => c.id === objectId);
+  if (cube && editor.camera) {
+    cube.dimensions = [cube.dimensions[0], cube.dimensions[1], value];
+    cube.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeCubes3D?.forEach((c) => {
+      if (c.id == objectId) {
+        c.dimensions = [c.dimensions[0], c.dimensions[1], value];
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function updateCube3DRotationX(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let cube = editor.cubes3D.find((c) => c.id === objectId);
+  if (cube && editor.camera) {
+    cube.transform.updateRotationXDegrees(value);
+    cube.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+    cube.rotation = [value, cube.rotation[1], cube.rotation[2]];
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeCubes3D?.forEach((c) => {
+      if (c.id == objectId) {
+        c.rotation = [value, c.rotation[1], c.rotation[2]];
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function updateCube3DRotationY(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let cube = editor.cubes3D.find((c) => c.id === objectId);
+  if (cube && editor.camera) {
+    cube.transform.updateRotationYDegrees(value);
+    cube.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+    cube.rotation = [cube.rotation[0], value, cube.rotation[2]];
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeCubes3D?.forEach((c) => {
+      if (c.id == objectId) {
+        c.rotation = [c.rotation[0], value, c.rotation[2]];
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function updateCube3DRotationZ(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let cube = editor.cubes3D.find((c) => c.id === objectId);
+  if (cube && editor.camera) {
+    cube.transform.updateRotationDegrees(value);
+    cube.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+    cube.rotation = [cube.rotation[0], cube.rotation[1], value];
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeCubes3D?.forEach((c) => {
+      if (c.id == objectId) {
+        c.rotation = [c.rotation[0], c.rotation[1], value];
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+// Sphere3D specific properties
+export function updateSphere3DRadius(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let sphere = editor.spheres3D.find((s) => s.id === objectId);
+  if (sphere) {
+    sphere.radius = value;
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeSpheres3D?.forEach((sp) => {
+      if (sp.id == objectId) {
+        sp.radius = value;
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function updateSphere3DRotationX(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let sphere = editor.spheres3D.find((s) => s.id === objectId);
+  if (sphere && editor.camera) {
+    sphere.transform.updateRotationXDegrees(value);
+    sphere.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+    sphere.rotation = [value, sphere.rotation[1], sphere.rotation[2]];
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeSpheres3D?.forEach((sp) => {
+      if (sp.id == objectId) {
+        sp.rotation = [value, sp.rotation[1], sp.rotation[2]];
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function updateSphere3DRotationY(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let sphere = editor.spheres3D.find((s) => s.id === objectId);
+  if (sphere && editor.camera) {
+    sphere.transform.updateRotationYDegrees(value);
+    sphere.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+    sphere.rotation = [sphere.rotation[0], value, sphere.rotation[2]];
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeSpheres3D?.forEach((sp) => {
+      if (sp.id == objectId) {
+        sp.rotation = [sp.rotation[0], value, sp.rotation[2]];
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function updateSphere3DRotationZ(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let sphere = editor.spheres3D.find((s) => s.id === objectId);
+  if (sphere && editor.camera) {
+    sphere.transform.updateRotationDegrees(value);
+    sphere.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+    sphere.rotation = [sphere.rotation[0], sphere.rotation[1], value];
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeSpheres3D?.forEach((sp) => {
+      if (sp.id == objectId) {
+        sp.rotation = [sp.rotation[0], sp.rotation[1], value];
       }
     });
   });

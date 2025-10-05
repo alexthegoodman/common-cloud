@@ -37,6 +37,16 @@ import {
   updateWidth,
   updateTextAnimation,
   removeTextAnimation,
+  updateCube3DWidth,
+  updateCube3DHeight,
+  updateCube3DDepth,
+  updateCube3DRotationX,
+  updateCube3DRotationY,
+  updateCube3DRotationZ,
+  updateSphere3DRadius,
+  updateSphere3DRotationX,
+  updateSphere3DRotationY,
+  updateSphere3DRotationZ,
 } from "@/engine/state/properties";
 import {
   remove_position_keyframes,
@@ -3973,6 +3983,437 @@ export const KeyframeProperties = ({
         >
           Delete Keyframe
         </button>
+      </div>
+    </>
+  );
+};
+
+export const Cube3DProperties = ({
+  editorRef,
+  editorStateRef,
+  currentSequenceId,
+  currentCubeId,
+  handleGoBack,
+}: {
+  editorRef: React.RefObject<Editor | null>;
+  editorStateRef: React.RefObject<EditorState | null>;
+  currentSequenceId: string;
+  currentCubeId: string;
+  handleGoBack: () => void;
+}) => {
+  const [defaultsSet, setDefaultsSet] = useState(false);
+  const [defaultWidth, setDefaultWidth] = useState(0);
+  const [defaultHeight, setDefaultHeight] = useState(0);
+  const [defaultDepth, setDefaultDepth] = useState(0);
+  const [positionX, setPositionX] = useState(0);
+  const [positionY, setPositionY] = useState(0);
+  const [rotationX, setRotationX] = useState(0);
+  const [rotationY, setRotationY] = useState(0);
+  const [rotationZ, setRotationZ] = useState(0);
+  const [defaultFill, setDefaultFill] = useState<BackgroundFill | null>(null);
+
+  useEffect(() => {
+    let editor = editorRef.current;
+    let editorState = editorStateRef.current;
+
+    if (!editor || !editorState) {
+      return;
+    }
+
+    let currentSequence = editorState.savedState.sequences.find(
+      (s) => s.id === currentSequenceId
+    );
+    let currentObject = currentSequence?.activeCubes3D?.find(
+      (c) => c.id === currentCubeId
+    );
+
+    console.info("currentCubeId", currentObject, currentSequence);
+
+    if (currentObject) {
+      setDefaultWidth(currentObject.dimensions[0]);
+      setDefaultHeight(currentObject.dimensions[1]);
+      setDefaultDepth(currentObject.dimensions[2]);
+      setPositionX(currentObject.position.x);
+      setPositionY(currentObject.position.y);
+      setRotationX(currentObject.rotation[0]);
+      setRotationY(currentObject.rotation[1]);
+      setRotationZ(currentObject.rotation[2]);
+      setDefaultFill(currentObject.backgroundFill);
+      console.info("alert ", currentObject);
+    }
+
+    setDefaultsSet(true);
+  }, [currentCubeId]);
+
+  if (!defaultsSet) {
+    return <></>;
+  }
+
+  return (
+    <>
+      <div>
+        <div className="flex flex-row items-center">
+          <button
+            className="flex flex-col justify-center items-center text-xs w-[35px] h-[35px] text-center rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors mr-2"
+            onClick={() => handleGoBack()}
+          >
+            <CreateIcon icon="arrow-left" size="24px" />
+          </button>
+          <h5>Update 3D Cube</h5>
+        </div>
+        <div className="flex flex-row gap-2">
+          <DebouncedInput
+            id="cube_x"
+            label="X"
+            placeholder="X"
+            initialValue={positionX.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updatePositionX(
+                editorState,
+                editor,
+                currentCubeId,
+                ObjectType.Cube3D,
+                parseInt(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="cube_y"
+            label="Y"
+            placeholder="Y"
+            initialValue={positionY.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updatePositionY(
+                editorState,
+                editor,
+                currentCubeId,
+                ObjectType.Cube3D,
+                parseInt(value)
+              );
+            }}
+          />
+        </div>
+        <div className="flex flex-row gap-2">
+          <DebouncedInput
+            id="cube_width"
+            label="Width"
+            placeholder="Width"
+            initialValue={defaultWidth.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateCube3DWidth(
+                editorState,
+                editor,
+                currentCubeId,
+                parseFloat(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="cube_height"
+            label="Height"
+            placeholder="Height"
+            initialValue={defaultHeight.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateCube3DHeight(
+                editorState,
+                editor,
+                currentCubeId,
+                parseFloat(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="cube_depth"
+            label="Depth"
+            placeholder="Depth"
+            initialValue={defaultDepth.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateCube3DDepth(
+                editorState,
+                editor,
+                currentCubeId,
+                parseFloat(value)
+              );
+            }}
+          />
+        </div>
+        <div className="flex flex-row gap-2 mt-2">
+          <DebouncedInput
+            id="cube_rotation_x"
+            label="Rotation X"
+            placeholder="Rotation X"
+            initialValue={rotationX.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateCube3DRotationX(
+                editorState,
+                editor,
+                currentCubeId,
+                parseFloat(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="cube_rotation_y"
+            label="Rotation Y"
+            placeholder="Rotation Y"
+            initialValue={rotationY.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateCube3DRotationY(
+                editorState,
+                editor,
+                currentCubeId,
+                parseFloat(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="cube_rotation_z"
+            label="Rotation Z"
+            placeholder="Rotation Z"
+            initialValue={rotationZ.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateCube3DRotationZ(
+                editorState,
+                editor,
+                currentCubeId,
+                parseFloat(value)
+              );
+            }}
+          />
+        </div>
+      </div>
+    </>
+  );
+};
+
+export const Sphere3DProperties = ({
+  editorRef,
+  editorStateRef,
+  currentSequenceId,
+  currentSphereId,
+  handleGoBack,
+}: {
+  editorRef: React.RefObject<Editor | null>;
+  editorStateRef: React.RefObject<EditorState | null>;
+  currentSequenceId: string;
+  currentSphereId: string;
+  handleGoBack: () => void;
+}) => {
+  const [defaultsSet, setDefaultsSet] = useState(false);
+  const [defaultRadius, setDefaultRadius] = useState(0);
+  const [positionX, setPositionX] = useState(0);
+  const [positionY, setPositionY] = useState(0);
+  const [rotationX, setRotationX] = useState(0);
+  const [rotationY, setRotationY] = useState(0);
+  const [rotationZ, setRotationZ] = useState(0);
+  const [defaultFill, setDefaultFill] = useState<BackgroundFill | null>(null);
+
+  useEffect(() => {
+    let editor = editorRef.current;
+    let editorState = editorStateRef.current;
+
+    if (!editor || !editorState) {
+      return;
+    }
+
+    let currentSequence = editorState.savedState.sequences.find(
+      (s) => s.id === currentSequenceId
+    );
+    let currentObject = currentSequence?.activeSpheres3D?.find(
+      (s) => s.id === currentSphereId
+    );
+
+    if (currentObject) {
+      setDefaultRadius(currentObject.radius);
+      setPositionX(currentObject.position.x);
+      setPositionY(currentObject.position.y);
+      setRotationX(currentObject.rotation[0]);
+      setRotationY(currentObject.rotation[1]);
+      setRotationZ(currentObject.rotation[2]);
+      setDefaultFill(currentObject.backgroundFill);
+    }
+
+    setDefaultsSet(true);
+  }, [currentSphereId]);
+
+  if (!defaultsSet) {
+    return <></>;
+  }
+
+  return (
+    <>
+      <div>
+        <div className="flex flex-row items-center">
+          <button
+            className="flex flex-col justify-center items-center text-xs w-[35px] h-[35px] text-center rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors mr-2"
+            onClick={() => handleGoBack()}
+          >
+            <CreateIcon icon="arrow-left" size="24px" />
+          </button>
+          <h5>Update 3D Sphere</h5>
+        </div>
+        <div className="flex flex-row gap-2">
+          <DebouncedInput
+            id="sphere_x"
+            label="X"
+            placeholder="X"
+            initialValue={positionX.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updatePositionX(
+                editorState,
+                editor,
+                currentSphereId,
+                ObjectType.Sphere3D,
+                parseInt(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="sphere_y"
+            label="Y"
+            placeholder="Y"
+            initialValue={positionY.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updatePositionY(
+                editorState,
+                editor,
+                currentSphereId,
+                ObjectType.Sphere3D,
+                parseInt(value)
+              );
+            }}
+          />
+        </div>
+        <div className="flex flex-row gap-2">
+          <DebouncedInput
+            id="sphere_radius"
+            label="Radius"
+            placeholder="Radius"
+            initialValue={defaultRadius.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateSphere3DRadius(
+                editorState,
+                editor,
+                currentSphereId,
+                parseFloat(value)
+              );
+            }}
+          />
+        </div>
+        <div className="flex flex-row gap-2 mt-2">
+          <DebouncedInput
+            id="sphere_rotation_x"
+            label="Rotation X"
+            placeholder="Rotation X"
+            initialValue={rotationX.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateSphere3DRotationX(
+                editorState,
+                editor,
+                currentSphereId,
+                parseFloat(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="sphere_rotation_y"
+            label="Rotation Y"
+            placeholder="Rotation Y"
+            initialValue={rotationY.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateSphere3DRotationY(
+                editorState,
+                editor,
+                currentSphereId,
+                parseFloat(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="sphere_rotation_z"
+            label="Rotation Z"
+            placeholder="Rotation Z"
+            initialValue={rotationZ.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateSphere3DRotationZ(
+                editorState,
+                editor,
+                currentSphereId,
+                parseFloat(value)
+              );
+            }}
+          />
+        </div>
       </div>
     </>
   );

@@ -24,6 +24,8 @@ import { Sequence } from "@/engine/animations";
 import { PolygonConfig } from "@/engine/polygon";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { TextRendererConfig } from "@/engine/text";
+import { Cube3DConfig } from "@/engine/cube3d";
+import { Sphere3DConfig } from "@/engine/sphere3d";
 import { PageSequence } from "@/engine/data";
 import { Layer, LayerFromConfig } from "./layers";
 import { StVideoConfig } from "@/engine/video";
@@ -1111,6 +1113,176 @@ export const ToolGrid = ({
               } else {
                 console.info("Brush drawing mode disabled!");
               }
+            }}
+          />
+        )}
+
+        {options.includes("cube3d") && (
+          <OptionButton
+            style={{}}
+            label={t("Add 3D Cube")}
+            icon="cube"
+            aria-label="Add a 3D cube to the canvas"
+            callback={() => {
+              if (!editorRef.current || !currentSequenceId) {
+                return;
+              }
+
+              const editor = editorRef.current;
+              const editor_state = editorStateRef.current;
+
+              if (!editor || !editor_state || !editor.settings) {
+                return;
+              }
+
+              const random_number_800 = getRandomNumber(
+                100,
+                editor.settings.dimensions.width
+              );
+              const random_number_450 = getRandomNumber(
+                100,
+                editor.settings.dimensions.height
+              );
+
+              const new_id = uuidv4();
+
+              const cubeConfig: Cube3DConfig = {
+                id: new_id,
+                name: "3D Cube",
+                dimensions: [0.5, 0.5, 0.2],
+                position: {
+                  x: 0,
+                  y: 0,
+                },
+                rotation: [0, 0, 0],
+                backgroundFill: {
+                  type: "Color",
+                  value: [0.5, 0.7, 1.0, 1.0],
+                },
+                layer: layers.length,
+              };
+
+              editor.add_cube3d(cubeConfig, new_id, currentSequenceId);
+
+              editor_state.add_saved_cube3d(currentSequenceId, cubeConfig);
+
+              let saved_state = editor_state.savedState;
+
+              let updated_sequence = saved_state.sequences.find(
+                (s) => s.id == currentSequenceId
+              );
+
+              let sequence_cloned = updated_sequence;
+
+              if (!sequence_cloned) {
+                throw Error("Sequence does not exist");
+              }
+
+              if (set_sequences) {
+                set_sequences(saved_state.sequences);
+              }
+
+              editor.currentSequenceData = sequence_cloned;
+
+              editor.updateMotionPaths(sequence_cloned);
+
+              editor.cubes3D.forEach((cube) => {
+                if (!cube.hidden && cube.id === cubeConfig.id) {
+                  let cube_config: Cube3DConfig = cube.toConfig();
+                  let new_layer: Layer =
+                    LayerFromConfig.fromCube3DConfig(cube_config);
+                  layers.push(new_layer);
+                }
+              });
+
+              setLayers(layers);
+
+              update();
+            }}
+          />
+        )}
+
+        {options.includes("sphere3d") && (
+          <OptionButton
+            style={{}}
+            label={t("Add 3D Sphere")}
+            icon="circle"
+            aria-label="Add a 3D sphere to the canvas"
+            callback={() => {
+              if (!editorRef.current || !currentSequenceId) {
+                return;
+              }
+
+              const editor = editorRef.current;
+              const editor_state = editorStateRef.current;
+
+              if (!editor || !editor_state || !editor.settings) {
+                return;
+              }
+
+              const random_number_800 = getRandomNumber(
+                100,
+                editor.settings.dimensions.width
+              );
+              const random_number_450 = getRandomNumber(
+                100,
+                editor.settings.dimensions.height
+              );
+
+              const new_id = uuidv4();
+
+              const sphereConfig: Sphere3DConfig = {
+                id: new_id,
+                name: "3D Sphere",
+                radius: 0.5,
+                position: {
+                  x: 0,
+                  y: 0,
+                },
+                rotation: [0, 0, 0],
+                backgroundFill: {
+                  type: "Color",
+                  value: [1.0, 0.5, 0.7, 1.0],
+                },
+                layer: layers.length,
+              };
+
+              editor.add_sphere3d(sphereConfig, new_id, currentSequenceId);
+
+              editor_state.add_saved_sphere3d(currentSequenceId, sphereConfig);
+
+              let saved_state = editor_state.savedState;
+
+              let updated_sequence = saved_state.sequences.find(
+                (s) => s.id == currentSequenceId
+              );
+
+              let sequence_cloned = updated_sequence;
+
+              if (!sequence_cloned) {
+                throw Error("Sequence does not exist");
+              }
+
+              if (set_sequences) {
+                set_sequences(saved_state.sequences);
+              }
+
+              editor.currentSequenceData = sequence_cloned;
+
+              editor.updateMotionPaths(sequence_cloned);
+
+              editor.spheres3D.forEach((sphere) => {
+                if (!sphere.hidden && sphere.id === sphereConfig.id) {
+                  let sphere_config: Sphere3DConfig = sphere.toConfig();
+                  let new_layer: Layer =
+                    LayerFromConfig.fromSphere3DConfig(sphere_config);
+                  layers.push(new_layer);
+                }
+              });
+
+              setLayers(layers);
+
+              update();
             }}
           />
         )}

@@ -19,14 +19,20 @@ uniform mat4 bindGroup1_0; // u_model
 uniform mat4 bindGroup3_0; // u_group
 
 void main() {
-    vec4 model_pos = bindGroup1_0 * bindGroup3_0 * vec4(a_position, 1.0);
-    
-    vec3 ndc_pos = model_pos.xyz;
-    // Now use bindGroup0_1 as vec2 for window size
-    ndc_pos.x = (ndc_pos.x / bindGroup0_1.x) * 2.0 - 1.0;
-    ndc_pos.y = -((ndc_pos.y / bindGroup0_1.y) * 2.0 - 1.0);
+    // Apply model and group transforms
+    vec4 world_pos = bindGroup1_0 * bindGroup3_0 * vec4(a_position, 1.0);
 
-    gl_Position = bindGroup0_0 * vec4(ndc_pos, 1.0);
+    if (a_object_type != 5.0 && a_object_type != 6.0) { // not 3D
+        // // Convert XY from pixel coordinates to NDC for positioning
+        // // Preserve Z and W for proper 3D projection
+        world_pos.x = (world_pos.x / bindGroup0_1.x) * 2.0 - 1.0;
+        world_pos.y = -((world_pos.y / bindGroup0_1.y) * 2.0 - 1.0);
+        // // world_pos.z and world_pos.w preserved!
+    }
+
+    // Apply camera view-projection matrix
+    // This handles perspective divide for 3D depth using the W component
+    gl_Position = bindGroup0_0 * world_pos;
 
     v_tex_coords = a_tex_coords;
     v_color = a_color;

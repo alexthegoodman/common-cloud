@@ -1150,6 +1150,42 @@ export class CanvasPipeline {
       }
     }
 
+    // Draw 3D cubes
+    for (const cube of editor.cubes3D || []) {
+      if (!cube.hidden) {
+        if (editor.draggingCube3D === cube.id || editor.isPlaying) {
+          cube.transform.updateUniformBuffer(queue, editor.camera.windowSize);
+        }
+
+        cube.bindGroup.bindWebGLBindGroup(gl);
+        cube.groupBindGroup?.bindWebGLBindGroup(gl);
+
+        drawIndexedGeometry(
+          cube.vertexBuffer as PolyfillBuffer,
+          cube.indexBuffer as PolyfillBuffer,
+          cube.indices.length
+        );
+      }
+    }
+
+    // Draw 3D spheres
+    for (const sphere of editor.spheres3D || []) {
+      if (!sphere.hidden) {
+        if (editor.draggingSphere3D === sphere.id || editor.isPlaying) {
+          sphere.transform.updateUniformBuffer(queue, editor.camera.windowSize);
+        }
+
+        sphere.bindGroup.bindWebGLBindGroup(gl);
+        sphere.groupBindGroup?.bindWebGLBindGroup(gl);
+
+        drawIndexedGeometry(
+          sphere.vertexBuffer as PolyfillBuffer,
+          sphere.indexBuffer as PolyfillBuffer,
+          sphere.indices.length
+        );
+      }
+    }
+
     // Draw repeat objects
     let repeatObjects = editor.repeatManager.getAllRepeatObjects();
     if (repeatObjects.length > 0) {
