@@ -1638,6 +1638,73 @@ export class Editor {
       this.videoItems.push(restored_video);
       console.log("Video restored...");
     }
+
+    // Restore 3D cubes
+    if (saved_sequence.activeCubes3D) {
+      for (let c of saved_sequence.activeCubes3D) {
+        const cube_config: Cube3DConfig = {
+          id: c.id,
+          name: c.name,
+          dimensions: c.dimensions,
+          position: {
+            x: c.position.x * this.scaleMultiplier,
+            y: c.position.y * this.scaleMultiplier,
+          },
+          rotation: c.rotation,
+          backgroundFill: c.backgroundFill,
+          layer: c.layer,
+        };
+
+        const restored_cube = new Cube3D(
+          windowSize,
+          device!,
+          queue!,
+          this.modelBindGroupLayout!,
+          this.groupBindGroupLayout!,
+          camera,
+          cube_config,
+          saved_sequence.id
+        );
+
+        restored_cube.hidden = hidden;
+        this.cubes3D.push(restored_cube);
+        console.log("Cube3D restored...");
+      }
+    }
+
+    // Restore 3D spheres
+    if (saved_sequence.activeSpheres3D) {
+      for (let s of saved_sequence.activeSpheres3D) {
+        const sphere_config: Sphere3DConfig = {
+          id: s.id,
+          name: s.name,
+          radius: s.radius,
+          position: {
+            x: s.position.x * this.scaleMultiplier,
+            y: s.position.y * this.scaleMultiplier,
+          },
+          rotation: s.rotation,
+          backgroundFill: s.backgroundFill,
+          layer: s.layer,
+          segments: s.segments,
+        };
+
+        const restored_sphere = new Sphere3D(
+          windowSize,
+          device!,
+          queue!,
+          this.modelBindGroupLayout!,
+          this.groupBindGroupLayout!,
+          camera,
+          sphere_config,
+          saved_sequence.id
+        );
+
+        restored_sphere.hidden = hidden;
+        this.spheres3D.push(restored_sphere);
+        console.log("Sphere3D restored...");
+      }
+    }
   }
 
   reset_sequence_objects() {

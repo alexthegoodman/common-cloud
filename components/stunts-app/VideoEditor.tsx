@@ -236,9 +236,9 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   let [selected_cube3d_id, set_selected_cube3d_id] = useState<string | null>(
     null
   );
-  let [selected_sphere3d_id, set_selected_sphere3d_id] = useState<string | null>(
-    null
-  );
+  let [selected_sphere3d_id, set_selected_sphere3d_id] = useState<
+    string | null
+  >(null);
   let [selected_keyframes, set_selected_keyframes] = useState<string[] | null>(
     null
   );
@@ -396,10 +396,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     select_video(video_id);
   };
 
-  let handle_cube3d_click = (
-    cube_id: string,
-    cube_config: Cube3DConfig
-  ) => {
+  let handle_cube3d_click = (cube_id: string, cube_config: Cube3DConfig) => {
     select_cube3d(cube_id);
   };
 
@@ -958,6 +955,12 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       editor?.videoItems.forEach((t) => {
         t.hidden = true;
       });
+      editor?.cubes3D.forEach((t) => {
+        t.hidden = true;
+      });
+      editor?.spheres3D.forEach((t) => {
+        t.hidden = true;
+      });
 
       saved_sequence.activePolygons.forEach((ap) => {
         let polygon = editor.polygons.find((p) => p.id == ap.id);
@@ -996,6 +999,24 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
         video.hidden = false;
 
         console.info("Video restored!");
+      });
+      saved_sequence.activeCubes3D?.forEach((ap) => {
+        let cube = editor.cubes3D.find((p) => p.id == ap.id);
+
+        if (!cube) {
+          return;
+        }
+
+        cube.hidden = false;
+      });
+      saved_sequence.activeSpheres3D?.forEach((ap) => {
+        let sphere = editor.spheres3D.find((p) => p.id == ap.id);
+
+        if (!sphere) {
+          return;
+        }
+
+        sphere.hidden = false;
       });
 
       if (!editor.camera) {
@@ -1064,6 +1085,21 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
         if (!video.hidden) {
           let video_config: StVideoConfig = video.toConfig();
           let new_layer: Layer = LayerFromConfig.fromVideoConfig(video_config);
+          new_layers.push(new_layer);
+        }
+      });
+      editor.cubes3D.forEach((cube) => {
+        if (!cube.hidden) {
+          let cube_config: Cube3DConfig = cube.toConfig();
+          let new_layer: Layer = LayerFromConfig.fromCube3DConfig(cube_config);
+          new_layers.push(new_layer);
+        }
+      });
+      editor.spheres3D.forEach((sphere) => {
+        if (!sphere.hidden) {
+          let sphere_config: Sphere3DConfig = sphere.toConfig();
+          let new_layer: Layer =
+            LayerFromConfig.fromSphere3DConfig(sphere_config);
           new_layers.push(new_layer);
         }
       });

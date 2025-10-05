@@ -243,68 +243,57 @@ export class Cube3D {
     const hh = h / 2; // half height
     const hd = d / 2; // half depth
 
-    let color: [number, number, number, number] = [1, 1, 1, 1];
-    if (this.backgroundFill.type === "Color") {
-      color = this.backgroundFill.value;
-    } else if (this.backgroundFill.type === "Gradient") {
-      color = this.backgroundFill.value.stops[0].color;
-    }
+    // Define a distinct color for each face (RGBA)
+    const faceColors: [number, number, number, number][] = [
+      [1, 0, 0, 1], // Front - Red
+      [0, 1, 0, 1], // Back - Green
+      [0, 0, 1, 1], // Top - Blue
+      [1, 1, 0, 1], // Bottom - Yellow
+      [1, 0, 1, 1], // Right - Magenta
+      [0, 1, 1, 1], // Left - Cyan
+    ];
 
-    // Define the 8 vertices of a cube
+    // Define the 8 cube corners
     const positions: [number, number, number][] = [
-      // Front face
-      [-hw, -hh, hd], // 0
-      [hw, -hh, hd], // 1
-      [hw, hh, hd], // 2
-      [-hw, hh, hd], // 3
-      // Back face
-      [-hw, -hh, -hd], // 4
-      [hw, -hh, -hd], // 5
-      [hw, hh, -hd], // 6
-      [-hw, hh, -hd], // 7
+      [-hw, -hh, hd], // 0 Front-bottom-left
+      [hw, -hh, hd], // 1 Front-bottom-right
+      [hw, hh, hd], // 2 Front-top-right
+      [-hw, hh, hd], // 3 Front-top-left
+      [-hw, -hh, -hd], // 4 Back-bottom-left
+      [hw, -hh, -hd], // 5 Back-bottom-right
+      [hw, hh, -hd], // 6 Back-top-right
+      [-hw, hh, -hd], // 7 Back-top-left
     ];
 
     // Define faces with indices and normals
     const faces = [
-      // Front
-      { indices: [0, 1, 2, 0, 2, 3], normal: [0, 0, 1] },
-      // Back
-      { indices: [5, 4, 7, 5, 7, 6], normal: [0, 0, -1] },
-      // Top
-      { indices: [3, 2, 6, 3, 6, 7], normal: [0, 1, 0] },
-      // Bottom
-      { indices: [4, 5, 1, 4, 1, 0], normal: [0, -1, 0] },
-      // Right
-      { indices: [1, 5, 6, 1, 6, 2], normal: [1, 0, 0] },
-      // Left
-      { indices: [4, 0, 3, 4, 3, 7], normal: [-1, 0, 0] },
+      { indices: [0, 1, 2, 0, 2, 3], normal: [0, 0, 1] }, // Front
+      { indices: [5, 4, 7, 5, 7, 6], normal: [0, 0, -1] }, // Back
+      { indices: [3, 2, 6, 3, 6, 7], normal: [0, 1, 0] }, // Top
+      { indices: [4, 5, 1, 4, 1, 0], normal: [0, -1, 0] }, // Bottom
+      { indices: [1, 5, 6, 1, 6, 2], normal: [1, 0, 0] }, // Right
+      { indices: [4, 0, 3, 4, 3, 7], normal: [-1, 0, 0] }, // Left
     ];
 
-    let vertexIndex = 0;
-    for (const face of faces) {
-      const faceIndices = face.indices;
+    // Build geometry
+    for (let faceIdx = 0; faceIdx < faces.length; faceIdx++) {
+      const face = faces[faceIdx];
+      const color = faceColors[faceIdx];
       const startIndex = vertices.length;
 
-      // Add vertices for this face
-      for (const idx of [
-        faceIndices[0],
-        faceIndices[1],
-        faceIndices[2],
-        faceIndices[3],
-        faceIndices[4],
-        faceIndices[5],
-      ]) {
+      // Add 6 vertices (2 triangles per face)
+      for (const idx of face.indices) {
         const pos = positions[idx];
         vertices.push({
           position: pos,
           tex_coords: [0, 0],
           color: color,
           gradient_coords: [(pos[0] + hw) / w, (pos[1] + hh) / h],
-          object_type: 5, // Will update ObjectType enum
+          object_type: 5,
         });
       }
 
-      // Add indices for the two triangles that make up this face
+      // Add indices
       indices.push(
         startIndex,
         startIndex + 1,

@@ -273,6 +273,20 @@ export const LayerPanel: React.FC<{
         );
         break;
 
+      case ObjectType.Cube3D:
+        editor.cubes3D = editor.cubes3D.filter((v) => v.id !== id);
+        sequence.activeCubes3D = sequence.activeCubes3D?.filter(
+          (v) => v.id !== id
+        );
+        break;
+
+      case ObjectType.Sphere3D:
+        editor.spheres3D = editor.spheres3D.filter((v) => v.id !== id);
+        sequence.activeSpheres3D = sequence.activeSpheres3D?.filter(
+          (v) => v.id !== id
+        );
+        break;
+
       default:
         break;
     }
