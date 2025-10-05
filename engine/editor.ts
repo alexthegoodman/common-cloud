@@ -1759,15 +1759,27 @@ export class Editor {
           y: CANVAS_VERT_OFFSET + i.position.y * this.scaleMultiplier,
         };
 
+        const ndcPoint = {
+          x: (position.x / camera.windowSize.width) * 2.0 - 1.0,
+          y: -((position.y / camera.windowSize.height) * 2.0 - 1.0),
+        };
+
+        let dimensions = [
+          i.dimensions[0] * this.scaleMultiplier,
+          i.dimensions[1] * this.scaleMultiplier,
+        ] as [number, number];
+
+        const ndcDimensions = [
+          (dimensions[0] / camera.windowSize.width) * 2.0 - 1.0,
+          -((dimensions[1] / camera.windowSize.height) * 2.0 - 1.0),
+        ] as [number, number];
+
         const video_config: StVideoConfig = {
           id: i.id,
           name: i.name,
-          dimensions: [
-            i.dimensions[0] * this.scaleMultiplier,
-            i.dimensions[1] * this.scaleMultiplier,
-          ],
+          dimensions: dimensions,
           path: i.path,
-          position,
+          position: ndcPoint,
           layer: i.layer,
           borderRadius: i.borderRadius,
           // mousePath: i.mousePath,
@@ -1806,6 +1818,11 @@ export class Editor {
         );
 
         restored_mockup.videoChild = restored_video;
+
+        restored_mockup.updateVideoChildTransform(
+          this.gpuResources?.queue!,
+          this.camera?.windowSize!
+        );
 
         restored_mockup.hidden = hidden;
         this.mockups3D.push(restored_mockup);

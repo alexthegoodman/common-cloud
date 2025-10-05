@@ -256,7 +256,9 @@ export class Mockup3D {
 
     // Laptop color scheme (clean, non-branded gray/silver)
     const baseColor: [number, number, number, number] = [0.7, 0.7, 0.75, 1]; // Silver gray for body
-    const screenBezelColor: [number, number, number, number] = [0.2, 0.2, 0.2, 1]; // Dark bezel
+    const screenBezelColor: [number, number, number, number] = [
+      0.2, 0.2, 0.2, 1,
+    ]; // Dark bezel
     const keyboardColor: [number, number, number, number] = [0.3, 0.3, 0.35, 1]; // Dark keyboard area
 
     // Laptop base (keyboard section)
@@ -326,16 +328,8 @@ export class Mockup3D {
       // Front face (bezel)
       [-hw, hingeY, baseThickness], // 0 - bottom left
       [hw, hingeY, baseThickness], // 1 - bottom right
-      [
-        hw,
-        screenTop,
-        screenTopZ,
-      ], // 2 - top right
-      [
-        -hw,
-        screenTop,
-        screenTopZ,
-      ], // 3 - top left
+      [hw, screenTop, screenTopZ], // 2 - top right
+      [-hw, screenTop, screenTopZ], // 3 - top left
       // Back face
       [-hw, hingeY, baseThickness + bezelThickness], // 4
       [hw, hingeY, baseThickness + bezelThickness], // 5
@@ -391,7 +385,8 @@ export class Mockup3D {
     const tiltAngle = 15;
 
     // Calculate screen center position
-    const screenCenterY = hingeY + (screenHeight * Math.cos((tiltAngle * Math.PI) / 180)) / 2;
+    const screenCenterY =
+      hingeY + (screenHeight * Math.cos((tiltAngle * Math.PI) / 180)) / 2;
 
     return {
       position: {
@@ -399,7 +394,11 @@ export class Mockup3D {
         y: this.position.y + screenCenterY,
       },
       dimensions: [screenWidth, screenHeight * 0.9],
-      rotation: [tiltAngle + this.rotation[0], this.rotation[1], this.rotation[2]],
+      rotation: [
+        tiltAngle + this.rotation[0],
+        this.rotation[1],
+        this.rotation[2],
+      ],
     };
   }
 
@@ -424,7 +423,8 @@ export class Mockup3D {
 
     this.vertices.forEach((v) => {
       // Preserve original color ratios, just update alpha
-      const ratio = v.color[0] > 0 ? v.color[0] : v.color[1] > 0 ? v.color[1] : v.color[2];
+      const ratio =
+        v.color[0] > 0 ? v.color[0] : v.color[1] > 0 ? v.color[1] : v.color[2];
       v.color = [v.color[0], v.color[1], v.color[2], opacity];
     });
 
@@ -489,16 +489,34 @@ export class Mockup3D {
 
     const screenBounds = this.getScreenBounds();
 
+    // const ndcPoint = {
+    //   x: (screenBounds.position.x / windowSize.width) * 2.0 - 1.0,
+    //   y: -((screenBounds.position.y / windowSize.height) * 2.0 - 1.0),
+    // };
+
+    const screenBoundsWorld = {
+      position: {
+        x: ((screenBounds.position.x + 1) / 2) * windowSize.width,
+        y: ((1 - screenBounds.position.y) / 2) * windowSize.height,
+      },
+    };
+
     // Update video position and rotation to match screen
     this.videoChild.groupTransform.updatePosition(
-      [screenBounds.position.x, screenBounds.position.y],
+      [screenBoundsWorld.position.x, screenBoundsWorld.position.y],
       windowSize
     );
 
     // Apply screen rotation
-    this.videoChild.groupTransform.updateRotationXDegrees(screenBounds.rotation[0]);
-    this.videoChild.groupTransform.updateRotationYDegrees(screenBounds.rotation[1]);
-    this.videoChild.groupTransform.updateRotationDegrees(screenBounds.rotation[2]);
+    this.videoChild.groupTransform.updateRotationXDegrees(
+      screenBounds.rotation[0] * 0.01
+    );
+    this.videoChild.groupTransform.updateRotationYDegrees(
+      screenBounds.rotation[1] * 0.01
+    );
+    this.videoChild.groupTransform.updateRotationDegrees(
+      screenBounds.rotation[2] * 0.01
+    );
 
     this.videoChild.groupTransform.updateUniformBuffer(queue, windowSize);
   }

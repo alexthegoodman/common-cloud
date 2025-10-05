@@ -1156,6 +1156,13 @@ export function updateMockup3DWidth(
       editor.gpuResources?.queue!,
       editor.camera.windowSize
     );
+    // Update video child transform to match new mockup dimensions
+    if (mockup.videoChild && editor.gpuResources?.queue) {
+      mockup.updateVideoChildTransform(
+        editor.gpuResources.queue,
+        editor.camera.windowSize
+      );
+    }
   }
 
   editorState.savedState.sequences.forEach((s) => {
@@ -1182,6 +1189,13 @@ export function updateMockup3DHeight(
       editor.gpuResources?.queue!,
       editor.camera.windowSize
     );
+    // Update video child transform to match new mockup dimensions
+    if (mockup.videoChild && editor.gpuResources?.queue) {
+      mockup.updateVideoChildTransform(
+        editor.gpuResources.queue,
+        editor.camera.windowSize
+      );
+    }
   }
 
   editorState.savedState.sequences.forEach((s) => {
@@ -1208,6 +1222,13 @@ export function updateMockup3DDepth(
       editor.gpuResources?.queue!,
       editor.camera.windowSize
     );
+    // Update video child transform to match new mockup dimensions
+    if (mockup.videoChild && editor.gpuResources?.queue) {
+      mockup.updateVideoChildTransform(
+        editor.gpuResources.queue,
+        editor.camera.windowSize
+      );
+    }
   }
 
   editorState.savedState.sequences.forEach((s) => {
@@ -1235,6 +1256,13 @@ export function updateMockup3DRotationX(
       editor.gpuResources?.queue!,
       editor.camera.windowSize
     );
+    // Update video child transform to match new mockup rotation
+    if (mockup.videoChild && editor.gpuResources?.queue) {
+      mockup.updateVideoChildTransform(
+        editor.gpuResources.queue,
+        editor.camera.windowSize
+      );
+    }
   }
 
   editorState.savedState.sequences.forEach((s) => {
@@ -1262,6 +1290,13 @@ export function updateMockup3DRotationY(
       editor.gpuResources?.queue!,
       editor.camera.windowSize
     );
+    // Update video child transform to match new mockup rotation
+    if (mockup.videoChild && editor.gpuResources?.queue) {
+      mockup.updateVideoChildTransform(
+        editor.gpuResources.queue,
+        editor.camera.windowSize
+      );
+    }
   }
 
   editorState.savedState.sequences.forEach((s) => {
@@ -1289,6 +1324,13 @@ export function updateMockup3DRotationZ(
       editor.gpuResources?.queue!,
       editor.camera.windowSize
     );
+    // Update video child transform to match new mockup rotation
+    if (mockup.videoChild && editor.gpuResources?.queue) {
+      mockup.updateVideoChildTransform(
+        editor.gpuResources.queue,
+        editor.camera.windowSize
+      );
+    }
   }
 
   editorState.savedState.sequences.forEach((s) => {

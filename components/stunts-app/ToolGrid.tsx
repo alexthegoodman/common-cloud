@@ -841,11 +841,21 @@ export const ToolGrid = ({
             y: 0,
           };
 
+          let mockupDimensions = [2.0, 1.5, 0.3] as [number, number, number];
+
+          const dimensionsWorld = [
+            ((mockupDimensions[0] + 1) / 2) * editor.camera?.windowSize.width!,
+            ((1 - mockupDimensions[1]) / 2) * editor.camera?.windowSize.height!,
+          ];
+
           // Create video config for the child video
           const videoConfig: StVideoConfig = {
             id: new_video_id,
             name: "Mockup Screen Video",
-            dimensions: [100, 75] as [number, number], // Will be adjusted by mockup
+            dimensions: [dimensionsWorld[0], dimensionsWorld[1]] as [
+              number,
+              number
+            ], // Will be adjusted by mockup
             position: mockupPosition,
             path: url,
             layer: layers.length + 1, // Video is above mockup
@@ -855,7 +865,7 @@ export const ToolGrid = ({
           const mockupConfig: Mockup3DConfig = {
             id: new_mockup_id,
             name: "Laptop Mockup",
-            dimensions: [2.0, 1.5, 0.3], // width, height, depth
+            dimensions: mockupDimensions, // width, height, depth
             position: mockupPosition,
             rotation: [15, 0, 0], // Slight tilt
             backgroundFill: {
