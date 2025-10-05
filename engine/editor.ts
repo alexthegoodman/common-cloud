@@ -251,8 +251,14 @@ export type PolygonClickHandler = (
 export type TextItemClickHandler = (text_id: string) => void | null;
 export type ImageItemClickHandler = (image_id: string) => void | null;
 export type VideoItemClickHandler = (video_id: string) => void | null;
-export type Cube3DClickHandler = (cube_id: string, cube_config: Cube3DConfig) => void | null;
-export type Sphere3DClickHandler = (sphere_id: string, sphere_config: Sphere3DConfig) => void | null;
+export type Cube3DClickHandler = (
+  cube_id: string,
+  cube_config: Cube3DConfig
+) => void | null;
+export type Sphere3DClickHandler = (
+  sphere_id: string,
+  sphere_config: Sphere3DConfig
+) => void | null;
 export type OnMouseUp = (
   id: string,
   point: Point
@@ -5190,11 +5196,7 @@ export class Editor {
       }
 
       if (cube.containsPoint(ndcPoint)) {
-        intersecting_objects.push([
-          cube.layer,
-          InteractionTarget.Cube3D,
-          i,
-        ]);
+        intersecting_objects.push([cube.layer, InteractionTarget.Cube3D, i]);
       }
     }
 
@@ -5511,8 +5513,6 @@ export class Editor {
     let mouse_pos = { x, y };
     let ray = visualize_ray_intersection(windowSize, x, y, camera);
     let top_left = ray.top_left;
-    // let top_left = camera.screen_to_world(x, y);
-    // let top_left = mouse_pos;
 
     this.globalTopLeft = top_left;
     this.lastScreen = { x, y };
@@ -5529,19 +5529,21 @@ export class Editor {
     // }
 
     this.lastTopLeft = top_left;
-    // this.ds_ndc_pos = ds_ndc_pos;
-    // this.ndc = ds_ndc.ndc;
 
-    // this.last_world = camera.screen_to_world(mouse_pos);
+    const ndcPoint = {
+      x: (this.lastTopLeft.x / camera.windowSize.width) * 2.0 - 1.0,
+      y: -((this.lastTopLeft.y / camera.windowSize.height) * 2.0 - 1.0),
+    };
 
-    // this.update_cursor();
-
-    // if (dot) = .cursor_dot {
-    //     // let ndc_position = point_to_ndc(this.lastTopLeft, windowSize);
-    //     // console.info("move dot {:?}", this.lastTopLeft);
-    //     dot.transform
-    //         .updatePosition([this.lastTopLeft.x, this.lastTopLeft.y], windowSize);
-    // }
+    const startNdcPoint = this.dragStart
+      ? {
+          x: (this.dragStart.x / camera.windowSize.width) * 2.0 - 1.0,
+          y: -((this.dragStart.y / camera.windowSize.height) * 2.0 - 1.0),
+        }
+      : {
+          x: 0,
+          y: 0,
+        };
 
     // handle brush drawing
     if (
@@ -5672,8 +5674,8 @@ export class Editor {
     if (this.draggingCube3D) {
       if (this.dragStart) {
         this.move_cube3d(
-          this.lastTopLeft,
-          this.dragStart,
+          ndcPoint,
+          startNdcPoint,
           this.draggingCube3D,
           windowSize,
           device
@@ -5684,8 +5686,8 @@ export class Editor {
     if (this.draggingSphere3D) {
       if (this.dragStart) {
         this.move_sphere3d(
-          this.lastTopLeft,
-          this.dragStart,
+          ndcPoint,
+          startNdcPoint,
           this.draggingSphere3D,
           windowSize,
           device
@@ -5788,9 +5790,7 @@ export class Editor {
       }
     } else if (this.draggingCube3D) {
       object_id = this.draggingCube3D;
-      let active_cube = this.cubes3D.find(
-        (c) => c.id == this.draggingCube3D
-      );
+      let active_cube = this.cubes3D.find((c) => c.id == this.draggingCube3D);
 
       if (active_cube) {
         active_point = {
@@ -6631,10 +6631,17 @@ export class Editor {
       );
     }
 
-    let new_position = {
-      x: roundToGrid(originalX + dx, this.gridSnap),
-      y: roundToGrid(originalY + dy, this.gridSnap),
-    };
+    // let new_position = {
+    //   x: roundToGrid(originalX + dx, this.gridSnap),
+    //   y: roundToGrid(originalY + dy, this.gridSnap),
+    // };
+
+    // let new_position = {
+    //   x: originalX + dx,
+    //   y: originalY + dy,
+    // };
+
+    let new_position = mouse_pos;
 
     cube.transform.updatePosition([new_position.x, new_position.y], windowSize);
   }
@@ -6674,10 +6681,12 @@ export class Editor {
       );
     }
 
-    let new_position = {
-      x: roundToGrid(originalX + dx, this.gridSnap),
-      y: roundToGrid(originalY + dy, this.gridSnap),
-    };
+    // let new_position = {
+    //   x: roundToGrid(originalX + dx, this.gridSnap),
+    //   y: roundToGrid(originalY + dy, this.gridSnap),
+    // };
+
+    let new_position = mouse_pos;
 
     sphere.transform.updatePosition(
       [new_position.x, new_position.y],

@@ -355,6 +355,24 @@ export function findObjectType(
     return ObjectType.VideoItem;
   }
 
+  // Check active videos
+  if (
+    lastSavedState.sequences.some((s) =>
+      s.activeCubes3D?.some((av) => av.id === objectId)
+    )
+  ) {
+    return ObjectType.Cube3D;
+  }
+
+  // Check active videos
+  if (
+    lastSavedState.sequences.some((s) =>
+      s.activeSpheres3D?.some((av) => av.id === objectId)
+    )
+  ) {
+    return ObjectType.Sphere3D;
+  }
+
   return null;
 }
 

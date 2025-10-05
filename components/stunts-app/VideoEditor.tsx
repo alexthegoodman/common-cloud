@@ -489,6 +489,30 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
             });
             break;
           }
+          case ObjectType.Cube3D: {
+            console.info("saving point", point);
+            s.activeCubes3D?.forEach((si) => {
+              if (si.id == object_id) {
+                si.position = {
+                  x: point.x,
+                  y: point.y,
+                };
+              }
+            });
+            break;
+          }
+          case ObjectType.Sphere3D: {
+            console.info("saving point", point);
+            s.activeSpheres3D?.forEach((si) => {
+              if (si.id == object_id) {
+                si.position = {
+                  x: point.x,
+                  y: point.y,
+                };
+              }
+            });
+            break;
+          }
         }
 
         // Update motion path positions when objects are moved
@@ -1870,6 +1894,21 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                                     ) {
                                       objectName =
                                         sequence.activeVideoItems.find(
+                                          (pol) =>
+                                            pol.id === animation.polygonId
+                                        )?.name;
+                                    } else if (
+                                      animation.objectType === ObjectType.Cube3D
+                                    ) {
+                                      objectName = sequence.activeCubes3D?.find(
+                                        (pol) => pol.id === animation.polygonId
+                                      )?.name;
+                                    } else if (
+                                      animation.objectType ===
+                                      ObjectType.Sphere3D
+                                    ) {
+                                      objectName =
+                                        sequence.activeSpheres3D?.find(
                                           (pol) =>
                                             pol.id === animation.polygonId
                                         )?.name;
