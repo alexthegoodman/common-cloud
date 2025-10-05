@@ -382,7 +382,7 @@ export class Mockup3D {
     const screenHeight = h * 0.6;
     const screenWidth = w * 0.85; // Inset from bezel
     const hingeY = (h * 0.5) / 2;
-    const tiltAngle = 15;
+    const tiltAngle = 0;
 
     // Calculate screen center position
     const screenCenterY =
@@ -397,7 +397,7 @@ export class Mockup3D {
       rotation: [
         tiltAngle + this.rotation[0],
         this.rotation[1],
-        this.rotation[2],
+        this.rotation[2] - 180,
       ],
     };
   }
@@ -506,6 +506,8 @@ export class Mockup3D {
       [screenBoundsWorld.position.x, screenBoundsWorld.position.y],
       windowSize
     );
+    this.videoChild.groupTransform.layer =
+      this.videoChild.groupTransform.layer + 0.3;
 
     // Apply screen rotation
     this.videoChild.groupTransform.updateRotationXDegrees(
@@ -515,7 +517,7 @@ export class Mockup3D {
       screenBounds.rotation[1] * 0.01
     );
     this.videoChild.groupTransform.updateRotationDegrees(
-      screenBounds.rotation[2] * 0.01
+      screenBounds.rotation[2]
     );
 
     this.videoChild.groupTransform.updateUniformBuffer(queue, windowSize);

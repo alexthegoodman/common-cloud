@@ -841,7 +841,7 @@ export const ToolGrid = ({
             y: 0,
           };
 
-          let mockupDimensions = [2.0, 1.5, 0.3] as [number, number, number];
+          let mockupDimensions = [2.0, 2.0, 0.3] as [number, number, number];
 
           const dimensionsWorld = [
             ((mockupDimensions[0] + 1) / 2) * editor.camera?.windowSize.width!,
