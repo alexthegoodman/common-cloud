@@ -26,6 +26,7 @@ import { useLocalStorage } from "@uidotdev/usehooks";
 import { TextRendererConfig } from "@/engine/text";
 import { Cube3DConfig } from "@/engine/cube3d";
 import { Sphere3DConfig } from "@/engine/sphere3d";
+import { Mockup3DConfig } from "@/engine/mockup3d";
 import { PageSequence } from "@/engine/data";
 import { Layer, LayerFromConfig } from "./layers";
 import { StVideoConfig } from "@/engine/video";
@@ -72,6 +73,7 @@ export const ToolGrid = ({
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
+  const mockupVideoInputRef = useRef<HTMLInputElement | null>(null);
 
   const [generateImageModalOpen, setGenerateImageModalOpen] = useState(false);
   const [generateImagePrompt, setGenerateImagePrompt] = useState("");
@@ -769,6 +771,188 @@ export const ToolGrid = ({
     }
   };
 
+  const on_add_mockup3d = useCallback(
+    async (sequence_id: string, file: File) => {
+      let editor = editorRef.current;
+      let editor_state = editorStateRef.current;
+
+      if (!editor || !editor_state) {
+        return;
+      }
+
+      if (!authToken) {
+        return;
+      }
+
+      if (!editor.settings) {
+        console.error("Editor settings are not defined.");
+        return;
+      }
+
+      let blob = await fileToBlob(file);
+
+      if (!blob) {
+        return;
+      }
+
+      try {
+        setUserMessage(`Resizing video for mockup: ${file.name}...`);
+
+        const resizedVideoBlob = await resizeVideo(blob);
+
+        if (!resizedVideoBlob) {
+          throw new Error("Failed to resize video");
+        }
+
+        setUserMessage(`Uploading mockup video: ${file.name}...`);
+
+        let response = await saveVideo(
+          authToken?.token,
+          file.name,
+          resizedVideoBlob
+        );
+
+        setUserMessage("");
+
+        if (response) {
+          let url = response.url;
+
+          console.info("Mockup video url:", url);
+
+          const random_number_800 = getRandomNumber(
+            100,
+            editor.settings.dimensions.width
+          );
+          const random_number_450 = getRandomNumber(
+            100,
+            editor.settings.dimensions.height
+          );
+
+          const new_mockup_id = uuidv4();
+          const new_video_id = uuidv4();
+
+          // const mockupPosition = {
+          //   x: random_number_800 + CANVAS_HORIZ_OFFSET,
+          //   y: random_number_450 + CANVAS_VERT_OFFSET,
+          // };
+
+          const mockupPosition = {
+            x: 0,
+            y: 0,
+          };
+
+          // Create video config for the child video
+          const videoConfig: StVideoConfig = {
+            id: new_video_id,
+            name: "Mockup Screen Video",
+            dimensions: [100, 75] as [number, number], // Will be adjusted by mockup
+            position: mockupPosition,
+            path: url,
+            layer: layers.length + 1, // Video is above mockup
+          };
+
+          // Create mockup config with required video child
+          const mockupConfig: Mockup3DConfig = {
+            id: new_mockup_id,
+            name: "Laptop Mockup",
+            dimensions: [2.0, 1.5, 0.3], // width, height, depth
+            position: mockupPosition,
+            rotation: [15, 0, 0], // Slight tilt
+            backgroundFill: {
+              type: "Color",
+              value: [0.7, 0.7, 0.75, 1.0], // Silver gray
+            },
+            layer: layers.length,
+            videoChild: videoConfig,
+          };
+
+          // First add the video item (the mockup will reference it)
+          await editor.add_video_item(
+            videoConfig,
+            resizedVideoBlob,
+            new_video_id,
+            sequence_id,
+            [],
+            null
+          );
+
+          const new_video_item = editor.videoItems.find(
+            (v) => v.id === new_video_id
+          );
+
+          if (!new_video_item || !new_video_item.sourceDurationMs) {
+            return;
+          }
+
+          // Add the mockup
+          editor.add_mockup3d(mockupConfig, new_mockup_id, sequence_id);
+
+          // Link the video to the mockup
+          const mockup = editor.mockups3D.find((m) => m.id === new_mockup_id);
+          if (mockup) {
+            mockup.videoChild = new_video_item;
+            // Update video child transform to match mockup's screen
+            if (editor.gpuResources?.queue && editor.camera?.windowSize) {
+              mockup.updateVideoChildTransform(
+                editor.gpuResources.queue,
+                editor.camera.windowSize
+              );
+            }
+          }
+
+          // Save mockup to state (video is stored as child, not separately)
+          await editor_state.add_saved_mockup3d(sequence_id, mockupConfig);
+
+          console.info("Saved mockup!");
+
+          let saved_state = editor_state.savedState;
+          let updated_sequence = saved_state.sequences.find(
+            (s) => s.id == sequence_id
+          );
+
+          let sequence_cloned = updated_sequence;
+
+          if (!sequence_cloned) {
+            return;
+          }
+
+          if (set_sequences) {
+            set_sequences(saved_state.sequences);
+          }
+
+          editor.currentSequenceData = sequence_cloned;
+          editor.updateMotionPaths(sequence_cloned);
+
+          // Add layer only for the mockup (video is a child, not a separate layer)
+          editor.mockups3D.forEach((mockup) => {
+            if (!mockup.hidden && mockup.id === mockupConfig.id) {
+              let mockup_config: Mockup3DConfig = mockup.toConfig();
+              let new_layer: Layer =
+                LayerFromConfig.fromMockup3DConfig(mockup_config);
+              layers.push(new_layer);
+            }
+          });
+
+          setLayers(layers);
+
+          console.info("Mockup3D added!");
+          toast.success("Laptop mockup added successfully!");
+        }
+      } catch (error: any) {
+        console.error("add mockup error", error);
+        toast.error(error.message || "An error occurred");
+      }
+    },
+    [
+      authToken,
+      setUploadProgress,
+      getRandomNumber,
+      set_sequences,
+      setLayers,
+      layers,
+    ]
+  );
+
   return (
     <>
       {userMessage && (
@@ -1285,6 +1469,36 @@ export const ToolGrid = ({
               update();
             }}
           />
+        )}
+
+        {options.includes("mockup3d") && (
+          <>
+            <input
+              type="file"
+              ref={mockupVideoInputRef}
+              accept="video/*"
+              style={{ display: "none" }}
+              aria-label="Select video file for laptop mockup"
+              onChange={(e) => {
+                if (!e.target.files || !currentSequenceId) {
+                  return;
+                }
+
+                const file = e.target.files[0];
+                if (file) {
+                  console.log("Selected mockup video file:", file);
+                  on_add_mockup3d(currentSequenceId, file);
+                }
+              }}
+            />
+            <OptionButton
+              style={{}}
+              label={t("Add Laptop Mockup")}
+              icon="laptop"
+              aria-label="Add a laptop mockup with video screen"
+              callback={() => mockupVideoInputRef.current?.click()}
+            />
+          </>
         )}
       </div>
     </>

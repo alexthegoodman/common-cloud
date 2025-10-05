@@ -55,10 +55,14 @@ import {
   Play,
   Pause,
   Circle,
+  Laptop,
 } from "@phosphor-icons/react";
 
 export const CreateIcon = ({ icon, size }: { icon: string; size: string }) => {
   switch (icon) {
+    case "laptop": {
+      return <Laptop data-testid={`icon-${icon}`} weight="thin" size={size} />;
+    }
     case "play": {
       return <Play data-testid={`icon-${icon}`} weight="thin" size={size} />;
     }

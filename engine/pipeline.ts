@@ -1150,6 +1150,49 @@ export class CanvasPipeline {
       }
     }
 
+    // Draw 3D Mockups
+    for (const mockup of editor.mockups3D || []) {
+      if (!mockup.hidden) {
+        if (editor.draggingMockup3D === mockup.id || editor.isPlaying) {
+          mockup.transform.updateUniformBuffer(queue, editor.camera.windowSize);
+        }
+
+        mockup.bindGroup.bindWebGLBindGroup(gl);
+        mockup.groupBindGroup?.bindWebGLBindGroup(gl);
+
+        drawIndexedGeometry(
+          mockup.vertexBuffer as PolyfillBuffer,
+          mockup.indexBuffer as PolyfillBuffer,
+          mockup.indices.length
+        );
+
+        if (mockup.videoChild) {
+          if (
+            editor.draggingVideo === mockup.videoChild.id ||
+            editor.isPlaying
+          ) {
+            mockup.videoChild.groupTransform.updateUniformBuffer(
+              queue,
+              editor.camera.windowSize
+            );
+          }
+
+          // this.bindWebGLBindGroup(gl, video.bindGroup, 1);
+
+          mockup.videoChild.bindGroup.bindWebGLBindGroup(gl);
+          mockup.videoChild.groupBindGroup?.bindWebGLBindGroup(gl);
+
+          // console.info("video layer", video.layer, video.transform.layer);
+
+          drawIndexedGeometry(
+            mockup.videoChild.vertexBuffer as PolyfillBuffer,
+            mockup.videoChild.indexBuffer as PolyfillBuffer,
+            mockup.videoChild.indices.length
+          );
+        }
+      }
+    }
+
     // Draw 3D cubes
     for (const cube of editor.cubes3D || []) {
       if (!cube.hidden) {

@@ -121,20 +121,20 @@ export const ProjectItem = ({
   return (
     <div className="flex flex-row gap-2">
       <button
-        className="w-64 rounded-xl flex items-center justify-start p-2 bg-white
-            border-b border-gray-200 hover:bg-gray-200 hover:cursor-pointer 
+        className="w-64 rounded-xl flex items-center justify-start p-2
+             hover:bg-gray-200 hover:cursor-pointer 
             active:bg-[#edda4] transition-colors"
         disabled={loading}
         onClick={handleSubmit}
       >
-        <div className="w-6 h-6 text-black mr-2">
+        <div className="w-6 h-6 text-white mr-2">
           <CreateIcon icon={icon} size="24px" />
         </div>
         <span>{project_label}</span>
       </button>
       <button
-        className="w-32 rounded-xl flex items-center justify-start p-2 bg-white
-            border-b border-gray-200 hover:bg-gray-200 hover:cursor-pointer 
+        className="w-32 rounded-xl flex items-center justify-start p-2
+             hover:bg-gray-200 hover:cursor-pointer 
             active:bg-[#edda4] transition-colors"
         disabled={loading}
         onClick={handleDuplicate}
@@ -144,7 +144,7 @@ export const ProjectItem = ({
       {user?.role === "ADMIN" && (
         <button
           className="w-24 rounded-xl flex items-center justify-center p-2 bg-red-500
-              border-b border-red-600 hover:bg-red-600 hover:cursor-pointer 
+               hover:bg-red-600 hover:cursor-pointer 
               active:bg-red-700 transition-colors text-white"
           disabled={loading}
           onClick={handleDelete}

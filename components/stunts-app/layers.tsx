@@ -7,6 +7,7 @@ import { StVideoConfig } from "@/engine/video";
 import { BrushConfig } from "@/engine/brush";
 import { Cube3DConfig } from "@/engine/cube3d";
 import { Sphere3DConfig } from "@/engine/sphere3d";
+import { Mockup3DConfig } from "@/engine/mockup3d";
 import { ObjectType } from "@/engine/animations";
 import { CreateIcon } from "./icon";
 import { Editor } from "@/engine/editor";
@@ -62,6 +63,12 @@ export const LayerFromConfig = {
     instance_id: config.id,
     instance_name: config.name,
     instance_kind: ObjectType.Sphere3D,
+    initial_layer_index: config.layer,
+  }),
+  fromMockup3DConfig: (config: Mockup3DConfig): Layer => ({
+    instance_id: config.id,
+    instance_name: config.name,
+    instance_kind: ObjectType.Mockup3D,
     initial_layer_index: config.layer,
   }),
 };
@@ -283,6 +290,13 @@ export const LayerPanel: React.FC<{
       case ObjectType.Sphere3D:
         editor.spheres3D = editor.spheres3D.filter((v) => v.id !== id);
         sequence.activeSpheres3D = sequence.activeSpheres3D?.filter(
+          (v) => v.id !== id
+        );
+        break;
+
+      case ObjectType.Mockup3D:
+        editor.mockups3D = editor.mockups3D.filter((v) => v.id !== id);
+        sequence.activeMockups3D = sequence.activeMockups3D?.filter(
           (v) => v.id !== id
         );
         break;

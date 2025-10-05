@@ -47,6 +47,12 @@ import {
   updateSphere3DRotationX,
   updateSphere3DRotationY,
   updateSphere3DRotationZ,
+  updateMockup3DWidth,
+  updateMockup3DHeight,
+  updateMockup3DDepth,
+  updateMockup3DRotationX,
+  updateMockup3DRotationY,
+  updateMockup3DRotationZ,
 } from "@/engine/state/properties";
 import {
   remove_position_keyframes,
@@ -4623,6 +4629,251 @@ export const Sphere3DProperties = ({
           currentSequenceId={currentSequenceId}
           currentObjectId={currentSphereId}
           objectType={ObjectType.Sphere3D}
+        />
+      </div>
+    </>
+  );
+};
+
+export const Mockup3DProperties = ({
+  editorRef,
+  editorStateRef,
+  currentSequenceId,
+  currentMockupId,
+  handleGoBack,
+}: {
+  editorRef: React.RefObject<Editor | null>;
+  editorStateRef: React.RefObject<EditorState | null>;
+  currentSequenceId: string;
+  currentMockupId: string;
+  handleGoBack: () => void;
+}) => {
+  const [defaultsSet, setDefaultsSet] = useState(false);
+  const [defaultWidth, setDefaultWidth] = useState(0);
+  const [defaultHeight, setDefaultHeight] = useState(0);
+  const [defaultDepth, setDefaultDepth] = useState(0);
+  const [positionX, setPositionX] = useState(0);
+  const [positionY, setPositionY] = useState(0);
+  const [rotationX, setRotationX] = useState(0);
+  const [rotationY, setRotationY] = useState(0);
+  const [rotationZ, setRotationZ] = useState(0);
+  const [defaultFill, setDefaultFill] = useState<BackgroundFill | null>(null);
+
+  useEffect(() => {
+    let editor = editorRef.current;
+    let editorState = editorStateRef.current;
+
+    if (!editor || !editorState) {
+      return;
+    }
+
+    let currentSequence = editorState.savedState.sequences.find(
+      (s) => s.id === currentSequenceId
+    );
+    let currentObject = currentSequence?.activeMockups3D?.find(
+      (m) => m.id === currentMockupId
+    );
+
+    console.info("currentMockupId", currentObject, currentSequence);
+
+    if (currentObject) {
+      setDefaultWidth(currentObject.dimensions[0]);
+      setDefaultHeight(currentObject.dimensions[1]);
+      setDefaultDepth(currentObject.dimensions[2]);
+      setPositionX(currentObject.position.x);
+      setPositionY(currentObject.position.y);
+      setRotationX(currentObject.rotation[0]);
+      setRotationY(currentObject.rotation[1]);
+      setRotationZ(currentObject.rotation[2]);
+      setDefaultFill(currentObject.backgroundFill);
+      console.info("mockup loaded", currentObject);
+    }
+
+    setDefaultsSet(true);
+  }, [currentMockupId]);
+
+  if (!defaultsSet) {
+    return <></>;
+  }
+
+  return (
+    <>
+      <div>
+        <div className="flex flex-row items-center">
+          <button
+            className="flex flex-col justify-center items-center text-xs w-[35px] h-[35px] text-center rounded hover:bg-gray-200 hover:cursor-pointer active:bg-[#edda4] transition-colors mr-2"
+            onClick={() => handleGoBack()}
+          >
+            <CreateIcon icon="arrow-left" size="24px" />
+          </button>
+          <h5>Update Laptop Mockup</h5>
+        </div>
+        <div className="flex flex-row gap-2">
+          <DebouncedInput
+            id="mockup_x"
+            label="X"
+            placeholder="X"
+            initialValue={positionX.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updatePositionX(
+                editorState,
+                editor,
+                currentMockupId,
+                ObjectType.Mockup3D,
+                parseInt(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="mockup_y"
+            label="Y"
+            placeholder="Y"
+            initialValue={positionY.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updatePositionY(
+                editorState,
+                editor,
+                currentMockupId,
+                ObjectType.Mockup3D,
+                parseInt(value)
+              );
+            }}
+          />
+        </div>
+        <div className="flex flex-row gap-2">
+          <DebouncedInput
+            id="mockup_width"
+            label="Width"
+            placeholder="Width"
+            initialValue={defaultWidth.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateMockup3DWidth(
+                editorState,
+                editor,
+                currentMockupId,
+                parseFloat(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="mockup_height"
+            label="Height"
+            placeholder="Height"
+            initialValue={defaultHeight.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateMockup3DHeight(
+                editorState,
+                editor,
+                currentMockupId,
+                parseFloat(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="mockup_depth"
+            label="Depth"
+            placeholder="Depth"
+            initialValue={defaultDepth.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateMockup3DDepth(
+                editorState,
+                editor,
+                currentMockupId,
+                parseFloat(value)
+              );
+            }}
+          />
+        </div>
+        <div className="flex flex-row gap-2 mt-2">
+          <DebouncedInput
+            id="mockup_rotation_x"
+            label="Rotation X"
+            placeholder="Rotation X"
+            initialValue={rotationX.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateMockup3DRotationX(
+                editorState,
+                editor,
+                currentMockupId,
+                parseFloat(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="mockup_rotation_y"
+            label="Rotation Y"
+            placeholder="Rotation Y"
+            initialValue={rotationY.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateMockup3DRotationY(
+                editorState,
+                editor,
+                currentMockupId,
+                parseFloat(value)
+              );
+            }}
+          />
+          <DebouncedInput
+            id="mockup_rotation_z"
+            label="Rotation Z"
+            placeholder="Rotation Z"
+            initialValue={rotationZ.toString()}
+            onDebounce={(value) => {
+              let editor = editorRef.current;
+              let editorState = editorStateRef.current;
+              if (!editorState || !editor) {
+                return;
+              }
+              updateMockup3DRotationZ(
+                editorState,
+                editor,
+                currentMockupId,
+                parseFloat(value)
+              );
+            }}
+          />
+        </div>
+        <AnimationOptions
+          editorRef={editorRef}
+          editorStateRef={editorStateRef}
+          currentSequenceId={currentSequenceId}
+          currentObjectId={currentMockupId}
+          objectType={ObjectType.Mockup3D}
         />
       </div>
     </>

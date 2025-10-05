@@ -1142,3 +1142,162 @@ export function updateSphere3DRotationZ(
 
   saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
 }
+
+export function updateMockup3DWidth(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let mockup = editor.mockups3D.find((m) => m.id === objectId);
+  if (mockup && editor.camera) {
+    mockup.dimensions = [value, mockup.dimensions[1], mockup.dimensions[2]];
+    mockup.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeMockups3D?.forEach((m) => {
+      if (m.id == objectId) {
+        m.dimensions = [value, m.dimensions[1], m.dimensions[2]];
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function updateMockup3DHeight(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let mockup = editor.mockups3D.find((m) => m.id === objectId);
+  if (mockup && editor.camera) {
+    mockup.dimensions = [mockup.dimensions[0], value, mockup.dimensions[2]];
+    mockup.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeMockups3D?.forEach((m) => {
+      if (m.id == objectId) {
+        m.dimensions = [m.dimensions[0], value, m.dimensions[2]];
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function updateMockup3DDepth(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let mockup = editor.mockups3D.find((m) => m.id === objectId);
+  if (mockup && editor.camera) {
+    mockup.dimensions = [mockup.dimensions[0], mockup.dimensions[1], value];
+    mockup.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeMockups3D?.forEach((m) => {
+      if (m.id == objectId) {
+        m.dimensions = [m.dimensions[0], m.dimensions[1], value];
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function updateMockup3DRotationX(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let mockup = editor.mockups3D.find((m) => m.id === objectId);
+  if (mockup && editor.camera) {
+    mockup.rotation = [value, mockup.rotation[1], mockup.rotation[2]];
+    mockup.transform.updateRotationXDegrees(value);
+    mockup.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeMockups3D?.forEach((m) => {
+      if (m.id == objectId) {
+        m.rotation = [value, m.rotation[1], m.rotation[2]];
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function updateMockup3DRotationY(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let mockup = editor.mockups3D.find((m) => m.id === objectId);
+  if (mockup && editor.camera) {
+    mockup.rotation = [mockup.rotation[0], value, mockup.rotation[2]];
+    mockup.transform.updateRotationYDegrees(value);
+    mockup.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeMockups3D?.forEach((m) => {
+      if (m.id == objectId) {
+        m.rotation = [m.rotation[0], value, m.rotation[2]];
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}
+
+export function updateMockup3DRotationZ(
+  editorState: EditorState,
+  editor: Editor,
+  objectId: string,
+  value: number
+) {
+  let mockup = editor.mockups3D.find((m) => m.id === objectId);
+  if (mockup && editor.camera) {
+    mockup.rotation = [mockup.rotation[0], mockup.rotation[1], value];
+    mockup.transform.updateRotationDegrees(value);
+    mockup.transform.updateUniformBuffer(
+      editor.gpuResources?.queue!,
+      editor.camera.windowSize
+    );
+  }
+
+  editorState.savedState.sequences.forEach((s) => {
+    s.activeMockups3D?.forEach((m) => {
+      if (m.id == objectId) {
+        m.rotation = [m.rotation[0], m.rotation[1], value];
+      }
+    });
+  });
+
+  saveSequencesData(editorState.savedState.sequences, editorState.saveTarget);
+}

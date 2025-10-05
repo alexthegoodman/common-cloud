@@ -6,6 +6,7 @@ import { SavedStVideoConfig } from "./video";
 import { SavedBrushConfig } from "./brush";
 import { SavedCube3DConfig } from "./cube3d";
 import { SavedSphere3DConfig } from "./sphere3d";
+import { SavedMockup3DConfig } from "./mockup3d";
 
 export interface SavedState {
   sequences: Sequence[];
@@ -94,6 +95,7 @@ export interface Sequence {
   activeBrushes?: SavedBrushConfig[];
   activeCubes3D?: SavedCube3DConfig[];
   activeSpheres3D?: SavedSphere3DConfig[];
+  activeMockups3D?: SavedMockup3DConfig[];
 }
 
 export interface AnimationData {

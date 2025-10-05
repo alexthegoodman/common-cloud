@@ -1722,6 +1722,96 @@ export class Editor {
         console.log("Sphere3D restored...");
       }
     }
+
+    // Restore 3D Mockups
+    if (saved_sequence.activeMockups3D) {
+      for (let s of saved_sequence.activeMockups3D) {
+        const mockup_config: Mockup3DConfig = {
+          id: s.id,
+          name: s.name,
+          dimensions: s.dimensions,
+          position: {
+            x: s.position.x * this.scaleMultiplier,
+            y: s.position.y * this.scaleMultiplier,
+          },
+          rotation: s.rotation,
+          backgroundFill: s.backgroundFill,
+          layer: s.layer,
+          videoChild: s.videoChild,
+        };
+
+        const restored_mockup = new Mockup3D(
+          windowSize,
+          device!,
+          queue!,
+          this.modelBindGroupLayout!,
+          this.groupBindGroupLayout!,
+          camera,
+          mockup_config,
+          saved_sequence.id
+        );
+
+        const i = s.videoChild;
+
+        // TODO: initialize the video class as is done above in this function and attach to the restored_mockup
+        const position = {
+          x: CANVAS_HORIZ_OFFSET + i.position.x * this.scaleMultiplier,
+          y: CANVAS_VERT_OFFSET + i.position.y * this.scaleMultiplier,
+        };
+
+        const video_config: StVideoConfig = {
+          id: i.id,
+          name: i.name,
+          dimensions: [
+            i.dimensions[0] * this.scaleMultiplier,
+            i.dimensions[1] * this.scaleMultiplier,
+          ],
+          path: i.path,
+          position,
+          layer: i.layer,
+          borderRadius: i.borderRadius,
+          // mousePath: i.mousePath,
+        };
+
+        let blob = await getUploadedVideoData(i.path);
+
+        const restored_video = new StVideo(
+          device!,
+          queue!,
+          blob!,
+          video_config,
+          windowSize,
+          this.modelBindGroupLayout!,
+          this.groupBindGroupLayout!,
+          // this.gradientBindGroupLayout!,
+          -2.0,
+          // i.id,
+          saved_sequence.id,
+          hidden
+        );
+
+        await restored_video.initialize(
+          device!,
+          queue!,
+          blob!,
+          video_config,
+          windowSize,
+          this.modelBindGroupLayout!,
+          this.groupBindGroupLayout!,
+          // this.gradientBindGroupLayout!,
+          -2.0,
+          // i.id,
+          saved_sequence.id,
+          hidden
+        );
+
+        restored_mockup.videoChild = restored_video;
+
+        restored_mockup.hidden = hidden;
+        this.mockups3D.push(restored_mockup);
+        console.log("Sphere3D restored...");
+      }
+    }
   }
 
   reset_sequence_objects() {

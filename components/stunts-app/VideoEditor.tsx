@@ -68,6 +68,7 @@ import {
   VideoProperties,
   Cube3DProperties,
   Sphere3DProperties,
+  Mockup3DProperties,
 } from "./Properties";
 import BrushProperties from "./BrushProperties";
 import { callMotionInference } from "@/fetchers/inference";
@@ -101,6 +102,7 @@ import TextAnimationPanel from "./TextAnimationPanel";
 import { Disclosure } from "@headlessui/react";
 
 import AnimationTab from "./AnimationTab";
+import { Mockup3DConfig } from "@/engine/mockup3d";
 
 export function update_keyframe(
   editor_state: EditorState,
@@ -239,6 +241,9 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   let [selected_sphere3d_id, set_selected_sphere3d_id] = useState<
     string | null
   >(null);
+  let [selected_mockup3d_id, set_selected_mockup3d_id] = useState<
+    string | null
+  >(null);
   let [selected_keyframes, set_selected_keyframes] = useState<string[] | null>(
     null
   );
@@ -320,6 +325,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     set_selected_video_id(null);
     set_selected_cube3d_id(null);
     set_selected_sphere3d_id(null);
+    set_selected_mockup3d_id(null);
   };
 
   let select_text = (text_id: string) => {
@@ -331,6 +337,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     set_selected_sphere3d_id(null);
     // Also set for text animations
     setSelectedTextId(text_id);
+    set_selected_mockup3d_id(null);
   };
 
   let select_image = (image_id: string) => {
@@ -340,6 +347,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     set_selected_video_id(null);
     set_selected_cube3d_id(null);
     set_selected_sphere3d_id(null);
+    set_selected_mockup3d_id(null);
   };
 
   let select_video = (video_id: string) => {
@@ -349,6 +357,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     set_selected_video_id(video_id);
     set_selected_cube3d_id(null);
     set_selected_sphere3d_id(null);
+    set_selected_mockup3d_id(null);
   };
 
   let select_cube3d = (cube_id: string) => {
@@ -358,6 +367,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     set_selected_video_id(null);
     set_selected_cube3d_id(cube_id);
     set_selected_sphere3d_id(null);
+    set_selected_mockup3d_id(null);
   };
 
   let select_sphere3d = (sphere_id: string) => {
@@ -367,6 +377,17 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     set_selected_video_id(null);
     set_selected_cube3d_id(null);
     set_selected_sphere3d_id(sphere_id);
+    set_selected_mockup3d_id(null);
+  };
+
+  let select_mockup3d = (mockup_id: string) => {
+    set_selected_polygon_id(null);
+    set_selected_text_id(null);
+    set_selected_image_id(null);
+    set_selected_video_id(null);
+    set_selected_cube3d_id(null);
+    set_selected_sphere3d_id(null);
+    set_selected_mockup3d_id(mockup_id);
   };
 
   let handle_polygon_click = (
@@ -406,6 +427,13 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
     sphere_config: Sphere3DConfig
   ) => {
     select_sphere3d(sphere_id);
+  };
+
+  let handle_mockup3d_click = (
+    mockup_id: string,
+    mockup_config: Mockup3DConfig
+  ) => {
+    select_mockup3d(mockup_id);
   };
 
   let handle_mouse_up = (
@@ -815,6 +843,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       editorRef.current.handleVideoClick = handle_video_click;
       editorRef.current.handleCube3DClick = handle_cube3d_click;
       editorRef.current.handleSphere3DClick = handle_sphere3d_click;
+      editorRef.current.handleMockup3DClick = handle_mockup3d_click;
       editorRef.current.onMouseUp = handle_mouse_up;
       editorRef.current.onHandleMouseUp = on_handle_mouse_up;
     }
@@ -988,6 +1017,9 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
       editor?.spheres3D.forEach((t) => {
         t.hidden = true;
       });
+      editor?.mockups3D.forEach((t) => {
+        t.hidden = true;
+      });
 
       saved_sequence.activePolygons.forEach((ap) => {
         let polygon = editor.polygons.find((p) => p.id == ap.id);
@@ -1044,6 +1076,15 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
         }
 
         sphere.hidden = false;
+      });
+      saved_sequence.activeMockups3D?.forEach((ap) => {
+        let mockup = editor.mockups3D.find((p) => p.id == ap.id);
+
+        if (!mockup) {
+          return;
+        }
+
+        mockup.hidden = false;
       });
 
       if (!editor.camera) {
@@ -1127,6 +1168,14 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
           let sphere_config: Sphere3DConfig = sphere.toConfig();
           let new_layer: Layer =
             LayerFromConfig.fromSphere3DConfig(sphere_config);
+          new_layers.push(new_layer);
+        }
+      });
+      editor.mockups3D.forEach((mockup) => {
+        if (!mockup.hidden) {
+          let mockup_config: Mockup3DConfig = mockup.toConfig();
+          let new_layer: Layer =
+            LayerFromConfig.fromMockup3DConfig(mockup_config);
           new_layers.push(new_layer);
         }
       });
@@ -1430,6 +1479,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                       "brush",
                       "cube3d",
                       "sphere3d",
+                      "mockup3d",
                     ]}
                     layers={layers}
                     setLayers={set_layers}
@@ -1709,6 +1759,21 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                             currentSphereId={selected_sphere3d_id}
                             handleGoBack={() => {
                               set_selected_sphere3d_id(null);
+                            }}
+                          />
+                        </>
+                      )}
+
+                      {selected_mockup3d_id && (
+                        <>
+                          <Mockup3DProperties
+                            key={"props" + selected_mockup3d_id}
+                            editorRef={editorRef}
+                            editorStateRef={editorStateRef}
+                            currentSequenceId={current_sequence_id}
+                            currentMockupId={selected_mockup3d_id}
+                            handleGoBack={() => {
+                              set_selected_mockup3d_id(null);
                             }}
                           />
                         </>
