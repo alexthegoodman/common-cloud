@@ -18,6 +18,7 @@ import { SavedStVideoConfig } from "./video";
 import { SavedBrushConfig } from "./brush";
 import { SavedCube3DConfig } from "./cube3d";
 import { SavedSphere3DConfig } from "./sphere3d";
+import { SavedMockup3DConfig } from "./mockup3d";
 import {
   CANVAS_HORIZ_OFFSET,
   CANVAS_VERT_OFFSET,
@@ -271,6 +272,40 @@ export default class EditorState {
           s.activeSpheres3D = [];
         }
         s.activeSpheres3D.push(savable_sphere);
+
+        if (this.supportsMotionPaths && s.polygonMotionPaths) {
+          s.polygonMotionPaths.push(new_motion_path);
+        }
+      }
+    });
+
+    let sequences = saved_state.sequences;
+
+    await saveSequencesData(sequences, this.saveTarget);
+
+    this.savedState = saved_state;
+  }
+
+  async add_saved_mockup3d(
+    selected_sequence_id: string,
+    savable_mockup: SavedMockup3DConfig
+  ) {
+    let new_motion_path = save_default_keyframes(
+      this,
+      savable_mockup.id,
+      ObjectType.Mockup3D,
+      savable_mockup.position,
+      20000
+    );
+
+    let saved_state = this.savedState;
+
+    saved_state.sequences.forEach((s) => {
+      if (s.id == selected_sequence_id) {
+        if (!s.activeMockups3D) {
+          s.activeMockups3D = [];
+        }
+        s.activeMockups3D.push(savable_mockup);
 
         if (this.supportsMotionPaths && s.polygonMotionPaths) {
           s.polygonMotionPaths.push(new_motion_path);

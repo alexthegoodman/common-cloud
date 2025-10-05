@@ -55,6 +55,7 @@ export enum ObjectType {
   Brush = "Brush",
   Cube3D = "Cube3D",
   Sphere3D = "Sphere3D",
+  Mockup3D = "Mockup3D",
 }
 
 export enum EasingType {
@@ -364,13 +365,22 @@ export function findObjectType(
     return ObjectType.Cube3D;
   }
 
-  // Check active videos
+  // Check active spheres
   if (
     lastSavedState.sequences.some((s) =>
       s.activeSpheres3D?.some((av) => av.id === objectId)
     )
   ) {
     return ObjectType.Sphere3D;
+  }
+
+  // Check active mockups
+  if (
+    lastSavedState.sequences.some((s) =>
+      s.activeMockups3D?.some((av) => av.id === objectId)
+    )
+  ) {
+    return ObjectType.Mockup3D;
   }
 
   return null;

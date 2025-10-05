@@ -259,6 +259,10 @@ export type Sphere3DClickHandler = (
   sphere_id: string,
   sphere_config: Sphere3DConfig
 ) => void | null;
+export type Mockup3DClickHandler = (
+  mockup_id: string,
+  mockup_config: Mockup3DConfig
+) => void | null;
 export type OnMouseUp = (
   id: string,
   point: Point
@@ -318,6 +322,7 @@ import { UnifiedRichTextEditor } from "./rte-one";
 import { ProceduralBrush, BrushConfig } from "./brush";
 import { Cube3D, Cube3DConfig } from "./cube3d";
 import { Sphere3D, Sphere3DConfig } from "./sphere3d";
+import { Mockup3D, Mockup3DConfig } from "./mockup3d";
 // import * as fontkit from "fontkit";
 
 export class Editor {
@@ -347,8 +352,10 @@ export class Editor {
   currentBrush: ProceduralBrush | null;
   cubes3D: Cube3D[];
   spheres3D: Sphere3D[];
+  mockups3D: Mockup3D[];
   draggingCube3D: string | null;
   draggingSphere3D: string | null;
+  draggingMockup3D: string | null;
   motionPaths: MotionPath[];
   repeatManager: RepeatManager;
   // multiPageEditor: MultiPageEditor | null = null;
@@ -365,6 +372,7 @@ export class Editor {
   handleVideoClick: VideoItemClickHandler | null;
   handleCube3DClick: Cube3DClickHandler | null;
   handleSphere3DClick: Sphere3DClickHandler | null;
+  handleMockup3DClick: Mockup3DClickHandler | null;
   scaleMultiplier: number = 1.0;
 
   window: Window | null;
@@ -447,6 +455,7 @@ export class Editor {
     this.handleVideoClick = null;
     this.handleCube3DClick = null;
     this.handleSphere3DClick = null;
+    this.handleMockup3DClick = null;
     this.gpuResources = null;
     this.renderPipeline = null;
     this.window = null;
@@ -498,8 +507,10 @@ export class Editor {
     this.currentBrush = null;
     this.cubes3D = [];
     this.spheres3D = [];
+    this.mockups3D = [];
     this.draggingCube3D = null;
     this.draggingSphere3D = null;
+    this.draggingMockup3D = null;
     this.motionPaths = [];
     this.generationCount = 4;
     this.generationCurved = false;
@@ -3656,6 +3667,39 @@ export class Editor {
     this.spheres3D.push(sphere);
   }
 
+  add_mockup3d(
+    mockup_config: Mockup3DConfig,
+    new_id: string,
+    selected_sequence_id: string
+  ) {
+    let gpuResources = this.gpuResources;
+    let camera = this.camera;
+    let windowSize = camera?.windowSize;
+
+    if (
+      !camera ||
+      !windowSize ||
+      !gpuResources ||
+      !this.modelBindGroupLayout ||
+      !this.groupBindGroupLayout
+    ) {
+      return;
+    }
+
+    let mockup = new Mockup3D(
+      windowSize,
+      gpuResources.device!,
+      gpuResources.queue!,
+      this.modelBindGroupLayout,
+      this.groupBindGroupLayout,
+      camera,
+      mockup_config,
+      selected_sequence_id
+    );
+
+    this.mockups3D.push(mockup);
+  }
+
   async add_text_item(
     text_config: TextRendererConfig,
     text_content: string,
@@ -5277,6 +5321,21 @@ export class Editor {
       }
     }
 
+    // Collect intersecting mockups
+    for (let [i, mockup] of this.mockups3D.entries()) {
+      if (mockup.hidden) {
+        continue;
+      }
+
+      if (mockup.containsPoint(ndcPoint)) {
+        intersecting_objects.push([
+          mockup.layer,
+          InteractionTarget.Mockup3D,
+          i,
+        ]);
+      }
+    }
+
     // Sort intersecting objects by layer of descending order (highest layer first)
     // intersecting_objects.sort_by(|a, b| b.0.cmp(a.0));
 
@@ -5546,6 +5605,35 @@ export class Editor {
 
         break;
       }
+      case InteractionTarget.Mockup3D: {
+        let mockup = this.mockups3D[index];
+
+        this.draggingMockup3D = mockup.id;
+        this.dragStart = this.lastTopLeft;
+
+        mockup.transform.startPosition = vec2.fromValues(
+          this.dragStart.x,
+          this.dragStart.y
+        );
+
+        if (this.handleMockup3DClick) {
+          this.handleMockup3DClick(mockup.id, {
+            id: mockup.id,
+            name: mockup.name,
+            dimensions: mockup.dimensions,
+            position: {
+              x: mockup.transform.position[0] - CANVAS_HORIZ_OFFSET,
+              y: mockup.transform.position[1] - CANVAS_VERT_OFFSET,
+            },
+            rotation: mockup.rotation,
+            backgroundFill: mockup.backgroundFill,
+            layer: mockup.layer,
+            videoChild: mockup.videoChildConfig,
+          });
+        }
+
+        break;
+      }
       default:
         const _exhaustiveCheck: never = target;
         console.error("Unhandled InteractionTarget:", target);
@@ -5757,6 +5845,18 @@ export class Editor {
       }
     }
 
+    if (this.draggingMockup3D) {
+      if (this.dragStart) {
+        this.move_mockup3d(
+          ndcPoint,
+          startNdcPoint,
+          this.draggingMockup3D,
+          windowSize,
+          device
+        );
+      }
+    }
+
     this.previousTopLeft = this.lastTopLeft;
   }
 
@@ -5870,6 +5970,18 @@ export class Editor {
         active_point = {
           x: active_sphere.transform.position[0],
           y: active_sphere.transform.position[1],
+        };
+      }
+    } else if (this.draggingMockup3D) {
+      object_id = this.draggingMockup3D;
+      let active_mockup = this.mockups3D.find(
+        (m) => m.id == this.draggingMockup3D
+      );
+
+      if (active_mockup) {
+        active_point = {
+          x: active_mockup.transform.position[0],
+          y: active_mockup.transform.position[1],
         };
       }
     }
@@ -6049,6 +6161,7 @@ export class Editor {
     this.draggingVideo = null;
     this.draggingCube3D = null;
     this.draggingSphere3D = null;
+    this.draggingMockup3D = null;
     this.dragStart = null;
     this.draggingPath = null;
     this.draggingPathAssocPath = null;
@@ -6756,6 +6869,54 @@ export class Editor {
     );
   }
 
+  move_mockup3d(
+    mouse_pos: Point,
+    start: Point,
+    mockup_id: string,
+    windowSize: WindowSize,
+    device: PolyfillDevice
+  ) {
+    let camera = this.camera;
+
+    if (!camera) {
+      return;
+    }
+
+    let dx = mouse_pos.x - start.x;
+    let dy = mouse_pos.y - start.y;
+    let mockup = this.mockups3D.find((m) => m.id == mockup_id);
+
+    if (!mockup) {
+      return;
+    }
+
+    const originalX = mockup.transform.startPosition
+      ? mockup.transform.startPosition[0]
+      : mockup.transform.position[0];
+    const originalY = mockup.transform.startPosition
+      ? mockup.transform.startPosition[1]
+      : mockup.transform.position[1];
+
+    if (!mockup.transform.startPosition) {
+      mockup.transform.startPosition = vec2.fromValues(
+        mockup.transform.position[0],
+        mockup.transform.position[1]
+      );
+    }
+
+    let new_position = mouse_pos;
+
+    mockup.transform.updatePosition(
+      [new_position.x, new_position.y],
+      windowSize
+    );
+
+    // Update the video child transform to match the mockup's screen position
+    if (mockup.videoChild && this.gpuResources?.queue) {
+      mockup.updateVideoChildTransform(this.gpuResources.queue, windowSize);
+    }
+  }
+
   // is_close(a: number, b: number, threshold: number): boolean {
   //   return (a - b).abs() < threshold;
   // }
@@ -6956,6 +7117,7 @@ export enum InteractionTarget {
   Video,
   Cube3D,
   Sphere3D,
+  Mockup3D,
 }
 
 export function getColor(color_index: number): number {
