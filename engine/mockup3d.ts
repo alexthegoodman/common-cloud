@@ -319,16 +319,32 @@ export class Mockup3D {
 
     // Add trackpad on keyboard surface
     const trackpadWidth = w * 0.25;
-    const trackpadHeight = (h * 0.5) * 0.3; // 30% of base height
+    const trackpadHeight = h * 0.5 * 0.3; // 30% of base height
     const trackpadX = 0; // Centered
     const trackpadY = -hh * 0.3; // Lower part of base
     const trackpadZ = baseThickness + 0.001; // Slightly raised
 
     const trackpadVertices: [number, number, number][] = [
-      [trackpadX - trackpadWidth / 2, trackpadY - trackpadHeight / 2, trackpadZ],
-      [trackpadX + trackpadWidth / 2, trackpadY - trackpadHeight / 2, trackpadZ],
-      [trackpadX + trackpadWidth / 2, trackpadY + trackpadHeight / 2, trackpadZ],
-      [trackpadX - trackpadWidth / 2, trackpadY + trackpadHeight / 2, trackpadZ],
+      [
+        trackpadX - trackpadWidth / 2,
+        trackpadY - trackpadHeight / 2,
+        trackpadZ,
+      ],
+      [
+        trackpadX + trackpadWidth / 2,
+        trackpadY - trackpadHeight / 2,
+        trackpadZ,
+      ],
+      [
+        trackpadX + trackpadWidth / 2,
+        trackpadY + trackpadHeight / 2,
+        trackpadZ,
+      ],
+      [
+        trackpadX - trackpadWidth / 2,
+        trackpadY + trackpadHeight / 2,
+        trackpadZ,
+      ],
     ];
 
     const trackpadStart = vertices.length;
@@ -342,14 +358,18 @@ export class Mockup3D {
       });
     }
     indices.push(
-      trackpadStart, trackpadStart + 1, trackpadStart + 2,
-      trackpadStart, trackpadStart + 2, trackpadStart + 3
+      trackpadStart,
+      trackpadStart + 1,
+      trackpadStart + 2,
+      trackpadStart,
+      trackpadStart + 2,
+      trackpadStart + 3
     );
 
     // Add keyboard keys pattern
     const keyColor: [number, number, number, number] = [0.15, 0.15, 0.18, 1]; // Dark keys
     const keyWidth = w * 0.045;
-    const keyHeight = (h * 0.5) * 0.06;
+    const keyHeight = h * 0.5 * 0.06;
     const keySpacingX = keyWidth * 1.15;
     const keySpacingY = keyHeight * 1.2;
     const keyboardStartX = -hw * 0.65;
@@ -381,8 +401,12 @@ export class Mockup3D {
           });
         }
         indices.push(
-          keyStart, keyStart + 1, keyStart + 2,
-          keyStart, keyStart + 2, keyStart + 3
+          keyStart,
+          keyStart + 1,
+          keyStart + 2,
+          keyStart,
+          keyStart + 2,
+          keyStart + 3
         );
       }
     }
@@ -409,8 +433,12 @@ export class Mockup3D {
       });
     }
     indices.push(
-      spacebarStart, spacebarStart + 1, spacebarStart + 2,
-      spacebarStart, spacebarStart + 2, spacebarStart + 3
+      spacebarStart,
+      spacebarStart + 1,
+      spacebarStart + 2,
+      spacebarStart,
+      spacebarStart + 2,
+      spacebarStart + 3
     );
 
     // Add hinge detail between base and screen
@@ -426,10 +454,26 @@ export class Mockup3D {
       [hingeWidth / 2, hingeY + hingeHeight / 2, baseThickness],
       [-hingeWidth / 2, hingeY + hingeHeight / 2, baseThickness],
       // Bottom surface
-      [-hingeWidth / 2, hingeY - hingeHeight / 2, baseThickness + hingeThickness],
-      [hingeWidth / 2, hingeY - hingeHeight / 2, baseThickness + hingeThickness],
-      [hingeWidth / 2, hingeY + hingeHeight / 2, baseThickness + hingeThickness],
-      [-hingeWidth / 2, hingeY + hingeHeight / 2, baseThickness + hingeThickness],
+      [
+        -hingeWidth / 2,
+        hingeY - hingeHeight / 2,
+        baseThickness + hingeThickness,
+      ],
+      [
+        hingeWidth / 2,
+        hingeY - hingeHeight / 2,
+        baseThickness + hingeThickness,
+      ],
+      [
+        hingeWidth / 2,
+        hingeY + hingeHeight / 2,
+        baseThickness + hingeThickness,
+      ],
+      [
+        -hingeWidth / 2,
+        hingeY + hingeHeight / 2,
+        baseThickness + hingeThickness,
+      ],
     ];
 
     const hingeFaces = [
@@ -454,8 +498,12 @@ export class Mockup3D {
         });
       }
       indices.push(
-        faceStart, faceStart + 1, faceStart + 2,
-        faceStart + 3, faceStart + 4, faceStart + 5
+        faceStart,
+        faceStart + 1,
+        faceStart + 2,
+        faceStart + 3,
+        faceStart + 4,
+        faceStart + 5
       );
     }
 
@@ -538,7 +586,7 @@ export class Mockup3D {
     return {
       position: {
         x: 0, // Centered horizontally relative to mockup
-        y: screenCenterY, // Offset vertically relative to mockup center
+        y: screenCenterY - 200, // Offset vertically relative to mockup center
       },
       dimensions: [screenWidth, screenHeight * 0.9],
       rotation: [
@@ -662,11 +710,8 @@ export class Mockup3D {
     // Update video's groupTransform (not shared, it has its own) to include:
     // - Mockup's world position + screen offset
     // - Mockup's rotation + screen tilt
-    this.videoChild.groupTransform.updatePosition(
-      [
-        this.groupTransform.position[0] + screenBounds.position.x,
-        this.groupTransform.position[1] + screenBounds.position.y,
-      ],
+    this.videoChild.transform.updatePosition(
+      [screenBounds.position.x, screenBounds.position.y],
       windowSize
     );
 
@@ -680,6 +725,6 @@ export class Mockup3D {
     // this.videoChild.groupTransform.updateRotation(this.groupTransform.rotation);
 
     // Update the video's group transform buffer
-    this.videoChild.groupTransform.updateUniformBuffer(queue, windowSize);
+    this.videoChild.transform.updateUniformBuffer(queue, windowSize);
   }
 }

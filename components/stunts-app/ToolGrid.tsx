@@ -843,7 +843,7 @@ export const ToolGrid = ({
 
           let mockupDimensions = [1.5, 1.5, 0.3] as [number, number, number];
 
-          const dimensionsWorld = [600.0, 400.0];
+          const dimensionsWorld = [500.0, 300.0];
 
           // Create video config for the child video
           const videoConfig: StVideoConfig = {
@@ -855,7 +855,7 @@ export const ToolGrid = ({
             ], // Will be adjusted by mockup
             position: {
               x: 0,
-              y: 100,
+              y: 0,
             },
             path: url,
             layer: layers.length + 1, // Video is above mockup
