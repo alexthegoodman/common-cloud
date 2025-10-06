@@ -264,6 +264,8 @@ export class Mockup3D {
       0.2, 0.2, 0.2, 1,
     ]; // Dark bezel
     const keyboardColor: [number, number, number, number] = [0.3, 0.3, 0.35, 1]; // Dark keyboard area
+    const trackpadColor: [number, number, number, number] = [0.5, 0.5, 0.55, 1]; // Lighter trackpad
+    const hingeColor: [number, number, number, number] = [0.4, 0.4, 0.45, 1]; // Darker hinge
 
     // Laptop base (keyboard section)
     // The base is a thin rectangular box
@@ -315,11 +317,152 @@ export class Mockup3D {
       );
     }
 
+    // Add trackpad on keyboard surface
+    const trackpadWidth = w * 0.25;
+    const trackpadHeight = (h * 0.5) * 0.3; // 30% of base height
+    const trackpadX = 0; // Centered
+    const trackpadY = -hh * 0.3; // Lower part of base
+    const trackpadZ = baseThickness + 0.001; // Slightly raised
+
+    const trackpadVertices: [number, number, number][] = [
+      [trackpadX - trackpadWidth / 2, trackpadY - trackpadHeight / 2, trackpadZ],
+      [trackpadX + trackpadWidth / 2, trackpadY - trackpadHeight / 2, trackpadZ],
+      [trackpadX + trackpadWidth / 2, trackpadY + trackpadHeight / 2, trackpadZ],
+      [trackpadX - trackpadWidth / 2, trackpadY + trackpadHeight / 2, trackpadZ],
+    ];
+
+    const trackpadStart = vertices.length;
+    for (const pos of trackpadVertices) {
+      vertices.push({
+        position: pos,
+        tex_coords: [0, 0],
+        color: trackpadColor,
+        gradient_coords: [(pos[0] + hw) / w, (pos[1] + hh) / h],
+        object_type: 8,
+      });
+    }
+    indices.push(
+      trackpadStart, trackpadStart + 1, trackpadStart + 2,
+      trackpadStart, trackpadStart + 2, trackpadStart + 3
+    );
+
+    // Add keyboard keys pattern
+    const keyColor: [number, number, number, number] = [0.15, 0.15, 0.18, 1]; // Dark keys
+    const keyWidth = w * 0.045;
+    const keyHeight = (h * 0.5) * 0.06;
+    const keySpacingX = keyWidth * 1.15;
+    const keySpacingY = keyHeight * 1.2;
+    const keyboardStartX = -hw * 0.65;
+    const keyboardStartY = hh * 0.05;
+    const keyZ = baseThickness + 0.002;
+    const numRows = 4;
+    const numCols = 13;
+
+    for (let row = 0; row < numRows; row++) {
+      for (let col = 0; col < numCols; col++) {
+        const keyX = keyboardStartX + col * keySpacingX;
+        const keyY = keyboardStartY + row * keySpacingY;
+
+        const keyVerts: [number, number, number][] = [
+          [keyX - keyWidth / 2, keyY - keyHeight / 2, keyZ],
+          [keyX + keyWidth / 2, keyY - keyHeight / 2, keyZ],
+          [keyX + keyWidth / 2, keyY + keyHeight / 2, keyZ],
+          [keyX - keyWidth / 2, keyY + keyHeight / 2, keyZ],
+        ];
+
+        const keyStart = vertices.length;
+        for (const pos of keyVerts) {
+          vertices.push({
+            position: pos,
+            tex_coords: [0, 0],
+            color: keyColor,
+            gradient_coords: [(pos[0] + hw) / w, (pos[1] + hh) / h],
+            object_type: 8,
+          });
+        }
+        indices.push(
+          keyStart, keyStart + 1, keyStart + 2,
+          keyStart, keyStart + 2, keyStart + 3
+        );
+      }
+    }
+
+    // Add spacebar (wider key at bottom)
+    const spacebarWidth = keyWidth * 5;
+    const spacebarX = 0;
+    const spacebarY = keyboardStartY + numRows * keySpacingY;
+    const spacebarVerts: [number, number, number][] = [
+      [spacebarX - spacebarWidth / 2, spacebarY - keyHeight / 2, keyZ],
+      [spacebarX + spacebarWidth / 2, spacebarY - keyHeight / 2, keyZ],
+      [spacebarX + spacebarWidth / 2, spacebarY + keyHeight / 2, keyZ],
+      [spacebarX - spacebarWidth / 2, spacebarY + keyHeight / 2, keyZ],
+    ];
+
+    const spacebarStart = vertices.length;
+    for (const pos of spacebarVerts) {
+      vertices.push({
+        position: pos,
+        tex_coords: [0, 0],
+        color: keyColor,
+        gradient_coords: [(pos[0] + hw) / w, (pos[1] + hh) / h],
+        object_type: 8,
+      });
+    }
+    indices.push(
+      spacebarStart, spacebarStart + 1, spacebarStart + 2,
+      spacebarStart, spacebarStart + 2, spacebarStart + 3
+    );
+
+    // Add hinge detail between base and screen
+    const hingeWidth = w * 0.95;
+    const hingeHeight = h * 0.02;
+    const hingeY = hh * 0.5; // Where base ends
+    const hingeThickness = baseThickness * 0.5;
+
+    const hingeVertices: [number, number, number][] = [
+      // Top surface
+      [-hingeWidth / 2, hingeY - hingeHeight / 2, baseThickness],
+      [hingeWidth / 2, hingeY - hingeHeight / 2, baseThickness],
+      [hingeWidth / 2, hingeY + hingeHeight / 2, baseThickness],
+      [-hingeWidth / 2, hingeY + hingeHeight / 2, baseThickness],
+      // Bottom surface
+      [-hingeWidth / 2, hingeY - hingeHeight / 2, baseThickness + hingeThickness],
+      [hingeWidth / 2, hingeY - hingeHeight / 2, baseThickness + hingeThickness],
+      [hingeWidth / 2, hingeY + hingeHeight / 2, baseThickness + hingeThickness],
+      [-hingeWidth / 2, hingeY + hingeHeight / 2, baseThickness + hingeThickness],
+    ];
+
+    const hingeFaces = [
+      { indices: [0, 1, 2, 0, 2, 3], color: hingeColor }, // Top
+      { indices: [5, 4, 7, 5, 7, 6], color: hingeColor }, // Bottom
+      { indices: [4, 5, 1, 4, 1, 0], color: hingeColor }, // Front
+      { indices: [3, 2, 6, 3, 6, 7], color: hingeColor }, // Back
+      { indices: [1, 5, 6, 1, 6, 2], color: hingeColor }, // Right
+      { indices: [4, 0, 3, 4, 3, 7], color: hingeColor }, // Left
+    ];
+
+    for (const face of hingeFaces) {
+      const faceStart = vertices.length;
+      for (const idx of face.indices) {
+        const pos = hingeVertices[idx];
+        vertices.push({
+          position: pos,
+          tex_coords: [0, 0],
+          color: face.color,
+          gradient_coords: [(pos[0] + hw) / w, (pos[1] + hh) / h],
+          object_type: 8,
+        });
+      }
+      indices.push(
+        faceStart, faceStart + 1, faceStart + 2,
+        faceStart + 3, faceStart + 4, faceStart + 5
+      );
+    }
+
     // Screen section (lid)
     // The screen is angled back from the base
     const screenHeight = h * 0.6; // 60% of total height for screen
     const screenThickness = d * 0.05; // Thin screen
-    const hingeY = hh * 0.5; // Where base ends
 
     // Screen tilted back at ~105 degrees (common laptop angle)
     const tiltAngle = 15 * (Math.PI / 180); // 15 degrees back from vertical

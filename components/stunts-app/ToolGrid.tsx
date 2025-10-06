@@ -841,7 +841,7 @@ export const ToolGrid = ({
             y: 100,
           };
 
-          let mockupDimensions = [2.0, 2.0, 0.3] as [number, number, number];
+          let mockupDimensions = [1.5, 1.5, 0.3] as [number, number, number];
 
           const dimensionsWorld = [600.0, 400.0];
 
@@ -855,7 +855,7 @@ export const ToolGrid = ({
             ], // Will be adjusted by mockup
             position: {
               x: 0,
-              y: 0,
+              y: 100,
             },
             path: url,
             layer: layers.length + 1, // Video is above mockup
