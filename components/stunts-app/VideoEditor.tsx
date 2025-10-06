@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { vec2 } from "gl-matrix";
 import {
   DebouncedInput,
   ExportVideoButton,
@@ -78,12 +79,14 @@ import { WebCapture } from "@/engine/capture";
 import { ToolGrid } from "./ToolGrid";
 import { PageSequence } from "@/engine/data";
 import { WindowSize } from "@/engine/camera";
+import { Camera3D } from "@/engine/3dcamera";
 import { ThemePicker } from "./ThemePicker";
 import { ObjectTrack } from "./ObjectTimeline";
 import { TimelineTicks } from "./TimelineTicks";
 import toast from "react-hot-toast";
 import {
   ArrowRight,
+  CameraRotate,
   Check,
   Hamburger,
   MagicWand,
@@ -221,6 +224,14 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
   );
 
   let [toolbarTab, setToolbarTab] = useState("none");
+
+  // Camera orbit state
+  let [orbitX, setOrbitX] = useState(0);
+  let [orbitY, setOrbitY] = useState(0);
+
+  // Camera pan state
+  let [panX, setPanX] = useState(0);
+  let [panY, setPanY] = useState(0);
 
   // Text Animation state
   let [selectedTextId, setSelectedTextId] = useState<string | null>(null);
@@ -1442,7 +1453,7 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 </button>
                 <button
                   className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
-        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out 
+        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out
          hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
                   onClick={() => {
                     if (toolbarTab === "sequences") {
@@ -1454,6 +1465,21 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                 >
                   <FlowArrow />
                   <span className="text-xs">Sequences</span>
+                </button>
+                <button
+                  className="min-w-[45px] h-[45px] flex flex-col justify-center items-center border-0 rounded-[15px]
+        shadow-[0_0_15px_4px_rgba(0,0,0,0.16)] transition-colors duration-200 ease-in-out
+         hover:cursor-pointer focus-visible:border-2 focus-visible:border-blue-500 z-10"
+                  onClick={() => {
+                    if (toolbarTab === "camera") {
+                      setToolbarTab("none");
+                    } else {
+                      setToolbarTab("camera");
+                    }
+                  }}
+                >
+                  <CameraRotate />
+                  <span className="text-xs">Camera</span>
                 </button>
               </div>
             </div>
@@ -1669,6 +1695,176 @@ export const VideoEditor: React.FC<any> = ({ projectId }) => {
                         );
                       })}
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {toolbarTab === "camera" && (
+                <div className="p-4">
+                  <h5 className="text-lg font-semibold mb-4">
+                    Camera Controls
+                  </h5>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Orbit Horizontal
+                      </label>
+                      <input
+                        type="range"
+                        min="-3.14159"
+                        max="3.14159"
+                        step="0.01"
+                        value={orbitX}
+                        className="w-full"
+                        onChange={(e) => {
+                          const editor = editorRef.current;
+                          if (editor && editor.camera) {
+                            const newValue = parseFloat(e.target.value);
+                            const deltaX = newValue - orbitX;
+                            (editor.camera as Camera3D).orbit(deltaX, 0);
+                            editor.cameraBinding?.update(
+                              editor.gpuResources?.queue!,
+                              editor.camera
+                            );
+                            setOrbitX(newValue);
+                          }
+                        }}
+                      />
+                      <div className="text-xs text-gray-500 mt-1">
+                        Rotate camera around target (horizontal)
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Orbit Vertical
+                      </label>
+                      <input
+                        type="range"
+                        min="-1.57"
+                        max="1.57"
+                        step="0.01"
+                        value={orbitY}
+                        className="w-full"
+                        onChange={(e) => {
+                          const editor = editorRef.current;
+                          if (editor && editor.camera) {
+                            const newValue = parseFloat(e.target.value);
+                            const deltaY = newValue - orbitY;
+                            (editor.camera as Camera3D).orbit(0, deltaY);
+                            editor.cameraBinding?.update(
+                              editor.gpuResources?.queue!,
+                              editor.camera
+                            );
+                            setOrbitY(newValue);
+                          }
+                        }}
+                      />
+                      <div className="text-xs text-gray-500 mt-1">
+                        Rotate camera around target (vertical)
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-4 mt-4">
+                      <h6 className="text-sm font-medium mb-3">Pan Camera</h6>
+
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium mb-2">
+                          Pan Horizontal (X)
+                        </label>
+                        <input
+                          type="range"
+                          min="-10"
+                          max="10"
+                          step="0.1"
+                          value={panX}
+                          className="w-full"
+                          onChange={(e) => {
+                            const editor = editorRef.current;
+                            if (editor && editor.camera) {
+                              const newValue = parseFloat(e.target.value);
+                              const deltaX = newValue - panX;
+                              editor.camera.pan(vec2.fromValues(deltaX, 0));
+                              editor.cameraBinding?.update(
+                                editor.gpuResources?.queue!,
+                                editor.camera
+                              );
+                              setPanX(newValue);
+                            }
+                          }}
+                        />
+                        <div className="text-xs text-gray-500 mt-1">
+                          Move camera left/right
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Pan Vertical (Y)
+                        </label>
+                        <input
+                          type="range"
+                          min="-10"
+                          max="10"
+                          step="0.1"
+                          value={panY}
+                          className="w-full"
+                          onChange={(e) => {
+                            const editor = editorRef.current;
+                            if (editor && editor.camera) {
+                              const newValue = parseFloat(e.target.value);
+                              const deltaY = newValue - panY;
+                              editor.camera.pan(vec2.fromValues(0, deltaY));
+                              editor.cameraBinding?.update(
+                                editor.gpuResources?.queue!,
+                                editor.camera
+                              );
+                              setPanY(newValue);
+                            }
+                          }}
+                        />
+                        <div className="text-xs text-gray-500 mt-1">
+                          Move camera up/down
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      className="w-full py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                      onClick={() => {
+                        const editor = editorRef.current;
+                        if (editor && editor.camera) {
+                          // Reset orbit
+                          const orbitDeltaX = -orbitX;
+                          const orbitDeltaY = -orbitY;
+                          (editor.camera as Camera3D).orbit(
+                            orbitDeltaX,
+                            orbitDeltaY
+                          );
+
+                          // Reset pan
+                          const panDeltaX = -panX;
+                          const panDeltaY = -panY;
+                          editor.camera.pan(
+                            vec2.fromValues(panDeltaX, panDeltaY)
+                          );
+
+                          editor.cameraBinding?.update(
+                            editor.gpuResources?.queue!,
+                            editor.camera
+                          );
+
+                          // Reset state
+                          setOrbitX(0);
+                          setOrbitY(0);
+                          setPanX(0);
+                          setPanY(0);
+                        }
+                      }}
+                    >
+                      Reset Camera
+                    </button>
                   </div>
                 </div>
               )}

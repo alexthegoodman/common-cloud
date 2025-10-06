@@ -89,7 +89,7 @@ export class CanvasPipeline {
     const camera = new Camera3D(windowSize);
 
     // Make it look at the origin
-    camera.lookAt(vec3.fromValues(0, 0, 0));
+    // camera.lookAt(vec3.fromValues(0, 0, 0)); // lets set the default right in the camera
 
     const cameraBinding = new CameraBinding(
       gpuResources.device!,
