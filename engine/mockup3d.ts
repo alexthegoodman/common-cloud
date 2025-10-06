@@ -71,6 +71,8 @@ export class Mockup3D {
   videoChild: StVideo | null = null;
   videoChildConfig: StVideoConfig;
 
+  tiltAngle: number = 45;
+
   constructor(
     windowSize: WindowSize,
     device: PolyfillDevice,
@@ -245,7 +247,7 @@ export class Mockup3D {
       vec2.fromValues(1, 1),
       uniformBuffer
     );
-    this.transform.layer = (getZLayer(config.layer) as number) - 0.5;
+    this.transform.layer = (getZLayer(config.layer) as number) - 3.5;
     this.transform.updateUniformBuffer(queue, camera.windowSize);
   }
 
@@ -513,7 +515,7 @@ export class Mockup3D {
     const screenThickness = d * 0.05; // Thin screen
 
     // Screen tilted back at ~105 degrees (common laptop angle)
-    const tiltAngle = 15 * (Math.PI / 180); // 15 degrees back from vertical
+    const tiltAngle = this.tiltAngle * (Math.PI / 180); // 15 degrees back from vertical
     const screenTop = hingeY + screenHeight * Math.cos(tiltAngle);
     const screenTopZ = baseThickness + screenHeight * Math.sin(tiltAngle);
 
@@ -577,7 +579,7 @@ export class Mockup3D {
     const screenHeight = h * 0.6;
     const screenWidth = w * 0.85; // Inset from bezel
     const hingeY = (h * 0.5) / 2;
-    const tiltAngle = 15;
+    const tiltAngle = this.tiltAngle;
 
     // Calculate screen center position RELATIVE to mockup center
     const screenCenterY =
@@ -723,6 +725,8 @@ export class Mockup3D {
     //   this.groupTransform.rotationY
     // );
     // this.videoChild.groupTransform.updateRotation(this.groupTransform.rotation);
+
+    this.videoChild.transform.updateRotationX(screenBounds.rotation[0] * -0.01);
 
     // Update the video's group transform buffer
     this.videoChild.transform.updateUniformBuffer(queue, windowSize);
