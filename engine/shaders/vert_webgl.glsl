@@ -37,16 +37,16 @@ void main() {
         // Rotation/Scale components are in the top-left 3x3 submatrix.
         // We multiply the 3x3 submatrix by 100.0.
         // Row 0
-        group_transform[0][1] *= -100.0; // M[1][0] (Y-axis basis, X component)
-        group_transform[0][2] *= -100.0; // M[2][0] (Z-axis basis, X component)
+        group_transform[0][1] *= 100.0 * 4.0; // M[1][0] (Y-axis basis, X component)
+        group_transform[0][2] *= 100.0 * 4.0; // M[2][0] (Z-axis basis, X component)
 
         // Row 1
-        group_transform[1][0] *= -100.0; // M[0][1] (X-axis basis, Y component)
-        group_transform[1][2] *= -100.0; // M[2][1] (Z-axis basis, Y component)
+        group_transform[1][0] *= -100.0 * 4.0; // M[0][1] (X-axis basis, Y component)
+        group_transform[1][2] *= -100.0 * 4.0; // M[2][1] (Z-axis basis, Y component)
 
         // Row 2
-        group_transform[2][0] *= -100.0; // M[0][2] (X-axis basis, Z component)
-        group_transform[2][1] *= -100.0; // M[1][2] (Y-axis basis, Z component)
+        group_transform[2][0] *= -100.0 * 4.0; // M[0][2] (X-axis basis, Z component)
+        group_transform[2][1] *= -100.0 * 4.0; // M[1][2] (Y-axis basis, Z component)
 
         // 2. Convert the X and Y components of the translation to NDC
         // X: [0, u_window_size.x] -> [-1, 1]

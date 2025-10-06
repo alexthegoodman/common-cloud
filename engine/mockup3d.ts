@@ -233,8 +233,8 @@ export class Mockup3D {
     // Setup group transform with position and rotation
     this.groupTransform.updatePosition([position.x, position.y], windowSize);
     this.groupTransform.updateRotationXDegrees(rotation[0] * 0.01);
-    this.groupTransform.updateRotationYDegrees(rotation[1]);
-    this.groupTransform.updateRotationDegrees(rotation[2]);
+    this.groupTransform.updateRotationYDegrees(rotation[1] * 0.01);
+    this.groupTransform.updateRotationDegrees(rotation[2] * 0.01);
     // this.groupTransform.layer = (getZLayer(config.layer) as number) - 0.5;
     this.groupTransform.updateUniformBuffer(queue, camera.windowSize);
 

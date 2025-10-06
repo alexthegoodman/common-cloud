@@ -1273,7 +1273,7 @@ export function updateMockup3DRotationY(
   let mockup = editor.mockups3D.find((m) => m.id === objectId);
   if (mockup && editor.camera) {
     mockup.groupTransform.rotationY = value;
-    mockup.groupTransform.updateRotationYDegrees(value);
+    mockup.groupTransform.updateRotationYDegrees(value * 0.01);
     mockup.groupTransform.updateUniformBuffer(
       editor.gpuResources?.queue!,
       editor.camera.windowSize
@@ -1301,7 +1301,7 @@ export function updateMockup3DRotationZ(
   let mockup = editor.mockups3D.find((m) => m.id === objectId);
   if (mockup && editor.camera) {
     mockup.groupTransform.rotation = value;
-    mockup.groupTransform.updateRotationDegrees(value);
+    mockup.groupTransform.updateRotationDegrees(value * 0.01);
     mockup.groupTransform.updateUniformBuffer(
       editor.gpuResources?.queue!,
       editor.camera.windowSize
