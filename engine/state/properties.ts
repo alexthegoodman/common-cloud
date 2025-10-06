@@ -1245,7 +1245,7 @@ export function updateMockup3DRotationX(
   let mockup = editor.mockups3D.find((m) => m.id === objectId);
   if (mockup && editor.camera) {
     mockup.groupTransform.rotationX = value;
-    mockup.groupTransform.updateRotationXDegrees(value);
+    mockup.groupTransform.updateRotationXDegrees(value * 0.01);
     mockup.groupTransform.updateUniformBuffer(
       editor.gpuResources?.queue!,
       editor.camera.windowSize

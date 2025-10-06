@@ -33,6 +33,21 @@ void main() {
         // 1. Get the current pixel-based translation from the matrix
         vec4 pixel_translation = group_transform[3]; 
 
+        //  multiply rotation values by 100 because they are shrunk to 0.01 pre-shader
+        // Rotation/Scale components are in the top-left 3x3 submatrix.
+        // We multiply the 3x3 submatrix by 100.0.
+        // Row 0
+        group_transform[0][1] *= -100.0; // M[1][0] (Y-axis basis, X component)
+        group_transform[0][2] *= -100.0; // M[2][0] (Z-axis basis, X component)
+
+        // Row 1
+        group_transform[1][0] *= -100.0; // M[0][1] (X-axis basis, Y component)
+        group_transform[1][2] *= -100.0; // M[2][1] (Z-axis basis, Y component)
+
+        // Row 2
+        group_transform[2][0] *= -100.0; // M[0][2] (X-axis basis, Z component)
+        group_transform[2][1] *= -100.0; // M[1][2] (Y-axis basis, Z component)
+
         // 2. Convert the X and Y components of the translation to NDC
         // X: [0, u_window_size.x] -> [-1, 1]
         pixel_translation.x = (pixel_translation.x / bindGroup0_1.x) * 2.0 - 1.0;

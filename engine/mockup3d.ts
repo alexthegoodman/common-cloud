@@ -477,11 +477,11 @@ export class Mockup3D {
     return this.toConfig();
   }
 
-  containsPoint(point: Point): boolean {
+  containsPoint(point: Point, windowSize: WindowSize): boolean {
     // Simple bounding box check for 3D mockup projected to 2D
-    const [w, h] = this.dimensions;
-    const x = this.groupTransform.position[0];
-    const y = this.groupTransform.position[1];
+    const [w, h] = this.videoChild!.dimensions; // small values like 0.5, 1, or 2 (made ofr NDC, but of course dimensions to go negative)
+    let x = this.groupTransform.position[0]; // large world values like 100, 200
+    let y = this.groupTransform.position[1];
 
     return (
       point.x >= x - w / 2 &&
@@ -490,6 +490,25 @@ export class Mockup3D {
       point.y <= y + h / 2
     );
   }
+
+  // containsPoint(point: Point, windowSize: WindowSize): boolean {
+  //   // 1. Get the Inverse World Transform Matrix
+  //   const invMatrix = this.groupTransform.getInverseWorldMatrix(windowSize);
+
+  //   // 2. Transform the World Point into the Object's Local Space
+  //   // localPoint is now relative to the object's center (0, 0)
+  //   const localPoint = this.groupTransform.transformPoint(point, invMatrix);
+
+  //   // 3. Simple bounding box check in Local Space
+  //   const [w, h] = this.dimensions; // Small local/NDC values like 0.5, 1, or 2
+
+  //   return (
+  //     localPoint.x >= -w / 2 &&
+  //     localPoint.x <= w / 2 &&
+  //     localPoint.y >= -h / 2 &&
+  //     localPoint.y <= h / 2
+  //   );
+  // }
 
   // Update video child transform to position it relative to the laptop screen
   updateVideoChildTransform(queue: PolyfillQueue, windowSize: WindowSize) {
@@ -509,13 +528,13 @@ export class Mockup3D {
     );
 
     // Apply the screen tilt angle combined with mockup rotation
-    this.videoChild.groupTransform.updateRotationX(
-      this.groupTransform.rotationX + screenBounds.rotation[0]
-    );
-    this.videoChild.groupTransform.updateRotationY(
-      this.groupTransform.rotationY
-    );
-    this.videoChild.groupTransform.updateRotation(this.groupTransform.rotation);
+    // this.videoChild.groupTransform.updateRotationX(
+    //   this.groupTransform.rotationX + screenBounds.rotation[0]
+    // );
+    // this.videoChild.groupTransform.updateRotationY(
+    //   this.groupTransform.rotationY
+    // );
+    // this.videoChild.groupTransform.updateRotation(this.groupTransform.rotation);
 
     // Update the video's group transform buffer
     this.videoChild.groupTransform.updateUniformBuffer(queue, windowSize);

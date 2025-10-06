@@ -5458,7 +5458,7 @@ export class Editor {
         continue;
       }
 
-      if (mockup.containsPoint(ndcPoint)) {
+      if (mockup.containsPoint(ndcPoint, this.camera?.windowSize!)) {
         intersecting_objects.push([
           mockup.layer,
           InteractionTarget.Mockup3D,
@@ -5983,8 +5983,8 @@ export class Editor {
     if (this.draggingMockup3D) {
       if (this.dragStart) {
         this.move_mockup3d(
-          ndcPoint,
-          startNdcPoint,
+          this.lastTopLeft,
+          this.dragStart,
           this.draggingMockup3D,
           windowSize,
           device
@@ -7039,7 +7039,12 @@ export class Editor {
       );
     }
 
-    let new_position = mouse_pos;
+    // let new_position = mouse_pos;
+
+    let new_position = {
+      x: roundToGrid(originalX + dx, this.gridSnap),
+      y: roundToGrid(originalY + dy, this.gridSnap),
+    };
 
     mockup.groupTransform.updatePosition(
       [new_position.x, new_position.y],

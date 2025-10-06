@@ -1,4 +1,4 @@
-import { mat4, vec2, vec3, quat } from "gl-matrix";
+import { mat4, vec2, vec3, quat, vec4 } from "gl-matrix";
 import { WindowSize } from "./camera";
 import { Point } from "./editor";
 import {
@@ -130,6 +130,69 @@ export class Transform {
   rotateDegrees(degrees: number) {
     this.rotation += degrees * (Math.PI / 180.0);
   }
+
+  /**
+   * Calculates and returns the current World Matrix (same as updateTransform)
+   * but without updating the uniform buffer.
+   * @returns {mat4} The combined Translation * Rotation * Scale matrix.
+   */
+  getWorldMatrix(windowSize: WindowSize): mat4 {
+    // Re-use the existing transformation logic
+    return this.updateTransform(windowSize);
+  }
+
+  /**
+   * Calculates the Inverse World Matrix. This is used to transform a World Point
+   * into the object's Local Space for hit-testing.
+   * @returns {mat4} The inverse of the World Matrix.
+   */
+  getInverseWorldMatrix(windowSize: WindowSize): mat4 {
+    const worldMatrix = this.getWorldMatrix(windowSize);
+    const inverseMatrix = mat4.create();
+
+    // Compute the inverse matrix
+    mat4.invert(inverseMatrix, worldMatrix);
+
+    return inverseMatrix;
+  }
+
+  /**
+   * Transforms an input Point (e.g., in World Space) by a given matrix.
+   * @param {Point} point - The point to transform.
+   * @param {mat4} matrix - The matrix to use for the transformation.
+   * @returns {Point} The transformed point.
+   */
+  transformPoint(point: Point, matrix: mat4): Point {
+    // This function now relies on the corrected external utility
+    return transformPointByMatrix(point, matrix);
+  }
+}
+
+/**
+ * Utility function to transform a 2D Point by a 4x4 matrix.
+ * It treats the 2D point (x, y) as a 4D vector (x, y, 0, 1) for matrix multiplication.
+ * @param {Point} point - The 2D point {x, y} to transform.
+ * @param {mat4} matrix - The 4x4 transformation matrix.
+ * @returns {Point} The transformed 2D point.
+ */
+export function transformPointByMatrix(point: Point, matrix: mat4): Point {
+  // Use a temporary vec4 to represent the point (x, y, z=0, w=1)
+  const tempVec = vec4.fromValues(point.x, point.y, 0.0, 1.0);
+  const resultVec = vec4.create();
+
+  // 1. **CORRECTION:** Use vec4.transformMat4(out, vec, mat)
+  // This function applies the matrix transformation: resultVec = matrix * tempVec
+  vec4.transformMat4(resultVec, tempVec, matrix);
+
+  // The resulting point is the transformed (x, y) coordinates.
+  // We divide by w (resultVec[3]) for homogeneous coordinates,
+  // although w should be 1.0 for standard affine (non-perspective) transforms.
+  const w = resultVec[3];
+
+  return {
+    x: resultVec[0] / w,
+    y: resultVec[1] / w,
+  } as Point; // Assuming 'Point' is { x: number, y: number }
 }
 
 export function degreesToRadians(degrees: number) {
