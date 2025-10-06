@@ -1244,19 +1244,13 @@ export function updateMockup3DRotationX(
 ) {
   let mockup = editor.mockups3D.find((m) => m.id === objectId);
   if (mockup && editor.camera) {
-    mockup.transform.rotationX = value;
-    mockup.transform.updateRotationXDegrees(value);
-    mockup.transform.updateUniformBuffer(
+    mockup.groupTransform.rotationX = value;
+    mockup.groupTransform.updateRotationXDegrees(value);
+    mockup.groupTransform.updateUniformBuffer(
       editor.gpuResources?.queue!,
       editor.camera.windowSize
     );
-    // Update video child transform to match new mockup rotation
-    if (mockup.videoChild && editor.gpuResources?.queue) {
-      mockup.updateVideoChildTransform(
-        editor.gpuResources.queue,
-        editor.camera.windowSize
-      );
-    }
+    // Video child automatically follows via shared group transform
   }
 
   editorState.savedState.sequences.forEach((s) => {
@@ -1278,19 +1272,13 @@ export function updateMockup3DRotationY(
 ) {
   let mockup = editor.mockups3D.find((m) => m.id === objectId);
   if (mockup && editor.camera) {
-    mockup.transform.rotationY = value;
-    mockup.transform.updateRotationYDegrees(value);
-    mockup.transform.updateUniformBuffer(
+    mockup.groupTransform.rotationY = value;
+    mockup.groupTransform.updateRotationYDegrees(value);
+    mockup.groupTransform.updateUniformBuffer(
       editor.gpuResources?.queue!,
       editor.camera.windowSize
     );
-    // Update video child transform to match new mockup rotation
-    if (mockup.videoChild && editor.gpuResources?.queue) {
-      mockup.updateVideoChildTransform(
-        editor.gpuResources.queue,
-        editor.camera.windowSize
-      );
-    }
+    // Video child automatically follows via shared group transform
   }
 
   editorState.savedState.sequences.forEach((s) => {
@@ -1312,19 +1300,13 @@ export function updateMockup3DRotationZ(
 ) {
   let mockup = editor.mockups3D.find((m) => m.id === objectId);
   if (mockup && editor.camera) {
-    mockup.transform.rotation = value;
-    mockup.transform.updateRotationDegrees(value);
-    mockup.transform.updateUniformBuffer(
+    mockup.groupTransform.rotation = value;
+    mockup.groupTransform.updateRotationDegrees(value);
+    mockup.groupTransform.updateUniformBuffer(
       editor.gpuResources?.queue!,
       editor.camera.windowSize
     );
-    // Update video child transform to match new mockup rotation
-    if (mockup.videoChild && editor.gpuResources?.queue) {
-      mockup.updateVideoChildTransform(
-        editor.gpuResources.queue,
-        editor.camera.windowSize
-      );
-    }
+    // Video child automatically follows via shared group transform
   }
 
   editorState.savedState.sequences.forEach((s) => {

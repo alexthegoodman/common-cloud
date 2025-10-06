@@ -20,9 +20,33 @@ uniform mat4 bindGroup3_0; // u_group
 
 void main() {
     // Apply model and group transforms
-    vec4 world_pos = bindGroup1_0 * bindGroup3_0 * vec4(a_position, 1.0);
+    // TODO: if object type is 8 (for 3d mockup) then convert u_group to NDC before calculating world_pos
+    // vec4 world_pos = bindGroup1_0 * bindGroup3_0 * vec4(a_position, 1.0);
 
-    if (a_object_type != 5.0 && a_object_type != 6.0) { // not 3D
+    mat4 group_transform = bindGroup3_0;
+
+    // if object type is 8 (for 3d mockup) then convert u_group to NDC before calculating world_pos
+    if (a_object_type == 8.0) { // For 3D Mockup
+        // Convert the translation components (the last column before W) of u_group to NDC.
+        // Assumes u_group is an affine transform where the translation is in the 4th column.
+        
+        // 1. Get the current pixel-based translation from the matrix
+        vec4 pixel_translation = group_transform[3]; 
+
+        // 2. Convert the X and Y components of the translation to NDC
+        // X: [0, u_window_size.x] -> [-1, 1]
+        pixel_translation.x = (pixel_translation.x / bindGroup0_1.x) * 2.0 - 1.0;
+        // Y: [0, u_window_size.y] -> [-1, 1], with Y flipped (typical for screen coordinates)
+        pixel_translation.y = -((pixel_translation.y / bindGroup0_1.y) * 2.0 - 1.0);
+        
+        // 3. Store the NDC translation back into the group matrix
+        group_transform[3] = pixel_translation;
+    }
+    
+    // Apply model and group transforms
+    vec4 world_pos = bindGroup1_0 * group_transform * vec4(a_position, 1.0);
+
+    if (a_object_type != 5.0 && a_object_type != 6.0 && a_object_type != 8.0) { // not 3D cube, sphere, or mockup
         // // Convert XY from pixel coordinates to NDC for positioning
         // // Preserve Z and W for proper 3D projection
         world_pos.x = (world_pos.x / bindGroup0_1.x) * 2.0 - 1.0;

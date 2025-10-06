@@ -64,6 +64,7 @@ export class Mockup3D {
   bindGroup: PolyfillBindGroup;
   groupBindGroup: PolyfillBindGroup;
   transform: Transform;
+  groupTransform: Transform;
   currentSequenceId: string;
 
   // Required video child
@@ -223,27 +224,29 @@ export class Mockup3D {
       ],
     });
 
-    // Create transform
+    // Create group transform (parent transform for the entire mockup)
+    let [mockupGroupBindGroup, mockupGroupTransform] =
+      createEmptyGroupTransform(device, groupBindGroupLayout, windowSize);
+    this.groupBindGroup = mockupGroupBindGroup;
+    this.groupTransform = mockupGroupTransform;
+
+    // Setup group transform with position and rotation
+    this.groupTransform.updatePosition([position.x, position.y], windowSize);
+    this.groupTransform.updateRotationXDegrees(rotation[0] * 0.01);
+    this.groupTransform.updateRotationYDegrees(rotation[1]);
+    this.groupTransform.updateRotationDegrees(rotation[2]);
+    // this.groupTransform.layer = (getZLayer(config.layer) as number) - 0.5;
+    this.groupTransform.updateUniformBuffer(queue, camera.windowSize);
+
+    // Create local transform (relative to group, stays at origin)
     this.transform = new Transform(
-      vec2.fromValues(position.x, position.y),
-      0, // 2D rotation (we'll handle 3D rotation separately)
+      vec2.fromValues(0, 0), // Local position at origin
+      0,
       vec2.fromValues(1, 1),
       uniformBuffer
     );
-
-    this.transform.updateRotationXDegrees(rotation[0]);
-    this.transform.updateRotationYDegrees(rotation[1]);
-    this.transform.updateRotationDegrees(rotation[2]);
     this.transform.layer = (getZLayer(config.layer) as number) - 0.5;
     this.transform.updateUniformBuffer(queue, camera.windowSize);
-
-    // Create group bind group
-    let [tmp_group_bind_group, tmp_group_transform] = createEmptyGroupTransform(
-      device,
-      groupBindGroupLayout,
-      windowSize
-    );
-    this.groupBindGroup = tmp_group_bind_group;
   }
 
   private generateLaptopGeometry(): [Vertex[], number[]] {
@@ -298,7 +301,7 @@ export class Mockup3D {
           tex_coords: [0, 0],
           color: face.color,
           gradient_coords: [(pos[0] + hw) / w, (pos[1] + hh) / h],
-          object_type: 6, // Mockup3D object type
+          object_type: 8, // Mockup3D object type
         });
       }
       // Add indices
@@ -357,7 +360,7 @@ export class Mockup3D {
           tex_coords: [0, 0],
           color: face.color,
           gradient_coords: [(pos[0] + hw) / w, (pos[1] + hh) / h],
-          object_type: 6,
+          object_type: 8,
         });
       }
       indices.push(
@@ -373,7 +376,7 @@ export class Mockup3D {
     return [vertices, indices];
   }
 
-  // Get the screen area bounds for positioning the video child
+  // Get the screen area bounds for positioning the video child (relative to mockup center)
   getScreenBounds(): {
     position: Point;
     dimensions: [number, number];
@@ -383,22 +386,22 @@ export class Mockup3D {
     const screenHeight = h * 0.6;
     const screenWidth = w * 0.85; // Inset from bezel
     const hingeY = (h * 0.5) / 2;
-    const tiltAngle = -15;
+    const tiltAngle = 15;
 
-    // Calculate screen center position
+    // Calculate screen center position RELATIVE to mockup center
     const screenCenterY =
       hingeY + (screenHeight * Math.cos((tiltAngle * Math.PI) / 180)) / 2;
 
     return {
       position: {
-        x: this.transform.position[0],
-        y: this.transform.position[1] + screenCenterY,
+        x: 0, // Centered horizontally relative to mockup
+        y: screenCenterY, // Offset vertically relative to mockup center
       },
       dimensions: [screenWidth, screenHeight * 0.9],
       rotation: [
-        degreesToRadians(tiltAngle) + this.transform.rotationX, // TODO: can't add tiltAngle directly to radians from transform
-        this.transform.rotationY,
-        this.transform.rotation,
+        degreesToRadians(tiltAngle), // Just the tilt angle, parent rotation handled by group transform
+        0, // No additional Y rotation
+        0, // No additional Z rotation
       ],
     };
   }
@@ -447,7 +450,7 @@ export class Mockup3D {
   updateLayer(layer: number) {
     let layer_index = getZLayer(layer);
     this.layer = layer;
-    this.transform.layer = layer_index as number;
+    this.groupTransform.layer = layer_index as number;
   }
 
   toConfig(): Mockup3DConfig {
@@ -456,13 +459,13 @@ export class Mockup3D {
       name: this.name,
       dimensions: this.dimensions,
       position: {
-        x: this.transform.position[0] - CANVAS_HORIZ_OFFSET,
-        y: this.transform.position[1] - CANVAS_VERT_OFFSET,
+        x: this.groupTransform.position[0] - CANVAS_HORIZ_OFFSET,
+        y: this.groupTransform.position[1] - CANVAS_VERT_OFFSET,
       },
       rotation: [
-        this.transform.rotationX,
-        this.transform.rotationY,
-        this.transform.rotation,
+        this.groupTransform.rotationX,
+        this.groupTransform.rotationY,
+        this.groupTransform.rotation,
       ],
       backgroundFill: this.backgroundFill,
       layer: this.layer,
@@ -477,8 +480,8 @@ export class Mockup3D {
   containsPoint(point: Point): boolean {
     // Simple bounding box check for 3D mockup projected to 2D
     const [w, h] = this.dimensions;
-    const x = this.transform.position[0];
-    const y = this.transform.position[1];
+    const x = this.groupTransform.position[0];
+    const y = this.groupTransform.position[1];
 
     return (
       point.x >= x - w / 2 &&
@@ -488,40 +491,33 @@ export class Mockup3D {
     );
   }
 
-  // Update video child transform to match screen position
+  // Update video child transform to position it relative to the laptop screen
   updateVideoChildTransform(queue: PolyfillQueue, windowSize: WindowSize) {
     if (!this.videoChild) return;
 
     const screenBounds = this.getScreenBounds();
 
-    // const ndcPoint = {
-    //   x: (screenBounds.position.x / windowSize.width) * 2.0 - 1.0,
-    //   y: -((screenBounds.position.y / windowSize.height) * 2.0 - 1.0),
-    // };
-
-    const screenBoundsWorld = {
-      position: {
-        x: ((screenBounds.position.x + 1) / 2) * windowSize.width,
-        y: ((1 - screenBounds.position.y) / 2) * windowSize.height,
-      },
-    };
-
-    // Update video position and rotation to match screen
+    // Update video's groupTransform (not shared, it has its own) to include:
+    // - Mockup's world position + screen offset
+    // - Mockup's rotation + screen tilt
     this.videoChild.groupTransform.updatePosition(
-      [screenBoundsWorld.position.x, screenBoundsWorld.position.y],
+      [
+        this.groupTransform.position[0] + screenBounds.position.x,
+        this.groupTransform.position[1] + screenBounds.position.y,
+      ],
       windowSize
     );
 
-    console.info("screenBounds", screenBounds);
-
-    // Apply screen rotation
+    // Apply the screen tilt angle combined with mockup rotation
     this.videoChild.groupTransform.updateRotationX(
-      screenBounds.rotation[0] * 0.01
+      this.groupTransform.rotationX + screenBounds.rotation[0]
     );
     this.videoChild.groupTransform.updateRotationY(
-      screenBounds.rotation[1] * 0.01
+      this.groupTransform.rotationY
     );
-    this.videoChild.groupTransform.updateRotation(screenBounds.rotation[2]);
+    this.videoChild.groupTransform.updateRotation(this.groupTransform.rotation);
+
+    // Update the video's group transform buffer
     this.videoChild.groupTransform.updateUniformBuffer(queue, windowSize);
   }
 }

@@ -139,6 +139,7 @@ export class StVideo {
   //   frameTimer: FrameTimer | undefined;
   dynamicAlpha: number;
   numFramesDrawn: number;
+  objectTypeShader: number = 3;
 
   private videoDecoder?: VideoDecoder;
   private mp4File?: MP4Box.MP4File;
@@ -167,7 +168,8 @@ export class StVideo {
     // gradientBindGroupLayout: PolyfillBindGroupLayout,
     zIndex: number,
     currentSequenceId: string,
-    loadedHidden: boolean
+    loadedHidden: boolean,
+    objectTypeShader: number = 3
   ) {
     this.id = videoConfig.id;
     this.currentSequenceId = currentSequenceId;
@@ -183,6 +185,7 @@ export class StVideo {
     this.numFramesDrawn = 0;
     this.objectType = ObjectType.VideoItem;
     this.borderRadius = videoConfig.borderRadius ?? 0.0;
+    this.objectTypeShader = objectTypeShader;
 
     // defaults
     this.sourceDuration = 0;
@@ -396,7 +399,7 @@ export class StVideo {
               tex_coords: [texX, texY],
               color: [1.0, 1.0, 1.0, 1.0],
               gradient_coords: [normalizedX, normalizedY],
-              object_type: 3, // OBJECT_TYPE_VIDEO
+              object_type: this.objectTypeShader, // OBJECT_TYPE_VIDEO
             });
           }
         }

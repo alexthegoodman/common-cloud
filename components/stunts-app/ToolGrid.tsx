@@ -837,8 +837,8 @@ export const ToolGrid = ({
           // };
 
           const mockupPosition = {
-            x: 0,
-            y: 0,
+            x: 100,
+            y: 100,
           };
 
           let mockupDimensions = [2.0, 2.0, 0.3] as [number, number, number];
@@ -853,7 +853,10 @@ export const ToolGrid = ({
               number,
               number
             ], // Will be adjusted by mockup
-            position: mockupPosition,
+            position: {
+              x: 0,
+              y: 0,
+            },
             path: url,
             layer: layers.length + 1, // Video is above mockup
           };
@@ -880,7 +883,8 @@ export const ToolGrid = ({
             new_video_id,
             sequence_id,
             [],
-            null
+            null,
+            7
           );
 
           if (!new_video_item || !new_video_item.sourceDurationMs) {
@@ -896,8 +900,8 @@ export const ToolGrid = ({
             mockup.videoChild = new_video_item;
             // Update video child transform to match mockup's screen
             if (editor.gpuResources?.queue && editor.camera?.windowSize) {
-              mockup.videoChild.groupTransform.layer =
-                mockup.videoChild.groupTransform.layer + 0.3;
+              mockup.videoChild.transform.layer =
+                mockup.videoChild.transform.layer + 0.3;
               mockup.updateVideoChildTransform(
                 editor.gpuResources.queue,
                 editor.camera.windowSize

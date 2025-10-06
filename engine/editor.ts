@@ -1799,7 +1799,8 @@ export class Editor {
           -2.0,
           // i.id,
           saved_sequence.id,
-          hidden
+          hidden,
+          7
         );
 
         await restored_video.initialize(
@@ -1819,8 +1820,8 @@ export class Editor {
 
         restored_mockup.videoChild = restored_video;
 
-        restored_mockup.videoChild.groupTransform.layer =
-          restored_mockup.videoChild.groupTransform.layer + 0.3;
+        restored_mockup.videoChild.transform.layer =
+          restored_mockup.videoChild.transform.layer + 0.3;
 
         restored_mockup.updateVideoChildTransform(
           this.gpuResources?.queue!,
@@ -3979,7 +3980,8 @@ export class Editor {
     new_id: string,
     selected_sequence_id: string,
     mouse_positions: MousePosition[],
-    stored_source_data: SourceData | null
+    stored_source_data: SourceData | null,
+    objectTypeShader: number = 3
   ): Promise<StVideo | null> {
     let gpuResources = this.gpuResources;
     let camera = this.camera;
@@ -4012,7 +4014,8 @@ export class Editor {
       // this.gradientBindGroupLayout,
       0.0,
       selected_sequence_id,
-      false
+      false,
+      objectTypeShader
     );
 
     await video_item.initialize(
@@ -5739,7 +5742,7 @@ export class Editor {
         this.draggingMockup3D = mockup.id;
         this.dragStart = this.lastTopLeft;
 
-        mockup.transform.startPosition = vec2.fromValues(
+        mockup.groupTransform.startPosition = vec2.fromValues(
           this.dragStart.x,
           this.dragStart.y
         );
@@ -5750,13 +5753,13 @@ export class Editor {
             name: mockup.name,
             dimensions: mockup.dimensions,
             position: {
-              x: mockup.transform.position[0] - CANVAS_HORIZ_OFFSET,
-              y: mockup.transform.position[1] - CANVAS_VERT_OFFSET,
+              x: mockup.groupTransform.position[0] - CANVAS_HORIZ_OFFSET,
+              y: mockup.groupTransform.position[1] - CANVAS_VERT_OFFSET,
             },
             rotation: [
-              mockup.transform.rotationX,
-              mockup.transform.rotationY,
-              mockup.transform.rotation,
+              mockup.groupTransform.rotationX,
+              mockup.groupTransform.rotationY,
+              mockup.groupTransform.rotation,
             ],
             backgroundFill: mockup.backgroundFill,
             layer: mockup.layer,
@@ -6112,8 +6115,8 @@ export class Editor {
 
       if (active_mockup) {
         active_point = {
-          x: active_mockup.transform.position[0],
-          y: active_mockup.transform.position[1],
+          x: active_mockup.groupTransform.position[0],
+          y: active_mockup.groupTransform.position[1],
         };
       }
     }
@@ -7022,31 +7025,28 @@ export class Editor {
       return;
     }
 
-    const originalX = mockup.transform.startPosition
-      ? mockup.transform.startPosition[0]
-      : mockup.transform.position[0];
-    const originalY = mockup.transform.startPosition
-      ? mockup.transform.startPosition[1]
-      : mockup.transform.position[1];
+    const originalX = mockup.groupTransform.startPosition
+      ? mockup.groupTransform.startPosition[0]
+      : mockup.groupTransform.position[0];
+    const originalY = mockup.groupTransform.startPosition
+      ? mockup.groupTransform.startPosition[1]
+      : mockup.groupTransform.position[1];
 
-    if (!mockup.transform.startPosition) {
-      mockup.transform.startPosition = vec2.fromValues(
-        mockup.transform.position[0],
-        mockup.transform.position[1]
+    if (!mockup.groupTransform.startPosition) {
+      mockup.groupTransform.startPosition = vec2.fromValues(
+        mockup.groupTransform.position[0],
+        mockup.groupTransform.position[1]
       );
     }
 
     let new_position = mouse_pos;
 
-    mockup.transform.updatePosition(
+    mockup.groupTransform.updatePosition(
       [new_position.x, new_position.y],
       windowSize
     );
 
-    // Update the video child transform to match the mockup's screen position
-    if (mockup.videoChild && this.gpuResources?.queue) {
-      mockup.updateVideoChildTransform(this.gpuResources.queue, windowSize);
-    }
+    // Video child automatically follows via shared group transform
   }
 
   // is_close(a: number, b: number, threshold: number): boolean {
